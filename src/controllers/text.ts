@@ -19,5 +19,6 @@ export const updateText = async (text_id: number, text: TextCreate) =>
 UPDATE text_message
 SET ?, update_at=CURRENT_TIMESTAMP
 WHERE text_id=?`,
-        text
+        text,
+        text_id
     );

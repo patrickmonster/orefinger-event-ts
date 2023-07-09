@@ -1,5 +1,6 @@
 'use strict';
 import fp from 'fastify-plugin';
+import jwt from '@fastify/jwt';
 import { FastifyRequest, FastifyReply } from 'fastify';
 
 declare module 'fastify' {
@@ -14,7 +15,7 @@ declare module 'fastify' {
  * @see https://github.com/fastify/fastify-sensible
  */
 export default fp(async function (fastify, opts) {
-    fastify.register(require('@fastify/jwt'), {
+    fastify.register(jwt, {
         secret: process.env.JWT_SECRET || 'secret',
     });
 
@@ -24,11 +25,11 @@ export default fp(async function (fastify, opts) {
         }
     });
 
-    // fastify.decorate('authenticate', async function (request, reply) {
-    //     try {
-    //         await request.jwtVerify();
-    //     } catch (err) {
-    //         reply.send(err);
-    //     }
-    // });
+    fastify.decorate('authenticate', async function (request: FastifyRequest, reply: FastifyReply) {
+        try {
+            await request.jwtVerify();
+        } catch (err) {
+            reply.send(err);
+        }
+    });
 });

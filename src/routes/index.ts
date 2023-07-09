@@ -5,6 +5,7 @@ export default async (fastify: FastifyInstance, opts: any) => {
     //
     fastify.get('/ping', { schema: { hide: true } }, async (req, res) => 'pong');
     fastify.get('/', { schema: { hide: true } }, (q, r) => r.redirect('https://orefinger.click'));
+
     fastify.get('/callback', { schema: { hide: true } }, (req, res) => {
         return {
             query: req.query,
