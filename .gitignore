@@ -3,6 +3,8 @@ logs
 *.log
 npm-debug.log*
 
+dist/*
+
 .env
 
 # Runtime data
