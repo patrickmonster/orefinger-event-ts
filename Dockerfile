@@ -12,6 +12,7 @@ RUN apk --no-cache add curl
 COPY package*.json ./
 RUN npm i --forc -g yarn
 RUN yarn
+RUN yarn build
 
 
 COPY . .
