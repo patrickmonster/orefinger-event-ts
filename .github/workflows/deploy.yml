@@ -37,7 +37,7 @@ jobs:
         working-directory: ./
         run: |
           yarn
-          yarn -D tsc-alias
+          yarn add -D tsc-alias
         
       - name: ✨ 빌드 과정을 시작
         working-directory: ./
