@@ -30,7 +30,7 @@ server.register(AutoLoad, {
     dir: path.join(__dirname, 'routes'),
 });
 
-server.listen({ port: 3000 }, (err, address) => {
+server.listen({ port: 3000, host: '::' }, (err, address) => {
     if (err) {
         console.error(err);
         process.exit(1);
