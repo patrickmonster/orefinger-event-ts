@@ -19,15 +19,16 @@ export default fp(async function (fastify, opts) {
         secret: process.env.JWT_SECRET || 'secret',
     });
 
-    fastify.decorate('masterkey', function (request: FastifyRequest, reply: FastifyReply) {
+    fastify.decorate('masterkey', function (request: FastifyRequest, reply: FastifyReply, done: Function) {
         if (process.env.MASTER_KEY && request.headers.Master !== process.env.MASTER_KEY) {
             reply.code(400).send({ error: 'invalid key' });
-        }
+        } else done();
     });
 
-    fastify.decorate('authenticate', async function (request: FastifyRequest, reply: FastifyReply) {
+    fastify.decorate('authenticate', async function (request: FastifyRequest, reply: FastifyReply, done: Function) {
         try {
             await request.jwtVerify();
+            done();
         } catch (err) {
             reply.send(err);
         }

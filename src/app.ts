@@ -25,6 +25,7 @@ const server = fastify({ logger: env.NODE_ENV != 'prod' });
 server.register(AutoLoad, {
     dir: path.join(__dirname, 'plugins'),
 });
+
 server.register(AutoLoad, {
     dir: path.join(__dirname, 'routes'),
 });
