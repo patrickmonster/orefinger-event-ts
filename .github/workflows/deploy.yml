@@ -13,23 +13,44 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: ✅ 체크아웃 source code.
+        uses: actions/checkout@v3
 
-    - name: Check out code
-      uses: actions/checkout@v2
+      - name: ⚙️ ${{ matrix.node-version }} 버전의 노드로 세팅합니다.
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
 
-    - name: Configure AWS credentials
-      uses: aws-actions/configure-aws-credentials@v1
-      with:
-        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        aws-region: ap-northeast-2
+      - name: ⚙️ 환경변수를 설정합니다.
+        working-directory: ./
+        run: |
+          cp ./src/env/.env.development .env
+          cat .env
 
-    - name: Login to Amazon ECR
-      id: login-ecr
-      uses: aws-actions/amazon-ecr-login@v1
-      
-    - name: Build, tag, and push image to Amazon ECR
-      run: |
-        docker build -t orefinger.eventsub.dev .
-        docker tag orefinger.eventsub.dev:latest 417941206094.dkr.ecr.ap-northeast-2.amazonaws.com/orefinger.eventsub.dev:latest
-        docker push 417941206094.dkr.ecr.ap-northeast-2.amazonaws.com/orefinger.eventsub.dev:latest
+      - name: ✨ 패키지 설치
+        working-directory: ./
+        run: yarn
+        
+      - name: ✨ 빌드 과정을 시작
+        working-directory: ./
+        run: yarn run build
+        
+      # - name: 📦 빌드한 코드를 압축
+      #   run: zip -r promise-dev.zip ./dist ./.env ./src ./appspec.yml ./package.json
+
+      - name: 🌎 AWS에 접속
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ap-northeast-2
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+        
+      - name: Build, tag, and push image to Amazon ECR
+        run: |
+          docker build -t orefinger.eventsub.dev ./dist
+          docker tag orefinger.eventsub.dev:latest 417941206094.dkr.ecr.ap-northeast-2.amazonaws.com/orefinger.eventsub.dev:latest
+          docker push 417941206094.dkr.ecr.ap-northeast-2.amazonaws.com/orefinger.eventsub.dev:latest
