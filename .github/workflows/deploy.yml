@@ -11,6 +11,12 @@ jobs:
 
     name: Build Image
     runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        node-version: [16.20.0]
+        # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
+
 
     steps:
       - name: ✅ 체크아웃 source code.
