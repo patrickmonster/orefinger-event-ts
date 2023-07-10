@@ -27,11 +27,11 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
 
-      - name: ⚙️ 환경변수를 설정합니다.
-        working-directory: ./
-        run: |
-          cp ./src/env/.env.development .env
-          cat .env
+      # - name: ⚙️ 환경변수를 설정합니다.
+      #   working-directory: ./
+      #   run: |
+      #     cp ./src/env/.env.development .env
+      #     cat .env
 
       - name: ✨ 패키지 설치
         working-directory: ./
