@@ -36,5 +36,5 @@ server.listen({ port: 3000, host: '::' }, (err, address) => {
         process.exit(1);
     }
     console.log(`Server listening at ${address}`);
-    ping().catch(e => console.error(e));
+    // ping().catch(e => console.error(e));
 });

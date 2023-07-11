@@ -9,9 +9,9 @@ RUN apk --no-cache add curl
 
 
 # 패키지 설치
-COPY package*.json ./
-RUN npm i --forc -g yarn
-RUN yarn
+COPY *.json ./
+RUN npm i --force -g tsc tsc-alias typescript yarn 
+RUN npm i
 
 
 COPY . .
