@@ -27,6 +27,8 @@ export default fp(async function (fastify, opts) {
             },
             tags: [
                 /// 버전 관련
+                { name: 'Auth', description: '인증' },
+
                 { name: 'Admin', description: '관리자 관리용 API' },
                 { name: 'Notification', description: '알림' },
                 { name: 'Discord', description: '디스코드 관련 API' },
