@@ -1,0 +1,20 @@
+export interface ComponentCreate {
+    name: string;
+    label_id?: number;
+    type_idx: number;
+    text_id?: number;
+    emoji?: string;
+    custom_id?: string;
+    value?: string;
+    style_id: number;
+    min_values?: number;
+    max_values?: number;
+    disabled_yn?: boolean;
+    required_yn?: boolean;
+    use_yn?: boolean;
+    edit_yn?: boolean;
+    permission_type?: number;
+    order_by?: number;
+}
+
+export interface ComponentOptionCreate {}

@@ -1,2 +1,2 @@
-# orefinger-event-ts
- ts 변환작업
+# discord-notification-ts
+ 
