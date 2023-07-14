@@ -6,6 +6,7 @@ import { FastifyRequest, FastifyReply } from 'fastify';
 declare module 'fastify' {
     interface FastifyInstance {
         masterkey: (request: FastifyRequest, reply: FastifyReply) => void;
+        authenticate: (request: FastifyRequest, reply: FastifyReply) => void;
     }
 }
 

@@ -160,7 +160,7 @@ export default async (fastify: FastifyInstance, opts: any) => {
             onRequest: [fastify.masterkey],
             schema: {
                 security: [{ Master: [] }],
-                description: '컴포넌트 생성',
+                description: '컴포넌트 수정',
                 tags: ['Admin'],
                 deprecated: false,
                 params: {
