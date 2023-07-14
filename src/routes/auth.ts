@@ -4,6 +4,7 @@ import OAuth2 from '@fastify/oauth2';
 
 import { discord } from 'controllers/auth';
 
+import { openApi } from 'utils/discordApiInstance';
 // const api = require('#util/discordApiInstance');
 const qs = require(`querystring`);
 
@@ -34,7 +35,6 @@ export default async (fastify: FastifyInstance, opts: any) => {
     });
 
     // 인증 모듈 (백도어)
-    console.log('백도어', process.env.MASTER_KEY);
     if (!process.env.MASTER_KEY) {
         fastify.get<{
             Params: { user_id: string };
@@ -108,37 +108,147 @@ export default async (fastify: FastifyInstance, opts: any) => {
         },
         async (req, res) => {
             const { code, redirect_uri } = req.body;
-            // console.log(code, redirect_uri);
-            // const data = await fetch(`https://discord.com/api/oauth2/token`, {
-            //     method: 'POST',
-            //     headers: { 'content-type': 'application/x-www-form-urlencoded' },
-            //     body: qs.stringify({
-            //         client_id: process.env.DISCORD_CLIENT_ID,
-            //         client_secret: process.env.DISCORD_CLIENT_SECRET,
-            //         grant_type: 'authorization_code',
-            //         code,
-            //         redirect_uri,
-            //     }),
-            // })
-            //     .then(res => res.json())
-            //     .then(async ({ access_token, refresh_token, expires_in, token_type }) => {
-            //         const { data: user } = await api.openApi.get('/users/@me', {
-            //             headers: { Authorization: `${token_type} ${access_token}` },
-            //         });
-            //         await discord(user, refresh_token);
-
-            //         const jwt = fastify.jwt.sign({ access_token, id: user.id, exp: Math.floor(Date.now() / 1000) + 60 * 60 });
-            //         return {
-            //             user,
-            //             jwt,
-            //         };
-            //     })
-            //     .catch(e => {
-            //         throw { message: e.message };
-            //     });
-
-            // return data;
+            console.log(code, redirect_uri);
+            const data = await fetch(`https://discord.com/api/oauth2/token`, {
+                method: 'POST',
+                headers: { 'content-type': 'application/x-www-form-urlencoded' },
+                body: qs.stringify({
+                    client_id: process.env.DISCORD_CLIENT_ID,
+                    client_secret: process.env.DISCORD_CLIENT_SECRET,
+                    grant_type: 'authorization_code',
+                    code,
+                    redirect_uri,
+                }),
+            })
+                .then(res => res.json())
+                .then(async ({ access_token, refresh_token, expires_in, token_type }) => {
+                    const { data: user } = await openApi.get('/users/@me', {
+                        headers: { Authorization: `${token_type} ${access_token}` },
+                    });
+                    await discord(user, refresh_token);
+                    const jwt = fastify.jwt.sign({ access_token, id: user.id, exp: Math.floor(Date.now() / 1000) + 60 * 60 });
+                    return {
+                        user,
+                        jwt,
+                    };
+                })
+                .catch(e => {
+                    throw { message: e.message };
+                });
         }
     );
     // 인증 모듈
+    fastify.post<{
+        Params: { target: string };
+        Body: {
+            code: string;
+            redirect_uri: string;
+        };
+    }>(
+        '/auth/:target',
+        {
+            onRequest: [fastify.authenticate],
+            schema: {
+                security: [{ Bearer: [] }],
+                description: '계정 연결 - 디스코드 계정을 기반으로 사용자를 추가로 등록 합니다.',
+                tags: ['Auth'],
+                deprecated: false, // 비활성화
+                params: {
+                    type: 'object',
+                    required: ['target'],
+                    additionalProperties: false,
+                    properties: {
+                        target: { type: 'string', description: '인증 대상', enum: ['twitch', 'twitch.stream', 'kakao'] },
+                    },
+                },
+                body: {
+                    type: 'object',
+                    required: ['code' /* 'customerKey',*/],
+                    additionalProperties: false,
+                    properties: {
+                        code: { type: 'string', description: 'oauth 인증 code 값' },
+                        redirect_uri: { type: 'string', description: '인증시 사용되었던 url' },
+                    },
+                },
+                response: {
+                    200: { type: 'object', properties: { token: { type: 'string', description: 'access token' } } },
+                    400: { type: 'object', properties: { message: { type: 'string', description: '에러 메세지' } } },
+                },
+            },
+        },
+        async (req, res) => {
+            const { target } = req.params;
+            const { code, redirect_uri } = req.body;
+
+            let token;
+            switch (target) {
+                case 'twitch':
+                    token = await fetch(`https://id.twitch.tv/oauth2/token`, {
+                        method: 'POST',
+                        headers: { 'content-type': 'application/x-www-form-urlencoded' },
+                        body: qs.stringify({
+                            client_id: process.env.TWITCH_CLIENT_ID,
+                            client_secret: process.env.TWITCH_CLIENT_SECRET,
+                            grant_type: 'authorization_code',
+                            code,
+                            redirect_uri,
+                        }),
+                    })
+                        .then(res => res.json())
+                        .then(async token => {
+                            const user = await openApi.get('/users/@me', {
+                                headers: { Authorization: `Bearer ${token.access_token}` },
+                            });
+                            // .then(({ data }) => twitch(data, token.refresh_token));
+                        });
+                    break;
+                case 'twitch.stream':
+                    token = await fetch(`https://id.twitch.tv/oauth2/token`, {
+                        method: 'POST',
+                        headers: { 'content-type': 'application/x-www-form-urlencoded' },
+                        body: qs.stringify({
+                            client_id: process.env.TWITC_ID,
+                            client_secret: process.env.TWITCH_SECRET,
+                            grant_type: 'authorization_code',
+                            code,
+                            redirect_uri,
+                        }),
+                    })
+                        .then(res => res.json())
+                        .then(async token => {
+                            const user = await openApi.get('/users/@me', {
+                                headers: { Authorization: `Bearer ${token.access_token}` },
+                            });
+                            // .then(({ data }) => twitch(data, token.refresh_token));
+                        });
+                    break;
+                case 'kakao':
+                    token = await fetch(`https://kauth.kakao.com/oauth/token`, {
+                        method: 'POST',
+                        headers: { 'content-type': 'application/x-www-form-urlencoded' },
+                        body: qs.stringify({
+                            client_id: process.env.KAKAO_CLIENT_ID,
+                            client_secret: process.env.KAKAO_CLIENT_SECRET,
+                            grant_type: 'authorization_code',
+                            code,
+                            redirect_uri,
+                        }),
+                    })
+                        .then(res => res.json())
+                        .then(async token => {
+                            const user = await fetch(`https://kauth.kakao.com/oauth/token`, {
+                                method: 'GET',
+                                headers: { 'content-type': 'application/x-www-form-urlencoded', Authorization: `Bearer ${token.access_token}` },
+                                body: qs.stringify({}),
+                                // }).then(({ data }) => kakao(data, token.refresh_token));
+                            });
+                        });
+                    break;
+                default:
+                    return { message: '잘못된 인증 대상입니다.' };
+            }
+            console.log(token);
+            return token;
+        }
+    );
 };

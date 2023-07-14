@@ -23,3 +23,6 @@ discord.interceptors.response.use(null, async error => {
 
 module.exports = discord;
 module.exports.openApi = discordOpenApi;
+
+export default discord;
+export const openApi = discordOpenApi;
