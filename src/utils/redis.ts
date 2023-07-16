@@ -1,4 +1,4 @@
-import { createClient } from 'redis';
+import { createClient, RedisDefaultModules } from 'redis';
 
 const client = createClient({
     url: process.env.REDIS_URL,
