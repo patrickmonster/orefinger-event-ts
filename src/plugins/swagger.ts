@@ -68,7 +68,6 @@ export default fp(async function (fastify, opts) {
         transformSpecificationClone: true,
     });
 
-    ///
     fastify.addSchema({
         $id: 'sqlResult',
         type: 'object',

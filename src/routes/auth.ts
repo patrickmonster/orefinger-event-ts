@@ -63,7 +63,7 @@ export default async (fastify: FastifyInstance, opts: any) => {
             },
             async (req, res) => {
                 const { user_id } = req.params;
-                const token = fastify.jwt.sign({ access_token: '?', refresh_token: '?', id: user_id });
+                const token = fastify.jwt.sign({ access_token: '?', id: user_id });
                 return { token };
             }
         );
@@ -126,7 +126,12 @@ export default async (fastify: FastifyInstance, opts: any) => {
                         headers: { Authorization: `${token_type} ${access_token}` },
                     });
                     await discord(user, refresh_token);
-                    const jwt = fastify.jwt.sign({ access_token, id: user.id, exp: Math.floor(Date.now() / 1000) + 60 * 60 });
+                    const jwt = fastify.jwt.sign(
+                        { access_token, id: user.id },
+                        {
+                            expiresIn: Math.floor(Date.now() / 1000) + 60 * 60,
+                        }
+                    );
                     return {
                         user,
                         jwt,

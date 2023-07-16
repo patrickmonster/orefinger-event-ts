@@ -14,6 +14,15 @@ export const DBName = `${env.DB_DB}`;
 
 pool.on('connection', () => console.log('DB] 연결됨'));
 
+export interface sqlInsertUpdate {
+    info: string;
+    affectedRows: number;
+    changedRows: number;
+    insertId: number;
+    warningCount: number;
+    message: string;
+}
+
 const sqlLogger = (query: string, params: any[], rows: any[] | any) => {
     // if (env.sql_log != 'true') return rows;
     console.log('=======================================================');
@@ -22,27 +31,32 @@ const sqlLogger = (query: string, params: any[], rows: any[] | any) => {
     return rows;
 };
 
-type queryFunctionType = <E>(query: string, ...params: any[]) => Promise<E[]>;
+type queryFunctionType = <E>(query: string, ...params: any[]) => Promise<any>;
 
 const getConnection = async (connectionPool: (queryFunction: queryFunctionType) => Promise<any>): Promise<any> => {
     let connect: PoolConnection | null = null;
     try {
         connect = await pool.getConnection();
-        return await connectionPool(
-            <E>(query: string, ...params: any[]): Promise<E[]> =>
-                connect!
-                    .query(query, params)
-                    .then(([rows]) => sqlLogger(query, params, rows))
-                    .then(data =>
-                        JSON.parse(
-                            JSON.stringify(data, (k, v) => {
-                                if (typeof v != 'string') return v; // TODO: string 이 아닌경우 리턴
-                                if (v == 'Y') return true; // TODO: yn 인경우
-                                return v;
-                            })
-                        )
-                    )
-        );
+        return await connectionPool(async <E>(query: string, ...params: any[]): Promise<any> => {
+            const [rows, fields] = await connect!.query(query, params);
+            sqlLogger(query, params, rows);
+
+            if (Array.isArray(rows)) {
+                return JSON.parse(
+                    JSON.stringify(rows, (k, v) => {
+                        if (typeof v != 'string') return v; // TODO: string 이 아닌경우 리턴
+                        if (v == 'Y') return true; // TODO: yn 인경우
+                        return v;
+                    })
+                );
+            } else {
+                return {
+                    affectedRows: rows.affectedRows,
+                    changedRows: rows.changedRows,
+                    insertId: rows.insertId,
+                };
+            }
+        });
     } catch (e) {
         console.error('SQL]', e);
     } finally {
@@ -51,7 +65,7 @@ const getConnection = async (connectionPool: (queryFunction: queryFunctionType) 
 };
 
 export default getConnection;
-
+///////////////////////////////////////////////////////////////////////////////////////////
 let limit = 30;
 
 export const query = async <E>(query: string, ...params: any[]): Promise<E[]> =>

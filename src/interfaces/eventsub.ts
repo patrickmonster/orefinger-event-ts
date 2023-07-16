@@ -26,7 +26,7 @@ export interface Transport {
 }
 
 export interface Event {
-    [key: string]: string | number | boolean | object | undefined;
+    [key: string]: string | number | boolean | object;
 }
 
 export interface EventSub {
