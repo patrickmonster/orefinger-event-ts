@@ -12,9 +12,7 @@ const discordOpenApi = axios.create({
 });
 
 discord.interceptors.response.use(
-    data => {
-        return data.data;
-    },
+    ({ data }) => data,
     async error => {
         if (error.config && error.response && error.response.status === 429) {
             console.log('Too Many Requests! Retrying...');

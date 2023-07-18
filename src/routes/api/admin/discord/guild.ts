@@ -30,16 +30,7 @@ export default async (fastify: FastifyInstance, opts: any) => {
         },
         async req => {
             const { guild_id } = req.params;
-            return await discord
-                .get(`guilds/${guild_id}`)
-                .then(o => {
-                    console.log(o);
-                    return o;
-                })
-                .catch(e => {
-                    console.error('Error', e);
-                    throw new Error(e);
-                });
+            return await discord.get(`guilds/${guild_id}`);
         }
     );
 };
