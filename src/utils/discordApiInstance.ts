@@ -11,15 +11,20 @@ const discordOpenApi = axios.create({
     baseURL: 'https://discordapp.com/api/', // discordTk
 });
 
-discord.interceptors.response.use(null, async error => {
-    if (error.config && error.response && error.response.status === 429) {
-        console.log('Too Many Requests! Retrying...');
-        const { message, retry_after } = error.response.data;
-        await sleep(Math.ceil(retry_after / 1000) + 1);
-        return discord(error.config);
+discord.interceptors.response.use(
+    data => {
+        return data.data;
+    },
+    async error => {
+        if (error.config && error.response && error.response.status === 429) {
+            console.log('Too Many Requests! Retrying...');
+            const { message, retry_after } = error.response.data;
+            await sleep(Math.ceil(retry_after / 1000) + 1);
+            return discord(error.config);
+        }
+        throw error;
     }
-    throw error;
-});
+);
 
 module.exports = discord;
 module.exports.openApi = discordOpenApi;
