@@ -2,8 +2,9 @@ import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { createYutubeUser, createYutubeChannel, createYutubeEvent, insertYoutubeVideo } from 'controllers/youtube';
 
 import redis from 'utils/redis';
+import twitch from 'utils/twitchApiInstance';
 
-import { liveList } from 'controllers/notification';
+import { liveList, total, stream } from 'controllers/notification';
 
 export default async (fastify: FastifyInstance, opts: any) => {
     fastify.addSchema({
@@ -64,5 +65,107 @@ export default async (fastify: FastifyInstance, opts: any) => {
             },
         },
         async req => await liveList()
+    );
+
+    // 통계 정보 조회
+    fastify.get(
+        '/total',
+        {
+            schema: {
+                description: '사용자 통계 정보를 불러옵니다.',
+                tags: ['Notification'],
+                deprecated: false, // 비활성화
+                response: {
+                    200: {
+                        type: 'object',
+                        properties: {
+                            S: { type: 'string' },
+                            T: { type: 'string' },
+                            totalGuld: { type: 'string' },
+                            totalUser: { type: 'string' },
+                        },
+                    },
+                    400: {
+                        type: 'object',
+                        properties: {
+                            // error: { type: 'string' },
+                            message: { type: 'string' },
+                        },
+                    },
+                },
+            },
+        },
+        async req => {
+            return await total().then(([item]) => item);
+        }
+    );
+
+    // 스트리머 정보 조회
+    fastify.get(
+        '/streamers',
+        {
+            schema: {
+                description: '파트너 스트리머 리스트',
+                tags: ['Notification'],
+                deprecated: false, // 비활성화
+                response: {
+                    200: {
+                        type: 'array',
+                        items: {
+                            type: 'object',
+                            properties: {
+                                id: { type: 'string' },
+                                login: { type: 'string' },
+                                display_name: { type: 'string' },
+                                type: { type: 'string' },
+                                broadcaster_type: { type: 'string' },
+                                description: { type: 'string' },
+                                profile_image_url: { type: 'string' },
+                                offline_image_url: { type: 'string' },
+                                view_count: { type: 'number' },
+                                created_at: { type: 'string' },
+                            },
+                        },
+                    },
+                    400: {
+                        type: 'object',
+                        properties: {
+                            error: { type: 'string' },
+                            // message: { type: 'string' },
+                        },
+                    },
+                },
+            },
+        },
+        async req => {
+            try {
+                const datas = await redis.get('streamers');
+                if (datas) return JSON.parse(datas);
+            } catch (e) {}
+            const data = await stream().then(list => {
+                let users = list.map(({ user_id }) => user_id);
+
+                // twitch
+                return twitch
+                    .get<{
+                        data: any[];
+                    }>(`/users?id=${users.join('&id=')}`)
+                    .then(({ data: { data } }) => {
+                        console.log(data);
+
+                        redis.set('streamers', JSON.stringify(data), {
+                            EX: 60 * 60 * 24, // 하루동안 유효
+                        });
+                        return data;
+                    })
+                    .catch(e => {
+                        console.log(e);
+
+                        return { error: e.message };
+                    });
+            });
+            console.log(data);
+            return data;
+        }
     );
 };

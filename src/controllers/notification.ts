@@ -40,3 +40,25 @@ order by t.idx
         user_id,
         events
     );
+
+export const total = () =>
+    query(`
+select 
+( select count(0) as cnt from auth_token at2  where at2.type = 2 and is_session = 'Y' group by at2.type ) as S
+, ( select count(0) as cnt from auth_token at2  where at2.type = 3 group by at2.type ) as T
+, code_2 as totalGuld
+, code_3 as totalUser
+from state s
+where idx = 1
+    `);
+
+export const stream = async () =>
+    query<{
+        user_id: string;
+    }>(`
+select user_id 
+from auth_token at2
+WHERE at2.type in (2,3)
+and user_type = 37
+GROUP by user_id 
+    `);
