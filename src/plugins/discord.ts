@@ -21,7 +21,12 @@ declare module 'fastify' {
  */
 export default fp(async function (fastify, opts) {
     fastify.decorate('verifyKey', ({ body, headers }) =>
-        verifyKey(JSON.stringify(body), `${headers['x-signature-ed25519']}`, `${headers['x-signature-timestamp']}`, `${process.env.JWT_SECRET}`)
+        verifyKey(
+            JSON.stringify(body),
+            `${headers['x-signature-ed25519'] || headers['X-Signature-Ed25519']}`,
+            `${headers['x-signature-timestamp'] || headers['X-Signature-Timestamp']}`,
+            `${process.env.JWT_SECRET}`
+        )
     );
 
     fastify.decorateRequest('interactionType', (body: any) => {
