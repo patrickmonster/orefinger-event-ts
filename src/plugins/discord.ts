@@ -2,11 +2,15 @@
 import fp from 'fastify-plugin';
 import crypto from 'crypto';
 import { FastifyRequest, FastifyReply } from 'fastify';
-import { InteractionResponseType, InteractionType, verifyKey, verifyKeyMiddleware } from 'discord-interactions';
+import { InteractionType, verifyKey } from 'discord-interactions';
 
 declare module 'fastify' {
     interface FastifyInstance {
-        verifyKey: (request: FastifyRequest, reply: FastifyReply, done: Function) => boolean;
+        verifyKey: (request: FastifyRequest) => boolean;
+    }
+
+    interface FastifyRequest {
+        interactionType: (body: any) => string;
     }
 }
 
@@ -16,27 +20,24 @@ declare module 'fastify' {
  * @see https://github.com/fastify/fastify-sensible
  */
 export default fp(async function (fastify, opts) {
-    // fastify.decorate(
-    //     'verifyKey',
-    //     (
-    //         req: FastifyRequest<{
-    //             Body: any;
-    //         }>,
-    //         res: FastifyReply,
-    //         done: Function
-    //     ) => {
-    //         const { body, headers } = req;
-    //         if (
-    //             verifyKey(
-    //                 JSON.stringify(body),
-    //                 `${headers['x-signature-ed25519']}`,
-    //                 `${headers['x-signature-timestamp']}`,
-    //                 `${process.env.JWT_SECRET}`
-    //             )
-    //         ) {
-    //             return body.type;
-    //         }
-    //         return false;
-    //     }
-    // );
+    fastify.decorate('verifyKey', ({ body, headers }) =>
+        verifyKey(JSON.stringify(body), `${headers['x-signature-ed25519']}`, `${headers['x-signature-timestamp']}`, `${process.env.JWT_SECRET}`)
+    );
+
+    fastify.decorateRequest('interactionType', (body: any) => {
+        switch (body.type) {
+            case InteractionType.PING:
+                return 'PING';
+            case InteractionType.APPLICATION_COMMAND:
+                return 'APPLICATION_COMMAND';
+            case InteractionType.MESSAGE_COMPONENT:
+                return 'MESSAGE_COMPONENT';
+            case InteractionType.APPLICATION_COMMAND_AUTOCOMPLETE:
+                return 'APPLICATION_COMMAND_AUTOCOMPLETE';
+            case InteractionType.MODAL_SUBMIT:
+                return 'MODAL_SUBMIT';
+            default:
+                return 'UNKNOWN';
+        }
+    });
 });

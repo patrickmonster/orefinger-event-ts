@@ -41,8 +41,4 @@ export default async (fastify: FastifyInstance, opts: any) => {
         },
         async req => await discord.get(`/users/${req.params.user_id}`)
     );
-
-    discord.post('/channels/1125313706654433311/messages', {
-        content: '새 영상이 올라왔어요 <:mp3:928036064294240286>',
-    });
 };
