@@ -1,7 +1,7 @@
 'use strict';
 import fp from 'fastify-plugin';
 import { FastifyRequest, FastifyReply } from 'fastify';
-import { verifyKey } from 'discord-interactions';
+import { verifyKey, InteractionResponseType } from 'discord-interactions';
 
 import axios from 'axios';
 
@@ -66,7 +66,10 @@ export default fp(async function (fastify, opts) {
                 // 응답 메세지 분기
                 try {
                     if (isReply) {
-                        await discordInteraction.patch(`/webhooks/${application_id}/${token}/messages/@original`, message);
+                        await discordInteraction.patch(`/webhooks/${application_id}/${token}/messages/@original`, {
+                            type: body.hasOwnProperty(`message`) ? InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE : InteractionResponseType.UPDATE_MESSAGE,,
+                            data: message,
+                        });
                     } else {
                         await res.status(200).send(message);
                     }
