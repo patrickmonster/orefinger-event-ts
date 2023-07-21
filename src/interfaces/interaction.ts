@@ -19,6 +19,6 @@ export type InteractionEvent = Interaction & {
     raw: {
         body: APIInteraction;
         res: FastifyReply;
-        re: (message: RESTPostAPIChannelMessageJSONBody | string) => void;
     };
+    re: (message: RESTPostAPIChannelMessageJSONBody | string) => void;
 };

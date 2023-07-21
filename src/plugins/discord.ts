@@ -1,10 +1,11 @@
 'use strict';
 import fp from 'fastify-plugin';
-import crypto from 'crypto';
 import { FastifyRequest, FastifyReply } from 'fastify';
-import { InteractionType, verifyKey } from 'discord-interactions';
+import { verifyKey } from 'discord-interactions';
 
-import { APIInteraction } from 'discord-api-types/v10';
+import axios from 'axios';
+
+import { APIInteraction, RESTPostAPIChannelMessageJSONBody } from 'discord-api-types/v10';
 
 declare module 'fastify' {
     interface FastifyInstance {
@@ -12,9 +13,11 @@ declare module 'fastify' {
     }
 
     interface FastifyRequest {
-        re: (req: FastifyRequest<{ Body: APIInteraction }>) => void;
+        createReply: (req: FastifyRequest<{ Body: APIInteraction }>, res: FastifyReply) => Reply;
     }
 }
+
+export type Reply = (message: RESTPostAPIChannelMessageJSONBody | string) => Promise<void>;
 
 /**
  * This plugins adds some utilities to handle http errors
@@ -22,6 +25,14 @@ declare module 'fastify' {
  * @see https://github.com/fastify/fastify-sensible
  */
 export default fp(async function (fastify, opts) {
+    const discordInteraction = axios.create({
+        baseURL: 'https://discord.com/api/',
+        headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bot ${process.env.DISCORD_BOT_TOKEN}`,
+        },
+    });
+
     fastify.decorate('verifyKey', ({ body, headers }) =>
         verifyKey(
             JSON.stringify(body),
@@ -33,13 +44,39 @@ export default fp(async function (fastify, opts) {
 
     // 인터렉션 응답
     fastify.decorateRequest(
-        're',
+        'createReply',
         (
             req: FastifyRequest<{
                 Body: APIInteraction;
-            }>
+            }>,
+            res: FastifyReply
         ) => {
             // console.log(body);
+            const { body } = req;
+            const { token, application_id } = body;
+
+            let isReply = false; // 초기값 설정
+
+            return async (message: RESTPostAPIChannelMessageJSONBody | string) => {
+                // if (isReply) return;
+
+                // string -> object
+                if (typeof message === 'string') message = { content: message };
+
+                // 응답 메세지 분기
+                try {
+                    if (isReply) {
+                        await discordInteraction.patch(`/webhooks/${application_id}/${token}/messages/@original`, message);
+                    } else {
+                        await res.status(200).send(message);
+                    }
+                } catch (e) {
+                    console.error(e);
+                    throw e;
+                } finally {
+                    isReply = true;
+                }
+            };
         }
     );
 });
