@@ -36,6 +36,11 @@ export default async (fastify: FastifyInstance, opts: any) => {
                 raw: {
                     body: body,
                     res: res,
+                    re: message => {
+                        if (typeof message === 'string') message = { content: message };
+
+                        // if ( res.is)
+                    },
                 },
             };
             switch (body.type) {
