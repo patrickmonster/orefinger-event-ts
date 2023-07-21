@@ -61,19 +61,19 @@ export default fp(async function (fastify, opts) {
                 // if (isReply) return;
 
                 // string -> object
-                if (typeof message === 'string') message = { content: message };
+                const data = {
+                    type: body.hasOwnProperty(`message`)
+                        ? InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE
+                        : InteractionResponseType.UPDATE_MESSAGE,
+                    data: typeof message === 'string' ? { content: message } : message,
+                };
 
                 // 응답 메세지 분기
                 try {
                     if (isReply) {
-                        await discordInteraction.patch(`/webhooks/${application_id}/${token}/messages/@original`, {
-                            type: body.hasOwnProperty(`message`)
-                                ? InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE
-                                : InteractionResponseType.UPDATE_MESSAGE,
-                            data: message,
-                        });
+                        await discordInteraction.patch(`/webhooks/${application_id}/${token}/messages/@original`, data);
                     } else {
-                        await res.status(200).send(message);
+                        await res.status(200).send(data);
                     }
                 } catch (e) {
                     console.error(e);
