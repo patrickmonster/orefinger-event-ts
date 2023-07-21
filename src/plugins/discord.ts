@@ -67,7 +67,9 @@ export default fp(async function (fastify, opts) {
                 try {
                     if (isReply) {
                         await discordInteraction.patch(`/webhooks/${application_id}/${token}/messages/@original`, {
-                            type: body.hasOwnProperty(`message`) ? InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE : InteractionResponseType.UPDATE_MESSAGE,,
+                            type: body.hasOwnProperty(`message`)
+                                ? InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE
+                                : InteractionResponseType.UPDATE_MESSAGE,
                             data: message,
                         });
                     } else {
