@@ -33,11 +33,7 @@ export default async (fastify: FastifyInstance, opts: any) => {
             }
             const interaction: InteractionEvent = {
                 ...body,
-                re: message => {
-                    if (typeof message === 'string') message = { content: message };
-
-                    // if ( res.is)
-                },
+                re: req.createReply(req, res),
                 raw: {
                     body: body,
                     res: res,
