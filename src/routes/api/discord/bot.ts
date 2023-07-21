@@ -1,13 +1,17 @@
 import { FastifyInstance, FastifyRequest, FastifyReply, FastifyError } from 'fastify';
 import { InteractionResponseType } from 'discord-interactions';
-
-import { getComponentList, createComponent, updateComponent, getComponentDtil } from 'controllers/component';
-import { ComponentCreate } from 'interfaces/component';
+import { APIInteraction } from 'discord-api-types/v10';
 
 import discord from 'utils/discordApiInstance';
 
+import { InteractionEvent } from 'interfaces/interaction';
+
+import message_component from 'interactions/message_component';
+
 export default async (fastify: FastifyInstance, opts: any) => {
-    fastify.post<{}>(
+    fastify.post<{
+        Body: APIInteraction;
+    }>(
         '/bot',
         {
             schema: {
@@ -23,16 +27,25 @@ export default async (fastify: FastifyInstance, opts: any) => {
                 return res.status(401).send('Bad request signature');
             }
 
-            switch (req.interactionType(body)) {
-                case 'PING':
-                    return res.status(200).send({ type: InteractionResponseType.PONG });
-                case 'APPLICATION_COMMAND':
+            if (body.type === 1) {
+                console.log('ping');
+                return res.status(200).send({ type: InteractionResponseType.PONG });
+            }
+            const interaction: InteractionEvent = {
+                ...body,
+                raw: {
+                    body: body,
+                    res: res,
+                },
+            };
+            switch (body.type) {
+                case 2: // 'APPLICATION_COMMAND'
                     break;
-                case 'MESSAGE_COMPONENT':
+                case 3: // 'MESSAGE_COMPONENT'
+                    return message_component(interaction);
+                case 4: // 'APPLICATION_COMMAND_AUTOCOMPLETE'
                     return;
-                case 'APPLICATION_COMMAND_AUTOCOMPLETE':
-                    return;
-                case 'MODAL_SUBMIT':
+                case 5: // 'MODAL_SUBMIT'
                     return;
                 default:
                     return res.status(400).send('Bad request');

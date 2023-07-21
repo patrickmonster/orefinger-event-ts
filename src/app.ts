@@ -1,5 +1,6 @@
 import fastify from 'fastify';
 import AutoLoad from '@fastify/autoload';
+import helmet from '@fastify/helmet';
 
 import path, { join } from 'path';
 import { env } from 'process';
@@ -18,9 +19,10 @@ if (existsSync(envDir)) {
 
 //////////////////////////////////////////////////////////////////////
 // 환경변수
-import ping from 'controllers/main';
 
 const server = fastify({ logger: env.NODE_ENV != 'prod' });
+
+server.register(helmet, { global: true });
 
 server.register(AutoLoad, {
     dir: path.join(__dirname, 'plugins'),
@@ -29,7 +31,6 @@ server.register(AutoLoad, {
 server.register(AutoLoad, {
     dir: path.join(__dirname, 'routes'),
 });
-
 server.listen({ port: 3000, host: '::' }, (err, address) => {
     if (err) {
         console.error(err);

@@ -4,13 +4,15 @@ import crypto from 'crypto';
 import { FastifyRequest, FastifyReply } from 'fastify';
 import { InteractionType, verifyKey } from 'discord-interactions';
 
+import { APIInteraction } from 'discord-api-types/v10';
+
 declare module 'fastify' {
     interface FastifyInstance {
         verifyKey: (request: FastifyRequest) => boolean;
     }
 
     interface FastifyRequest {
-        interactionType: (body: any) => string;
+        re: (req: FastifyRequest<{ Body: APIInteraction }>) => void;
     }
 }
 
@@ -29,20 +31,15 @@ export default fp(async function (fastify, opts) {
         )
     );
 
-    fastify.decorateRequest('interactionType', (body: any) => {
-        switch (body.type) {
-            case InteractionType.PING:
-                return 'PING';
-            case InteractionType.APPLICATION_COMMAND:
-                return 'APPLICATION_COMMAND';
-            case InteractionType.MESSAGE_COMPONENT:
-                return 'MESSAGE_COMPONENT';
-            case InteractionType.APPLICATION_COMMAND_AUTOCOMPLETE:
-                return 'APPLICATION_COMMAND_AUTOCOMPLETE';
-            case InteractionType.MODAL_SUBMIT:
-                return 'MODAL_SUBMIT';
-            default:
-                return 'UNKNOWN';
+    // 인터렉션 응답
+    fastify.decorateRequest(
+        're',
+        (
+            req: FastifyRequest<{
+                Body: APIInteraction;
+            }>
+        ) => {
+            // console.log(body);
         }
-    });
+    );
 });
