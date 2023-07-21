@@ -50,7 +50,7 @@ export default fp(async function (fastify, opts) {
                 Body: APIInteraction;
             }>,
             res: FastifyReply
-        ) => {
+        ): Reply => {
             // console.log(body);
             const { body } = req;
             const { token, application_id } = body;
@@ -58,13 +58,9 @@ export default fp(async function (fastify, opts) {
             let isReply = false; // 초기값 설정
 
             return async (message: RESTPostAPIChannelMessageJSONBody | string) => {
-                // if (isReply) return;
-
                 // string -> object
                 const data = {
-                    type: body.hasOwnProperty(`message`)
-                        ? InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE
-                        : InteractionResponseType.UPDATE_MESSAGE,
+                    type: isReply ? InteractionResponseType.UPDATE_MESSAGE : InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
                     data: typeof message === 'string' ? { content: message } : message,
                 };
 
