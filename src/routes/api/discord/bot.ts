@@ -39,18 +39,23 @@ export default async (fastify: FastifyInstance, opts: any) => {
                     res: res,
                 },
             };
-            switch (body.type) {
-                case 2: // 'APPLICATION_COMMAND'
-                    break;
-                case 3: // 'MESSAGE_COMPONENT'
-                    return message_component(interaction);
-                case 4: // 'APPLICATION_COMMAND_AUTOCOMPLETE'
-                    return;
-                case 5: // 'MODAL_SUBMIT'
-                    return;
-                default:
-                    return res.status(400).send('Bad request');
-            }
+
+            message_component(interaction);
+
+            console.log('====================================');
+            console.log('데이터 수신', body);
+            console.log('====================================');
+            // switch (body.type) {
+            //     case 2: // 'APPLICATION_COMMAND'
+            //         break;
+            //     case 3: // 'MESSAGE_COMPONENT'
+            //     case 4: // 'APPLICATION_COMMAND_AUTOCOMPLETE'
+            //         return;
+            //     case 5: // 'MODAL_SUBMIT'
+            //         return;
+            //     default:
+            //         return res.status(400).send('Bad request');
+            // }
         }
     );
 };
