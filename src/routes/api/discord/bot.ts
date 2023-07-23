@@ -2,8 +2,6 @@ import { FastifyInstance, FastifyRequest, FastifyReply, FastifyError } from 'fas
 import { InteractionResponseType } from 'discord-interactions';
 import { APIInteraction } from 'discord-api-types/v10';
 
-import discord from 'utils/discordApiInstance';
-
 import { InteractionEvent } from 'interfaces/interaction';
 
 import message_component from 'interactions/message_component';
