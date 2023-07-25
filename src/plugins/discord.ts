@@ -5,7 +5,7 @@ import { verifyKey, InteractionResponseType } from 'discord-interactions';
 
 import axios from 'axios';
 
-import { APIInteraction, RESTPostAPIChannelMessageJSONBody } from 'discord-api-types/v10';
+import { APIInteraction, RESTPostAPIChannelMessageJSONBody, APIModalInteractionResponseCallbackData } from 'discord-api-types/v10';
 
 declare module 'fastify' {
     interface FastifyInstance {
@@ -14,10 +14,14 @@ declare module 'fastify' {
 
     interface FastifyRequest {
         createReply: (req: FastifyRequest<{ Body: APIInteraction }>, res: FastifyReply) => Reply;
+        createModel: (req: FastifyRequest<{ Body: APIInteraction }>, res: FastifyReply) => ReplyModal;
+        createFollowup: (req: FastifyRequest<{ Body: APIInteraction }>, res: FastifyReply) => Reply;
     }
 }
 
 export type Reply = (message: RESTPostAPIChannelMessageJSONBody | string) => Promise<void>;
+export type ReplyModal = (message: APIModalInteractionResponseCallbackData) => Promise<void>;
+export type ReplyFollowup = (message: RESTPostAPIChannelMessageJSONBody | string) => Promise<void>;
 
 /**
  * This plugins adds some utilities to handle http errors
@@ -26,7 +30,7 @@ export type Reply = (message: RESTPostAPIChannelMessageJSONBody | string) => Pro
  */
 export default fp(async function (fastify, opts) {
     const discordInteraction = axios.create({
-        baseURL: 'https://discord.com/api/',
+        baseURL: 'https://discord.com/api',
         headers: {
             'Content-Type': 'application/json',
             Authorization: `Bot ${process.env.DISCORD_BOT_TOKEN}`,
@@ -77,6 +81,41 @@ export default fp(async function (fastify, opts) {
                 } finally {
                     isReply = true;
                 }
+            };
+        }
+    );
+
+    // 후행 응답
+    fastify.decorateRequest(
+        'createFollowup',
+        (
+            req: FastifyRequest<{
+                Body: APIInteraction;
+            }>,
+            res: FastifyReply
+        ): ReplyFollowup => {
+            const {
+                body: { token, application_id },
+            } = req;
+
+            return async (message: RESTPostAPIChannelMessageJSONBody | string) => {
+                await discordInteraction.post(`/webhooks/${application_id}/${token}`, typeof message === 'string' ? { content: message } : message);
+            };
+        }
+    );
+    fastify.decorateRequest(
+        'createModel',
+        (
+            req: FastifyRequest<{
+                Body: APIInteraction;
+            }>,
+            res: FastifyReply
+        ): ReplyModal => {
+            return async (message: APIModalInteractionResponseCallbackData) => {
+                await res.status(200).send({
+                    type: InteractionResponseType.MODAL,
+                    data: message,
+                });
             };
         }
     );
