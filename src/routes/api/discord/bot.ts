@@ -19,7 +19,7 @@ export default async (fastify: FastifyInstance, opts: any) => {
             },
         },
         (req, res) => {
-            const { body, headers } = req;
+            const { body } = req;
             if (!fastify.verifyKey(req)) {
                 // 승인되지 않음
                 return res.status(401).send('Bad request signature');
@@ -29,6 +29,7 @@ export default async (fastify: FastifyInstance, opts: any) => {
                 console.log('ping');
                 return res.status(200).send({ type: InteractionResponseType.PONG });
             }
+
             const interaction: InteractionEvent = {
                 ...body,
                 re: req.createReply(req, res),

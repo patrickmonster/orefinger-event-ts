@@ -27,7 +27,6 @@ const getComponentsAttach = (user_id: string, game_id: string) => [
 
 export default async (fastify: FastifyInstance, opts: any) => {
     const event = (event: Event, subscription: Subscription) => {
-        //
         switch (subscription.type) {
             case 'channel.follow':
                 break;
