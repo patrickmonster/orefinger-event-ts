@@ -8,7 +8,7 @@ import {
     APIModalInteractionResponseCallbackData,
 } from 'discord-api-types/v10';
 
-import { RESTPostAPIChannelMessageJSONBody } from 'discord-api-types/rest/v10';
+import { RESTPostAPIChannelMessageJSONBody, RESTGetAPIChannelMessageResult } from 'discord-api-types/rest/v10';
 
 export type Interaction =
     | APIApplicationCommandInteraction
@@ -21,7 +21,7 @@ export type InteractionEvent = Interaction & {
         body: APIInteraction;
         res: FastifyReply;
     };
-    re: (message: RESTPostAPIChannelMessageJSONBody | string) => void;
-    follow: (message: RESTPostAPIChannelMessageJSONBody | string) => void;
-    model: (message: APIModalInteractionResponseCallbackData) => void;
+    re: (message: RESTPostAPIChannelMessageJSONBody | string) => Promise<RESTGetAPIChannelMessageResult>;
+    follow: (message: RESTPostAPIChannelMessageJSONBody | string) => Promise<RESTGetAPIChannelMessageResult>;
+    model: (message: APIModalInteractionResponseCallbackData) => Promise<void>;
 };
