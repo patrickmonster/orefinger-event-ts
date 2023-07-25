@@ -70,7 +70,7 @@ export default fp(async function (fastify, opts) {
 
                 // 응답 메세지 분기
                 try {
-                    if (isReply) {
+                    if (fetchReply) {
                         await discordInteraction.patch(`/webhooks/${application_id}/${token}/messages/@original`, data);
                     } else {
                         await res.status(200).send(data);
@@ -79,7 +79,8 @@ export default fp(async function (fastify, opts) {
                     console.error(e);
                     throw e;
                 } finally {
-                    isReply = true;
+                    fetchReply = true;
+                    return await discordInteraction.get(`/webhooks/${application_id}/${token}/messages/@original`);
                 }
             };
         }

@@ -16,7 +16,14 @@ export type Interaction =
     | APIApplicationCommandAutocompleteInteraction
     | APIModalSubmitInteraction;
 
-export type InteractionEvent = Interaction & {
+export {
+    APIApplicationCommandInteraction,
+    APIMessageComponentInteraction,
+    APIApplicationCommandAutocompleteInteraction,
+    APIModalSubmitInteraction,
+} from 'discord-api-types/v10';
+
+export type InteractionEvent = {
     raw: {
         body: APIInteraction;
         res: FastifyReply;

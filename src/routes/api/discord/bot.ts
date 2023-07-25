@@ -2,9 +2,26 @@ import { FastifyInstance, FastifyRequest, FastifyReply, FastifyError } from 'fas
 import { InteractionResponseType } from 'discord-interactions';
 import { APIInteraction } from 'discord-api-types/v10';
 
-import { InteractionEvent } from 'interfaces/interaction';
+import {
+    InteractionEvent,
+    APIApplicationCommandInteraction,
+    APIApplicationCommandAutocompleteInteraction,
+    APIModalSubmitInteraction,
+    APIMessageComponentInteraction,
+} from 'interfaces/interaction';
 
-import message_component from 'interactions/message_component';
+import message from 'interactions/message';
+import model from 'interactions/model';
+import autocomp from 'interactions/autocomp';
+import app from 'interactions/app';
+
+const getFunction = (type: string) =>
+    ({
+        2: app,
+        3: message,
+        4: autocomp,
+        5: model,
+    }[type]);
 
 export default async (fastify: FastifyInstance, opts: any) => {
     fastify.post<{
@@ -29,7 +46,11 @@ export default async (fastify: FastifyInstance, opts: any) => {
                 console.log('ping');
                 return res.status(200).send({ type: InteractionResponseType.PONG });
             }
-            const interaction: InteractionEvent = {
+
+            console.log('====================================');
+            console.log('데이터 수신', body);
+            console.log('====================================');
+            return getFunction(body.type)({
                 ...body,
                 re: req.createReply(req, res),
                 model: req.createModel(req, res),
@@ -38,24 +59,7 @@ export default async (fastify: FastifyInstance, opts: any) => {
                     body: body,
                     res: res,
                 },
-            };
-
-            message_component(interaction);
-
-            console.log('====================================');
-            console.log('데이터 수신', body);
-            console.log('====================================');
-            // switch (body.type) {
-            //     case 2: // 'APPLICATION_COMMAND'
-            //         break;
-            //     case 3: // 'MESSAGE_COMPONENT'
-            //     case 4: // 'APPLICATION_COMMAND_AUTOCOMPLETE'
-            //         return;
-            //     case 5: // 'MODAL_SUBMIT'
-            //         return;
-            //     default:
-            //         return res.status(400).send('Bad request');
-            // }
+            });
         }
     );
 };
