@@ -1,6 +1,8 @@
 import { InteractionEvent, APIMessageComponentInteraction } from 'interfaces/interaction';
 
-const messageComponent = async (interaction: InteractionEvent & APIMessageComponentInteraction) => {
+export type messageInteraction = InteractionEvent & APIMessageComponentInteraction;
+
+const messageComponent = async (interaction: messageInteraction) => {
     await interaction.re({
         content: '테스트',
     });

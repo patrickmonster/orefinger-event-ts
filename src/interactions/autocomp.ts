@@ -1,6 +1,8 @@
 import { InteractionEvent, APIApplicationCommandAutocompleteInteraction } from 'interfaces/interaction';
 
-const autoComponent = async (interaction: InteractionEvent & APIApplicationCommandAutocompleteInteraction) => {
+export type autoInteraction = InteractionEvent & APIApplicationCommandAutocompleteInteraction;
+
+const autoComponent = async (interaction: autoInteraction) => {
     await interaction.re({
         content: '테스트',
     });

@@ -63,6 +63,11 @@ export default fp(async function (fastify, opts) {
 
             return async (message: RESTPostAPIChannelMessageJSONBody | string) => {
                 // string -> object
+                // CHANNEL_MESSAGE_WITH_SOURCE = 메세지 전송
+                // DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE
+                // DEFERRED_UPDATE_MESSAGE
+                // UPDATE_MESSAGE = 메세지 수정
+
                 const data = {
                     type: fetchReply ? InteractionResponseType.UPDATE_MESSAGE : InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
                     data: typeof message === 'string' ? { content: message } : message,

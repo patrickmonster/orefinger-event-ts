@@ -13,7 +13,9 @@ ${dirs.map(({ path, name, ext }) => `${path || ''} ${name}${ext}`).join('\n')}
     `);
 });
 
-const appComponent = async (interaction: InteractionEvent & APIApplicationCommandInteraction) => {
+export type appInteraction = InteractionEvent & APIApplicationCommandInteraction;
+
+const appComponent = async (interaction: appInteraction) => {
     // interaction.
     await interaction.re({
         content: '테스트',
