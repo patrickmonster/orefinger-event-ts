@@ -1,6 +1,6 @@
-import { InteractionEvent, APIModalSubmitInteraction } from 'interfaces/interaction';
+import { InteractionEvent, APIModalSubmitInteraction, APIModalSubmission } from 'interfaces/interaction';
 
-export type modelInteraction = InteractionEvent & APIModalSubmitInteraction;
+export type modelInteraction = InteractionEvent & Omit<APIModalSubmitInteraction, 'data'> & APIModalSubmission;
 
 const modelComponent = async (interaction: modelInteraction) => {
     await interaction.re({

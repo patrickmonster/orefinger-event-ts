@@ -1,4 +1,4 @@
-import { InteractionEvent, APIApplicationCommandInteraction } from 'interfaces/interaction';
+import { InteractionEvent, APIApplicationCommandInteraction, APIApplicationCommandInteractionData } from 'interfaces/interaction';
 
 import autoLoader from 'utils/auto-command';
 
@@ -13,27 +13,10 @@ ${dirs.map(({ path, name, ext }) => `${path || ''} ${name}${ext}`).join('\n')}
     `);
 });
 
-export type appInteraction = InteractionEvent & APIApplicationCommandInteraction;
+export type appInteraction = InteractionEvent & Omit<APIApplicationCommandInteraction, 'data'> & APIApplicationCommandInteractionData;
 
 const appComponent = async (interaction: appInteraction) => {
-    // interaction.
-    await interaction.re({
-        content: '테스트',
-    });
-
-    await interaction.follow({
-        content: '후행',
-    });
-
-    setTimeout(async () => {
-        await interaction
-            .re({
-                content: '대화바꿈!',
-            })
-            .catch(e => {
-                console.error(e);
-            });
-    }, 1000 * 10);
+    // ??
 };
 
 export default appComponent;

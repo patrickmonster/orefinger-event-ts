@@ -43,16 +43,16 @@ export default async (fastify: FastifyInstance, opts: any) => {
 
             switch (body.type) {
                 case InteractionType.ApplicationCommand:
-                    app(Object.assign(body, interactionEvent));
+                    app(Object.assign(body, interactionEvent, body.data));
                     break;
                 case InteractionType.MessageComponent:
-                    message(Object.assign(body, interactionEvent));
+                    message(Object.assign(body, interactionEvent, body.data));
                     break;
                 case InteractionType.ApplicationCommandAutocomplete:
-                    autocomp(Object.assign(body, interactionEvent));
+                    autocomp(Object.assign(body, interactionEvent, body.data));
                     break;
                 case InteractionType.ModalSubmit:
-                    model(Object.assign(body, interactionEvent));
+                    model(Object.assign(body, interactionEvent, body.data));
                     break;
                 default:
                     break;

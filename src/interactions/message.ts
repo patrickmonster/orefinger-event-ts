@@ -1,17 +1,13 @@
-import { InteractionEvent, APIMessageComponentInteraction } from 'interfaces/interaction';
+import { InteractionEvent, APIMessageComponentInteraction, APIMessageComponentInteractionData } from 'interfaces/interaction';
 
-export type messageInteraction = InteractionEvent & APIMessageComponentInteraction;
+export type messageInteraction = InteractionEvent & Omit<APIMessageComponentInteraction, 'data'> & APIMessageComponentInteractionData;
 
 const messageComponent = async (interaction: messageInteraction) => {
-    await interaction.re({
+    const { custom_id } = interaction;
+
+    interaction.re({
         content: '테스트',
     });
-
-    setTimeout(async () => {
-        await interaction.re({
-            content: '대화바꿈!',
-        });
-    }, 1000 * 10);
 };
 
 export default messageComponent;
