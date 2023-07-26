@@ -59,12 +59,12 @@ export default fp(async function (fastify, opts) {
             const { body } = req;
             const { token, application_id } = body;
 
-            let isReply = false; // 초기값 설정
+            let fetchReply = false; // 초기값 설정
 
             return async (message: RESTPostAPIChannelMessageJSONBody | string) => {
                 // string -> object
                 const data = {
-                    type: isReply ? InteractionResponseType.UPDATE_MESSAGE : InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+                    type: fetchReply ? InteractionResponseType.UPDATE_MESSAGE : InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
                     data: typeof message === 'string' ? { content: message } : message,
                 };
 
