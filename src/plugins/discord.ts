@@ -5,7 +5,12 @@ import { verifyKey, InteractionResponseType } from 'discord-interactions';
 
 import axios from 'axios';
 
-import { APIInteraction, RESTPostAPIChannelMessageJSONBody, APIModalInteractionResponseCallbackData } from 'discord-api-types/v10';
+import {
+    APIInteraction,
+    RESTPostAPIChannelMessageJSONBody,
+    APIModalInteractionResponseCallbackData,
+    RESTGetAPIChannelMessageResult,
+} from 'discord-api-types/v10';
 
 declare module 'fastify' {
     interface FastifyInstance {
@@ -19,9 +24,9 @@ declare module 'fastify' {
     }
 }
 
-export type Reply = (message: RESTPostAPIChannelMessageJSONBody | string) => Promise<void>;
+export type Reply = (message: RESTPostAPIChannelMessageJSONBody | string) => Promise<RESTGetAPIChannelMessageResult>;
 export type ReplyModal = (message: APIModalInteractionResponseCallbackData) => Promise<void>;
-export type ReplyFollowup = (message: RESTPostAPIChannelMessageJSONBody | string) => Promise<void>;
+export type ReplyFollowup = (message: RESTPostAPIChannelMessageJSONBody | string) => Promise<RESTGetAPIChannelMessageResult>;
 
 /**
  * This plugins adds some utilities to handle http errors
@@ -76,16 +81,16 @@ export default fp(async function (fastify, opts) {
                 // 응답 메세지 분기
                 try {
                     if (fetchReply) {
-                        await discordInteraction.patch(`/webhooks/${application_id}/${token}/messages/@original`, data);
+                        return await discordInteraction.patch(`/webhooks/${application_id}/${token}/messages/@original`, data);
                     } else {
                         await res.status(200).send(data);
+                        return await discordInteraction.get(`/webhooks/${application_id}/${token}/messages/@original`);
                     }
                 } catch (e) {
                     console.error(e);
                     throw e;
                 } finally {
                     fetchReply = true;
-                    return await discordInteraction.get(`/webhooks/${application_id}/${token}/messages/@original`);
                 }
             };
         }
@@ -104,9 +109,8 @@ export default fp(async function (fastify, opts) {
                 body: { token, application_id },
             } = req;
 
-            return async (message: RESTPostAPIChannelMessageJSONBody | string) => {
+            return async (message: RESTPostAPIChannelMessageJSONBody | string) =>
                 await discordInteraction.post(`/webhooks/${application_id}/${token}`, typeof message === 'string' ? { content: message } : message);
-            };
         }
     );
     fastify.decorateRequest(

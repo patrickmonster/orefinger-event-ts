@@ -56,10 +56,8 @@ const getOriginFileName = (path: string) => {
     const { dir, name } = parse(path);
     return join(dir, name);
 };
-export default async (modulePath: string, options?: AutoCommandOptions) =>
-    flattenModules((await ScanDir(getOriginFileName(modulePath), [], options)).modules);
 
-export const flattenModules = (modules: Modules[], path?: string): Module[] => {
+const flattenModules = (modules: Modules[], path?: string): Module[] => {
     const flatModules: Module[] = [];
     for (const module of modules) {
         if ('module' in module) {
@@ -75,3 +73,6 @@ export const flattenModules = (modules: Modules[], path?: string): Module[] => {
     }
     return flatModules;
 };
+
+export default async (modulePath: string, options?: AutoCommandOptions) =>
+    flattenModules((await ScanDir(getOriginFileName(modulePath), [], options)).modules);

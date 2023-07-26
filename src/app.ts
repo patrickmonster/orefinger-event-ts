@@ -20,7 +20,14 @@ if (existsSync(envDir)) {
 //////////////////////////////////////////////////////////////////////
 // 환경변수
 
-const server = fastify({ logger: env.NODE_ENV != 'prod' });
+const server = fastify({
+    // logger: env.NODE_ENV != 'prod'
+    logger: {
+        transport: {
+            target: '@fastify/one-line-logger',
+        },
+    },
+});
 
 server.register(helmet, { global: true });
 

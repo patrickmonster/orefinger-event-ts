@@ -2,18 +2,10 @@ import { FastifyInstance, FastifyRequest, FastifyReply, FastifyError } from 'fas
 import { InteractionResponseType } from 'discord-interactions';
 import { APIInteraction, InteractionType } from 'discord-api-types/v10';
 
-import {
-    InteractionEvent,
-    APIApplicationCommandInteraction,
-    APIApplicationCommandAutocompleteInteraction,
-    APIModalSubmitInteraction,
-    APIMessageComponentInteraction,
-} from 'interfaces/interaction';
-
-import message, { messageInteraction } from 'interactions/message';
-import model, { modelInteraction } from 'interactions/model';
-import autocomp, { autoInteraction } from 'interactions/autocomp';
-import app, { appInteraction } from 'interactions/app';
+import message from 'interactions/message';
+import model from 'interactions/model';
+import autocomp from 'interactions/autocomp';
+import app from 'interactions/app';
 
 export default async (fastify: FastifyInstance, opts: any) => {
     fastify.post<{
@@ -28,7 +20,7 @@ export default async (fastify: FastifyInstance, opts: any) => {
             },
         },
         (req, res) => {
-            const { body, headers } = req;
+            const { body } = req;
             if (!fastify.verifyKey(req)) {
                 // 승인되지 않음
                 return res.status(401).send('Bad request signature');

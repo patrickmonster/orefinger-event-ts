@@ -1,6 +1,6 @@
 import { InteractionEvent, APIApplicationCommandInteraction } from 'interfaces/interaction';
 
-import autoLoader, { flattenModules } from 'utils/auto-command';
+import autoLoader from 'utils/auto-command';
 
 const options = {
     pathTag: ' ',
