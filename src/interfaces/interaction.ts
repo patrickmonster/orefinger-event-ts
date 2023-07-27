@@ -21,6 +21,9 @@ export {
     APIMessageComponentInteraction,
     APIApplicationCommandAutocompleteInteraction,
     APIModalSubmitInteraction,
+
+    // 컴포넌트
+    ComponentType,
     ///
     APIMessageComponentInteractionData, // 메세지 처리 (버튼/매뉴등등)
     APIApplicationCommandInteractionData, // 앱 처리

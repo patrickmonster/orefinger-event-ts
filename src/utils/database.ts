@@ -28,7 +28,9 @@ const sqlLogger = (query: string, params: any[], rows: any[] | any) => {
     return rows;
 };
 
-type queryFunctionType = <E>(query: string, ...params: any[]) => Promise<any>;
+// 커넥션 쿼리 함수
+// select / insert / update / delete
+type queryFunctionType = <E>(query: string, ...params: any[]) => Promise<E extends SqlInsertUpdate ? sqlInsertUpdate : E[]>;
 
 export enum SQLType {
     select = 'select',
@@ -37,14 +39,15 @@ export enum SQLType {
     delete = 'delete',
 }
 
+// SQL 타입 - insert / update / delete 인 경우  queryFunctionType 의 리턴 타입이 sqlInsertUpdate
 export type SqlInsertUpdate = SQLType.insert | SQLType.update | SQLType.delete;
 
-const getConnection = async (connectionPool: (queryFunction: queryFunctionType) => Promise<any>): Promise<any> => {
+const getConnection = async <T>(connectionPool: (queryFunction: queryFunctionType) => Promise<T>): Promise<any> => {
     let connect: PoolConnection | null = null;
     try {
         connect = await pool.getConnection();
-        return await connectionPool(async <E>(query: string, ...params: any[]): Promise<E extends SqlInsertUpdate ? sqlInsertUpdate : E[]> => {
-            const [rows, fields] = await connect!.query(query, params);
+        return await connectionPool(async (query: string, ...params: any[]) => {
+            const [rows] = await connect!.query(query, params);
             sqlLogger(query, params, rows);
 
             return Array.isArray(rows)

@@ -1,7 +1,15 @@
 import { messageInteraction } from 'interactions/message';
 
+import { attendance } from 'controllers/twitch';
+import redis from 'utils/redis';
+
 export const exec = async (interaction: messageInteraction) => {
-    const {} = interaction;
+    const { user, message } = interaction;
+
+    let data; // 비동기 처리식
+    const userId = `${user?.id}`; // 키 조합식
+
+    // if (redis.hScan())
 
     // const user_id = `${}`
 };

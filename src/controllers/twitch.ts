@@ -124,7 +124,7 @@ export const removeChannel = async (channel_id: string) =>
 // 라이브 출석체크
 export const attendance = async (broadcaster_user_id: string, user_id: string) =>
     getConnection(async QUERY => {
-        const is_success = await QUERY(
+        const is_success = await QUERY<SqlInsertUpdate>(
             `
 INSERT ignore INTO discord.attendance (\`type\`, yymm, auth_id, event_id)
 select \`type\`
