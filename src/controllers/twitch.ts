@@ -1,11 +1,11 @@
 'use strict';
-import getConnection, { query, queryPaging, sqlInsertUpdate } from 'utils/database';
+import getConnection, { query, queryPaging, sqlInsertUpdate, SqlInsertUpdate } from 'utils/database';
 // import { Subscription } from 'interfaces/twitch';
 import { Event, Subscription } from 'interfaces/eventsub';
 
 export const register = async (subscription: Subscription) => {
     const { id, type, condition } = subscription;
-    query(
+    query<SqlInsertUpdate>(
         `INSERT INTO event_id (\`type\`, user_id, token, use_yn) VALUES(func_get_type(?, 3), ?, ?, 'Y') on duplicate key update update_at = CURRENT_TIMESTAMP, use_yn = 'Y', token = ?`,
         type,
         condition.broadcaster_user_id || condition.user_id || condition.client_id,
@@ -67,7 +67,7 @@ and delete_yn = 'N'
 export const streamOnline = async (event: Event, type = 14) =>
     getConnection(async QUERY => {
         const { id, broadcaster_user_id, started_at } = event;
-        QUERY(
+        QUERY<SqlInsertUpdate>(
             `
 INSERT INTO event_live (auth_id, event_id, create_at, \`type\`) 
 VALUES(?) ON DUPLICATE KEY UPDATE ?`,
@@ -109,13 +109,17 @@ group by channel_id
     });
 
 export const streamOffline = async (broadcaster_user_id: string, type = 14) =>
-    query(`INSERT INTO event_live (auth_id, event_id, \`type\`) VALUES(?) ON DUPLICATE KEY UPDATE ?`, [broadcaster_user_id, null, type], {
-        create_at: Date.now(),
-        event_id: null,
-    });
+    query<SqlInsertUpdate>(
+        `INSERT INTO event_live (auth_id, event_id, \`type\`) VALUES(?) ON DUPLICATE KEY UPDATE ?`,
+        [broadcaster_user_id, null, type],
+        {
+            create_at: Date.now(),
+            event_id: null,
+        }
+    );
 
 export const removeChannel = async (channel_id: string) =>
-    query(`UPDATE event_channel SET delete_yn = 'Y' WHERE channel_id = ?`, channel_id).catch(e => {});
+    query<SqlInsertUpdate>(`UPDATE event_channel SET delete_yn = 'Y' WHERE channel_id = ?`, channel_id).catch(e => {});
 
 // 라이브 출석체크
 export const attendance = async (broadcaster_user_id: string, user_id: string) =>

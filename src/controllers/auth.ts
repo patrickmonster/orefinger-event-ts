@@ -1,5 +1,5 @@
 'use strict';
-import { query, queryPaging } from 'utils/database';
+import { query, queryPaging, SqlInsertUpdate } from 'utils/database';
 import { AuthUser } from 'interfaces/auth';
 
 import { EventSub, Event, Subscription } from 'interfaces/eventsub';
@@ -13,7 +13,7 @@ export const auth = async (type: string, auth_id: string, profile: AuthUser, ref
 
 export const userUpdate = async (event: Event) => {
     const { user_id, user_login, user_name, email } = event;
-    await query(
+    await query<SqlInsertUpdate>(
         `
 UPDATE auth_token SET 
 ?, update_at = CURRENT_TIMESTAMP 

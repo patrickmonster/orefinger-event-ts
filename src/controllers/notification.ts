@@ -1,4 +1,4 @@
-import { query, queryPaging } from 'utils/database';
+import { query, queryPaging, SqlInsertUpdate } from 'utils/database';
 
 export const liveList = () =>
     query(

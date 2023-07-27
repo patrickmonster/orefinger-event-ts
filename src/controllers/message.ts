@@ -1,4 +1,4 @@
-import { query, queryPaging } from 'utils/database';
+import { query, queryPaging, SqlInsertUpdate } from 'utils/database';
 
 import { MessageCreate } from 'interfaces/message';
 
@@ -13,7 +13,7 @@ FROM notification.message`,
 export const createMessage = async (message: MessageCreate) => query(`INSERT INTO notification.message set ?`, message);
 
 export const updateMessage = async (message_id: number, message: MessageCreate) =>
-    query(
+    query<SqlInsertUpdate>(
         `
 UPDATE message
 SET ?, update_at=CURRENT_TIMESTAMP
