@@ -5,7 +5,7 @@ import {
 } from 'interfaces/interaction';
 
 export type autoInteraction = InteractionEvent &
-    Omit<APIApplicationCommandAutocompleteInteraction, 'data'> &
+    Omit<APIApplicationCommandAutocompleteInteraction, 'data' | 'type'> &
     APIChatInputApplicationCommandInteractionData;
 
 const autoComponent = async (interaction: autoInteraction) => {

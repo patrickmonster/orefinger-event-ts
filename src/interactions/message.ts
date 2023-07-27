@@ -1,7 +1,7 @@
 import autoLoader from 'utils/auto-command';
 import { InteractionEvent, ComponentType, APIMessageComponentInteraction, APIMessageComponentInteractionData } from 'interfaces/interaction';
 
-export type messageInteraction = InteractionEvent & Omit<APIMessageComponentInteraction, 'data'> & APIMessageComponentInteractionData;
+export type messageInteraction = InteractionEvent & Omit<APIMessageComponentInteraction, 'data' | 'type'> & APIMessageComponentInteractionData;
 
 let getCommand: Function = () => {};
 autoLoader(__filename, {
@@ -18,7 +18,15 @@ const messageComponent = async (interaction: messageInteraction) => {
     switch (component_type) {
         case ComponentType.Button:
             getCommand(`button ${id}`)(interaction);
+            break;
         case ComponentType.StringSelect:
+        case ComponentType.ChannelSelect:
+        case ComponentType.UserSelect:
+        case ComponentType.RoleSelect:
+        case ComponentType.MentionableSelect:
+            // case ComponentType.TextInput:
+            getCommand(`menu ${id}`)(interaction);
+            break;
     }
 };
 

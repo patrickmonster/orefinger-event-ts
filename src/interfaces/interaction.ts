@@ -24,6 +24,7 @@ export {
 
     // 컴포넌트
     ComponentType,
+    ApplicationCommandType,
     ///
     APIMessageComponentInteractionData, // 메세지 처리 (버튼/매뉴등등)
     APIApplicationCommandInteractionData, // 앱 처리
