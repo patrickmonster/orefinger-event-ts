@@ -12,7 +12,6 @@ export const exec = (interaction: appInteraction) => {
     if (interaction.type !== type) return; // 유저 커맨드만
     const { target_id } = interaction;
 
-    //
     authTokenSelect(target_id, 'select nick', 2, 3)
         .then(async user => {
             if (Array.isArray(user)) {
@@ -21,10 +20,8 @@ export const exec = (interaction: appInteraction) => {
                     components: user,
                 });
             } else {
-                // const {  } = await
                 const [user_profile] = await getUser(target_id);
                 const { display_name, login } = user_profile;
-
                 // TODO: 닉네임 변경 선택지 구현
             }
         })

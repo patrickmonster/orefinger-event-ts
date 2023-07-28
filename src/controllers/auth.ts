@@ -2,7 +2,7 @@
 import { query, queryPaging, SqlInsertUpdate } from 'utils/database';
 import { AuthUser } from 'interfaces/auth';
 
-import { EventSub, Event, Subscription } from 'interfaces/eventsub';
+import { Event } from 'interfaces/eventsub';
 
 export const discord = async (profile: AuthUser, refreshToken: string) => auth('discord', profile.id, profile, refreshToken);
 
@@ -59,4 +59,23 @@ group by user_id
 `,
         user_id,
         types
+    );
+
+//
+export const userAuthState = (id: string) =>
+    query<{
+        auth_id: string;
+        create_at: string;
+        tag: string;
+        name: string;
+    }>(
+        ` -- 구독 or 인증정보를 불러옴
+SELECT auth_id, ar.create_at, tag, g.name
+FROM discord.auth_rule ar
+inner join auth_rule_type art on ar.type =  art.idx 
+join guild g using(guild_id)
+where 1=1
+and auth_id = ?
+and g.name > ''`,
+        id
     );

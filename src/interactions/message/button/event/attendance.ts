@@ -7,11 +7,9 @@ export const exec = async (interaction: messageInteraction) => {
     const { user, message } = interaction;
 
     let data; // 비동기 처리식
-    const userId = `${user?.id}`; // 키 조합식
+    const user_id = `attendance:${user?.id}`; // 키 조합식
 
-    // if (redis.hScan())
-
-    // const user_id = `${}`
+    redis.get(user_id);
 };
 
 //  해당 명령은 등록 하지 않는 명령 입니다.

@@ -95,8 +95,9 @@ export default async (modulePath: string, options?: AutoCommandOptions) => {
         else console.error('ERROR] exec is not defined', custom_id);
     }
     return (id: string) => {
-        const command = Object.keys(commands).find(i => id.startsWith(i));
-        return command ? commands[command] : options?.defaultFunction || (() => {});
+        const command = Object.keys(commands).findIndex(i => id.startsWith(i));
+        return <T>(interaction: T) =>
+            (command ? commands[command] : options?.defaultFunction || (() => {}))(interaction, id.replace(command + ' ', ''));
     };
 };
 export const findCommand = (id: string, commands: { [k: string]: Function }, defaultFunction = () => {}) => {

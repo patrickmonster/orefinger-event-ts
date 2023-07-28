@@ -73,24 +73,21 @@ export default fp(async function (fastify, opts) {
                 // DEFERRED_UPDATE_MESSAGE
                 // UPDATE_MESSAGE = 메세지 수정
 
-                const data = {
-                    type: fetchReply ? InteractionResponseType.UPDATE_MESSAGE : InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
-                    data: typeof message === 'string' ? { content: message } : message,
-                };
-
                 // 응답 메세지 분기
                 try {
                     if (fetchReply) {
-                        return await discordInteraction.patch(`/webhooks/${application_id}/${token}/messages/@original`, data);
+                        return await discordInteraction.patch(`/webhooks/${application_id}/${token}/messages/@original`, message);
                     } else {
-                        await res.status(200).send(data);
+                        fetchReply = true;
+                        await res.status(200).send({
+                            type: fetchReply ? InteractionResponseType.UPDATE_MESSAGE : InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+                            data: typeof message === 'string' ? { content: message } : message,
+                        });
                         return await discordInteraction.get(`/webhooks/${application_id}/${token}/messages/@original`);
                     }
                 } catch (e) {
                     console.error(e);
                     throw e;
-                } finally {
-                    fetchReply = true;
                 }
             };
         }

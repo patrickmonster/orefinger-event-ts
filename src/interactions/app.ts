@@ -16,7 +16,7 @@ autoLoader(__filename, {
 
 export type appInteraction = InteractionEvent & Omit<APIApplicationCommandInteraction, 'data' | 'type'> & APIApplicationCommandInteractionData;
 
-const appComponent = async (interaction: appInteraction) => {
+const appComponent = async (interaction: appInteraction, custom_id) => {
     const { type } = interaction;
 
     switch (type) {
