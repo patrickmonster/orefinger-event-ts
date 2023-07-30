@@ -5,13 +5,13 @@ import { cpSync } from 'fs';
 
 export type messageInteraction = InteractionEvent & Omit<APIMessageComponentInteraction, 'data' | 'type'> & APIMessageComponentInteractionData;
 
-let getCommand: Function = () => {};
-autoLoader(__filename, {
+const getCommand = autoLoader(__filename, {
     pathTag: ' ',
+    isLog: true,
     defaultFunction: async (interaction: messageInteraction) => {
         await interaction.re({ content: '해당 명령은 등록 하지 않는 명령 입니다.' });
     },
-}).then(func => (getCommand = func));
+});
 
 const messageComponent = async (interaction: messageInteraction) => {
     const { custom_id, component_type } = interaction;
@@ -26,7 +26,6 @@ const messageComponent = async (interaction: messageInteraction) => {
         case ComponentType.UserSelect:
         case ComponentType.RoleSelect:
         case ComponentType.MentionableSelect:
-            // case ComponentType.TextInput:
             getCommand(`menu ${id}`)(interaction);
             break;
     }

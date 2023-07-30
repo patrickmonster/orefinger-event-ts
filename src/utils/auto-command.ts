@@ -38,16 +38,17 @@ const FileLoader = (modulePath: string, options?: AutoCommandOptions): Module =>
  * 폴더 스캔하여 파일 로드
  * @param modulePath
  */
-const ScanDir = async (modulePath: string, basePath: string[], options?: AutoCommandOptions): Promise<ModuleDir> => {
-    const files = await promises.readdir(modulePath);
+const ScanDir = (modulePath: string, basePath: string[], options?: AutoCommandOptions): ModuleDir => {
+    // const files = await promises.readdir(modulePath);
+    const files = fs.readdirSync(modulePath);
     options?.isLog && console.log('AutoCommand] ScanDir', files);
     const modules = new Array<Modules>();
     for (const file of files) {
         const filePath = path.join(modulePath, file);
-        const stat = await promises.stat(filePath);
+        const stat = fs.statSync(filePath); // await promises.stat(filePath);
         try {
             if (stat.isDirectory()) {
-                modules.push(await ScanDir(filePath, [...basePath, file], options));
+                modules.push(ScanDir(filePath, [...basePath, file], options));
             } else modules.push(FileLoader(filePath, options)); // Module[]
             // Module | ModuleDir
         } catch (err) {
@@ -85,8 +86,8 @@ const flattenModules = (modules: Modules[], path?: string): Module[] => {
     return flatModules;
 };
 
-export default async (modulePath: string, options?: AutoCommandOptions) => {
-    const modules = flattenModules((await ScanDir(getOriginFileName(modulePath), [], options)).modules);
+export default (modulePath: string, options?: AutoCommandOptions) => {
+    const modules = flattenModules(ScanDir(getOriginFileName(modulePath), [], options).modules);
     const commands: { [key: string]: Function } = {};
     for (const command of modules) {
         const { path, name, module } = command;

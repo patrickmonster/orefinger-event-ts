@@ -114,4 +114,40 @@ export default async (fastify: FastifyInstance, opts: any) => {
         },
         async req => await updateMessage(req.params.message_id, req.body)
     );
+
+    fastify.post<{
+        Params: { target: string };
+        Body: { message: string };
+    }>(
+        '/twitch/message/:target',
+        {
+            onRequest: [fastify.masterkey],
+            schema: {
+                security: [{ Master: [] }],
+                summary: '트위치 채팅방에 메세지 전송',
+                description: '트위치 채팅방에 메세지를 전송 합니다.',
+                tags: ['Admin'],
+                params: {
+                    type: 'object',
+                    required: ['target'],
+                    properties: {
+                        target: { type: 'string', description: '메세지를 전송하는 채널 입니다.' },
+                    },
+                },
+                body: {
+                    type: 'object',
+                    required: ['target', 'message', 'key'],
+                    properties: {
+                        message: { type: 'string', description: '메세지 내용 입니다.' },
+                    },
+                },
+            },
+        },
+        (req, res) => {
+            const { target } = req.params;
+            const { message } = req.body;
+
+            res.send({ target, message });
+        }
+    );
 };

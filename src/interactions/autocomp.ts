@@ -9,7 +9,7 @@ export type autoInteraction = InteractionEvent &
     APIChatInputApplicationCommandInteractionData;
 
 const autoComponent = async (interaction: autoInteraction) => {
-    // ??
+    // 자동완성
 };
 
 export default autoComponent;
