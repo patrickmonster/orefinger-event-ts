@@ -1,10 +1,11 @@
 import { FastifyInstance, FastifyRequest, FastifyReply, FastifyError } from 'fastify';
 import { InteractionResponseType } from 'discord-interactions';
-import { APIInteraction } from 'discord-api-types/v10';
+import { APIInteraction, InteractionType } from 'discord-api-types/v10';
 
-import { InteractionEvent } from 'interfaces/interaction';
-
-import message_component from 'interactions/message_component';
+import message from 'interactions/message';
+import model from 'interactions/model';
+import autocomp from 'interactions/autocomp';
+import app from 'interactions/app';
 
 export default async (fastify: FastifyInstance, opts: any) => {
     fastify.post<{
@@ -30,8 +31,7 @@ export default async (fastify: FastifyInstance, opts: any) => {
                 return res.status(200).send({ type: InteractionResponseType.PONG });
             }
 
-            const interaction: InteractionEvent = {
-                ...body,
+            const interactionEvent = {
                 re: req.createReply(req, res),
                 model: req.createModel(req, res),
                 follow: req.createFollowup(req, res),
@@ -41,22 +41,22 @@ export default async (fastify: FastifyInstance, opts: any) => {
                 },
             };
 
-            message_component(interaction);
-
-            console.log('====================================');
-            console.log('데이터 수신', body);
-            console.log('====================================');
-            // switch (body.type) {
-            //     case 2: // 'APPLICATION_COMMAND'
-            //         break;
-            //     case 3: // 'MESSAGE_COMPONENT'
-            //     case 4: // 'APPLICATION_COMMAND_AUTOCOMPLETE'
-            //         return;
-            //     case 5: // 'MODAL_SUBMIT'
-            //         return;
-            //     default:
-            //         return res.status(400).send('Bad request');
-            // }
+            switch (body.type) {
+                case InteractionType.ApplicationCommand:
+                    app(Object.assign(body, interactionEvent, body.data));
+                    break;
+                case InteractionType.MessageComponent:
+                    message(Object.assign(body, interactionEvent, body.data));
+                    break;
+                case InteractionType.ApplicationCommandAutocomplete:
+                    autocomp(Object.assign(body, interactionEvent, body.data));
+                    break;
+                case InteractionType.ModalSubmit:
+                    model(Object.assign(body, interactionEvent, body.data));
+                    break;
+                default:
+                    break;
+            }
         }
     );
 };

@@ -16,7 +16,23 @@ export type Interaction =
     | APIApplicationCommandAutocompleteInteraction
     | APIModalSubmitInteraction;
 
-export type InteractionEvent = Interaction & {
+export {
+    APIApplicationCommandInteraction,
+    APIMessageComponentInteraction,
+    APIApplicationCommandAutocompleteInteraction,
+    APIModalSubmitInteraction,
+
+    // 컴포넌트
+    ComponentType,
+    ApplicationCommandType,
+    ///
+    APIMessageComponentInteractionData, // 메세지 처리 (버튼/매뉴등등)
+    APIApplicationCommandInteractionData, // 앱 처리
+    APIChatInputApplicationCommandInteractionData, // 채팅 입력 슬레시 명령
+    APIModalSubmission, // 모달 처리
+} from 'discord-api-types/v10';
+
+export type InteractionEvent = {
     raw: {
         body: APIInteraction;
         res: FastifyReply;

@@ -1,4 +1,4 @@
-import { query, queryPaging } from 'utils/database';
+import { query, queryPaging, SqlInsertUpdate } from 'utils/database';
 
 import { TextCreate } from 'interfaces/text';
 
@@ -14,7 +14,7 @@ FROM text_message
 export const createText = async (text: TextCreate) => query(`INSERT INTO text_message set ?`, text);
 
 export const updateText = async (text_id: number, text: TextCreate) =>
-    query(
+    query<SqlInsertUpdate>(
         `
 UPDATE text_message
 SET ?, update_at=CURRENT_TIMESTAMP

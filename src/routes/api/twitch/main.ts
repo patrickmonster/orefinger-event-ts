@@ -6,48 +6,6 @@ export default async (fastify: FastifyInstance, opts: any) => {
 
     const events = ['stream.online', 'stream.offline', 'channel.update'];
 
-    fastify.post<{
-        Params: { target: string };
-        Body: { message: string; key: string };
-    }>(
-        '/message/:target',
-        {
-            onRequest: [fastify.masterkey],
-            schema: {
-                security: [{ Master: [] }],
-                description: '트위치 채팅방에 메세지를 전송 합니다.',
-                tags: ['Admin'],
-                params: {
-                    type: 'object',
-                    required: ['target'],
-                    properties: {
-                        target: { type: 'string', description: '메세지를 전송하는 채널 입니다.' },
-                    },
-                },
-                body: {
-                    type: 'object',
-                    required: ['target', 'message', 'key'],
-                    properties: {
-                        message: { type: 'string', description: '메세지 내용 입니다.' },
-                        key: { type: 'string', description: 'master key' },
-                    },
-                },
-            },
-        },
-        (req, res) => {
-            const { target } = req.params;
-            const { message, key } = req.body;
-
-            if (key != process.env.MASTER_KEY) {
-                res.code(400).send({ error: 'invalid key' });
-                return;
-            }
-            //
-
-            res.send({ target, message });
-        }
-    );
-
     fastify.put<{
         Body: { broadcaster_user_id: string; key: string };
     }>(
