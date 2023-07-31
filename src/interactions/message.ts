@@ -1,8 +1,6 @@
 import autoLoader from 'utils/auto-command';
 import { InteractionEvent, ComponentType, APIMessageComponentInteraction, APIMessageComponentInteractionData } from 'interfaces/interaction';
 
-import { cpSync } from 'fs';
-
 export type messageInteraction = InteractionEvent & Omit<APIMessageComponentInteraction, 'data' | 'type'> & APIMessageComponentInteractionData;
 
 const getCommand = autoLoader(__filename, {

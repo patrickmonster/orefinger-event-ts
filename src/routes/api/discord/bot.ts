@@ -2,6 +2,8 @@ import { FastifyInstance, FastifyRequest, FastifyReply, FastifyError } from 'fas
 import { InteractionResponseType } from 'discord-interactions';
 import { APIInteraction, InteractionType } from 'discord-api-types/v10';
 
+import { InteractionEvent } from 'interfaces/interaction';
+
 import message from 'interactions/message';
 import model from 'interactions/model';
 import autocomp from 'interactions/autocomp';
@@ -31,14 +33,11 @@ export default async (fastify: FastifyInstance, opts: any) => {
                 return res.status(200).send({ type: InteractionResponseType.PONG });
             }
 
-            const interactionEvent = {
+            const interactionEvent: InteractionEvent = {
                 re: req.createReply(req, res),
                 model: req.createModel(req, res),
                 follow: req.createFollowup(req, res),
-                raw: {
-                    body: body,
-                    res: res,
-                },
+                raw: { body: body, res: res },
             };
 
             switch (body.type) {

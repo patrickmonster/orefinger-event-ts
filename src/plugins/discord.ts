@@ -20,11 +20,11 @@ declare module 'fastify' {
     interface FastifyRequest {
         createReply: (req: FastifyRequest<{ Body: APIInteraction }>, res: FastifyReply) => Reply;
         createModel: (req: FastifyRequest<{ Body: APIInteraction }>, res: FastifyReply) => ReplyModal;
-        createFollowup: (req: FastifyRequest<{ Body: APIInteraction }>, res: FastifyReply) => Reply;
+        createFollowup: (req: FastifyRequest<{ Body: APIInteraction }>, res: FastifyReply) => ReplyFollowup;
     }
 }
 
-export type Reply = (message: RESTPostAPIChannelMessageJSONBody | string) => Promise<RESTGetAPIChannelMessageResult>;
+export type Reply = (message: RESTPostAPIChannelMessageJSONBody | string) => Promise<void>;
 export type ReplyModal = (message: APIModalInteractionResponseCallbackData) => Promise<void>;
 export type ReplyFollowup = (message: RESTPostAPIChannelMessageJSONBody | string) => Promise<RESTGetAPIChannelMessageResult>;
 
@@ -76,7 +76,7 @@ export default fp(async function (fastify, opts) {
                 // 응답 메세지 분기
                 try {
                     if (fetchReply) {
-                        return await discordInteraction.patch(`/webhooks/${application_id}/${token}/messages/@original`, message);
+                        await discordInteraction.patch(`/webhooks/${application_id}/${token}/messages/@original`, message);
                     } else {
                         fetchReply = true;
                         await res.status(200).send({

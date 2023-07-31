@@ -37,7 +37,7 @@ export type InteractionEvent = {
         body: APIInteraction;
         res: FastifyReply;
     };
-    re: (message: RESTPostAPIChannelMessageJSONBody | string) => Promise<RESTGetAPIChannelMessageResult>;
-    follow: (message: RESTPostAPIChannelMessageJSONBody | string) => Promise<RESTGetAPIChannelMessageResult>;
+    re: (message: RESTPostAPIChannelMessageJSONBody | string) => Promise<void>;
     model: (message: APIModalInteractionResponseCallbackData) => Promise<void>;
+    follow: (message: RESTPostAPIChannelMessageJSONBody | string) => Promise<RESTGetAPIChannelMessageResult>;
 };
