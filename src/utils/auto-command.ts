@@ -97,6 +97,7 @@ export default (modulePath: string, options?: AutoCommandOptions) => {
     }
     return (id: string) => {
         const command = Object.keys(commands).findIndex(i => id.startsWith(i));
+        console.log('Event]', id);
         return <T>(interaction: T) =>
             (command ? commands[command] : options?.defaultFunction || (() => {}))(interaction, id.replace(command + ' ', ''));
     };
