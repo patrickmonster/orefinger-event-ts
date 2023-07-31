@@ -83,7 +83,7 @@ export default fp(async function (fastify, opts) {
                             type: fetchReply ? InteractionResponseType.UPDATE_MESSAGE : InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
                             data: typeof message === 'string' ? { content: message } : message,
                         });
-                        return await discordInteraction.get(`/webhooks/${application_id}/${token}/messages/@original`);
+                        // return await discordInteraction.get(`/webhooks/${application_id}/${token}/messages/@original`);
                     }
                 } catch (e) {
                     console.error(e);
