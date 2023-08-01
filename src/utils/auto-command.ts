@@ -21,7 +21,7 @@ export type Modules = ModuleDir | Module;
 export interface AutoCommandOptions {
     pathTag?: string; // 모듈 경로를 표시할 태그
     isLog?: boolean; // 로그 출력 여부
-    defaultFunction?: Function;
+    defaultFunction?: (...interaction: any[]) => void;
 }
 
 const FileLoader = (modulePath: string, options?: AutoCommandOptions): Module => {
@@ -87,7 +87,9 @@ const flattenModules = (modules: Modules[], path?: string): Module[] => {
 };
 
 export default (modulePath: string, options?: AutoCommandOptions) => {
-    const modules = flattenModules(ScanDir(getOriginFileName(modulePath), [], options).modules);
+    const option = Object.assign({ defaultFunction: () => {} }, options);
+
+    const modules = flattenModules(ScanDir(getOriginFileName(modulePath), [], option).modules);
     const commands: { [key: string]: Function } = {};
     for (const command of modules) {
         const { path, name, module } = command;
@@ -96,10 +98,12 @@ export default (modulePath: string, options?: AutoCommandOptions) => {
         else console.error('ERROR] exec is not defined', custom_id);
     }
     return (id: string) => {
-        const command = Object.keys(commands).findIndex(i => id.startsWith(i));
+        // const command = Object.keys(commands).findIndex(i => id.startsWith(i));
+        const command = Object.keys(commands).find(i => id.startsWith(i));
+
         console.log('Event]', id);
-        return <T>(interaction: T) =>
-            (command ? commands[command] : options?.defaultFunction || (() => {}))(interaction, id.replace(command + ' ', ''));
+
+        return command ? <T>(interaction: T) => commands[command](interaction, id.replace(command + ' ', '')) : option.defaultFunction;
     };
 };
 export const findCommand = (id: string, commands: { [k: string]: Function }, defaultFunction = () => {}) => {
