@@ -62,7 +62,8 @@ export default fp(async function (fastify, opts) {
         ): Reply => {
             // console.log(body);
             const { body } = req;
-            const { token, application_id } = body;
+            const { token, application_id, message } = body;
+            const id = message ? message.id : '@original';
 
             let fetchReply = false; // 초기값 설정
 
@@ -76,7 +77,7 @@ export default fp(async function (fastify, opts) {
                 // 응답 메세지 분기
                 try {
                     if (fetchReply) {
-                        await discordInteraction.patch(`/webhooks/${application_id}/${token}/messages/@original`, message);
+                        await discordInteraction.patch(`/webhooks/${application_id}/${token}/messages/${id}`, message);
                     } else {
                         fetchReply = true;
                         await res.status(200).send({
