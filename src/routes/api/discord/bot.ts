@@ -36,6 +36,7 @@ export default async (fastify: FastifyInstance, opts: any) => {
             const interactionEvent: InteractionEvent = {
                 re: req.createReply(req, res),
                 model: req.createModel(req, res),
+                deffer: req.createDeferred(req, res),
                 follow: req.createFollowup(req, res),
                 raw: { body: body, res: res },
             };

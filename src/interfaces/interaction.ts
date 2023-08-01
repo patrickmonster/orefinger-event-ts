@@ -9,6 +9,7 @@ import {
 } from 'discord-api-types/v10';
 
 import { RESTPostAPIChannelMessageJSONBody, RESTGetAPIChannelMessageResult } from 'discord-api-types/rest/v10';
+import { Deferred } from 'plugins/discord';
 
 export type Interaction =
     | APIApplicationCommandInteraction
@@ -38,6 +39,7 @@ export type InteractionEvent = {
         res: FastifyReply;
     };
     re: (message: RESTPostAPIChannelMessageJSONBody | string) => Promise<void>;
+    deffer: () => Promise<Deferred>;
     model: (message: APIModalInteractionResponseCallbackData) => Promise<void>;
     follow: (message: RESTPostAPIChannelMessageJSONBody | string) => Promise<RESTGetAPIChannelMessageResult>;
 };

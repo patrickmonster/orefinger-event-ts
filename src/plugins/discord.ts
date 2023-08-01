@@ -26,7 +26,7 @@ declare module 'fastify' {
 }
 
 export type Reply = (message: RESTPostAPIChannelMessageJSONBody | string) => Promise<void>;
-export type ReplyDeferred = (message: RESTPostAPIChannelMessageJSONBody | string) => Promise<Deferred>;
+export type ReplyDeferred = (message: { ephemeral: boolean }) => Promise<Deferred>;
 export type ReplyModal = (message: APIModalInteractionResponseCallbackData) => Promise<void>;
 export type ReplyFollowup = (message: RESTPostAPIChannelMessageJSONBody | string) => Promise<RESTGetAPIChannelMessageResult>;
 
@@ -72,7 +72,7 @@ export default fp(async function (fastify, opts) {
 
             let fetchReply = false; // 초기값 설정
 
-            return async (message: RESTPostAPIChannelMessageJSONBody | string) => {
+            return async (message: (RESTPostAPIChannelMessageJSONBody & { ephemeral: boolean }) | string) => {
                 // string -> object
                 // CHANNEL_MESSAGE_WITH_SOURCE = 메세지 전송
                 // DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE
@@ -123,7 +123,7 @@ export default fp(async function (fastify, opts) {
                         type: InteractionResponseType.DEFERRED_UPDATE_MESSAGE,
                     });
                 }
-                return async (message: RESTPostAPIChannelMessageJSONBody | string) =>
+                return async (message: (RESTPostAPIChannelMessageJSONBody & { ephemeral: boolean }) | string) =>
                     await discordInteraction.patch(
                         `/webhooks/${application_id}/${token}/messages/${id}`,
                         typeof message === 'string' ? { content: message } : message
@@ -145,7 +145,7 @@ export default fp(async function (fastify, opts) {
                 body: { token, application_id },
             } = req;
 
-            return async (message: RESTPostAPIChannelMessageJSONBody | string) =>
+            return async (message: (RESTPostAPIChannelMessageJSONBody & { ephemeral: boolean }) | string) =>
                 await discordInteraction.post(`/webhooks/${application_id}/${token}`, typeof message === 'string' ? { content: message } : message);
         }
     );
