@@ -19,14 +19,19 @@ declare module 'fastify' {
 
     interface FastifyRequest {
         createReply: (req: FastifyRequest<{ Body: APIInteraction }>, res: FastifyReply) => Reply;
+        createDeferred: (req: FastifyRequest<{ Body: APIInteraction }>, res: FastifyReply) => ReplyDeferred;
         createModel: (req: FastifyRequest<{ Body: APIInteraction }>, res: FastifyReply) => ReplyModal;
         createFollowup: (req: FastifyRequest<{ Body: APIInteraction }>, res: FastifyReply) => ReplyFollowup;
     }
 }
 
 export type Reply = (message: RESTPostAPIChannelMessageJSONBody | string) => Promise<void>;
+export type ReplyDeferred = (message: RESTPostAPIChannelMessageJSONBody | string) => Promise<Deferred>;
 export type ReplyModal = (message: APIModalInteractionResponseCallbackData) => Promise<void>;
 export type ReplyFollowup = (message: RESTPostAPIChannelMessageJSONBody | string) => Promise<RESTGetAPIChannelMessageResult>;
+
+// 선처리 후 응답
+export type Deferred = (message: RESTPostAPIChannelMessageJSONBody | string) => Promise<void>;
 
 /**
  * This plugins adds some utilities to handle http errors
@@ -94,6 +99,39 @@ export default fp(async function (fastify, opts) {
         }
     );
 
+    // deferred
+    fastify.decorateRequest(
+        'createDeferred',
+        (
+            req: FastifyRequest<{
+                Body: APIInteraction;
+            }>,
+            res: FastifyReply
+        ): ReplyDeferred => {
+            const {
+                body: { token, application_id, message },
+            } = req;
+
+            const id = message ? message.id : '@original';
+
+            let isDeferred = false;
+
+            return async () => {
+                if (!isDeferred) {
+                    isDeferred = true;
+                    await res.status(200).send({
+                        type: InteractionResponseType.DEFERRED_UPDATE_MESSAGE,
+                    });
+                }
+                return async (message: RESTPostAPIChannelMessageJSONBody | string) =>
+                    await discordInteraction.patch(
+                        `/webhooks/${application_id}/${token}/messages/${id}`,
+                        typeof message === 'string' ? { content: message } : message
+                    );
+            };
+        }
+    );
+
     // 후행 응답
     fastify.decorateRequest(
         'createFollowup',
@@ -111,6 +149,8 @@ export default fp(async function (fastify, opts) {
                 await discordInteraction.post(`/webhooks/${application_id}/${token}`, typeof message === 'string' ? { content: message } : message);
         }
     );
+
+    // 모달응답
     fastify.decorateRequest(
         'createModel',
         (
