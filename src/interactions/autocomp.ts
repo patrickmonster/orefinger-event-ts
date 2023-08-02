@@ -1,8 +1,4 @@
-import {
-    InteractionEvent,
-    APIApplicationCommandAutocompleteInteraction,
-    APIChatInputApplicationCommandInteractionData,
-} from 'interfaces/interaction';
+import { InteractionEvent, APIApplicationCommandAutocompleteInteraction, APIChatInputApplicationCommandInteractionData } from 'plugins/discord';
 
 export type autoInteraction = InteractionEvent &
     Omit<APIApplicationCommandAutocompleteInteraction, 'data' | 'type'> &

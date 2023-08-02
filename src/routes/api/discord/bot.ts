@@ -2,7 +2,7 @@ import { FastifyInstance, FastifyRequest, FastifyReply, FastifyError } from 'fas
 import { InteractionResponseType } from 'discord-interactions';
 import { APIInteraction, InteractionType } from 'discord-api-types/v10';
 
-import { InteractionEvent } from 'interfaces/interaction';
+import { InteractionEvent } from 'plugins/discord';
 
 import message from 'interactions/message';
 import model from 'interactions/model';
