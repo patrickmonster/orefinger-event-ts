@@ -45,11 +45,16 @@ and delete_yn = 'N'
         user_id
     );
 
+type revokeType = {
+    channel_id: string;
+    login: string;
+    name: string;
+};
 export const revoke = async (user_id: string) =>
-    getConnection(async QUERY => {
-        QUERY(`UPDATE auth_token SET is_session='N', update_at=CURRENT_TIMESTAMP WHERE user_id=? AND \`type\`=2`, user_id);
+    getConnection<revokeType[]>(async QUERY => {
+        QUERY<SqlInsertUpdate>(`UPDATE auth_token SET is_session='N', update_at=CURRENT_TIMESTAMP WHERE user_id=? AND \`type\`=2`, user_id);
         //
-        return QUERY(
+        return QUERY<revokeType>(
             `
 SELECT ec.channel_id
     , at2.login
@@ -118,12 +123,20 @@ export const streamOffline = async (broadcaster_user_id: string, type = 14) =>
         }
     );
 
+export type Attendance = {
+    attendance_time: string;
+    create_at: string;
+};
+
 export const removeChannel = async (channel_id: string) =>
     query<SqlInsertUpdate>(`UPDATE event_channel SET delete_yn = 'Y' WHERE channel_id = ?`, channel_id).catch(e => {});
 
 // 라이브 출석체크
 export const attendance = async (broadcaster_user_id: string, user_id: string) =>
-    getConnection(async QUERY => {
+    getConnection<{
+        is_success: number;
+        list: Attendance[];
+    }>(async QUERY => {
         const is_success = await QUERY<SqlInsertUpdate>(
             `
 INSERT ignore INTO discord.attendance (\`type\`, yymm, auth_id, event_id)
@@ -141,10 +154,7 @@ from (
             user_id
         ).then(row => row.insertId || row.affectedRows);
 
-        const list = await QUERY<{
-            attendance_time: string;
-            create_at: string;
-        }>(
+        const list = await QUERY<Attendance>(
             `
 select attendance_time, create_at 
 from (
@@ -168,3 +178,27 @@ left join (
 
         return { is_success, list };
     });
+
+export const attendanceList = async (page: number, broadcaster_user_id: string, id: string) =>
+    queryPaging<{
+        total: number;
+        cnt: number;
+        yymm: string;
+        late_time: string;
+        per: number;
+    }>(
+        `
+select
+    total
+    , cnt
+    , concat(left(yymm, 2), '년', right(yymm, 2), '월') as yymm
+    , TIME_FORMAT(SEC_TO_TIME(abs(avg_late_time)), '%H시간%i분%s초' ) as late_time
+    , per
+from attendance_rank 
+where auth_id = ?
+and stream_id = ?
+        `,
+        page,
+        id,
+        broadcaster_user_id
+    );

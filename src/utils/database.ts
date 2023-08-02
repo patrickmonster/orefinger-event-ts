@@ -30,7 +30,8 @@ const sqlLogger = (query: string, params: any[], rows: any[] | any) => {
 
 // 커넥션 쿼리 함수
 // select / insert / update / delete
-type queryFunctionType = <E>(query: string, ...params: any[]) => Promise<E extends SqlInsertUpdate ? sqlInsertUpdate : E[]>;
+type ResqultQuery<E> = E extends SqlInsertUpdate ? sqlInsertUpdate : E[];
+type queryFunctionType = <E>(query: string, ...params: any[]) => Promise<ResqultQuery<E>>;
 
 export enum SQLType {
     select = 'select',
@@ -42,7 +43,7 @@ export enum SQLType {
 // SQL 타입 - insert / update / delete 인 경우  queryFunctionType 의 리턴 타입이 sqlInsertUpdate
 export type SqlInsertUpdate = SQLType.insert | SQLType.update | SQLType.delete;
 
-const getConnection = async <T>(connectionPool: (queryFunction: queryFunctionType) => Promise<T>): Promise<any> => {
+const getConnection = async <T>(connectionPool: (queryFunction: queryFunctionType) => Promise<T>) => {
     let connect: PoolConnection | null = null;
     try {
         connect = await pool.getConnection();
@@ -66,6 +67,7 @@ const getConnection = async <T>(connectionPool: (queryFunction: queryFunctionTyp
         });
     } catch (e) {
         console.error('SQL]', e);
+        throw e;
     } finally {
         if (connect) connect.release();
     }
@@ -73,15 +75,12 @@ const getConnection = async <T>(connectionPool: (queryFunction: queryFunctionTyp
 
 export default getConnection;
 ///////////////////////////////////////////////////////////////////////////////////////////
-let limit = 30;
+let limit = 10;
 
-export const query = async <E>(query: string, ...params: any[]): Promise<E extends SqlInsertUpdate ? sqlInsertUpdate : E[]> =>
-    await getConnection(async <E>(c: queryFunctionType) => c<E>(query, ...params));
+export const query = async <E>(query: string, ...params: any[]): Promise<ResqultQuery<E>> =>
+    await getConnection(async (c: queryFunctionType) => c(query, ...params));
 
 export const setLimit = (l: number) => (limit = l);
 
-export const queryPaging = async <E>(query: string, page: number = 0, ...params: any[]): Promise<E[]> =>
-    await getConnection(async <E>(c: queryFunctionType) => {
-        if (page <= 0) page = 0;
-        return c<E>(`${query}\n order by create_at limit ?, ?`, ...params, page, limit);
-    });
+export const queryPaging = async <E>(query: string, page: number = 0, ...params: any[]): Promise<ResqultQuery<E>> =>
+    await getConnection(async (c: queryFunctionType) => c(`${query}\n order by create_at limit ?, ?`, ...params, page <= 0 ? 0 : page, limit));

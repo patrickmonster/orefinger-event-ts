@@ -1,6 +1,7 @@
 import { query, queryPaging, SqlInsertUpdate } from 'utils/database';
 
 import { MessageCreate } from 'interfaces/message';
+import { APIEmbed } from 'discord-api-types/v10';
 
 export const getMessageList = async (page: number) =>
     queryPaging(
@@ -21,3 +22,18 @@ WHERE message_id=?`,
         message,
         message_id
     );
+
+// 광고 모듈
+export const getAdvertisement = (game_id: string | number) =>
+    query<{
+        embed: APIEmbed;
+        advertisement_id: number;
+    }>(
+        `
+select embed, advertisement_id  from v_advertisement va
+inner join (
+select func_advert(?) as advertisement_id
+) b using(advertisement_id)
+    `,
+        `${game_id}`
+    ).then(([{ embed }]) => embed);
