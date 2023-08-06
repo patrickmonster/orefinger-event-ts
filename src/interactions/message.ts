@@ -1,4 +1,4 @@
-import autoLoader from 'utils/auto-command';
+import autoLoader from 'utils/autoCommand';
 import { InteractionEvent, ComponentType, APIMessageComponentInteraction, APIMessageComponentInteractionData } from 'plugins/discord';
 import { APIMessageButtonInteractionData, APIMessageSelectMenuInteractionData } from 'discord-api-types/v10';
 

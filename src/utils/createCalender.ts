@@ -1,5 +1,4 @@
 import { format } from 'date-fns';
-import { ko } from 'date-fns/locale';
 /// 캘린더 생성
 export default (time: Date, ...list: Date[]) => {
     const buffer = [`[0;31m឵ ${['S', 'M', 'T', 'W', 'T', 'F', 'S'].join('   ')}[0m឵ `];

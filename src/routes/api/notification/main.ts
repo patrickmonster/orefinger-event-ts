@@ -131,7 +131,6 @@ export default async (fastify: FastifyInstance, opts: any) => {
                         type: 'object',
                         properties: {
                             error: { type: 'string' },
-                            // message: { type: 'string' },
                         },
                     },
                 },

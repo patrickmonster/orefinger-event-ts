@@ -22,3 +22,17 @@ and token = ? -- 채널 id`,
         channel_id
     );
 };
+
+export const webhook = async (webhook_id: string) =>
+    query<{
+        user_id: string;
+        hook_id: string;
+        hook_token: string;
+    }>(
+        `
+select user_id, hook_id, hook_token
+from event_channel ec 
+where \`type\` = 14
+and hook_id = ?`,
+        webhook_id
+    );
