@@ -2,6 +2,7 @@ import { query, queryPaging, SqlInsertUpdate } from 'utils/database';
 
 import { MessageCreate } from 'interfaces/message';
 import { RESTPostAPIChannelMessageJSONBody } from 'discord-api-types/rest/v10';
+import { APIEmbed } from 'discord-api-types/v10';
 
 export const getMessageList = async (page: number) =>
     queryPaging(
@@ -66,3 +67,17 @@ where m.message_id = ?`,
             })
         )
         .then(message => JSON.parse(message));
+// 광고 모듈
+export const getAdvertisement = (game_id: string | number) =>
+    query<{
+        embed: APIEmbed;
+        advertisement_id: number;
+    }>(
+        `
+select embed, advertisement_id  from v_advertisement va
+inner join (
+select func_advert(?) as advertisement_id
+) b using(advertisement_id)
+    `,
+        `${game_id}`
+    ).then(([{ embed }]) => embed);

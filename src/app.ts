@@ -46,3 +46,18 @@ server.listen({ port: 3000, host: '::' }, (err, address) => {
     console.log(`Server listening at ${address}`);
     // ping().catch(e => console.error(e));
 });
+
+//////////////////////////////////////////////////////////////////////
+// 프로세서 모듈
+
+process.on('unhandledRejection', (error, promise) => {
+    console.error('err', error, promise);
+});
+process.on('uncaughtException', (error, promise) => {
+    console.error('err', error, promise);
+});
+
+process.on('SIGINT', function () {
+    console.error(`=============================${process.pid}번 프로세서가 종료됨=============================`);
+    process.exit();
+});

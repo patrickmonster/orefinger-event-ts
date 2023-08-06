@@ -2,7 +2,7 @@ import { FastifyInstance, FastifyRequest, FastifyReply, FastifyError } from 'fas
 import { InteractionResponseType } from 'discord-interactions';
 import { APIInteraction, InteractionType } from 'discord-api-types/v10';
 
-import { InteractionEvent } from 'interfaces/interaction';
+import { InteractionEvent } from 'plugins/discord';
 
 import message from 'interactions/message';
 import model from 'interactions/model';
@@ -36,6 +36,7 @@ export default async (fastify: FastifyInstance, opts: any) => {
             const interactionEvent: InteractionEvent = {
                 re: req.createReply(req, res),
                 model: req.createModel(req, res),
+                deffer: req.createDeferred(req, res),
                 follow: req.createFollowup(req, res),
                 raw: { body: body, res: res },
             };

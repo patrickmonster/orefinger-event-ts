@@ -1,5 +1,5 @@
 import autoLoader from 'utils/auto-command';
-import { InteractionEvent, ComponentType, APIMessageComponentInteraction, APIMessageComponentInteractionData } from 'interfaces/interaction';
+import { InteractionEvent, ComponentType, APIMessageComponentInteraction, APIMessageComponentInteractionData } from 'plugins/discord';
 
 export type messageInteraction = InteractionEvent & Omit<APIMessageComponentInteraction, 'data' | 'type'> & APIMessageComponentInteractionData;
 

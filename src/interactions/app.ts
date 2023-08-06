@@ -1,9 +1,4 @@
-import {
-    InteractionEvent,
-    APIApplicationCommandInteraction,
-    APIApplicationCommandInteractionData,
-    ApplicationCommandType,
-} from 'interfaces/interaction';
+import { InteractionEvent, APIApplicationCommandInteraction, APIApplicationCommandInteractionData, ApplicationCommandType } from 'plugins/discord';
 
 import autoLoader from 'utils/auto-command';
 const getCommand = autoLoader(__filename, {
