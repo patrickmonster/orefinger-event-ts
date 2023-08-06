@@ -1,4 +1,4 @@
-import { messageInteraction } from 'interactions/message';
+import { MessageInteraction } from 'interactions/message';
 
 import { getMessage } from 'controllers/message';
 
@@ -7,7 +7,7 @@ import { getMessage } from 'controllers/message';
  * 가이드 호출 - 디비처리용
  * @param interaction
  */
-export const exec = async (interaction: messageInteraction) => {
+export const exec = async (interaction: MessageInteraction) => {
     const { user } = interaction;
 
     const message = await getMessage(user?.id || '0', 13);

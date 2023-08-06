@@ -1,4 +1,4 @@
-import { messageInteraction } from 'interactions/message';
+import { MessageInteraction } from 'interactions/message';
 import { RESTPostAPIChannelMessage } from 'plugins/discord';
 
 import { attendanceList } from 'controllers/twitch';
@@ -6,7 +6,7 @@ import { getAdvertisement } from 'controllers/message';
 
 const emote = '0️⃣,1️⃣,2️⃣,3️⃣,4️⃣,5️⃣,6️⃣,7️⃣,8️⃣,9️⃣,🔟'.split(',');
 
-export const exec = async (interaction: messageInteraction, broadcaster_user_id: string) => {
+export const exec = async (interaction: MessageInteraction, broadcaster_user_id: string) => {
     const { user } = interaction;
 
     if (user === null)

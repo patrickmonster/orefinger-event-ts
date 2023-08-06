@@ -1,4 +1,4 @@
-import { messageInteraction } from 'interactions/message';
+import { MessageInteraction } from 'interactions/message';
 import { RESTPostAPIChannelMessage } from 'plugins/discord';
 
 import { attendance } from 'controllers/twitch';
@@ -46,7 +46,7 @@ ${createCalender(new Date(), ...pin)}
     };
 };
 
-export const exec = async (interaction: messageInteraction, broadcaster_user_id: string, game_id: string | number) => {
+export const exec = async (interaction: MessageInteraction, broadcaster_user_id: string, game_id: string | number) => {
     const { user } = interaction;
 
     const user_id = `attendance:${user?.id}`; // 키 조합식

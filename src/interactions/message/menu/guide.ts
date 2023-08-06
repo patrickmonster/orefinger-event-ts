@@ -1,4 +1,4 @@
-import { messageInteraction } from 'interactions/message';
+import { MessageMenuInteraction } from 'interactions/message';
 
 import { getMessage } from 'controllers/message';
 
@@ -7,21 +7,30 @@ import { getMessage } from 'controllers/message';
  * 가이드 호출 - 디비처리용
  * @param interaction
  */
-export const exec = async (interaction: messageInteraction) => {
-    const { user, data } = interaction;
-    const {} = data;
+export const exec = async (interaction: MessageMenuInteraction) => {
+    const {
+        user,
+        values: [message_id],
+    } = interaction;
 
-    switch (values[0]) {
-        case 'question':
-            interaction.reMessage(14);
-            break;
+    let id = 14;
+    switch (message_id) {
         case 'notice':
-            interaction.reMessage(15);
+            id = 15;
             break;
         case 'auth':
-            interaction.reMessage(16);
+            id = 16;
+            break;
+        default:
+        case 'question':
+            id = 14;
             break;
     }
+
+    const message = await getMessage(user?.id || 0, id);
+    if (!message) return;
+
+    await interaction.re(message);
 };
 
 //  해당 명령은 등록 하지 않는 명령 입니다.
