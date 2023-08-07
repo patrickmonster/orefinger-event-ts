@@ -153,7 +153,7 @@ export default fp(async function (fastify, opts) {
                     } else {
                         fetchReply = true;
                         await res.status(200).send({
-                            type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+                            type: fetchReply ? InteractionResponseType.UPDATE_MESSAGE : InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
                             data: appendEmpheral(message),
                         });
                         // return await discordInteraction.get(`/webhooks/${application_id}/${token}/messages/@original`);

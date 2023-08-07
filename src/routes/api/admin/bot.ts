@@ -28,9 +28,16 @@ export default async (fastify: FastifyInstance, opts: any) => {
                 return res.status(401).send('Bad request signature');
             }
 
-            if (body.type === 1) {
+            // 상태체크 처리
+            if (body.type === InteractionType.Ping) {
                 console.log('ping');
                 return res.status(200).send({ type: InteractionResponseType.PONG });
+            }
+
+            // 자동완성처리
+            if (body.type === InteractionType.ApplicationCommandAutocomplete) {
+                console.log('autocomp');
+                return res.status(200).send({ type: InteractionResponseType.APPLICATION_COMMAND_AUTOCOMPLETE_RESULT });
             }
 
             const interactionEvent: InteractionEvent = {
@@ -47,9 +54,6 @@ export default async (fastify: FastifyInstance, opts: any) => {
                     break;
                 case InteractionType.MessageComponent:
                     message(Object.assign(body, interactionEvent, body.data));
-                    break;
-                case InteractionType.ApplicationCommandAutocomplete:
-                    autocomp(Object.assign(body, interactionEvent, body.data));
                     break;
                 case InteractionType.ModalSubmit:
                     model(Object.assign(body, interactionEvent, body.data));
