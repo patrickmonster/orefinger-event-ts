@@ -18,15 +18,38 @@ export type AppContextMenuInteraction = InteractionEvent & Omit<APIApplicationCo
 
 const appComponent = async (interaction: appInteraction) => {
     const { type } = interaction;
-    switch (type) {
-        case ApplicationCommandType.Message:
-        case ApplicationCommandType.User:
-            getCommand(interaction.name)<AppContextMenuInteraction>(interaction);
-            break;
-        case ApplicationCommandType.ChatInput:
-            getCommand(interaction.name)<AppChatInputInteraction>(interaction);
-            break;
-    }
+
+    interaction.re({
+        content: '메세지 테스트',
+        components: [
+            {
+                type: 1,
+                components: [
+                    {
+                        type: 2,
+                        label: '테스트 버튼',
+                        style: 1,
+                        custom_id: 'test',
+                    },
+                    {
+                        type: 2,
+                        label: '테스트 버튼2',
+                        style: 1,
+                        custom_id: 'test2',
+                    },
+                ],
+            },
+        ],
+    });
+    // switch (type) {
+    //     case ApplicationCommandType.Message:
+    //     case ApplicationCommandType.User:
+    //         getCommand(interaction.name)<AppContextMenuInteraction>(interaction);
+    //         break;
+    //     case ApplicationCommandType.ChatInput:
+    //         getCommand(interaction.name)<AppChatInputInteraction>(interaction);
+    //         break;
+    // }
 };
 
 export default appComponent;
