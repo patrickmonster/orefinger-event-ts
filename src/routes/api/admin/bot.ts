@@ -16,8 +16,9 @@ export default async (fastify: FastifyInstance, opts: any) => {
         '/bot',
         {
             schema: {
-                description: '봇 인터렉션 이벤트',
-                tags: ['Discord'],
+                description: '봇 인터렉션 이벤트 수신부 - 연결 및 사용 X',
+                summary: '인터렉션 이벤트',
+                tags: ['Admin'],
                 deprecated: false,
             },
         },
@@ -37,9 +38,11 @@ export default async (fastify: FastifyInstance, opts: any) => {
             // 자동완성처리
             if (body.type === InteractionType.ApplicationCommandAutocomplete) {
                 console.log('autocomp');
-                return res.status(200).send({ type: InteractionResponseType.APPLICATION_COMMAND_AUTOCOMPLETE_RESULT });
+                return autocomp(body, res);
+                // return res.status(200).send({ type: InteractionResponseType.APPLICATION_COMMAND_AUTOCOMPLETE_RESULT });
             }
 
+            // 응답이 유동적인 처리를 해야함.
             const interactionEvent: InteractionEvent = {
                 re: req.createReply(req, res),
                 model: req.createModel(req, res),

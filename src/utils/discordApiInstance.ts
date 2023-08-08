@@ -1,4 +1,5 @@
 'use strict';
+import { error as errorLog } from './errorLog';
 import axios from 'axios';
 import sleep from 'utils/sleep';
 
@@ -20,6 +21,7 @@ discord.interceptors.response.use(
             await sleep(Math.ceil(retry_after / 1000) + 1);
             return discord(error.config);
         }
+        errorLog('AXIOS', error);
         throw error;
     }
 );

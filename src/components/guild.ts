@@ -1,9 +1,34 @@
+import { RESTGetAPIGuildChannelsResult, RESTGetAPIGuildResult } from 'discord-api-types/rest/v10';
+
 import discord from 'utils/discordApiInstance';
 
 // 맨트 변경에 필요한 형식
 const discordRegex = /<[a]?:([\w|\d]+):(\d{17,20})>/im; // 맨션
 const emojiRegex = /:(\w+)(~\d)?:/gim; // 이모티콘
 const roleRegex = /@([ㄱ-ㅎ가-힣a-zA-Z0-9]+)(~\d)?/gim; // 역할
+
+export const guild = async (guild_id: string) =>
+    await discord
+        .get<RESTGetAPIGuildResult>(
+            // {
+            //     roles: {
+            //         id: string;
+            //         name: string;
+            //         color: number;
+            //     }[];
+            //     emojis: {
+            //         id: string;
+            //         name: string;
+            //         roles: string[];
+            //         animated: boolean;
+            //     }[];
+            // }
+            `/guilds/${guild_id}`
+        )
+        .then(({ data }) => data);
+
+export const channels = async (guild: string) =>
+    await discord.get<RESTGetAPIGuildChannelsResult>(`/guilds/${guild}/channels`).then(({ data }) => data);
 
 /**
  * 맨트 변경
@@ -12,21 +37,7 @@ const roleRegex = /@([ㄱ-ㅎ가-힣a-zA-Z0-9]+)(~\d)?/gim; // 역할
  * @param is_convert
  */
 export const mentConvert = async (guild_id: string, message: string, is_convert: boolean) => {
-    const {
-        data: { emojis, roles },
-    } = await discord.get<{
-        roles: {
-            id: string;
-            name: string;
-            color: number;
-        }[];
-        emojis: {
-            id: string;
-            name: string;
-            roles: string[];
-            animated: boolean;
-        }[];
-    }>(`/guilds/${guild_id}`);
+    const { emojis, roles } = await guild(guild_id);
 
     let content = message;
     if (is_convert) {
