@@ -2,7 +2,7 @@ import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { createYutubeUser, createYutubeChannel, createYutubeEvent, insertYoutubeVideo } from 'controllers/youtube';
 
 import redis from 'utils/redis';
-import twitch from 'utils/twitchApiInstance';
+import { getUser } from 'components/twitch';
 
 import { liveList, total, stream } from 'controllers/notification';
 
@@ -143,13 +143,8 @@ export default async (fastify: FastifyInstance, opts: any) => {
             } catch (e) {}
             const data = await stream().then(list => {
                 let users = list.map(({ user_id }) => user_id);
-
-                // twitch
-                return twitch
-                    .get<{
-                        data: any[];
-                    }>(`/users?id=${users.join('&id=')}`)
-                    .then(({ data: { data } }) => {
+                return getUser(...users)
+                    .then(data => {
                         console.log(data);
 
                         redis.set('streamers', JSON.stringify(data), {

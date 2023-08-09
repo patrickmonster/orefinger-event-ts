@@ -1,13 +1,13 @@
 import axios from 'axios';
 import { basename } from 'path';
-import { format } from 'date-fns';
 
 import { webhook } from 'controllers/event';
 import { AppContextMenuInteraction } from 'interactions/app';
 import { ApplicationCommandType, RESTPatchAPIApplicationCommandJSONBody } from 'discord-api-types/v10';
 
-import twitch from 'utils/twitchApiInstance';
+import { getUser } from 'components/twitch';
 import discord from 'utils/discordApiInstance';
+import { attachmentFile } from 'components/discord';
 import { error } from 'utils/errorLog';
 
 const name = basename(__filename, __filename.endsWith('js') ? '.js' : '.ts');
@@ -29,23 +29,14 @@ export const exec = async (interaction: AppContextMenuInteraction) => {
                 });
             } else {
                 const { user_id, hook_id, hook_token } = target_channel;
-                const {
-                    data: { data },
-                } = await twitch.get<{
-                    data: any[];
-                }>(`/users?id=${user_id}`);
+                const [user] = await getUser(user_id);
 
-                const form = new FormData();
-                form.append(
-                    'files[0]',
-                    await axios.get(data[0].profile_image_url, {
-                        responseType: 'blob',
-                    }),
-                    'profile.png'
-                );
-
-                form.append('name', data[0].display_name);
-                form.append('avatar', 'profile.png');
+                const form = await attachmentFile({
+                    name: 'profile_image_url.png',
+                    file: user.profile_image_url,
+                    target: 'avatar',
+                });
+                form.append('name', user.display_name);
 
                 try {
                     await discord.patch(`/webhooks/${hook_id}/${hook_token}`, form, {

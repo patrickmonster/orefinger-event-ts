@@ -15,4 +15,7 @@ export type User = {
 };
 
 // https://dev.twitch.tv/docs/api/reference/#get-users
-export const getUser = (...id: string[]) => twitch.get<{ data: User[] }>(`/users?id=${id.join('&id=')}`).then(({ data: { data } }) => data);
+export const getUser = (...id: string[]) => getUsers('id', ...id);
+
+// https://dev.twitch.tv/docs/api/reference/#get-users
+export const getUsers = (type: string, ...id: string[]) => twitch.get<User[]>(`/users?${type}=${id.join(`&${type}=`)}`).then(({ data }) => data);

@@ -26,8 +26,5 @@ discord.interceptors.response.use(
     }
 );
 
-module.exports = discord;
-module.exports.openApi = discordOpenApi;
-
 export default discord;
 export const openApi = discordOpenApi;
