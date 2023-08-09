@@ -3,7 +3,7 @@ import redis from 'utils/redis';
 
 import { EventSub, Event, Subscription } from 'interfaces/eventsub';
 
-import { register, event as createEvent, grant, revoke, streamOnline, streamOffline } from 'controllers/twitch';
+import { register, event as createEvent, grant, revoke, streamOnline, streamOffline, stateChangeEventChannel } from 'controllers/twitch';
 import { userUpdate } from 'controllers/auth';
 
 import { openApi } from 'utils/discordApiInstance';
@@ -133,12 +133,8 @@ export default async (fastify: FastifyInstance, opts: any) => {
                                 })
                                 .catch(e => {
                                     // 채널을 찾을 수 없음
-                                    if (e.code == 404 && e.response?.data?.code === 10003) {
-                                        // QUERY(`UPDATE event_channel SET delete_yn = 'Y' WHERE channel_id = ?`, channel_id).catch(e => {});
-
-                                        return;
-                                    }
                                     console.log('프로세서 [ONLINE] 알림 채널 메세지 전송 실패', `${name} - ${login}(${id})`);
+                                    stateChangeEventChannel(channel_id, { delete_yn: 'Y' }).catch(e => {});
                                 });
                         }
                     });

@@ -69,6 +69,18 @@ and delete_yn = 'N'
         );
     });
 
+export type eventChannelType = {
+    user_id?: string;
+    name?: string;
+    custom_ment?: string;
+    hook_id?: string;
+    hook_token?: string;
+    delete_yn?: string;
+};
+
+export const stateChangeEventChannel = async (channel_id: string, props: eventChannelType) =>
+    query(`UPDATE discord.event_channel SET update_at=CURRENT_TIMESTAMP, ? WHERE channel_id=? `, props, channel_id);
+
 export const streamOnline = async (event: Event, type = 14) =>
     getConnection(async QUERY => {
         const { id, broadcaster_user_id, started_at } = event;
