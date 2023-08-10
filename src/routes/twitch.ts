@@ -8,8 +8,16 @@ import { userUpdate } from 'controllers/auth';
 
 import { openApi } from 'utils/discordApiInstance';
 
+import irc from 'utils/twitchIrc';
+
 const randomIntegerInRange = (min: number, max: number) => Math.floor(Math.random() * (max - min + 1)) + min;
 
+/**
+ * 방송알림 컴포넌트
+ * @param user_id
+ * @param game_id
+ * @returns
+ */
 const getComponentsAttach = (user_id: string, game_id: string) => [
     {
         type: 1,
@@ -71,7 +79,14 @@ export default async (fastify: FastifyInstance, opts: any) => {
                         for (const { channel_id, login, name } of channels) {
                             openApi
                                 .post(`channels/${channel_id}/messages`, {
-                                    content: `계정 연결이 해지되었어요! - ${name}(${login})\n방송알리미는, 개인정보 보호 및 수신 이벤트 권한을 위하여 계정 연동을 지향하고 있습니다!\n재연동을 원하신다면 하단의 버튼을 눌러 로그인을 진행 해 주세요!`,
+                                    content: `
+# 계정 연결이 해지되었어요! - ${name}(${login})
+방송알리미는, 개인정보 보호 및 수신 이벤트 권한을 위하여 계정 연동을 지향하고 있습니다!
+재연동을 원하신다면 하단의 버튼을 눌러 로그인을 진행 해 주세요!
+
+- 계정 연동을 하지 않으셔도, 방송알리미는 계속 사용 가능합니다!
+- 다만, 속도 제한이 걸리며, 이벤트 수신이 불안정 할 수 있습니다!
+                                    `,
                                     components: [
                                         {
                                             type: 1,
@@ -106,6 +121,7 @@ export default async (fastify: FastifyInstance, opts: any) => {
                         });
 
                         if (channels.length === 0) return;
+                        irc.say(`${broadcaster_user_login}`, 'daromLcat 방송켰구나! ImTyping');
                         for (const { id, name, login, /* kr_name ,*/ channel_id, custom_ment, url, title, game_id, game_name } of channels) {
                             //
                             openApi
@@ -145,6 +161,7 @@ export default async (fastify: FastifyInstance, opts: any) => {
                     const { broadcaster_user_id, broadcaster_user_login, broadcaster_user_name } = event;
                     streamOffline(`${broadcaster_user_id}`, 14);
                     console.log(`오프라인 - ${broadcaster_user_name}(${broadcaster_user_login})`);
+                    irc.say(`${broadcaster_user_login}`, `오뱅수~ 오늘 방송도 수고하셨습니다! (´▽｀)ノ`);
                 }
                 break;
         }

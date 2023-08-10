@@ -5,6 +5,8 @@ import { getMessageList, createMessage, updateMessage } from 'controllers/messag
 import { Paging } from 'interfaces/swagger';
 import { MessageCreate } from 'interfaces/message';
 
+import irc from 'utils/twitchIrc';
+
 export default async (fastify: FastifyInstance, opts: any) => {
     fastify.addSchema({
         $id: 'message',
@@ -116,10 +118,9 @@ export default async (fastify: FastifyInstance, opts: any) => {
     );
 
     fastify.post<{
-        Params: { target: string };
-        Body: { message: string };
+        Body: { message: string; target: string };
     }>(
-        '/twitch/message/:target',
+        '/twitch/message',
         {
             onRequest: [fastify.masterkey],
             schema: {
@@ -127,27 +128,26 @@ export default async (fastify: FastifyInstance, opts: any) => {
                 summary: '트위치 채팅방에 메세지 전송',
                 description: '트위치 채팅방에 메세지를 전송 합니다.',
                 tags: ['Admin'],
-                params: {
-                    type: 'object',
-                    required: ['target'],
-                    properties: {
-                        target: { type: 'string', description: '메세지를 전송하는 채널 입니다.' },
-                    },
-                },
                 body: {
                     type: 'object',
-                    required: ['target', 'message', 'key'],
+                    required: ['message', 'target'],
                     properties: {
                         message: { type: 'string', description: '메세지 내용 입니다.' },
+                        target: { type: 'string', description: '메세지를 전송하는 채널 입니다.' },
                     },
                 },
             },
         },
         (req, res) => {
-            const { target } = req.params;
-            const { message } = req.body;
+            const { message, target } = req.body;
 
-            res.send({ target, message });
+            irc.say(target, message)
+                .then(data => {
+                    res.send({ result: 'success', message: '메세지 전송 성공', data });
+                })
+                .catch(err => {
+                    res.send({ result: 'fail', message: '메세지 전송 실패', err });
+                });
         }
     );
 };

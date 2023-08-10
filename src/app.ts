@@ -30,14 +30,9 @@ const server = fastify({
 });
 
 server.register(helmet, { global: true });
+server.register(AutoLoad, { dir: path.join(__dirname, 'plugins') });
+server.register(AutoLoad, { dir: path.join(__dirname, 'routes') });
 
-server.register(AutoLoad, {
-    dir: path.join(__dirname, 'plugins'),
-});
-
-server.register(AutoLoad, {
-    dir: path.join(__dirname, 'routes'),
-});
 server.listen({ port: 3000, host: '::' }, (err, address) => {
     if (err) {
         console.error(err);
