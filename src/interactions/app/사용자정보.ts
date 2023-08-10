@@ -17,6 +17,8 @@ export const exec = async (interaction: appInteraction) => {
             content: `사용자 <@${target_id}>님의 정보를 불러오는중....`,
         });
 
+        console.log(`사용자 ${target_id}님의 정보를 불러오는중....`);
+
         const user = (await tokens(target_id, 2, 3)).map(({ login, name, is_session, create_at }) => ({
             login,
             name,
@@ -26,7 +28,7 @@ export const exec = async (interaction: appInteraction) => {
 
         const authState = await userAuthState(target_id);
 
-        interaction.re({
+        await interaction.re({
             content: `사용자 <@${target_id}>님의 정보를 불러왔어요!
 \`\`\`ansi
 ${user

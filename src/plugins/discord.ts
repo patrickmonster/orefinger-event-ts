@@ -146,14 +146,18 @@ export default fp(async function (fastify, opts) {
                 // DEFERRED_UPDATE_MESSAGE
                 // UPDATE_MESSAGE = 메세지 수정
 
+                console.log('응답 메세지', message, fetchReply);
+
                 // 응답 메세지 분기
                 try {
                     if (fetchReply) {
-                        await discordInteraction.patch(`/webhooks/${application_id}/${token}/messages/${id}`, message);
+                        await discordInteraction.patch(`/webhooks/${application_id}/${token}/messages/${id}`, message).catch(e => {
+                            console.log('메세지 수정 실패', e.response.data);
+                        });
                     } else {
                         fetchReply = true;
                         await res.status(200).send({
-                            type: fetchReply ? InteractionResponseType.UPDATE_MESSAGE : InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+                            type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
                             data: appendEmpheral(message),
                         });
                         // return await discordInteraction.get(`/webhooks/${application_id}/${token}/messages/@original`);
