@@ -49,12 +49,13 @@ server.listen({ port: 3000, host: '::' }, (err, address) => {
 
 //////////////////////////////////////////////////////////////////////
 // 프로세서 모듈
+import { error as errorLog } from './utils/logger';
 
 process.on('unhandledRejection', (error, promise) => {
-    console.error('err', error, promise);
+    errorLog('unhandledRejection', error);
 });
 process.on('uncaughtException', (error, promise) => {
-    console.error('err', error, promise);
+    errorLog('uncaughtException', error);
 });
 
 process.on('SIGINT', function () {

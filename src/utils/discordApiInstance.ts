@@ -1,5 +1,5 @@
 'use strict';
-import { error as errorLog } from './errorLog';
+import { error as errorLog } from './logger';
 import axios from 'axios';
 import sleep from 'utils/sleep';
 

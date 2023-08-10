@@ -8,14 +8,42 @@ import { ApplicationCommandType, RESTPatchAPIApplicationCommandJSONBody } from '
 import { getUser } from 'components/twitch';
 import discord from 'utils/discordApiInstance';
 import { attachmentFile } from 'components/discord';
-import { error } from 'utils/errorLog';
+import { error } from 'utils/logger';
 
 const name = basename(__filename, __filename.endsWith('js') ? '.js' : '.ts');
 const type = ApplicationCommandType.Message;
 
 export const exec = async (interaction: AppContextMenuInteraction) => {
     if (interaction.type !== type) return; // 유저 커맨드만
-    const { target_id } = interaction;
+    const {
+        target_id,
+        resolved: { messages },
+    } = interaction;
+
+    const { webhook_id } = messages[target_id];
+
+    // 메세지
+
+    if (!webhook_id) {
+        return await interaction.re({
+            embeds: [{ title: '이런... 알림이 아닌것 같아요! 방송알리미가 전송하는 맨트에 해당 명령을 해 주세요!' }],
+        });
+    }
+
+    await interaction.re({
+        content: '해당 알림을 불러오는중...',
+    });
+
+    const [target_channel] = await webhook(target_id);
+
+    if (!target_channel) {
+        await interaction.re({
+            embeds: [{ title: '이런... 알림이 아닌것 같아요! 방송알리미가 전송하는 맨트에 해당 명령을 해 주세요!' }],
+        });
+    } else {
+        const { user_id, hook_id, hook_token } = target_channel;
+        const [user] = await getUser(user_id);
+    }
 
     interaction
         .deffer({

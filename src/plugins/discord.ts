@@ -191,9 +191,7 @@ export default fp(async function (fastify, opts) {
                     isDeferred = true;
                     await res.status(200).send({
                         type: InteractionResponseType.DEFERRED_UPDATE_MESSAGE,
-                        data: {
-                            flags: message?.ephemeral ? 64 : 0,
-                        },
+                        data: { flags: message?.ephemeral ? 64 : 0 },
                     });
                 }
                 return async (message: RESTPostAPIChannelMessage) =>
