@@ -87,5 +87,5 @@ and delete_yn ='N'
             type,
             user_id,
             guild_id
-        );
+        ).then(v => v[0]); // 단건조회
     }, true);

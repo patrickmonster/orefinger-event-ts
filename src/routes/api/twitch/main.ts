@@ -180,10 +180,7 @@ export default async (fastify: FastifyInstance, opts: any) => {
                     },
                 },
                 response: {
-                    200: {
-                        type: 'array',
-                        items: { $ref: 'twitch/onlineChannel#' },
-                    },
+                    200: { $ref: 'twitch/onlineChannel#' },
                 },
             },
         },
