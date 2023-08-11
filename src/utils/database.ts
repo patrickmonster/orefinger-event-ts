@@ -2,6 +2,8 @@
 import mysql, { Pool, PoolConnection } from 'mysql2/promise';
 import { env } from 'process';
 
+export const format = mysql.format;
+
 const pool: Pool = mysql.createPool({
     host: env.DB_HOST,
     user: env.DB_USER,
@@ -31,7 +33,7 @@ const sqlLogger = (query: string, params: any[], rows: any[] | any) => {
 // 커넥션 쿼리 함수
 // select / insert / update / delete
 type ResqultQuery<E> = E extends SqlInsertUpdate ? sqlInsertUpdate : E[];
-type queryFunctionType = <E>(query: string, ...params: any[]) => Promise<ResqultQuery<E>>;
+export type queryFunctionType = <E>(query: string, ...params: any[]) => Promise<ResqultQuery<E>>;
 
 export enum SQLType {
     select = 'select',
@@ -43,10 +45,11 @@ export enum SQLType {
 // SQL 타입 - insert / update / delete 인 경우  queryFunctionType 의 리턴 타입이 sqlInsertUpdate
 export type SqlInsertUpdate = SQLType.insert | SQLType.update | SQLType.delete;
 
-const getConnection = async <T>(connectionPool: (queryFunction: queryFunctionType) => Promise<T>) => {
+const getConnection = async <T>(connectionPool: (queryFunction: queryFunctionType) => Promise<T>, isTransaction = false) => {
     let connect: PoolConnection | null = null;
     try {
         connect = await pool.getConnection();
+        if (isTransaction) await connect.beginTransaction();
         return await connectionPool(async (query: string, ...params: any[]) => {
             const [rows] = await connect!.query(query, params);
             sqlLogger(query, params, rows);
@@ -64,8 +67,12 @@ const getConnection = async <T>(connectionPool: (queryFunction: queryFunctionTyp
                       changedRows: rows.changedRows,
                       insertId: rows.insertId,
                   };
+        }).then(async (result: T) => {
+            if (isTransaction) await connect!.commit();
+            return result;
         });
     } catch (e) {
+        if (isTransaction) await connect!.rollback();
         console.error('SQL]', e);
         throw e;
     } finally {
