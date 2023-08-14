@@ -1,5 +1,5 @@
 'use strict';
-import { query, queryPaging, SqlInsertUpdate } from 'utils/database';
+import { query, queryPaging, SqlInsertUpdate, queryFunctionType } from 'utils/database';
 import { AuthUser } from 'interfaces/auth';
 
 import { Event } from 'interfaces/eventsub';
@@ -23,6 +23,25 @@ WHERE \`type\` in (2,3) and user_id=?
         user_id + ''
     );
 };
+
+/**
+ * 사용자 ID들을 불러옴
+ * @param QUERY
+ * @param user_id
+ * @returns
+ */
+export const userIds = async (QUERY: queryFunctionType, user_id: string) =>
+    await QUERY<{
+        user_id: string;
+        type: number;
+    }>(`
+SELECT user_id 
+	, \`type\` 
+from v_auth_token vat 
+where 1=1
+and auth_id = '466950273928134666'
+group by user_id
+    `);
 
 export const tokens = (user_id: string, ...types: number[]) =>
     query<{

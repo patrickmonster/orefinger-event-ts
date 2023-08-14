@@ -1,8 +1,34 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { attendance } from 'controllers/twitch';
+import { createSubscribe } from 'utils/token';
+
+import { webhook, webhookUpdate } from 'controllers/online';
+
+import { webhook as webhookUpdateType } from 'interfaces/webhook';
 
 export default async (fastify: FastifyInstance, opts: any) => {
-    //
+    fastify.addSchema({
+        $id: 'twitch/onlineChannel',
+        type: 'object',
+        properties: {
+            type: { type: 'number' },
+            tag: { type: 'string' },
+            user_id: { type: 'string' },
+            custom_name: { type: 'string' },
+            channel_id: { type: 'string' },
+            guild_id: { type: 'string' },
+            custom_ment: { type: 'string' },
+            hook_id: { type: 'string' },
+            hook_token: { type: 'string' },
+            login: { type: 'string' },
+            name: { type: 'string' },
+            kr_name: { type: 'string' },
+            avatar: { type: 'string' },
+            avatar_id: { type: 'string' },
+            create_at: { type: 'string' },
+            update_at: { type: 'string' },
+        },
+    });
 
     const events = ['stream.online', 'stream.offline', 'channel.update'];
 
@@ -47,7 +73,7 @@ export default async (fastify: FastifyInstance, opts: any) => {
             const { id } = req.user;
 
             for (const type of events) {
-                // createSubscribe({ type, condition: { broadcaster_user_id } }).catch(console.error);
+                createSubscribe({ type, condition: { broadcaster_user_id } }).catch(console.error);
             }
 
             return { success: true, events };
@@ -105,5 +131,63 @@ export default async (fastify: FastifyInstance, opts: any) => {
 
             return await attendance(broadcaster_user_id, id);
         }
+    );
+
+    fastify.get(
+        '/online',
+        {
+            onRequest: [fastify.authenticate],
+            schema: {
+                security: [{ Bearer: [] }],
+                description: '현재 등록된 방송의 알림 상태를 확인합니다.',
+                tags: ['Twitch'],
+                deprecated: false, // 비활성화
+
+                response: {
+                    200: {
+                        type: 'array',
+                        items: { $ref: 'twitch/onlineChannel#' },
+                    },
+                },
+            },
+        },
+        async req => await webhook(req.user.id)
+    );
+
+    fastify.post<{
+        Body: Omit<webhookUpdateType, 'user_id'>;
+    }>(
+        '/online',
+        {
+            onRequest: [fastify.authenticate],
+            schema: {
+                security: [{ Bearer: [] }],
+                description: '현재 길드 알림을 변경합니다. (없으면 생성합니다)',
+                tags: ['Twitch'],
+                deprecated: false, // 비활성화
+                body: {
+                    type: 'object',
+                    required: ['guild_id', 'channel_id', 'type'],
+                    additionalProperties: false,
+                    properties: {
+                        type: { type: 'number', description: '14: 방송 시작', enum: [14] },
+                        guild_id: { type: 'string', description: '길드 아이디' },
+                        channel_id: { type: 'string', description: '채널 아이디' },
+                        custom_name: { type: 'string', description: '커스텀 이름' },
+                        custom_ment: { type: 'string', description: '커스텀 멘션' },
+                        hook_id: { type: 'string', description: '훅 아이디' },
+                        hook_token: { type: 'string', description: '훅 토큰' },
+                    },
+                },
+                response: {
+                    200: { $ref: 'twitch/onlineChannel#' },
+                },
+            },
+        },
+        async req =>
+            await webhookUpdate({
+                ...req.body,
+                user_id: req.user.id,
+            })
     );
 };
