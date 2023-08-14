@@ -4,16 +4,16 @@ import { APIInteraction, InteractionType } from 'discord-api-types/v10';
 
 import { InteractionEvent } from 'plugins/discord';
 
-// import message from 'interactions/message';
-// import model from 'interactions/model';
-// import autocomp from 'interactions/autocomp';
-// import app from 'interactions/app';
+import message from 'interactions/message';
+import model from 'interactions/model';
+import autocomp from 'interactions/autocomp';
+import app from 'interactions/app';
 
 export default async (fastify: FastifyInstance, opts: any) => {
-    const message = require('interactions/message');
-    const model = require('interactions/model');
-    const autocomp = require('interactions/autocomp');
-    const app = require('interactions/app');
+    // const message = require('interactions/message').default;
+    // const model = require('interactions/model').default;
+    // const autocomp = require('interactions/autocomp').default;
+    // const app = require('interactions/app').default;
 
     fastify.post<{
         Body: APIInteraction;
