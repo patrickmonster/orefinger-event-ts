@@ -1,4 +1,11 @@
-import { RESTGetAPIGuildChannelsResult, RESTGetAPIGuildResult } from 'discord-api-types/rest/v10';
+import {
+    RESTGetAPIChannelWebhooksResult,
+    RESTPostAPIGuildChannelJSONBody,
+    RESTGetAPIGuildChannelsResult,
+    RESTGetAPIGuildResult,
+    RESTPostAPIGuildChannelResult,
+    RESTPostAPIChannelWebhookResult,
+} from 'discord-api-types/rest/v10';
 
 import discord from 'utils/discordApiInstance';
 
@@ -7,28 +14,24 @@ const discordRegex = /<[a]?:([\w|\d]+):(\d{17,20})>/im; // 맨션
 const emojiRegex = /:(\w+)(~\d)?:/gim; // 이모티콘
 const roleRegex = /@([ㄱ-ㅎ가-힣a-zA-Z0-9]+)(~\d)?/gim; // 역할
 
-export const guild = async (guild_id: string) =>
-    await discord
-        .get<RESTGetAPIGuildResult>(
-            // {
-            //     roles: {
-            //         id: string;
-            //         name: string;
-            //         color: number;
-            //     }[];
-            //     emojis: {
-            //         id: string;
-            //         name: string;
-            //         roles: string[];
-            //         animated: boolean;
-            //     }[];
-            // }
-            `/guilds/${guild_id}`
-        )
-        .then(({ data }) => data);
+export const guild = async (guild_id: string) => await discord.get<RESTGetAPIGuildResult>(`/guilds/${guild_id}`).then(({ data }) => data);
 
 export const channels = async (guild: string) =>
     await discord.get<RESTGetAPIGuildChannelsResult>(`/guilds/${guild}/channels`).then(({ data }) => data);
+
+export const channelCreate = async (guild_id: string, data: RESTPostAPIGuildChannelJSONBody) =>
+    await discord.post<RESTPostAPIGuildChannelResult>(`/guilds/${guild_id}/channels`, data).then(({ data }) => data);
+
+// export const channelDelete = async (channel_id: string) =>
+
+export const channel = async (channel_id: string) =>
+    await discord.get<RESTPostAPIGuildChannelResult>(`/channels/${channel_id}`).then(({ data }) => data);
+
+export const webhooks = async (channel_id: string) =>
+    await discord.get<RESTGetAPIChannelWebhooksResult>(`/channels/${channel_id}/webhooks`).then(({ data }) => data);
+
+export const webhookCreate = async (channel_id: string, data: { name: string; avatar?: string }) =>
+    await discord.post<RESTPostAPIChannelWebhookResult>(`/channels/${channel_id}/webhooks`, data).then(({ data }) => data);
 
 /**
  * 맨트 변경

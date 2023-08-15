@@ -34,14 +34,17 @@ export const userIds = async (QUERY: queryFunctionType, user_id: string) =>
     await QUERY<{
         user_id: string;
         type: number;
-    }>(`
+    }>(
+        `
 SELECT user_id 
 	, \`type\` 
 from v_auth_token vat 
 where 1=1
-and auth_id = '466950273928134666'
+and auth_id = ?
 group by user_id
-    `);
+    `,
+        user_id
+    );
 
 export const tokens = (user_id: string, ...types: number[]) =>
     query<{

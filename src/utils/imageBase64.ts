@@ -2,7 +2,12 @@ import axios from 'axios';
 
 export default async (url: string) =>
     axios
-        .get(url, {
+        .get<Blob>(url, {
             responseType: 'arraybuffer',
         })
-        .then(image => Buffer.from(image.data).toString('base64'));
+        .then(res => {
+            const blob = new Blob([res.data], {
+                type: res.headers['content-type'],
+            });
+            return blob;
+        });
