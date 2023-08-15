@@ -2,7 +2,16 @@ import { InteractionEvent, APIApplicationCommandInteraction, APIApplicationComma
 import { APIChatInputApplicationCommandInteractionData, APIContextMenuInteractionData } from 'discord-api-types/v10';
 
 import autoLoader from 'utils/autoCommand';
-const getCommand = autoLoader(__filename, {
+import { join } from 'path';
+const getAppCommand = autoLoader(join(__dirname, 'app'), {
+    pathTag: ' ',
+    isLog: true,
+    defaultFunction: async (interaction: appInteraction) => {
+        await interaction.re({ content: '해당 명령은 등록 하지 않는 명령 입니다.' });
+    },
+});
+
+const getChatCommand = autoLoader(join(__dirname, 'command'), {
     pathTag: ' ',
     isLog: true,
     defaultFunction: async (interaction: appInteraction) => {
@@ -22,10 +31,10 @@ const appComponent = async (interaction: appInteraction) => {
     switch (type) {
         case ApplicationCommandType.Message:
         case ApplicationCommandType.User:
-            getCommand(interaction.name)<AppContextMenuInteraction>(interaction);
+            getAppCommand(interaction.name)<AppContextMenuInteraction>(interaction);
             break;
         case ApplicationCommandType.ChatInput:
-            getCommand(interaction.name)<AppChatInputInteraction>(interaction);
+            getChatCommand(interaction.name)<AppChatInputInteraction>(interaction);
             break;
     }
 };
