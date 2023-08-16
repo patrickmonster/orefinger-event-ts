@@ -22,7 +22,8 @@ export interface AutoCommandOptions {
     pathTag?: string; // 모듈 경로를 표시할 태그
     isSubfolder?: boolean; // 하위 폴더를 스캔할지 여부
     isLog?: boolean; // 로그 출력 여부
-    defaultFunction?: (...interaction: any[]) => void;
+    isOption?: boolean; // 옵션 사용 여부 ( false 일 경우, 옵션을 사용하지 않음)
+    defaultFunction?: ((...interaction: any[]) => void) | boolean;
 }
 
 const FileLoader = (modulePath: string, options?: AutoCommandOptions): Module => {
@@ -98,13 +99,16 @@ export default (modulePath: string, options?: AutoCommandOptions) => {
         if (module.exec) commands[custom_id] = module.exec;
         else console.error('ERROR] exec is not defined', custom_id);
     }
+
     return (id: string) => {
         // const command = Object.keys(commands).findIndex(i => id.startsWith(i));
         const command = Object.keys(commands).find(i => id.startsWith(i));
 
-        console.log('Event]', id);
+        if (command) console.log('Event]', id);
 
-        return command ? <T>(interaction: T) => commands[command](interaction, id.replace(command + ' ', '')) : option.defaultFunction;
+        return command
+            ? <T, U = any>(interaction: T, args?: U[]) => commands[command](interaction, options?.isOption ? args : id.replace(command + ' ', ''))
+            : option.defaultFunction;
     };
 };
 export const findCommand = (id: string, commands: { [k: string]: Function }, defaultFunction = () => {}) => {
