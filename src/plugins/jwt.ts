@@ -10,6 +10,24 @@ declare module 'fastify' {
     }
 }
 
+declare module '@fastify/jwt' {
+    interface FastifyJWT {
+        SignPayloadType: {
+            id: string;
+            access_token: string;
+            refresh_token?: string;
+        };
+        payload: {
+            id: string;
+            access_token: string;
+        };
+        user: {
+            id: string;
+            access_token: string;
+            refresh_token: string;
+        };
+    }
+}
 /**
  * This plugins adds some utilities to handle http errors
  *

@@ -1,4 +1,4 @@
-import { query, queryPaging } from 'utils/database';
+import { query, queryPaging, SqlInsertUpdate } from 'utils/database';
 
 import { ComponentCreate } from 'interfaces/component';
 
@@ -51,7 +51,7 @@ and a.component_id = ?
 export const createComponent = async (component: ComponentCreate) => query(`INSERT INTO component set ?`, component);
 
 export const updateComponent = async (component_id: number, component: ComponentCreate) =>
-    query(
+    query<SqlInsertUpdate>(
         `
 UPDATE component
 SET ?, update_at=CURRENT_TIMESTAMP
@@ -95,7 +95,7 @@ and a.option_id = ?
 export const createComponentOption = async (component: ComponentCreate) => query(`INSERT INTO component_option   set ?`, component);
 
 export const updateComponentOption = async (component_id: number, component: ComponentCreate) =>
-    query(
+    query<SqlInsertUpdate>(
         `
 UPDATE component_option
 SET ?, update_at=CURRENT_TIMESTAMP

@@ -5,6 +5,8 @@ import { getMessageList, createMessage, updateMessage } from 'controllers/messag
 import { Paging } from 'interfaces/swagger';
 import { MessageCreate } from 'interfaces/message';
 
+import irc from 'utils/twitchIrc';
+
 export default async (fastify: FastifyInstance, opts: any) => {
     fastify.addSchema({
         $id: 'message',
@@ -113,5 +115,39 @@ export default async (fastify: FastifyInstance, opts: any) => {
             },
         },
         async req => await updateMessage(req.params.message_id, req.body)
+    );
+
+    fastify.post<{
+        Body: { message: string; target: string };
+    }>(
+        '/twitch/message',
+        {
+            onRequest: [fastify.masterkey],
+            schema: {
+                security: [{ Master: [] }],
+                summary: '트위치 채팅방에 메세지 전송',
+                description: '트위치 채팅방에 메세지를 전송 합니다.',
+                tags: ['Admin'],
+                body: {
+                    type: 'object',
+                    required: ['message', 'target'],
+                    properties: {
+                        message: { type: 'string', description: '메세지 내용 입니다.' },
+                        target: { type: 'string', description: '메세지를 전송하는 채널 입니다.' },
+                    },
+                },
+            },
+        },
+        (req, res) => {
+            const { message, target } = req.body;
+
+            irc.say(target, message)
+                .then(data => {
+                    res.send({ result: 'success', message: '메세지 전송 성공', data });
+                })
+                .catch(err => {
+                    res.send({ result: 'fail', message: '메세지 전송 실패', err });
+                });
+        }
     );
 };
