@@ -20,6 +20,7 @@ export type Modules = ModuleDir | Module;
 
 export interface AutoCommandOptions {
     pathTag?: string; // 모듈 경로를 표시할 태그
+    isSubfolder?: boolean; // 하위 폴더를 스캔할지 여부
     isLog?: boolean; // 로그 출력 여부
     defaultFunction?: (...interaction: any[]) => void;
 }
@@ -47,7 +48,7 @@ const ScanDir = (modulePath: string, basePath: string[], options?: AutoCommandOp
         const filePath = path.join(modulePath, file);
         const stat = fs.statSync(filePath); // await promises.stat(filePath);
         try {
-            if (stat.isDirectory()) {
+            if (stat.isDirectory() && options?.isSubfolder) {
                 modules.push(ScanDir(filePath, [...basePath, file], options));
             } else modules.push(FileLoader(filePath, options)); // Module[]
             // Module | ModuleDir
@@ -87,7 +88,7 @@ const flattenModules = (modules: Modules[], path?: string): Module[] => {
 };
 
 export default (modulePath: string, options?: AutoCommandOptions) => {
-    const option = Object.assign({ defaultFunction: () => {} }, options);
+    const option = Object.assign({ defaultFunction: () => {}, isSubfolder: true }, options);
 
     const modules = flattenModules(ScanDir(getOriginFileName(modulePath), [], option).modules);
     const commands: { [key: string]: Function } = {};

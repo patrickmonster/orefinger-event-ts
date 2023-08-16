@@ -14,6 +14,7 @@ const getAppCommand = autoLoader(join(__dirname, 'app'), {
 const getChatCommand = autoLoader(join(__dirname, 'command'), {
     pathTag: ' ',
     isLog: true,
+    isSubfolder: false,
     defaultFunction: async (interaction: appInteraction) => {
         await interaction.re({ content: '해당 명령은 등록 하지 않는 명령 입니다.' });
     },

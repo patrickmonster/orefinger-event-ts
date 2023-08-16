@@ -27,3 +27,27 @@ const getOptions = <T extends ResultType>(options: APIApplicationCommandInteract
 };
 
 export default getOptions;
+
+export const getSubcommand = (
+    options: APIApplicationCommandInteractionDataOption[] | undefined,
+    id: string
+): APIApplicationCommandInteractionDataOption | undefined => {
+    if (options == undefined) return undefined;
+
+    for (const option of options) {
+        switch (option.type) {
+            case ApplicationCommandOptionType.Subcommand:
+                if (option.name === id) return option;
+                break;
+            case ApplicationCommandOptionType.SubcommandGroup:
+                if (!option.options) continue;
+                const result = getSubcommand(option.options, id);
+                if (result !== undefined) return result;
+                break;
+            default:
+                break;
+        }
+    }
+
+    return undefined;
+};

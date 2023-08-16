@@ -10,12 +10,9 @@ const type = ApplicationCommandOptionType.Subcommand;
 
 export const exec = async (interaction: AppChatInputInteraction) => {
     const { user } = interaction;
-    const options = interaction.options?.filter(
-        option => ![ApplicationCommandOptionType.Subcommand, ApplicationCommandOptionType.SubcommandGroup].includes(option.type)
-    );
 
-    const channel = getOptions<string>(options, '채널', '0');
-    const user_id = getOptions<string>(options, '사용자', user?.id || '0');
+    const channel = getOptions<string>(interaction.options, '채널', '0');
+    const user_id = getOptions<string>(interaction.options, '사용자', user?.id || '0');
 
     const reply = await interaction.deffer({ ephemeral: true });
 
