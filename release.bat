@@ -16,6 +16,10 @@ FOR /F "tokens=1-4 delims=- " %%i IN ('date /t') DO SET yyyymmdd=%%i%%j%%k
 @REM 현재 브런치 정보를 가져옵니다.
 (for /f "tokens=* USEBACKQ" %%a in (`git branch --show-current`) do set branch=%%a)
 
+echo 가장 최근 반영된 버전을 가져옵니다.
+git checkout master
+git pull
+
 @REM 현재 패키지 버전을 확인합니다.
 (for /f "tokens=* USEBACKQ" %%a in (`node -p "require('./package').version"`) do set version=%%a)
 
@@ -24,7 +28,6 @@ FOR /F "tokens=1-4 delims=- " %%i IN ('date /t') DO SET yyyymmdd=%%i%%j%%k
     set minor=%%b
     set patch=%%c
 ))
-
 
 echo ======================
 echo 버전 업데이트 설정 - %version%
@@ -46,7 +49,9 @@ if %idx%==1 (
 ) else if %idx%==3 (
     set /a patch+=1
 ) else (
-    echo 버전 업데이트를 취소합니다.
+    echo 버전 업데이트를 취소합니다. - 브런치 롤백
+    @REM 롤백후 원위치
+    git checkout %branch%
     exit /b
 )
 
@@ -54,7 +59,7 @@ echo 패키지의 버전을 수정하는중....
 @REM 그냥 실행하면 프로세서가 종료됨
 call npm pkg set version=%major%.%minor%.%patch%
 
-echo %yyyymmdd%] 버전생성 - %version%  >> release.log
+echo %yyyymmdd%] CreateVersion - %version%  >> release.log
 
 
 echo 패키지 버전 수정 완료
@@ -62,6 +67,10 @@ echo 패키지 버전 수정 완료
 echo 업데이트 버전: %version%
 
 timeout 2 > NUL
+
+echo 현재 변경사항을 커밋합니다.
+@REM 변경사항을 커밋하고 진행해야함.
+git push 
 
 echo 배포를 위한 환경을 제작합니다.
 git branch release/%version%

@@ -28,7 +28,7 @@ export const getToken = async (id: string, sc: string) => {
     }
 };
 
-export const getClientToken = () => getToken(process.env.TWITCH_CLIENT_ID!, process.env.TWITCH_CLIENT_SECRET!);
+export const getClientToken = () => getToken(process.env.TWITCH_CLIENT!, process.env.TWITCH_SECRET!);
 export const getClientTokenHeader = async () => {
     const { token, id } = await getClientToken();
     return { Authorization: `Bearer ${token}`, 'Client-Id': id };
