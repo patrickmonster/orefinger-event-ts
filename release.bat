@@ -124,3 +124,6 @@ git push
 
 echo 브런치를 원래 브런치로 변경합니다.
 git checkout %featBranch%
+
+echo 병합 요청 PR 페이지를 엽니다.
+start chrome github.com/patrickmonster/orefinger-event-ts/compare/master...release/%version%
