@@ -120,14 +120,9 @@ group by channel_id
     );
 
 export const streamOffline = async (broadcaster_user_id: string, type = 14) =>
-    query<SqlInsertUpdate>(
-        `INSERT INTO event_live (auth_id, event_id, \`type\`) VALUES(?) ON DUPLICATE KEY UPDATE ?`,
-        [broadcaster_user_id, null, type],
-        {
-            create_at: Date.now(),
-            event_id: null,
-        }
-    );
+    query<{
+        event_id: string;
+    }>(`select func_onoff_event(?) AS event_id`, [broadcaster_user_id, null, type, new Date()]);
 
 export type Attendance = {
     attendance_time: string;
