@@ -81,30 +81,20 @@ export type eventChannelType = {
 export const stateChangeEventChannel = async (channel_id: string, props: eventChannelType) =>
     query(`UPDATE discord.event_channel SET update_at=CURRENT_TIMESTAMP, ? WHERE channel_id=? `, props, channel_id);
 
-export const streamOnline = async (event: Event, type = 14) =>
-    getConnection(async QUERY => {
-        const { id, broadcaster_user_id, started_at } = event;
-        QUERY<SqlInsertUpdate>(
-            `
-INSERT INTO event_live (auth_id, event_id, create_at, \`type\`) 
-VALUES(?) ON DUPLICATE KEY UPDATE ?`,
-            [broadcaster_user_id, id, started_at, type],
-            { create_at: started_at, event_id: id }
-        ).catch(e => {}); // 이벤트 정보 수정 실패
-
-        return QUERY<{
-            id: string;
-            name: string;
-            login: string;
-            kr_name: string;
-            channel_id: string;
-            custom_ment: string;
-            url: string;
-            title: string;
-            game_id: string;
-            game_name: string;
-        }>(
-            `
+export const streamOnline = async ({ id, broadcaster_user_id, started_at }: Event, type = 14) =>
+    query<{
+        id: string;
+        name: string;
+        login: string;
+        kr_name: string;
+        channel_id: string;
+        custom_ment: string;
+        url: string;
+        title: string;
+        game_id: string;
+        game_name: string;
+    }>(
+        `
 select
     id
     , name
@@ -115,15 +105,19 @@ select
     , vls.title
     , vls.game_id
     , vls.game_name
-from v_notification_channel vnc
-left join v_live_state vls on vnc.id = vls.auth_id 
-where vnc.id = ?
-and vls.type in (16) -- 제목 상태 변경 이벤트
+from (
+    select func_onoff_event(?) AS event_id
+        , ? AS user_id
+    from dual
+) live
+left join v_notification_channel vnc on live.event_id <> '0' and vnc.id = live.user_id
+left join v_live_state vls on vnc.id = vls.auth_id
+where vls.type in (16) -- 제목 상태 변경 이벤트
 group by channel_id
-        `,
-            broadcaster_user_id + ''
-        );
-    });
+    `,
+        [`${broadcaster_user_id}`, id, type, started_at],
+        broadcaster_user_id + ''
+    );
 
 export const streamOffline = async (broadcaster_user_id: string, type = 14) =>
     query<SqlInsertUpdate>(
