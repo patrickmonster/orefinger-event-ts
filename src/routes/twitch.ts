@@ -159,9 +159,15 @@ export default async (fastify: FastifyInstance, opts: any) => {
             case 'stream.offline':
                 {
                     const { broadcaster_user_id, broadcaster_user_login, broadcaster_user_name } = event;
-                    streamOffline(`${broadcaster_user_id}`, 14);
-                    console.log(`오프라인 - ${broadcaster_user_name}(${broadcaster_user_login})`);
-                    irc.say(`${broadcaster_user_login}`, `오뱅수~ 오늘 방송도 수고하셨습니다! (´▽｀)ノ`);
+                    streamOffline(`${broadcaster_user_id}`, 14)
+                        .then(e => {
+                            const [{ event_id }] = e;
+                            if (event_id == null) {
+                                console.log(`오프라인 - ${broadcaster_user_name}(${broadcaster_user_login})`);
+                                irc.say(`${broadcaster_user_login}`, `오뱅수~ 오늘 방송도 수고하셨습니다! (´▽｀)ノ`);
+                            }
+                        })
+                        .catch(e => {});
                 }
                 break;
         }
