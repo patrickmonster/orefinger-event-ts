@@ -120,7 +120,7 @@ export default async (fastify: FastifyInstance, opts: any) => {
                             content: `${channels.length}\n${broadcaster_user_name}(${broadcaster_user_login})\nhttp://twitch.tv/${broadcaster_user_login}`,
                         });
 
-                        if (channels.length === 0) return;
+                        if (channels.length === 0) return; // 이벤트가 없거나, 이미 진행된 이벤트
                         irc.say(`${broadcaster_user_login}`, 'daromLcat 방송켰구나! ImTyping');
                         for (const { id, name, login, /* kr_name ,*/ channel_id, custom_ment, url, title, game_id, game_name } of channels) {
                             //
