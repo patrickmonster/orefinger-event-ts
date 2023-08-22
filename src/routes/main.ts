@@ -6,16 +6,9 @@ export default async (fastify: FastifyInstance, opts: any) => {
     //
     fastify.get('/ping', { schema: { hide: true } }, async (req, res) => 'pong');
 
-    if (process.env.MASTER_KEY) {
-        // 운영
-        fastify.get('/', { schema: { hide: true } }, (q, r) => r.redirect('https://orefinger.click'));
-    } else {
-        // 개발 백도어
-        fastify.register(require('@fastify/static'), {
-            root: path.join(__dirname, 'public'),
-            prefix: '/dev/',
-        });
-    }
+    // if (process.env.MASTER_KEY) {
+    // 운영
+    fastify.get('/', { schema: { hide: true } }, (q, r) => r.redirect('https://orefinger.click'));
 
     fastify.get('/callback', { schema: { hide: true } }, (req, res) => {
         return {
