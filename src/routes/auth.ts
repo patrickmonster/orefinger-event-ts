@@ -1,16 +1,25 @@
 'use strict';
-import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
-import OAuth2 from '@fastify/oauth2';
+import { FastifyInstance } from 'fastify';
 
 import { discord } from 'controllers/auth';
-
 import { openApi } from 'utils/discordApiInstance';
-// const api = require('#util/discordApiInstance');
-const qs = require(`querystring`);
+import axios from 'axios';
+
+import qs from 'querystring';
 
 //https://discord.com/oauth2/authorize?client_id=826484552029175808&permissions=1249768893497&redirect_uri=http%3A%2F%2Flocalhost:3000%2Fauth%2Fdiscord&response_type=code&scope=identify%20email%20bot%20applications.commands%20guilds%20guilds.members.read
 //https://discord.com/login?redirect_to=%2Foauth2%2Fauthorize%3Fresponse_type%3Dcode%26redirect_uri%3Dhttp%253A%252F%252Flocalhost:3000%252Fcallback%26scope%3Didentify%2520email%26client_id%3D826484552029175808
 export default async (fastify: FastifyInstance, opts: any) => {
+    const getToken = async (target: string, data: string) =>
+        axios
+            .post<{
+                access_token: string;
+                refresh_token: string;
+                expires_in: number;
+                token_type: string;
+            }>(target, data, { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } })
+            .then(res => res.data);
+
     fastify.addSchema({
         $id: 'discordUser',
         type: 'object',
@@ -106,21 +115,19 @@ export default async (fastify: FastifyInstance, opts: any) => {
                 },
             },
         },
-        async (req, res) => {
+        (req, res) => {
             const { code, redirect_uri } = req.body;
-            console.log(code, redirect_uri);
-            const data = await fetch(`https://discord.com/api/oauth2/token`, {
-                method: 'POST',
-                headers: { 'content-type': 'application/x-www-form-urlencoded' },
-                body: qs.stringify({
+
+            getToken(
+                'https://discord.com/api/oauth2/token',
+                qs.stringify({
                     client_id: process.env.DISCORD_CLIENT_ID,
                     client_secret: process.env.DISCORD_CLIENT_SECRET,
                     grant_type: 'authorization_code',
                     code,
                     redirect_uri,
-                }),
-            })
-                .then(res => res.json())
+                })
+            )
                 .then(async ({ access_token, refresh_token, expires_in, token_type }) => {
                     const { data: user } = await openApi.get('/users/@me', {
                         headers: { Authorization: `${token_type} ${access_token}` },
@@ -132,10 +139,7 @@ export default async (fastify: FastifyInstance, opts: any) => {
                             expiresIn: Math.floor(Date.now() / 1000) + 60 * 60,
                         }
                     );
-                    return {
-                        user,
-                        jwt,
-                    };
+                    res.send({ user, jwt });
                 })
                 .catch(e => {
                     throw { message: e.message };
@@ -188,66 +192,50 @@ export default async (fastify: FastifyInstance, opts: any) => {
             let token;
             switch (target) {
                 case 'twitch':
-                    token = await fetch(`https://id.twitch.tv/oauth2/token`, {
-                        method: 'POST',
-                        headers: { 'content-type': 'application/x-www-form-urlencoded' },
-                        body: qs.stringify({
+                    token = await getToken(
+                        `https://id.twitch.tv/oauth2/token`,
+                        qs.stringify({
                             client_id: process.env.TWITCH_CLIENT_ID,
                             client_secret: process.env.TWITCH_CLIENT_SECRET,
                             grant_type: 'authorization_code',
                             code,
                             redirect_uri,
-                        }),
-                    })
-                        .then(res => res.json())
-                        .then(async token => {
-                            const user = await openApi.get('/users/@me', {
-                                headers: { Authorization: `Bearer ${token.access_token}` },
-                            });
-                            // .then(({ data }) => twitch(data, token.refresh_token));
+                        })
+                    ).then(async token => {
+                        const user = await openApi.get('/users/@me', {
+                            headers: { Authorization: `Bearer ${token.access_token}` },
                         });
+                        // .then(({ data }) => twitch(data, token.refresh_token));
+                    });
                     break;
                 case 'twitch.stream':
-                    token = await fetch(`https://id.twitch.tv/oauth2/token`, {
-                        method: 'POST',
-                        headers: { 'content-type': 'application/x-www-form-urlencoded' },
-                        body: qs.stringify({
+                    token = getToken(
+                        `https://id.twitch.tv/oauth2/token`,
+                        qs.stringify({
                             client_id: process.env.TWITC_ID,
                             client_secret: process.env.TWITCH_SECRET,
                             grant_type: 'authorization_code',
                             code,
                             redirect_uri,
-                        }),
-                    })
-                        .then(res => res.json())
-                        .then(async token => {
-                            const user = await openApi.get('/users/@me', {
-                                headers: { Authorization: `Bearer ${token.access_token}` },
-                            });
-                            // .then(({ data }) => twitch(data, token.refresh_token));
+                        })
+                    ).then(async token => {
+                        const user = await openApi.get('/users/@me', {
+                            headers: { Authorization: `Bearer ${token.access_token}` },
                         });
+                        // .then(({ data }) => twitch(data, token.refresh_token));
+                    });
                     break;
                 case 'kakao':
-                    token = await fetch(`https://kauth.kakao.com/oauth/token`, {
-                        method: 'POST',
-                        headers: { 'content-type': 'application/x-www-form-urlencoded' },
-                        body: qs.stringify({
+                    token = getToken(
+                        `https://kauth.kakao.com/oauth/token`,
+                        qs.stringify({
                             client_id: process.env.KAKAO_CLIENT_ID,
                             client_secret: process.env.KAKAO_CLIENT_SECRET,
                             grant_type: 'authorization_code',
                             code,
                             redirect_uri,
-                        }),
-                    })
-                        .then(res => res.json())
-                        .then(async token => {
-                            const user = await fetch(`https://kauth.kakao.com/oauth/token`, {
-                                method: 'GET',
-                                headers: { 'content-type': 'application/x-www-form-urlencoded', Authorization: `Bearer ${token.access_token}` },
-                                body: qs.stringify({}),
-                                // }).then(({ data }) => kakao(data, token.refresh_token));
-                            });
-                        });
+                        })
+                    ).then(async token => {});
                     break;
                 default:
                     return { message: '잘못된 인증 대상입니다.' };
