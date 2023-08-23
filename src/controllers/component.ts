@@ -3,30 +3,9 @@ import { query, queryPaging, SqlInsertUpdate } from 'utils/database';
 import { ComponentCreate } from 'interfaces/component';
 
 export const getComponentList = async (page: number) =>
-    queryPaging<{
-        component_id: number;
-        name: string;
-        label_id: number;
-        label_lang: string;
-        type_idx: number;
-        text_id: number;
-        emoji: string;
-        custom_id: string;
-        value: string;
-        style_id: number;
-        min_values: number;
-        max_values: number;
-        disabled: boolean;
-        required: boolean;
-        use: boolean;
-        edit: boolean;
-        permission_type: number;
-        create_at: string;
-        update_at: string;
-        order_by: number;
-    }>(
+    queryPaging(
         `
-SELECT component_id, name, label_id, label_lang, type_idx, text_id, emoji, custom_id, value, style_id, min_values, max_values, disabled_yn as disabled, required_yn as required, use_yn as \`use\`, edit_yn as edit, permission_type, create_at, update_at, order_by
+SELECT *
 FROM component`,
         page
     );

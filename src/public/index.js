@@ -1,6 +1,39 @@
-const { log } = require('console');
+const componensList = component => {
+    // document.createElement('edit-lable');
+    const out = document.createElement('tr');
+    const keys = Object.keys(component);
+    out.setAttribute('id', component.component_id);
+    out.innerHTML = `<td><input type='checkbox'/></td>`;
 
-window.addEventListener('load', function () {
+    for (const k of keys) {
+        const td = document.createElement('td');
+        const editLable = document.createElement('edit-lable');
+        // if (k.endsWith('_id')) {
+        //     editLable.setAttribute('type', 'number');
+        // }
+        if (k.endsWith('_at')) {
+            editLable.setAttribute('type', 'date');
+        }
+        if (k.endsWith('_yn')) {
+            editLable.setAttribute('type', 'checkbox');
+            editLable.setAttribute('text', component[k] ? 'Y' : 'N');
+
+            td.appendChild(editLable);
+            out.appendChild(td);
+            continue;
+        }
+
+        editLable.setAttribute('text', component[k]);
+        td.appendChild(editLable);
+        out.appendChild(td);
+    }
+
+    return out;
+};
+
+window.addEventListener('load', async function () {
+    axios;
+
     if (localStorage.getItem('jwt')) {
         document.querySelector('#discord_login').style.display = 'none';
         document.querySelector('#main').style.display = 'block';
@@ -13,8 +46,13 @@ window.addEventListener('load', function () {
             headers: { Authorization: `Bearer ${localStorage.getItem('jwt')}` },
         });
     } else {
+        const {
+            data: { login },
+        } = await axios.get('/auth');
+
         document.querySelector('#discord_login').style.display = 'block';
         document.querySelector('#main').style.display = 'none';
+        document.querySelector('a.login').href = login;
     }
 
     document.querySelectorAll('.logout').forEach(el => {
@@ -39,11 +77,23 @@ window.addEventListener('load', function () {
         }
     };
 
-    this.document.querySelectorAll('#admin_list td button').forEach(el => {
-        el.addEventListener('click', async () => {
-            const i = el.getAttribute('idx') || 0;
-            const list = await this.window.api.get(`/api/admin/component?page=${i || 0}`);
-            console.log(list);
+    // 컴포넌트 데이터 로딩
+    this.document.querySelectorAll('#admin_list button').forEach(el => {
+        const target = el.getAttribute('target');
+        const headers = el.addEventListener('click', async () => {
+            const i = parseInt(el.getAttribute('idx')) || 0;
+            const { data: list } = await this.window.api.get(`/admin/${target}?page=${i}`);
+
+            const targetEle = el.parentElement.querySelector(`#${target}`);
+            list.forEach(item => {
+                targetEle.appendChild(componensList(item));
+            });
+
+            if (list.length === 10) {
+                el.setAttribute('idx', i + 1);
+            } else {
+                el.style.display = 'none';
+            }
         });
     });
 });

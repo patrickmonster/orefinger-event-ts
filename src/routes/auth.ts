@@ -78,6 +78,32 @@ export default async (fastify: FastifyInstance, opts: any) => {
         );
     }
 
+    fastify.get(
+        '/auth',
+        {
+            // onRequest: [fastify.authenticate],
+            // security: [{ Bearer: [] }],
+            schema: {
+                description: '디스코드 사용자 인증 - 필수 데이터',
+                tags: ['Auth'],
+                deprecated: false, // 비활성화
+            },
+        },
+        async req => {
+            const scopes = ['identify', 'email'];
+
+            return {
+                host: process.env.HOST,
+                client_id: process.env.DISCORD_CLIENT_ID,
+                scopes,
+                login: `https://discord.com/oauth2/authorize?response_type=code&redirect_uri=${process.env.HOST}%2Fcallback&scope=${scopes.join(
+                    '%20'
+                )}&client_id=${process.env.DISCORD_CLIENT_ID}`,
+                permissions: 1249768893497,
+            };
+        }
+    );
+
     // 인증 모듈
     fastify.post<{
         Body: {
@@ -115,10 +141,10 @@ export default async (fastify: FastifyInstance, opts: any) => {
                 },
             },
         },
-        (req, res) => {
+        async req => {
             const { code, redirect_uri } = req.body;
 
-            getToken(
+            return await getToken(
                 'https://discord.com/api/oauth2/token',
                 qs.stringify({
                     client_id: process.env.DISCORD_CLIENT_ID,
@@ -139,9 +165,10 @@ export default async (fastify: FastifyInstance, opts: any) => {
                             expiresIn: Math.floor(Date.now() / 1000) + 60 * 60,
                         }
                     );
-                    res.send({ user, jwt });
+                    return { user, jwt };
                 })
                 .catch(e => {
+                    console.error(e);
                     throw { message: e.message };
                 });
         }

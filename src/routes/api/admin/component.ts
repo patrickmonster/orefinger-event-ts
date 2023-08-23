@@ -43,29 +43,29 @@ export default async (fastify: FastifyInstance, opts: any) => {
                 querystring: {
                     allOf: [{ $ref: 'paging#' }],
                 },
-                response: {
-                    200: {
-                        type: 'array',
-                        items: {
-                            allOf: [
-                                {
-                                    type: 'object',
-                                    properties: {
-                                        component_id: { type: 'number' },
-                                    },
-                                },
-                                { $ref: 'component#' },
-                                {
-                                    type: 'object',
-                                    properties: {
-                                        use: { type: 'boolean' },
-                                        edit: { type: 'boolean' },
-                                    },
-                                },
-                            ],
-                        },
-                    },
-                },
+                // response: {
+                //     200: {
+                //         type: 'array',
+                //         items: {
+                //             allOf: [
+                //                 {
+                //                     type: 'object',
+                //                     properties: {
+                //                         component_id: { type: 'number' },
+                //                     },
+                //                 },
+                //                 { $ref: 'component#' },
+                //                 {
+                //                     type: 'object',
+                //                     properties: {
+                //                         use: { type: 'boolean' },
+                //                         edit: { type: 'boolean' },
+                //                     },
+                //                 },
+                //             ],
+                //         },
+                //     },
+                // },
             },
         },
         async req => await getComponentList(req.query.page || 0)
@@ -89,32 +89,32 @@ export default async (fastify: FastifyInstance, opts: any) => {
                         component_id: { type: 'number' },
                     },
                 },
-                response: {
-                    200: {
-                        allOf: [
-                            {
-                                type: 'object',
-                                properties: {
-                                    component_id: { type: 'number' },
-                                },
-                            },
-                            { $ref: 'component#' },
-                            {
-                                type: 'object',
-                                properties: {
-                                    label: { type: 'string' },
-                                    text: { type: 'string' },
-                                    type_name: { type: 'string' },
-                                    style_name: { type: 'string' },
-                                    disabled: { type: 'boolean' },
-                                    required: { type: 'boolean' },
-                                    use: { type: 'boolean' },
-                                    edit: { type: 'boolean' },
-                                },
-                            },
-                        ],
-                    },
-                },
+                // response: {
+                //     200: {
+                //         allOf: [
+                //             {
+                //                 type: 'object',
+                //                 properties: {
+                //                     component_id: { type: 'number' },
+                //                 },
+                //             },
+                //             { $ref: 'component#' },
+                //             {
+                //                 type: 'object',
+                //                 properties: {
+                //                     label: { type: 'string' },
+                //                     text: { type: 'string' },
+                //                     type_name: { type: 'string' },
+                //                     style_name: { type: 'string' },
+                //                     disabled: { type: 'boolean' },
+                //                     required: { type: 'boolean' },
+                //                     use: { type: 'boolean' },
+                //                     edit: { type: 'boolean' },
+                //                 },
+                //             },
+                //         ],
+                //     },
+                // },
             },
         },
         async req => await getComponentDtil(req.params.component_id)
