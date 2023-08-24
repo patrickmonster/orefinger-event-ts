@@ -1,11 +1,11 @@
-import { query, queryPaging, SqlInsertUpdate } from 'utils/database';
+import { query, queryPaging, SqlInsertUpdate, selectPaging } from 'utils/database';
 
 import { ComponentCreate } from 'interfaces/component';
 
 export const getComponentList = async (page: number) =>
-    queryPaging(
+    selectPaging(
         `
-SELECT component_id, name, label_id, label_lang, type_idx, text_id, emoji, custom_id, value, style_id, min_values, max_values, disabled_yn as disabled, required_yn as required, use_yn as \`use\`, edit_yn as edit, permission_type, create_at, update_at, order_by
+SELECT *
 FROM component`,
         page
     );
