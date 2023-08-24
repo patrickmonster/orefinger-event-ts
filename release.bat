@@ -87,7 +87,7 @@ if %idx%==1 (
 
 echo 배포를 위한 환경을 제작합니다.
 @REM git branch release/%version%
-git checkout -D release/%version%
+git checkout -b release/%version%
 git merge %featBranch%
 echo 배포를 위한 환경을 제작 완료
 
