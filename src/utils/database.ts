@@ -33,6 +33,13 @@ const sqlLogger = (query: string, params: any[], rows: any[] | any) => {
 // 커넥션 쿼리 함수
 // select / insert / update / delete
 type ResqultQuery<E> = E extends SqlInsertUpdate ? sqlInsertUpdate : E[];
+type ResqultPaggingQuery<E> = E extends SqlInsertUpdate
+    ? null
+    : {
+          total: number;
+          list: E[];
+          page: number;
+      };
 export type queryFunctionType = <E>(query: string, ...params: any[]) => Promise<ResqultQuery<E>>;
 
 export enum SQLType {
@@ -68,11 +75,11 @@ const getConnection = async <T>(connectionPool: (queryFunction: queryFunctionTyp
                       insertId: rows.insertId,
                   };
         }).then(async (result: T) => {
-            if (isTransaction) await connect!.commit();
+            if (isTransaction && connect) await connect.commit();
             return result;
         });
     } catch (e) {
-        if (isTransaction) await connect!.rollback();
+        if (isTransaction && connect) await connect.rollback();
         console.error('SQL]', e);
         throw e;
     } finally {
@@ -91,3 +98,23 @@ export const setLimit = (l: number) => (limit = l);
 
 export const queryPaging = async <E>(query: string, page: number = 0, ...params: any[]): Promise<ResqultQuery<E>> =>
     await getConnection(async (c: queryFunctionType) => c(`${query}\n order by create_at limit ?, ?`, ...params, page <= 0 ? 0 : page, limit));
+
+// 페이징하여 조회
+export const selectPaging = async <E>(query: string, page: number = 0, ...params: any[]) =>
+    await getConnection(async (c: queryFunctionType) => {
+        const [{ total }] = await c<{
+            total: number;
+        }>(
+            `SELECT COUNT(1) AS total FROM (
+            ${query}
+        ) A`,
+            ...params
+        );
+
+        const result = await c<E>(`${query}\nlimit ?, ?`, ...params, page <= 0 ? 0 : page, limit);
+        return {
+            total,
+            list: result,
+            page,
+        };
+    }, true);
