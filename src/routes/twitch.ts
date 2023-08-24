@@ -120,7 +120,7 @@ export default async (fastify: FastifyInstance, opts: any) => {
                             content: `${channels.length}\n${broadcaster_user_name}(${broadcaster_user_login})\nhttp://twitch.tv/${broadcaster_user_login}`,
                         });
 
-                        if (channels.length === 0) return;
+                        if (channels.length === 0) return; // 이벤트가 없거나, 이미 진행된 이벤트
                         irc.say(`${broadcaster_user_login}`, 'daromLcat 방송켰구나! ImTyping');
                         for (const { id, name, login, /* kr_name ,*/ channel_id, custom_ment, url, title, game_id, game_name } of channels) {
                             //
@@ -159,9 +159,15 @@ export default async (fastify: FastifyInstance, opts: any) => {
             case 'stream.offline':
                 {
                     const { broadcaster_user_id, broadcaster_user_login, broadcaster_user_name } = event;
-                    streamOffline(`${broadcaster_user_id}`, 14);
-                    console.log(`오프라인 - ${broadcaster_user_name}(${broadcaster_user_login})`);
-                    irc.say(`${broadcaster_user_login}`, `오뱅수~ 오늘 방송도 수고하셨습니다! (´▽｀)ノ`);
+                    streamOffline(`${broadcaster_user_id}`, 14)
+                        .then(e => {
+                            const [{ event_id }] = e;
+                            if (event_id == null) {
+                                console.log(`오프라인 - ${broadcaster_user_name}(${broadcaster_user_login})`);
+                                irc.say(`${broadcaster_user_login}`, `오뱅수~ 오늘 방송도 수고하셨습니다! (´▽｀)ノ`);
+                            }
+                        })
+                        .catch(e => {});
                 }
                 break;
         }
