@@ -2,10 +2,12 @@ import fastify from 'fastify';
 import AutoLoad from '@fastify/autoload';
 import helmet from '@fastify/helmet';
 
-import path, { join } from 'path';
+import { join } from 'path';
 import { env } from 'process';
 import { existsSync } from 'fs';
 import { config } from 'dotenv';
+
+import fs, { promises } from 'fs';
 
 import { error as errorLog } from './utils/logger';
 
@@ -32,8 +34,8 @@ const server = fastify({
 });
 
 server.register(helmet, { global: true });
-server.register(AutoLoad, { dir: path.join(__dirname, 'plugins') });
-server.register(AutoLoad, { dir: path.join(__dirname, 'routes') });
+server.register(AutoLoad, { dir: join(__dirname, 'plugins') });
+server.register(AutoLoad, { dir: join(__dirname, 'routes'), ignorePattern: /.*(test|spec).*/ });
 
 server.listen({ port: 3000, host: '::' }, (err, address) => {
     if (err) {
@@ -41,7 +43,6 @@ server.listen({ port: 3000, host: '::' }, (err, address) => {
         process.exit(1);
     }
     console.log(`Server listening at ${address}`);
-    // ping().catch(e => console.error(e));
 });
 
 //////////////////////////////////////////////////////////////////////
@@ -49,9 +50,11 @@ server.listen({ port: 3000, host: '::' }, (err, address) => {
 
 process.on('unhandledRejection', (error, promise) => {
     errorLog('unhandledRejection', error);
+    console.error('unhandledRejection', error);
 });
 process.on('uncaughtException', (error, promise) => {
     errorLog('uncaughtException', error);
+    console.error('uncaughtException', error);
 });
 
 process.on('SIGINT', function () {
