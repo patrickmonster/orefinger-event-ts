@@ -39,8 +39,9 @@ export default fp(async function (fastify, opts) {
     });
 
     fastify.decorate('masterkey', async function (request: FastifyRequest, reply: FastifyReply, done: Function) {
-        if (process.env.MASTER_KEY && request.headers.Master !== process.env.MASTER_KEY) {
-            reply.code(400).send({ error: 'invalid key' });
+        const key = request.headers.master || request.headers.Master;
+        if (process.env.MASTER_KEY && key !== process.env.MASTER_KEY) {
+            reply.code(400).send({ error: 'invalid key', key });
         } else done();
     });
 
