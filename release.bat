@@ -31,7 +31,7 @@ IF NOT %featBranch:~0,5%==feat/ (
     exit /b
 )
 
-@REM 개발 브런치로 체크아웃
+@REM 개발 브런치로 체크아웃 -=========================================== DEV
 echo 개발 브런치로 체크아웃합니다.
 git checkout develop
 git pull
@@ -109,6 +109,7 @@ echo 배포 테그를 생성합니다.
 @REM git tag release-%version%
 
 @REM git push origin release/%version%
+git push
 git push --set-upstream origin release/%version%
 echo 배포를 위한 환경을 푸시 완료
 
