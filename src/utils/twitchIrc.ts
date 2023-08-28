@@ -7,7 +7,7 @@ const client = new tmi.Client({
     },
 });
 
-if (!process.env.MASTER_KEY) {
+if (process.env.MASTER_KEY) {
     client
         .connect()
         .then(() => {

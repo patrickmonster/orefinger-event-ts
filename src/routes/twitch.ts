@@ -6,7 +6,7 @@ import { EventSub, Event, Subscription } from 'interfaces/eventsub';
 import { register, event as createEvent, grant, revoke, streamOnline, streamOffline, stateChangeEventChannel } from 'controllers/twitch';
 import { userUpdate } from 'controllers/auth';
 
-import { openApi } from 'utils/discordApiInstance';
+import discord, { openApi } from 'utils/discordApiInstance';
 
 import irc from 'utils/twitchIrc';
 
@@ -117,14 +117,14 @@ export default async (fastify: FastifyInstance, opts: any) => {
                         console.log(`프로세서 [ONLINE] 이벤트 수신 - ${broadcaster_user_login} (${channels.length})`);
 
                         openApi.post(`webhooks/852347735310860298/r6_htRdmt149gxL1Hzkkw5rg-p-80GfE_dMoDSBKVo-zQIKatJzu7ia_-qZDTrJhW2Up`, {
-                            content: `${channels.length}\n${broadcaster_user_name}(${broadcaster_user_login})\nhttp://twitch.tv/${broadcaster_user_login}`,
+                            content: `${channels.length}${broadcaster_user_name}(${broadcaster_user_login})\nhttp://twitch.tv/${broadcaster_user_login}`,
                         });
 
                         if (channels.length === 0) return; // 이벤트가 없거나, 이미 진행된 이벤트
-                        irc.say(`${broadcaster_user_login}`, 'daromLcat 방송켰구나! ImTyping');
+                        irc.say(`${broadcaster_user_login}`, '안뇽! 오늘도 화이팅! daromLcat').catch(e => {});
                         for (const { id, name, login, /* kr_name ,*/ channel_id, custom_ment, url, title, game_id, game_name } of channels) {
                             //
-                            openApi
+                            discord
                                 .post(url, {
                                     username: name,
                                     content: custom_ment,
