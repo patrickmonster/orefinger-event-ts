@@ -31,10 +31,6 @@ IF NOT %featBranch:~0,5%==feat/ (
     exit /b
 )
 
-@REM 현재 커밋 적용
-echo 현재 브런치를 커밋합니다.
-git push
-
 @REM 개발 브런치로 체크아웃
 echo 개발 브런치로 체크아웃합니다.
 git checkout develop
