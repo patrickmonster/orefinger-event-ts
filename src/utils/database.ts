@@ -22,10 +22,12 @@ export interface sqlInsertUpdate {
     insertId: number;
 }
 
+const newLine = /\n/g;
+
 const sqlLogger = (query: string, params: any[], rows: any[] | any) => {
     // if (env.sql_log != 'true') return rows;
     console.log('=======================================================');
-    console.log('SQL] ', mysql.format(query, params), rows);
+    console.log('SQL] ', mysql.format(query, params).replace(newLine, ' '), '||', rows);
     console.log('=======================================================');
     return rows;
 };
