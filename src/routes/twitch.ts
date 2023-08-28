@@ -150,7 +150,7 @@ export default async (fastify: FastifyInstance, opts: any) => {
                                 .catch(e => {
                                     // 채널을 찾을 수 없음
                                     console.log('프로세서 [ONLINE] 알림 채널 메세지 전송 실패', `${name} - ${login}(${id})`);
-                                    stateChangeEventChannel(channel_id, { delete_yn: 'Y' }).catch(e => {});
+                                    // stateChangeEventChannel(channel_id, { delete_yn: 'Y' }).catch(e => {});
                                 });
                         }
                     });
