@@ -39,7 +39,9 @@ type ResqultPaggingQuery<E> = E extends SqlInsertUpdate
     ? null
     : {
           total: number;
+          totalPage: number;
           list: E[];
+          listCount: number;
           page: number;
       };
 export type queryFunctionType = <E>(query: string, ...params: any[]) => Promise<ResqultQuery<E>>;
@@ -113,9 +115,10 @@ export const selectPaging = async <E>(query: string, page: number = 0, ...params
             ...params
         );
 
-        const result = await c<E>(`${query}\nlimit ?, ?`, ...params, page <= 0 ? 0 : page, limit);
+        const result = await c<E>(`${query}\nlimit ?, ?`, ...params, page <= 0 ? 0 : page * limit, limit);
         return {
             total,
+            totalPage: Math.ceil(total / limit) - 1,
             list: result,
             page,
         };

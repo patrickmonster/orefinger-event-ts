@@ -13,6 +13,7 @@ import { ComponentOptionCreate, ComponentCreate } from 'interfaces/component';
 import { Paging } from 'interfaces/swagger';
 
 export default async (fastify: FastifyInstance, opts: any) => {
+    console.log('component LOAD');
     fastify.addSchema({
         $id: 'component',
         type: 'object',
@@ -40,7 +41,6 @@ export default async (fastify: FastifyInstance, opts: any) => {
         $id: 'componentOption',
         type: 'object',
         properties: {
-            // option_id: { type: 'number' },
             label_id: { type: 'number' },
             value: { type: 'string' },
             description_id: { type: 'number' },
@@ -54,7 +54,7 @@ export default async (fastify: FastifyInstance, opts: any) => {
     fastify.get<{
         Querystring: Paging;
     }>(
-        '/',
+        '/component',
         {
             onRequest: [fastify.masterkey],
             schema: {
@@ -65,29 +65,6 @@ export default async (fastify: FastifyInstance, opts: any) => {
                 querystring: {
                     allOf: [{ $ref: 'paging#' }],
                 },
-                // response: {
-                //     200: {
-                //         type: 'array',
-                //         items: {
-                //             allOf: [
-                //                 {
-                //                     type: 'object',
-                //                     properties: {
-                //                         component_id: { type: 'number' },
-                //                     },
-                //                 },
-                //                 { $ref: 'component#' },
-                //                 {
-                //                     type: 'object',
-                //                     properties: {
-                //                         use: { type: 'boolean' },
-                //                         edit: { type: 'boolean' },
-                //                     },
-                //                 },
-                //             ],
-                //         },
-                //     },
-                // },
             },
         },
         async req => await getComponentList(req.query.page || 0)
@@ -96,7 +73,7 @@ export default async (fastify: FastifyInstance, opts: any) => {
     fastify.get<{
         Params: { component_id: number };
     }>(
-        '/:component_id',
+        '/component/:component_id',
         {
             onRequest: [fastify.masterkey],
             schema: {
@@ -111,32 +88,6 @@ export default async (fastify: FastifyInstance, opts: any) => {
                         component_id: { type: 'number' },
                     },
                 },
-                // response: {
-                //     200: {
-                //         allOf: [
-                //             {
-                //                 type: 'object',
-                //                 properties: {
-                //                     component_id: { type: 'number' },
-                //                 },
-                //             },
-                //             { $ref: 'component#' },
-                //             {
-                //                 type: 'object',
-                //                 properties: {
-                //                     label: { type: 'string' },
-                //                     text: { type: 'string' },
-                //                     type_name: { type: 'string' },
-                //                     style_name: { type: 'string' },
-                //                     disabled: { type: 'boolean' },
-                //                     required: { type: 'boolean' },
-                //                     use: { type: 'boolean' },
-                //                     edit: { type: 'boolean' },
-                //                 },
-                //             },
-                //         ],
-                //     },
-                // },
             },
         },
         async req => await getComponentDtil(req.params.component_id)
@@ -145,7 +96,7 @@ export default async (fastify: FastifyInstance, opts: any) => {
     fastify.post<{
         Body: ComponentCreate;
     }>(
-        '/',
+        '/component',
         {
             onRequest: [fastify.masterkey],
             schema: {
@@ -177,7 +128,7 @@ export default async (fastify: FastifyInstance, opts: any) => {
         Body: ComponentCreate;
         Params: { component_id: number };
     }>(
-        '/:component_id',
+        '/component/:component_id',
         {
             onRequest: [fastify.masterkey],
             schema: {
@@ -215,7 +166,7 @@ export default async (fastify: FastifyInstance, opts: any) => {
     fastify.get<{
         Querystring: Paging;
     }>(
-        '/option',
+        '/component/option',
         {
             onRequest: [fastify.masterkey],
             schema: {
@@ -251,7 +202,7 @@ export default async (fastify: FastifyInstance, opts: any) => {
     fastify.post<{
         Body: ComponentOptionCreate;
     }>(
-        '/option',
+        '/component/option',
         {
             onRequest: [fastify.masterkey],
             schema: {
@@ -299,7 +250,7 @@ export default async (fastify: FastifyInstance, opts: any) => {
         Querystring: Paging;
         Params: { option_id: number };
     }>(
-        '/option/:option_id',
+        '/component/option/:option_id',
         {
             onRequest: [fastify.masterkey],
             schema: {

@@ -7,6 +7,8 @@ import { env } from 'process';
 import { existsSync } from 'fs';
 import { config } from 'dotenv';
 
+import { error as errorLog } from './utils/logger';
+
 const envDir = join(env.PWD || __dirname, `/.env`);
 if (existsSync(envDir)) {
     config({ path: envDir });
@@ -44,7 +46,6 @@ server.listen({ port: 3000, host: '::' }, (err, address) => {
 
 //////////////////////////////////////////////////////////////////////
 // 프로세서 모듈
-import { error as errorLog } from './utils/logger';
 
 process.on('unhandledRejection', (error, promise) => {
     errorLog('unhandledRejection', error);

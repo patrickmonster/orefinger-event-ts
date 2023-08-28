@@ -33,7 +33,7 @@ SELECT
   a.max_values,
   a.disabled_yn as disabled,
   a.required_yn as required,
-  a.use_yn as use,
+  a.use_yn as use_yn,
   a.edit_yn as edit,
   a.permission_type,
   a.create_at,
@@ -46,7 +46,7 @@ where 1=1
 and a.component_id = ?
     `,
         component_id
-    );
+    ).then(res => res[0]);
 
 export const createComponent = async (component: ComponentCreate) => query(`INSERT INTO component set ?`, component);
 
