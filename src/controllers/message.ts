@@ -1,15 +1,27 @@
-import { query, queryPaging, SqlInsertUpdate } from 'utils/database';
+import { query, queryPaging, selectPaging, SqlInsertUpdate } from 'utils/database';
 
 import { MessageCreate } from 'interfaces/message';
 import { RESTPostAPIChannelMessageJSONBody } from 'discord-api-types/rest/v10';
 import { APIEmbed } from 'discord-api-types/v10';
 
-export const getMessageList = async (page: number) =>
-    queryPaging(
+export const getMessageList = async (page: number, tag: string | undefined) =>
+    selectPaging<{
+        message_id: number;
+        context_id: number;
+        tag: string;
+        tts: boolean;
+        ephemeral: boolean;
+        create_at: string;
+        update_at: string;
+    }>(
         `
 SELECT message_id, context_id, tag, tts_yn as tts, ephemeral_yn as ephemeral, create_at, update_at
-FROM notification.message`,
-        page
+FROM notification.message
+WHERE 1=1
+${tag ? '' : '-- '}AND tag LIKE CONCAT('%', ?, '%')
+        `,
+        page,
+        tag
     );
 
 export const createMessage = async (message: MessageCreate) => query(`INSERT INTO notification.message set ?`, message);

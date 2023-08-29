@@ -27,7 +27,7 @@ const newLine = /\n/g;
 const sqlLogger = (query: string, params: any[], rows: any[] | any) => {
     // if (env.sql_log != 'true') return rows;
     console.log('=======================================================');
-    console.log('SQL] ', mysql.format(query, params).replace(newLine, ' '), '||', rows);
+    console.log('SQL] ', mysql.format(query, params).replace(newLine, ' '), '||', env.MASTER_KEY ? JSON.stringify(rows) : rows);
     console.log('=======================================================');
     return rows;
 };

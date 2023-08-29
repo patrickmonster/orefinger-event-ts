@@ -31,7 +31,9 @@ export default async (fastify: FastifyInstance, opts: any) => {
 
     //
     fastify.get<{
-        Querystring: Paging;
+        Querystring: Paging & {
+            tag?: string;
+        };
     }>(
         '/message',
         {
@@ -40,36 +42,20 @@ export default async (fastify: FastifyInstance, opts: any) => {
                 security: [{ Master: [] }],
                 tags: ['Admin'],
                 description: '메세지 리스트 조회',
-                querystring: { $ref: 'paging#' },
-                response: {
-                    200: {
-                        type: 'array',
-                        items: {
-                            allOf: [
-                                {
-                                    type: 'object',
-                                    properties: {
-                                        context_id: { type: 'number' },
-                                    },
-                                },
-                                { $ref: 'message#' },
-                                {
-                                    type: 'object',
-                                    properties: {
-                                        message_id: { type: 'number' },
-                                        tts: { type: 'boolean' },
-                                        ephemeral: { type: 'boolean' },
-                                        create_at: { type: 'string' },
-                                        update_at: { type: 'string' },
-                                    },
-                                },
-                            ],
+                querystring: {
+                    allOf: [
+                        { $ref: 'paging#' },
+                        {
+                            type: 'object',
+                            properties: {
+                                tag: { type: 'string', description: '태그', nullable: true },
+                            },
                         },
-                    },
+                    ],
                 },
             },
         },
-        async (req, res) => await getMessageList(req.query.page || 0)
+        async req => await getMessageList(req.query.page || 0, req.query.tag)
     );
 
     fastify.post<{

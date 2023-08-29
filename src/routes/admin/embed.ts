@@ -88,33 +88,6 @@ export default async (fastify: FastifyInstance, opts: any) => {
                 tags: ['Admin'],
                 description: '임베드 리스트 조회',
                 querystring: { $ref: 'paging#' },
-                response: {
-                    200: {
-                        type: 'array',
-                        items: {
-                            allOf: [
-                                {
-                                    type: 'object',
-                                    properties: {
-                                        embed_id: { type: 'number' },
-                                    },
-                                },
-                                { $ref: 'embed#' },
-                                {
-                                    type: 'object',
-                                    properties: {
-                                        title: { type: 'string' },
-                                        description: { type: 'string' },
-                                        provider: { $ref: 'embedProvider#' },
-                                        author: { $ref: 'embedAuthor#' },
-                                        create_at: { type: 'string' },
-                                        update_at: { type: 'string' },
-                                    },
-                                },
-                            ],
-                        },
-                    },
-                },
             },
         },
         async req => await getEmbedList(req.query.page)
