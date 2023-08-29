@@ -60,29 +60,35 @@ const getConnection = async <T>(connectionPool: (queryFunction: queryFunctionTyp
         connect = await pool.getConnection();
         if (isTransaction) await connect.beginTransaction();
         return await connectionPool(async (query: string, ...params: any[]) => {
-            const [rows] = await connect!.query(query, params);
-            sqlLogger(query, params, rows);
+            try {
+                const [rows] = await connect!.query(query, params);
+                sqlLogger(query, params, rows);
 
-            return Array.isArray(rows)
-                ? JSON.parse(
-                      JSON.stringify(rows, (k, v) => {
-                          if (typeof v != 'string') return v; // TODO: string 이 아닌경우 리턴
-                          if (v == 'Y') return true; // TODO: yn 인경우
-                          return v;
-                      })
-                  )
-                : {
-                      affectedRows: rows.affectedRows,
-                      changedRows: rows.changedRows,
-                      insertId: rows.insertId,
-                  };
+                return Array.isArray(rows)
+                    ? JSON.parse(
+                          JSON.stringify(rows, (k, v) => {
+                              if (typeof v != 'string') return v; // TODO: string 이 아닌경우 리턴
+                              if (v == 'Y') return true; // TODO: yn 인경우
+                              return v;
+                          })
+                      )
+                    : {
+                          affectedRows: rows.affectedRows,
+                          changedRows: rows.changedRows,
+                          insertId: rows.insertId,
+                      };
+            } catch (e) {
+                console.error('SQL]', e);
+                connect!.query('INSERT INTO error_sql set `sql` = ?', mysql.format(query, params));
+                throw e;
+            }
         }).then(async (result: T) => {
             if (isTransaction && connect) await connect.commit();
             return result;
         });
     } catch (e) {
         if (isTransaction && connect) await connect.rollback();
-        console.error('SQL]', e);
+        // console.error('SQL]', e);
         throw e;
     } finally {
         if (connect) connect.release();
