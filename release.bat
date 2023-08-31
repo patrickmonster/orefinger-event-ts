@@ -1,5 +1,5 @@
-@echo off
-@REM USE EUC-KR
+@REM @echo off
+@REM USE UTF-8
 
 @REM 새로운 릴리즈 제작을 위한 배치 파일입니다.
 
@@ -90,7 +90,6 @@ if %idx%==1 (
     @REM 주요 업데이트
     git checkout -b release/%version%
     git commit -m "[Major] %version% - 주요 업데이트"
-    git tag release-%version%
 ) else if %idx%==2 (
     @REM 기능업데이트
     git checkout -b release/%version%
@@ -110,6 +109,11 @@ if %idx%==1 (
 echo 배포를 위한 환경을 푸시 완료
 git push
 git push --set-upstream origin release/%version%
+
+
+if %idx%==1 (
+    git tag release-%version%
+) 
 @REM =============================================================================================
 
 echo 개발 브런치로 체크아웃합니다.
