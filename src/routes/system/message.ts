@@ -31,45 +31,31 @@ export default async (fastify: FastifyInstance, opts: any) => {
 
     //
     fastify.get<{
-        Querystring: Paging;
+        Querystring: Paging & {
+            tag?: string;
+        };
     }>(
         '/message',
         {
             onRequest: [fastify.masterkey],
             schema: {
                 security: [{ Master: [] }],
-                tags: ['Admin'],
+                tags: ['System'],
                 description: '메세지 리스트 조회',
-                querystring: { $ref: 'paging#' },
-                response: {
-                    200: {
-                        type: 'array',
-                        items: {
-                            allOf: [
-                                {
-                                    type: 'object',
-                                    properties: {
-                                        context_id: { type: 'number' },
-                                    },
-                                },
-                                { $ref: 'message#' },
-                                {
-                                    type: 'object',
-                                    properties: {
-                                        message_id: { type: 'number' },
-                                        tts: { type: 'boolean' },
-                                        ephemeral: { type: 'boolean' },
-                                        create_at: { type: 'string' },
-                                        update_at: { type: 'string' },
-                                    },
-                                },
-                            ],
+                querystring: {
+                    allOf: [
+                        { $ref: 'paging#' },
+                        {
+                            type: 'object',
+                            properties: {
+                                tag: { type: 'string', description: '태그', nullable: true },
+                            },
                         },
-                    },
+                    ],
                 },
             },
         },
-        async (req, res) => await getMessageList(req.query.page || 0)
+        async req => await getMessageList(req.query.page || 0, req.query.tag)
     );
 
     fastify.post<{
@@ -80,7 +66,7 @@ export default async (fastify: FastifyInstance, opts: any) => {
             onRequest: [fastify.masterkey],
             schema: {
                 security: [{ Master: [] }],
-                tags: ['Admin'],
+                tags: ['System'],
                 description: '메세지 생성',
                 body: {},
                 response: {
@@ -101,7 +87,7 @@ export default async (fastify: FastifyInstance, opts: any) => {
             schema: {
                 security: [{ Master: [] }],
                 description: '임베드 생성',
-                tags: ['Admin'],
+                tags: ['System'],
                 params: {
                     type: 'object',
                     properties: {
@@ -127,7 +113,7 @@ export default async (fastify: FastifyInstance, opts: any) => {
                 security: [{ Master: [] }],
                 summary: '트위치 채팅방에 메세지 전송',
                 description: '트위치 채팅방에 메세지를 전송 합니다.',
-                tags: ['Admin'],
+                tags: ['System'],
                 body: {
                     type: 'object',
                     required: ['message', 'target'],

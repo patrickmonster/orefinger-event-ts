@@ -1,45 +1,29 @@
 @echo off
-@REM USE EUC-KR
+chcp 65001
 
-@REM »õ·Î¿î ¸±¸®Áî Á¦ÀÛÀ» À§ÇÑ ¹èÄ¡ ÆÄÀÏÀÔ´Ï´Ù.
-
-@REM 1. ÇöÀç ºê·±Ä¡°¡ feat/* ÀÎÁö È®ÀÎÇÕ´Ï´Ù.
-@REM 2. ÇöÀç ºê·±Ä¡¸¦ develop·Î º¯°æÇÕ´Ï´Ù.
-@REM 3. feat/* ºê·±Ä¡¸¦ develop ºê·±Ä¡·Î ¸ÓÁöÇÕ´Ï´Ù.
-@REM 4. package.jsonÀÇ ¹öÀüÀ» È®ÀÎÇÕ´Ï´Ù.
-@REM 5. ¹öÀüÀ» ÀÔ·Â ¹Ş½À´Ï´Ù.
-@REM 6. release/* ºê·±Ä¡¸¦ »ı¼ºÇÕ´Ï´Ù.
-@REM 7. release/* ºê·±Ä¡·Î checkoutÇÕ´Ï´Ù.
-@REM 8. º¯°æµÈ ¹öÀüÀ» Àû¿ëÇÕ´Ï´Ù.
-@REM 9. º¯°æµÈ ¹öÀüÀ» Ä¿¹ÔÇÕ´Ï´Ù.
-@REM 10. º¯°æµÈ ¹öÀüÀ» ÅÂ±×ÇÕ´Ï´Ù.
-@REM 11. Ä¿¹ÔµÈ ¹öÀüÀ» Çª½ÃÇÕ´Ï´Ù.
-@REM 12. develop ºê·±Ä¡·Î checkoutÇÕ´Ï´Ù.
-@REM 13. release/* ºê·±Ä¡¸¦ develop ºê·±Ä¡·Î ¸ÓÁöÇÕ´Ï´Ù.
-@REM 14. develop ºê·±Ä¡¸¦ push ÇÕ´Ï´Ù.D
-@REM 15. ¿ø·¡ ºê·±Ä¡·Î checkoutÇÕ´Ï´Ù.
+@REM ìƒˆë¡œìš´ ë¦´ë¦¬ì¦ˆ ì œì‘ì„ ìœ„í•œ ë°°ì¹˜ íŒŒì¼ì…ë‹ˆë‹¤.
 
 FOR /F "tokens=1-4 delims=- " %%i IN ('date /t') DO SET yyyymmdd=%%i%%j%%k
 
-@REM ÇöÀç ºê·±Ä¡ Á¤º¸¸¦ °¡Á®¿É´Ï´Ù.
+@REM í˜„ì¬ ë¸ŒëŸ°ì¹˜ ì •ë³´ë¥¼ ê°€ì ¸ì˜µë‹ˆë‹¤.
 (for /f "tokens=* USEBACKQ" %%a in (`git branch --show-current`) do set featBranch=%%a)
 
-@REM ÇöÀç ºê·±Ä¡ Á¤º¸ È®ÀÎ
+@REM í˜„ì¬ ë¸ŒëŸ°ì¹˜ ì •ë³´ í™•ì¸
 IF NOT %featBranch:~0,5%==feat/ (
-    echo ÇöÀç ºê·±Ä¡°¡ feat/* ºê·±Ä¡°¡ ¾Æ´Õ´Ï´Ù.
-    echo ºê·±Ä¡¸¦ feat/* ºê·±Ä¡·Î º¯°æ ÈÄ ´Ù½Ã ½ÃµµÇØÁÖ¼¼¿ä.
+    echo í˜„ì¬ ë¸ŒëŸ°ì¹˜ê°€ feat/* ë¸ŒëŸ°ì¹˜ê°€ ì•„ë‹™ë‹ˆë‹¤.
+    echo ë¸ŒëŸ°ì¹˜ë¥¼ feat/* ë¸ŒëŸ°ì¹˜ë¡œ ë³€ê²½ í›„ ë‹¤ì‹œ ì‹œë„í•´ì£¼ì„¸ìš”.
     exit /b
 )
 
-@REM °³¹ß ºê·±Ä¡·Î Ã¼Å©¾Æ¿ô -=========================================== DEV
-echo °³¹ß ºê·±Ä¡·Î Ã¼Å©¾Æ¿ôÇÕ´Ï´Ù.
+@REM ê°œë°œ ë¸ŒëŸ°ì¹˜ë¡œ ì²´í¬ì•„ì›ƒ -=========================================== DEV
+echo ê°œë°œ ë¸ŒëŸ°ì¹˜ë¡œ ì²´í¬ì•„ì›ƒí•©ë‹ˆë‹¤.
 git checkout develop
 git pull
 
 @REM =============================================================================================
 
-@REM ÇöÀç ÆĞÅ°Áö ¹öÀüÀ» È®ÀÎÇÕ´Ï´Ù.
-echo ÃÖ½Å ¹İ¿µ ¹öÀü Á¤º¸¸¦ È®ÀÎÇÕ´Ï´Ù.
+@REM í˜„ì¬ íŒ¨í‚¤ì§€ ë²„ì „ì„ í™•ì¸í•©ë‹ˆë‹¤.
+echo ìµœì‹  ë°˜ì˜ ë²„ì „ ì •ë³´ë¥¼ í™•ì¸í•©ë‹ˆë‹¤.
 (for /f "tokens=* USEBACKQ" %%a in (`node -p "require('./package').version"`) do set version=%%a)
 
 (for /F "tokens=1,2,3 delims=." %%a in ("%version%") do (
@@ -50,79 +34,97 @@ echo ÃÖ½Å ¹İ¿µ ¹öÀü Á¤º¸¸¦ È®ÀÎÇÕ´Ï´Ù.
 
 @REM =============================================================================================
 
+echo ì»¤ë°‹ ë¡œê·¸ë¥¼ í™•ì¸í•©ë‹ˆë‹¤.
+git log develop..%featBranch% --branches --decorate --graph --oneline
+
 echo ======================
-echo ¹öÀü ¾÷µ¥ÀÌÆ® ¼³Á¤ - %version%
-echo 1. Major ¹öÀü ¾÷µ¥ÀÌÆ® [%major%] (ÁÖ¿ä ¾÷µ¥ÀÌÆ®)
-echo 2. Minor ¹öÀü ¾÷µ¥ÀÌÆ® [%minor%] (±â´É ¾÷µ¥ÀÌÆ®)
-echo 3. Patch ¹öÀü ¾÷µ¥ÀÌÆ® [%patch%] (¹ö±× ¼öÁ¤)
-echo 0. ¹öÀü ¾÷µ¥ÀÌÆ® Ãë¼Ò
+echo ë²„ì „ ì—…ë°ì´íŠ¸ ì„¤ì • - %version%
+echo 1. Major ë²„ì „ ì—…ë°ì´íŠ¸ [%major%] (ì£¼ìš” ì—…ë°ì´íŠ¸)
+echo 2. Minor ë²„ì „ ì—…ë°ì´íŠ¸ [%minor%] (ê¸°ëŠ¥ ì—…ë°ì´íŠ¸)
+echo 3. Patch ë²„ì „ ì—…ë°ì´íŠ¸ [%patch%] (ë²„ê·¸ ìˆ˜ì •)
+echo 0. ë²„ì „ ì—…ë°ì´íŠ¸ ì·¨ì†Œ
 echo ======================
 
-set /p idx=¹öÀü ¾÷µ¥ÀÌÆ® ¼³Á¤À» ÀÔ·ÂÇÏ¼¼¿ä:
+set /p idx=ë²„ì „ ì—…ë°ì´íŠ¸ ì„¤ì •ì„ ì…ë ¥í•˜ì„¸ìš”:
 
 if %idx%==1 (
-    @REM ÁÖ¿ä ¾÷µ¥ÀÌÆ®
+    @REM ì£¼ìš” ì—…ë°ì´íŠ¸
     set /a major+=1
     set minor=0
     set patch=0
 ) else if %idx%==2 (
-    @REM ±â´É¾÷µ¥ÀÌÆ®
+    @REM ê¸°ëŠ¥ì—…ë°ì´íŠ¸
     set /a minor+=1
     set patch=0
 ) else if %idx%==3 (
     @REM hotFix
     set /a patch+=1
 ) else (
-    echo ¹öÀü ¾÷µ¥ÀÌÆ®¸¦ Ãë¼ÒÇÕ´Ï´Ù. - ºê·±Ä¡ ·Ñ¹é
-    @REM ·Ñ¹éÈÄ ¿øÀ§Ä¡
+    echo ë²„ì „ ì—…ë°ì´íŠ¸ë¥¼ ì·¨ì†Œí•©ë‹ˆë‹¤. - ë¸ŒëŸ°ì¹˜ ë¡¤ë°±
+    @REM ë¡¤ë°±í›„ ì›ìœ„ì¹˜
     git checkout %featBranch%
     exit /b
 )
 
+set version=%major%.%minor%.%patch%
 @REM =============================================================================================
 
-echo ¹èÆ÷¸¦ À§ÇÑ È¯°æÀ» Á¦ÀÛÇÕ´Ï´Ù.
-@REM git branch release/%version%
-git checkout -b release/%version%
-git merge %featBranch%
-echo ¹èÆ÷¸¦ À§ÇÑ È¯°æÀ» Á¦ÀÛ ¿Ï·á
-
-echo ÆĞÅ°ÁöÀÇ ¹öÀüÀ» ¼öÁ¤ÇÏ´ÂÁß....
-@REM ±×³É ½ÇÇàÇÏ¸é ÇÁ·Î¼¼¼­°¡ Á¾·áµÊ
+echo íŒ¨í‚¤ì§€ì˜ ë²„ì „ì„ ìˆ˜ì •í•˜ëŠ”ì¤‘....
+@REM ê·¸ëƒ¥ ì‹¤í–‰í•˜ë©´ í”„ë¡œì„¸ì„œê°€ ì¢…ë£Œë¨
 call npm pkg set version=%major%.%minor%.%patch%
 
-echo %yyyymmdd%] CreateVersion - %version%  >> release.log
-
-
-echo ÆĞÅ°Áö ¹öÀü ¼öÁ¤ ¿Ï·á
+echo íŒ¨í‚¤ì§€ ë²„ì „ ìˆ˜ì • ì™„ë£Œ
 (for /f "tokens=* USEBACKQ" %%a in (`node -p "require('./package').version"`) do set version=%%a)
-echo ¾÷µ¥ÀÌÆ® ¹öÀü: %version%
+
+git log develop..%featBranch% --branches --decorate --graph --oneline >> release.log
+echo %yyyymmdd%] CreateVersion - %version%  >> release.log
+echo ì—…ë°ì´íŠ¸ ë²„ì „: %version%
+
+echo ë°°í¬ë¥¼ ìœ„í•œ í™˜ê²½ì„ ì»¤ë°‹í•©ë‹ˆë‹¤.
+git add package.json
+git add release.log
 
 @REM =============================================================================================
 
-echo ¹èÆ÷¸¦ À§ÇÑ È¯°æÀ» Ä¿¹ÔÇÕ´Ï´Ù.
-git add package.json
-git add release.log
-git commit -m "release: %version%"
 
-echo ¹èÆ÷ Å×±×¸¦ »ı¼ºÇÕ´Ï´Ù.
-@REM git tag release-%version%
+if %idx%==1 (
+    @REM ì£¼ìš” ì—…ë°ì´íŠ¸
+    git checkout -b release/%version%
+    git commit -m "[Major] %version% - ì£¼ìš” ì—…ë°ì´íŠ¸"
+) else if %idx%==2 (
+    @REM ê¸°ëŠ¥ì—…ë°ì´íŠ¸
+    git checkout -b release/%version%
+    git commit -m "[Minor] %version% - ê¸°ëŠ¥ ì—…ë°ì´íŠ¸"
+) else if %idx%==3 (
+    @REM hotFix
+    git checkout develop
+    git merge %featBranch%
+    git commit -m "[Patch] %version% - ë²„ê·¸ ìˆ˜ì •"
+    git push origin develop
 
-@REM git push origin release/%version%
+    echo ë³‘í•© ìš”ì²­ PR í˜ì´ì§€ë¥¼ ì—½ë‹ˆë‹¤.
+    start chrome github.com/patrickmonster/orefinger-event-ts/compare/master...develop
+
+    exit /b 0
+)
+
+git merge %featBranch%
+
+echo ë°°í¬ë¥¼ ìœ„í•œ í™˜ê²½ì„ í‘¸ì‹œ ì™„ë£Œ
 git push
 git push --set-upstream origin release/%version%
-echo ¹èÆ÷¸¦ À§ÇÑ È¯°æÀ» Çª½Ã ¿Ï·á
 
+if %idx%==1 (
+    git tag release-%version%
+) 
+@REM =============================================================================================
 
-echo °³¹ß ºê·±Ä¡·Î Ã¼Å©¾Æ¿ôÇÕ´Ï´Ù.
+echo ê°œë°œ ë¸ŒëŸ°ì¹˜ë¡œ ì²´í¬ì•„ì›ƒí•©ë‹ˆë‹¤.
 git checkout develop
 
-echo ÃÖ½Å¹öÀüÀ» develop ºê·±Ä¡¿¡ ¹İ¿µÇÕ´Ï´Ù.
+echo ìµœì‹ ë²„ì „ì„ develop ë¸ŒëŸ°ì¹˜ì— ë°˜ì˜í•©ë‹ˆë‹¤.
 git merge release/%version%
 git push
 
-echo ºê·±Ä¡¸¦ ¿ø·¡ ºê·±Ä¡·Î º¯°æÇÕ´Ï´Ù.
+echo ë¸ŒëŸ°ì¹˜ë¥¼ ì›ë˜ ë¸ŒëŸ°ì¹˜ë¡œ ë³€ê²½í•©ë‹ˆë‹¤.
 git checkout %featBranch%
-
-echo º´ÇÕ ¿äÃ» PR ÆäÀÌÁö¸¦ ¿±´Ï´Ù.
-start chrome github.com/patrickmonster/orefinger-event-ts/compare/master...release/%version%

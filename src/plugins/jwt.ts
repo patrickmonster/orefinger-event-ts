@@ -38,17 +38,18 @@ export default fp(async function (fastify, opts) {
         secret: process.env.JWT_SECRET || 'secret',
     });
 
-    fastify.decorate('masterkey', async function (request: FastifyRequest, reply: FastifyReply, done: Function) {
+    fastify.decorate('masterkey', function (request: FastifyRequest, reply: FastifyReply, done: Function) {
         const key = request.headers.master || request.headers.Master;
         if (process.env.MASTER_KEY && key !== process.env.MASTER_KEY) {
             reply.code(400).send({ error: 'invalid key', key });
         } else done();
     });
 
-    fastify.decorate('authenticate', async function (request: FastifyRequest, reply: FastifyReply, done: Function) {
+    fastify.decorate('authenticate', function (request: FastifyRequest, reply: FastifyReply, done: Function) {
         try {
-            await request.jwtVerify();
-            done();
+            request.jwtVerify().then(() => {
+                done();
+            });
         } catch (err) {
             reply.send(err);
         }
