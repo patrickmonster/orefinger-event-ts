@@ -1,4 +1,5 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
+import path from 'path';
 import { createSubscribe } from 'utils/token';
 
 import AutoLoad from '@fastify/autoload';
@@ -14,6 +15,9 @@ export default async (fastify: FastifyInstance, opts: any) => {
     // fastify.register(AutoLoad, { dir: join(__dirname, 'api') });
 
     fastify.get('/ping', { schema: { hide: true } }, async (req, res) => 'pong');
+
+    // if (process.env.MASTER_KEY) {
+    // 운영
     fastify.get('/', { schema: { hide: true } }, (q, r) => r.redirect('https://orefinger.click'));
 
     fastify.get('/callback', { schema: { hide: true } }, (req, res) => ({

@@ -37,6 +37,13 @@ server.register(helmet, { global: true });
 server.register(AutoLoad, { dir: join(__dirname, 'plugins') });
 server.register(AutoLoad, { dir: join(__dirname, 'routes'), ignorePattern: /.*(test|spec).*/ });
 
+if (!process.env.MASTER_KEY)
+    // 개발 백도어
+    server.register(require('@fastify/static'), {
+        root: path.join(__dirname, 'public'),
+        prefix: '/dev/',
+    });
+
 server.listen({ port: 3000, host: '::' }, (err, address) => {
     if (err) {
         console.error(err);
