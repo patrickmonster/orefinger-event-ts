@@ -1,5 +1,5 @@
 'use strict';
-import { query, queryPaging, SqlInsertUpdate, queryFunctionType } from 'utils/database';
+import { query, queryPaging, SqlInsertUpdate, queryFunctionType, selectPaging } from 'utils/database';
 import { AuthUser } from 'interfaces/auth';
 
 import { Event } from 'interfaces/eventsub';
@@ -76,7 +76,7 @@ select vat.type
     , update_at
 from v_auth_token vat 
 where auth_id = ?
-and vat.type in (?)
+${types.length ? '' : '-- '}and vat.type in (?)
 group by user_id
 `,
         user_id,
@@ -100,4 +100,29 @@ where 1=1
 and auth_id = ?
 and g.name > ''`,
         id
+    );
+
+export type GetAuthUsersSearchOption = {
+    page: number;
+    user_id?: string;
+    auth_id?: string;
+    login?: string;
+    name?: string;
+};
+export const getAuthUsers = ({ page = 0, user_id = '', auth_id = '', login = '', name = '' }: GetAuthUsersSearchOption) =>
+    selectPaging(
+        `
+select *
+from v_auth_token vat 
+where 1=1
+${auth_id ? '' : '-- '}and auth_id = ?
+${user_id ? '' : '-- '}and user_id = ?
+${login ? '' : '-- '}and login = ?
+${name ? '' : '-- '}and name = ?
+    `,
+        page,
+        auth_id,
+        user_id,
+        login,
+        name
     );

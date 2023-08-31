@@ -31,7 +31,7 @@ export default async (fastify: FastifyInstance, opts: any) => {
             onRequest: [fastify.masterkey],
             schema: {
                 security: [{ Master: [] }],
-                tags: ['Admin'],
+                tags: ['System'],
                 description: '텍스트 리스트 조회',
                 querystring: {
                     allOf: [
@@ -60,7 +60,7 @@ export default async (fastify: FastifyInstance, opts: any) => {
             onRequest: [fastify.masterkey],
             schema: {
                 security: [{ Master: [] }],
-                tags: ['Admin'],
+                tags: ['System'],
                 description: '텍스트 생성',
                 body: { $ref: 'textMessage#' },
                 response: {
@@ -79,7 +79,7 @@ export default async (fastify: FastifyInstance, opts: any) => {
             onRequest: [fastify.masterkey],
             schema: {
                 security: [{ Master: [] }],
-                tags: ['Admin'],
+                tags: ['System'],
                 description: '텍스트 생성',
                 params: {
                     type: 'object',

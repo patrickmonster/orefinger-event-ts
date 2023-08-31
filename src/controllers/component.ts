@@ -2,8 +2,39 @@ import { query, queryPaging, SqlInsertUpdate, selectPaging } from 'utils/databas
 
 import { ComponentCreate } from 'interfaces/component';
 
+export type Component = {
+    component_id: number;
+    name: string;
+    label_id: number;
+    label_lang: string;
+    type_idx: number;
+    type: string;
+    type_name: string;
+    text_id: number;
+    emoji: string;
+    custom_id: string;
+    value: string;
+    style: number;
+    style_name: string;
+    min_values: number;
+    max_values: number;
+    disabled: boolean;
+    required: boolean;
+    use_yn: boolean;
+    edit: boolean;
+    permission_type: string;
+    create_at: string;
+    update_at: string;
+    order_by: number;
+};
+
 export const getComponentList = async (page: number) =>
-    selectPaging(
+    selectPaging<
+        Component & {
+            label: string;
+            text: string;
+        }
+    >(
         `
 SELECT *
 FROM component`,
@@ -11,7 +42,7 @@ FROM component`,
     );
 
 export const getComponentDtil = async (component_id: number) =>
-    query(
+    query<Component>(
         `
 SELECT
   a.component_id,
@@ -69,6 +100,16 @@ FROM component_option
         page || 0
     );
 
+export type ComponentOption = {
+    option_id: number;
+    label_id: number;
+    value: string;
+    description_id: number;
+    emoji: string;
+    default: boolean;
+    use: boolean;
+    permission_type: string;
+};
 export const getComponentOptionDtil = async (option_id: number) =>
     query(
         `

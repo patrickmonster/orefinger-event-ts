@@ -13,7 +13,6 @@ import { ComponentOptionCreate, ComponentCreate } from 'interfaces/component';
 import { Paging } from 'interfaces/swagger';
 
 export default async (fastify: FastifyInstance, opts: any) => {
-    console.log('component LOAD');
     fastify.addSchema({
         $id: 'component',
         type: 'object',
@@ -60,7 +59,7 @@ export default async (fastify: FastifyInstance, opts: any) => {
             schema: {
                 security: [{ Master: [] }],
                 description: '컴포넌트 리스트 조회',
-                tags: ['Admin'],
+                tags: ['System'],
                 deprecated: false,
                 querystring: {
                     allOf: [{ $ref: 'paging#' }],
@@ -79,7 +78,7 @@ export default async (fastify: FastifyInstance, opts: any) => {
             schema: {
                 security: [{ Master: [] }],
                 description: '컴포넌트 상세 조회',
-                tags: ['Admin'],
+                tags: ['System'],
                 deprecated: false,
                 params: {
                     type: 'object',
@@ -102,7 +101,7 @@ export default async (fastify: FastifyInstance, opts: any) => {
             schema: {
                 security: [{ Master: [] }],
                 description: '컴포넌트 생성',
-                tags: ['Admin'],
+                tags: ['System'],
                 deprecated: false,
                 body: {
                     allOf: [
@@ -134,7 +133,7 @@ export default async (fastify: FastifyInstance, opts: any) => {
             schema: {
                 security: [{ Master: [] }],
                 description: '컴포넌트 수정',
-                tags: ['Admin'],
+                tags: ['System'],
                 deprecated: false,
                 params: {
                     type: 'object',
@@ -172,7 +171,7 @@ export default async (fastify: FastifyInstance, opts: any) => {
             schema: {
                 security: [{ Master: [] }],
                 description: '컴포넌트 옵션 리스트 조회',
-                tags: ['Admin'],
+                tags: ['System'],
                 deprecated: false,
                 querystring: {
                     allOf: [{ $ref: 'paging#' }],
@@ -208,7 +207,7 @@ export default async (fastify: FastifyInstance, opts: any) => {
             schema: {
                 security: [{ Master: [] }],
                 description: '컴포넌트 옵션 생성',
-                tags: ['Admin'],
+                tags: ['System'],
                 deprecated: false,
                 body: {
                     allOf: [
@@ -247,7 +246,6 @@ export default async (fastify: FastifyInstance, opts: any) => {
     );
 
     fastify.get<{
-        Querystring: Paging;
         Params: { option_id: number };
     }>(
         '/component/option/:option_id',
@@ -256,11 +254,8 @@ export default async (fastify: FastifyInstance, opts: any) => {
             schema: {
                 security: [{ Master: [] }],
                 description: '컴포넌트 옵션 상세 조회',
-                tags: ['Admin'],
+                tags: ['System'],
                 deprecated: false,
-                querystring: {
-                    $ref: 'paging#',
-                },
                 response: {
                     200: {
                         allOf: [

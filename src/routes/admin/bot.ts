@@ -21,6 +21,7 @@ export default async (fastify: FastifyInstance, opts: any) => {
         '/bot',
         {
             schema: {
+                hide: true,
                 description: '봇 인터렉션 이벤트 수신부 - 연결 및 사용 X',
                 summary: '인터렉션 이벤트',
                 tags: ['Admin'],

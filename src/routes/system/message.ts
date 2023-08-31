@@ -40,7 +40,7 @@ export default async (fastify: FastifyInstance, opts: any) => {
             onRequest: [fastify.masterkey],
             schema: {
                 security: [{ Master: [] }],
-                tags: ['Admin'],
+                tags: ['System'],
                 description: '메세지 리스트 조회',
                 querystring: {
                     allOf: [
@@ -66,7 +66,7 @@ export default async (fastify: FastifyInstance, opts: any) => {
             onRequest: [fastify.masterkey],
             schema: {
                 security: [{ Master: [] }],
-                tags: ['Admin'],
+                tags: ['System'],
                 description: '메세지 생성',
                 body: {},
                 response: {
@@ -87,7 +87,7 @@ export default async (fastify: FastifyInstance, opts: any) => {
             schema: {
                 security: [{ Master: [] }],
                 description: '임베드 생성',
-                tags: ['Admin'],
+                tags: ['System'],
                 params: {
                     type: 'object',
                     properties: {
@@ -113,7 +113,7 @@ export default async (fastify: FastifyInstance, opts: any) => {
                 security: [{ Master: [] }],
                 summary: '트위치 채팅방에 메세지 전송',
                 description: '트위치 채팅방에 메세지를 전송 합니다.',
-                tags: ['Admin'],
+                tags: ['System'],
                 body: {
                     type: 'object',
                     required: ['message', 'target'],

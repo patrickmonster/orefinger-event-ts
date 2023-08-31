@@ -85,7 +85,7 @@ export default async (fastify: FastifyInstance, opts: any) => {
             onRequest: [fastify.masterkey],
             schema: {
                 security: [{ Master: [] }],
-                tags: ['Admin'],
+                tags: ['System'],
                 description: '임베드 리스트 조회',
                 querystring: { $ref: 'paging#' },
             },
@@ -102,7 +102,7 @@ export default async (fastify: FastifyInstance, opts: any) => {
             schema: {
                 security: [{ Master: [] }],
                 description: '임베드 생성',
-                tags: ['Admin'],
+                tags: ['System'],
                 body: _embedSchema,
                 response: {
                     200: { $ref: 'sqlResult#' },
@@ -122,7 +122,7 @@ export default async (fastify: FastifyInstance, opts: any) => {
             schema: {
                 security: [{ Master: [] }],
                 description: '임베드 생성',
-                tags: ['Admin'],
+                tags: ['System'],
                 params: {
                     type: 'object',
                     properties: {
