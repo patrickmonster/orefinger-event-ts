@@ -1,9 +1,22 @@
-import { query, queryPaging, SqlInsertUpdate } from 'utils/database';
+import { query, queryPaging, selectPaging, SqlInsertUpdate } from 'utils/database';
 
 import { EmbedCreate } from 'interfaces/embed';
 
 export const getEmbedList = async (page: number) =>
-    queryPaging(
+    selectPaging<{
+        embed_id: number;
+        tag: string;
+        url: string;
+        color: number;
+        image: string;
+        thumbnail: string;
+        title: string;
+        description: string;
+        provider: string;
+        author: string;
+        create_at: string;
+        update_at: string;
+    }>(
         `
 select *
 from v_embed`,

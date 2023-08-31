@@ -21,37 +21,35 @@ export default async (fastify: FastifyInstance, opts: any) => {
     });
 
     fastify.get<{
-        Querystring: Paging;
+        Querystring: Paging & {
+            tag?: string;
+            message?: string;
+        };
     }>(
         '/text',
         {
             onRequest: [fastify.masterkey],
             schema: {
                 security: [{ Master: [] }],
-                tags: ['Admin'],
+                tags: ['System'],
                 description: '텍스트 리스트 조회',
-                querystring: { $ref: 'paging#' },
-                response: {
-                    200: {
-                        type: 'array',
-                        items: {
-                            allOf: [
-                                { $ref: 'textMessage#' },
-                                {
-                                    type: 'object',
-                                    properties: {
-                                        text_id: { type: 'number' },
-                                        create_at: { type: 'string' },
-                                        update_at: { type: 'string' },
-                                    },
-                                },
-                            ],
+                querystring: {
+                    allOf: [
+                        {
+                            $ref: 'paging#',
                         },
-                    },
+                        {
+                            type: 'object',
+                            properties: {
+                                tag: { type: 'string', description: '텍스트 설명', nullable: true },
+                                message: { type: 'string', description: '텍스트', nullable: true },
+                            },
+                        },
+                    ],
                 },
             },
         },
-        async req => await getTextList(req.query.page || 0)
+        async req => await getTextList(req.query.page || 0, req.query.tag, req.query.message)
     );
 
     fastify.post<{
@@ -62,7 +60,7 @@ export default async (fastify: FastifyInstance, opts: any) => {
             onRequest: [fastify.masterkey],
             schema: {
                 security: [{ Master: [] }],
-                tags: ['Admin'],
+                tags: ['System'],
                 description: '텍스트 생성',
                 body: { $ref: 'textMessage#' },
                 response: {
@@ -81,7 +79,7 @@ export default async (fastify: FastifyInstance, opts: any) => {
             onRequest: [fastify.masterkey],
             schema: {
                 security: [{ Master: [] }],
-                tags: ['Admin'],
+                tags: ['System'],
                 description: '텍스트 생성',
                 params: {
                     type: 'object',

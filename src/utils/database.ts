@@ -27,7 +27,7 @@ const newLine = /\n/g;
 const sqlLogger = (query: string, params: any[], rows: any[] | any) => {
     // if (env.sql_log != 'true') return rows;
     console.log('=======================================================');
-    console.log('SQL] ', mysql.format(query, params).replace(newLine, ' '), '||', rows);
+    console.log('SQL] ', mysql.format(query, params).replace(newLine, ' '), '||', env.MASTER_KEY ? JSON.stringify(rows) : rows);
     console.log('=======================================================');
     return rows;
 };
@@ -39,7 +39,9 @@ type ResqultPaggingQuery<E> = E extends SqlInsertUpdate
     ? null
     : {
           total: number;
+          totalPage: number;
           list: E[];
+          listCount: number;
           page: number;
       };
 export type queryFunctionType = <E>(query: string, ...params: any[]) => Promise<ResqultQuery<E>>;
@@ -79,7 +81,7 @@ const getConnection = async <T>(connectionPool: (queryFunction: queryFunctionTyp
                       };
             } catch (e) {
                 console.error('SQL]', e);
-                connect!.query('INSERT INTO error_sql set `sql` = ?', mysql.format(query, params));
+                connect!.query('INSERT INTO error_sql set `sql` = ?, target = ?', [mysql.format(query, params), env.NODE_ENV || 'dev']);
                 throw e;
             }
         }).then(async (result: T) => {
@@ -119,9 +121,10 @@ export const selectPaging = async <E>(query: string, page: number = 0, ...params
             ...params
         );
 
-        const result = await c<E>(`${query}\nlimit ?, ?`, ...params, page <= 0 ? 0 : page, limit);
+        const result = await c<E>(`${query}\nlimit ?, ?`, ...params, page <= 0 ? 0 : page * limit, limit);
         return {
             total,
+            totalPage: Math.ceil(total / limit) - 1,
             list: result,
             page,
         };
