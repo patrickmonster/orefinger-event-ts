@@ -3,22 +3,6 @@
 
 @REM 새로운 릴리즈 제작을 위한 배치 파일입니다.
 
-@REM 1. 현재 브런치가 feat/* 인지 확인합니다.
-@REM 2. 현재 브런치를 develop로 변경합니다.
-@REM 3. feat/* 브런치를 develop 브런치로 머지합니다.
-@REM 4. package.json의 버전을 확인합니다.
-@REM 5. 버전을 입력 받습니다.
-@REM 6. release/* 브런치를 생성합니다.
-@REM 7. release/* 브런치로 checkout합니다.
-@REM 8. 변경된 버전을 적용합니다.
-@REM 9. 변경된 버전을 커밋합니다.
-@REM 10. 변경된 버전을 태그합니다.
-@REM 11. 커밋된 버전을 푸시합니다.
-@REM 12. develop 브런치로 checkout합니다.
-@REM 13. release/* 브런치를 develop 브런치로 머지합니다.
-@REM 14. develop 브런치를 push 합니다.D
-@REM 15. 원래 브런치로 checkout합니다.
-
 FOR /F "tokens=1-4 delims=- " %%i IN ('date /t') DO SET yyyymmdd=%%i%%j%%k
 
 @REM 현재 브런치 정보를 가져옵니다.
@@ -50,6 +34,9 @@ echo 최신 반영 버전 정보를 확인합니다.
 
 @REM =============================================================================================
 
+echo 커밋 로그를 확인합니다.
+git log develop..%featBranch% --branches --decorate --graph --oneline
+
 echo ======================
 echo 버전 업데이트 설정 - %version%
 echo 1. Major 버전 업데이트 [%major%] (주요 업데이트)
@@ -79,40 +66,51 @@ if %idx%==1 (
     exit /b
 )
 
+set version=%major%.%minor%.%patch%
 @REM =============================================================================================
-
-echo 배포를 위한 환경을 제작합니다.
-@REM git branch release/%version%
-git checkout -b release/%version%
-git merge %featBranch%
-echo 배포를 위한 환경을 제작 완료
 
 echo 패키지의 버전을 수정하는중....
 @REM 그냥 실행하면 프로세서가 종료됨
 call npm pkg set version=%major%.%minor%.%patch%
 
-echo %yyyymmdd%] CreateVersion - %version%  >> release.log
-
-
 echo 패키지 버전 수정 완료
 (for /f "tokens=* USEBACKQ" %%a in (`node -p "require('./package').version"`) do set version=%%a)
-echo 업데이트 버전: %version%
 
-@REM =============================================================================================
+git log develop..%featBranch% --branches --decorate --graph --oneline >> release.log
+echo %yyyymmdd%] CreateVersion - %version%  >> release.log
+echo 업데이트 버전: %version%
 
 echo 배포를 위한 환경을 커밋합니다.
 git add package.json
 git add release.log
-git commit -m "release: %version%"
 
-echo 배포 테그를 생성합니다.
-@REM git tag release-%version%
+@REM =============================================================================================
 
-@REM git push origin release/%version%
+if %idx%==1 (
+    @REM 주요 업데이트
+    git checkout -b release/%version%
+    git commit -m "[Major] %version% - 주요 업데이트"
+    git tag release-%version%
+) else if %idx%==2 (
+    @REM 기능업데이트
+    git checkout -b release/%version%
+    git commit -m "[Minor] %version% - 기능 업데이트"
+) else if %idx%==3 (
+    @REM hotFix
+    git commit -m "[Patch] %version% - 버그 수정"
+    git checkout develop
+    git push origin develop
+
+    echo 병합 요청 PR 페이지를 엽니다.
+    start chrome github.com/patrickmonster/orefinger-event-ts/compare/master...develop
+
+    exit /b 0
+)
+
+echo 배포를 위한 환경을 푸시 완료
 git push
 git push --set-upstream origin release/%version%
-echo 배포를 위한 환경을 푸시 완료
-
+@REM =============================================================================================
 
 echo 개발 브런치로 체크아웃합니다.
 git checkout develop
@@ -123,6 +121,3 @@ git push
 
 echo 브런치를 원래 브런치로 변경합니다.
 git checkout %featBranch%
-
-echo 병합 요청 PR 페이지를 엽니다.
-start chrome github.com/patrickmonster/orefinger-event-ts/compare/master...release/%version%
