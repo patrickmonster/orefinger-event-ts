@@ -92,7 +92,7 @@ WHERE component_id=?`,
         component_id
     );
 
-export const getComponentOptionList = async (page: number) =>
+export const getComponentOptionList = async (page: Paging) =>
     selectPaging<{
         option_id: number;
         label: string;
@@ -106,10 +106,10 @@ export const getComponentOptionList = async (page: number) =>
         update_at: string;
     }>(
         `
-SELECT option_id, label, value, description, emoji, default_yn as default, use_yn, permission_type, create_at, update_at
+SELECT option_id, label, value, description, emoji, default_yn, use_yn, permission_type, create_at, update_at
 FROM component_option
   `,
-        page || 0
+        page
     );
 
 export type ComponentOption = {
