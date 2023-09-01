@@ -1,5 +1,5 @@
 'use strict';
-import getConnection, { query, queryPaging, sqlInsertUpdate, SqlInsertUpdate } from 'utils/database';
+import getConnection, { query, selectPaging, sqlInsertUpdate, SqlInsertUpdate } from 'utils/database';
 // import { Subscription } from 'interfaces/twitch';
 import { Event, Subscription } from 'interfaces/eventsub';
 
@@ -181,7 +181,7 @@ left join (
     });
 
 export const attendanceList = async (page: number, broadcaster_user_id: string, id: string) =>
-    queryPaging<{
+    selectPaging<{
         total: number;
         cnt: number;
         yymm: string;

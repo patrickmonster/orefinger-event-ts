@@ -1,6 +1,7 @@
-import { query, queryPaging, SqlInsertUpdate, selectPaging } from 'utils/database';
+import { query, SqlInsertUpdate, selectPaging } from 'utils/database';
 
 import { ComponentCreate } from 'interfaces/component';
+import { Paging } from 'interfaces/swagger';
 
 export type Component = {
     component_id: number;
@@ -28,7 +29,7 @@ export type Component = {
     order_by: number;
 };
 
-export const getComponentList = async (page: number) =>
+export const getComponentList = async (page: Paging) =>
     selectPaging<
         Component & {
             label: string;
@@ -92,9 +93,20 @@ WHERE component_id=?`,
     );
 
 export const getComponentOptionList = async (page: number) =>
-    queryPaging(
+    selectPaging<{
+        option_id: number;
+        label: string;
+        value: string;
+        description: string;
+        emoji: string;
+        default: boolean;
+        use_yn: boolean;
+        permission_type: string;
+        create_at: string;
+        update_at: string;
+    }>(
         `
-SELECT option_id, label, value, description, emoji, default_yn as default, use_yn as use, permission_type, create_at, update_at
+SELECT option_id, label, value, description, emoji, default_yn as default, use_yn, permission_type, create_at, update_at
 FROM component_option
   `,
         page || 0

@@ -1,5 +1,5 @@
 'use strict';
-import { query, queryPaging, SqlInsertUpdate, queryFunctionType, selectPaging } from 'utils/database';
+import { query, SqlInsertUpdate, queryFunctionType, selectPaging } from 'utils/database';
 import { AuthUser } from 'interfaces/auth';
 
 import { Event } from 'interfaces/eventsub';

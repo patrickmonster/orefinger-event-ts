@@ -1,4 +1,4 @@
-import { query, queryPaging, selectPaging, SqlInsertUpdate } from 'utils/database';
+import { query, selectPaging, SqlInsertUpdate } from 'utils/database';
 
 import { MessageCreate } from 'interfaces/message';
 import { RESTPostAPIChannelMessageJSONBody } from 'discord-api-types/rest/v10';

@@ -1,5 +1,5 @@
 'use strict';
-import { query, queryPaging, SqlInsertUpdate } from 'utils/database';
+import { query, SqlInsertUpdate } from 'utils/database';
 
 export const channel = async (channel_id: string, webhook_id: string) => {
     query<{

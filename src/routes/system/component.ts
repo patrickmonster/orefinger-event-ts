@@ -66,7 +66,7 @@ export default async (fastify: FastifyInstance, opts: any) => {
                 },
             },
         },
-        async req => await getComponentList(req.query.page || 0)
+        async req => await getComponentList(req.query)
     );
 
     fastify.get<{
