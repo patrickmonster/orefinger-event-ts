@@ -92,9 +92,9 @@ WHERE component_id=?`,
     );
 
 export const getComponentOptionList = async (page: number) =>
-    queryPaging(
+    selectPaging(
         `
-SELECT option_id, label, value, description, emoji, default_yn as default, use_yn as use, permission_type, create_at, update_at
+SELECT *
 FROM component_option
   `,
         page || 0

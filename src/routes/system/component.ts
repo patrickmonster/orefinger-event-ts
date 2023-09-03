@@ -176,23 +176,6 @@ export default async (fastify: FastifyInstance, opts: any) => {
                 querystring: {
                     allOf: [{ $ref: 'paging#' }],
                 },
-                response: {
-                    200: {
-                        type: 'array',
-                        items: {
-                            allOf: [
-                                { $ref: 'componentOption#' },
-                                {
-                                    type: 'object',
-                                    properties: {
-                                        default: { type: 'boolean' },
-                                        use: { type: 'boolean' },
-                                    },
-                                },
-                            ],
-                        },
-                    },
-                },
             },
         },
         async req => await getComponentOptionList(req.query.page || 0)
