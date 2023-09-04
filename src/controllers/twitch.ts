@@ -203,3 +203,18 @@ and stream_id = ?
         id,
         broadcaster_user_id
     );
+
+export const getAttendanceList = async (auth_id: string) =>
+    query(
+        `
+select *
+from attendance a
+left join event_online b using(event_id, \`type\`)
+where a.type = 14
+and yymm in (
+    DATE_FORMAT( now(), '%y%m'), DATE_FORMAT( now(), '%y%m') -1, DATE_FORMAT( now(), '%y%m') -2
+)
+and a.auth_id = ?
+    `,
+        auth_id
+    );
