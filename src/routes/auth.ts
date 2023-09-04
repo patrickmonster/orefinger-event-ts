@@ -1,7 +1,7 @@
 'use strict';
 import { FastifyInstance } from 'fastify';
 
-import { discord } from 'controllers/auth';
+import { discord, userIds } from 'controllers/auth';
 import { openApi } from 'utils/discordApiInstance';
 import axios from 'axios';
 
@@ -97,6 +97,23 @@ export default async (fastify: FastifyInstance, opts: any) => {
                 scopes,
                 permissions: 1249768893497,
             };
+        }
+    );
+
+    fastify.get(
+        '/auth/infos',
+        {
+            onRequest: [fastify.authenticate],
+            schema: {
+                security: [{ Bearer: [] }],
+                description: '사용자 인증정보 수신',
+                tags: ['Auth'],
+                deprecated: false, // 비활성화
+            },
+        },
+        async req => {
+            const { id } = req.user;
+            return await userIds(id);
         }
     );
 
