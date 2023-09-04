@@ -93,12 +93,8 @@ export default async (fastify: FastifyInstance, opts: any) => {
             const scopes = ['identify', 'email'];
 
             return {
-                host: process.env.HOST,
                 client_id: process.env.DISCORD_CLIENT_ID,
                 scopes,
-                login: `https://discord.com/oauth2/authorize?response_type=code&redirect_uri=${process.env.HOST}%2Fcallback&scope=${scopes.join(
-                    '%20'
-                )}&client_id=${process.env.DISCORD_CLIENT_ID}`,
                 permissions: 1249768893497,
             };
         }
