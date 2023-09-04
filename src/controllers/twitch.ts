@@ -239,6 +239,7 @@ WHERE 1=1
 and vat.type = 2
 and yymm = DATE_FORMAT( now(), '%y%m') -1 
 ${auth_id ? '' : '-- '}and ar.auth_id = ?
+group by vat.user_id
 order by per desc, cnt desc
 limit 10
         `,
