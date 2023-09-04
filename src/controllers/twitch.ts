@@ -207,7 +207,9 @@ and stream_id = ?
 export const getAttendanceList = async (auth_id: string) =>
     query(
         `
-select *
+select a.*
+    ,   b.auth_id 
+    ,   count(1) as total
 from attendance a
 left join event_online b using(event_id, \`type\`)
 where a.type = 14
@@ -215,6 +217,28 @@ and yymm in (
     DATE_FORMAT( now(), '%y%m'), DATE_FORMAT( now(), '%y%m') -1, DATE_FORMAT( now(), '%y%m') -2
 )
 and a.auth_id = ?
+group by b.auth_id 
+order by total desc
     `,
         auth_id
+    );
+
+// 전달 기준 탑 20 명
+export const getAttendanceRankTotal = async () =>
+    query(
+        `
+SELECT
+    ar.*
+    , vat.user_id 
+    , vat.login 
+    , vat.name 
+    , vat.kr_name
+from attendance_rank ar 
+left join v_auth_token vat on ar.stream_id = vat.user_id
+WHERE 1=1
+and vat.type = 2
+and yymm = DATE_FORMAT( now(), '%y%m') -1 
+order by per desc, cnt desc
+limit 10
+        `
     );
