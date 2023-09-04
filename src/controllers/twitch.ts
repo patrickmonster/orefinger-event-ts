@@ -224,7 +224,7 @@ order by total desc
     );
 
 // 전달 기준 탑 20 명
-export const getAttendanceRankTotal = async () =>
+export const getAttendanceRankTotal = async (auth_id?: string) =>
     query(
         `
 SELECT
@@ -238,7 +238,9 @@ left join v_auth_token vat on ar.stream_id = vat.user_id
 WHERE 1=1
 and vat.type = 2
 and yymm = DATE_FORMAT( now(), '%y%m') -1 
+${auth_id ? '' : '-- '}and ar.auth_id = ?
 order by per desc, cnt desc
 limit 10
-        `
+        `,
+        auth_id
     );
