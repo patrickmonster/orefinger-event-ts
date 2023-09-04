@@ -5,9 +5,11 @@ import redis from 'utils/redis';
 import { getUser } from 'components/twitch';
 
 import { liveList, total, stream } from 'controllers/notification';
-import { getAttendanceList } from 'controllers/twitch';
+import { getAttendanceList, getAttendanceRankTotal } from 'controllers/twitch';
 
 export default async (fastify: FastifyInstance, opts: any) => {
+    const ATTACH_RNAK = 'db:ATTACH_RANK';
+
     fastify.get(
         '/atttach',
         {
@@ -20,5 +22,26 @@ export default async (fastify: FastifyInstance, opts: any) => {
             },
         },
         async req => await getAttendanceList(`${req.user?.id}`)
+    );
+
+    fastify.get(
+        '/atttach/rank',
+        {
+            schema: {
+                description: '출석 리스트를 불러옵니다.',
+                tags: ['Notification'],
+                deprecated: false,
+            },
+        },
+        async req => {
+            const data = await redis.get(ATTACH_RNAK);
+            if (data) return JSON.parse(data);
+
+            return await getAttendanceRankTotal().then(data => {
+                redis.set(ATTACH_RNAK, JSON.stringify(data), { EX: 60 * 60 * 24 * 7 });
+                return data;
+            });
+        }
+        // await getAttendanceList(`${req.user?.id}`)
     );
 };
