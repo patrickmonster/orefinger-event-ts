@@ -87,7 +87,8 @@ export default fp(async function (fastify, opts) {
         type: 'object',
         description: '페이징',
         properties: {
-            page: { type: 'number', description: '페이지 번호' },
+            page: { type: 'number', description: '페이지 번호', default: 0, minimum: 0 },
+            limit: { type: 'number', description: '페이지당 개수', default: 10, minimum: 1, maximum: 100 },
         },
     });
 

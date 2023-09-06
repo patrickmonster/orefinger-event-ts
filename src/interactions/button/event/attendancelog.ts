@@ -17,29 +17,29 @@ export const exec = async (interaction: MessageInteraction, broadcaster_user_id:
 
         const list = await attendanceList(0, broadcaster_user_id, `${user?.id}`);
 
-        if (list.length) {
-            send({
-                embeds: [
-                    advertisement,
-                    {
-                        url: 'https://toss.me/방송알리미',
-                        color: 0x9147ff,
-                        footer: {
-                            text: 'Create by.뚱이(Patrickmonster)',
-                            icon_url: 'https://media.discordapp.net/attachments/682449668428529743/873590308502372362/79e40d246645eefc.png',
-                        },
-                        title: `총 ${list.length}달 동안의 출석 기록`,
-                        description: list
-                            .map(
-                                ({ total, cnt, yymm, late_time, per }) => `${yymm}] ${cnt}/${total}회 ${late_time}후 출석
-${emote.map((e, i) => (per / ((i + 1) * 10) ? '💟' : e)).join('')} (${per}%)
-                    `
-                            )
-                            .join(''),
-                    },
-                ],
-            });
-        }
+        // if (list.length) {
+        //     send({
+        //         embeds: [
+        //             advertisement,
+        //             {
+        //                 url: 'https://toss.me/방송알리미',
+        //                 color: 0x9147ff,
+        //                 footer: {
+        //                     text: 'Create by.뚱이(Patrickmonster)',
+        //                     icon_url: 'https://media.discordapp.net/attachments/682449668428529743/873590308502372362/79e40d246645eefc.png',
+        //                 },
+        //                 // title: `총 ${list.length}달 동안의 출석 기록`,
+        //                 //                         description: list
+        //                 //                             .map(
+        //                 //                                 ({ total, cnt, yymm, late_time, per }) => `${yymm}] ${cnt}/${total}회 ${late_time}후 출석
+        //                 // ${emote.map((e, i) => (per / ((i + 1) * 10) ? '💟' : e)).join('')} (${per}%)
+        //                 //                     `
+        //                 //                             )
+        //                 //                             .join(''),
+        //             },
+        //         ],
+        //     });
+        // }
     });
 };
 

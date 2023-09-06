@@ -1,4 +1,4 @@
-import { query, queryPaging, selectPaging, SqlInsertUpdate } from 'utils/database';
+import { query, selectPaging, SqlInsertUpdate } from 'utils/database';
 
 import { TextCreate } from 'interfaces/text';
 

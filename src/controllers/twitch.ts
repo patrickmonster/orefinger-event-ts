@@ -1,5 +1,5 @@
 'use strict';
-import getConnection, { query, queryPaging, sqlInsertUpdate, SqlInsertUpdate } from 'utils/database';
+import getConnection, { query, selectPaging, sqlInsertUpdate, SqlInsertUpdate } from 'utils/database';
 // import { Subscription } from 'interfaces/twitch';
 import { Event, Subscription } from 'interfaces/eventsub';
 
@@ -181,7 +181,7 @@ left join (
     });
 
 export const attendanceList = async (page: number, broadcaster_user_id: string, id: string) =>
-    queryPaging<{
+    selectPaging<{
         total: number;
         cnt: number;
         yymm: string;
@@ -202,4 +202,46 @@ and stream_id = ?
         page,
         id,
         broadcaster_user_id
+    );
+
+export const getAttendanceList = async (auth_id: string) =>
+    query(
+        `
+select a.*
+    ,   b.auth_id 
+    ,   count(1) as total
+from attendance a
+left join event_online b using(event_id, \`type\`)
+where a.type = 14
+and yymm in (
+    DATE_FORMAT( now(), '%y%m'), DATE_FORMAT( now(), '%y%m') -1, DATE_FORMAT( now(), '%y%m') -2
+)
+and a.auth_id = ?
+group by b.auth_id 
+order by total desc
+    `,
+        auth_id
+    );
+
+// 전달 기준 탑 20 명
+export const getAttendanceRankTotal = async (auth_id?: string) =>
+    query(
+        `
+SELECT
+    ar.*
+    , vat.user_id 
+    , vat.login 
+    , vat.name 
+    , vat.kr_name
+from attendance_rank ar 
+left join v_auth_token vat on ar.stream_id = vat.user_id
+WHERE 1=1
+and vat.type = 2
+and yymm = DATE_FORMAT( now(), '%y%m') -1 
+${auth_id ? '' : '-- '}and ar.auth_id = ?
+group by vat.user_id
+order by per desc, cnt desc
+limit 10
+        `,
+        auth_id
     );

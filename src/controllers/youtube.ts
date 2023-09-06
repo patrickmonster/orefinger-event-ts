@@ -1,5 +1,5 @@
 'use strict';
-import getConnection, { query, queryPaging } from 'utils/database';
+import getConnection, { query } from 'utils/database';
 import { AuthUser } from 'interfaces/auth';
 
 import { EventSub, Event, Subscription } from 'interfaces/eventsub';

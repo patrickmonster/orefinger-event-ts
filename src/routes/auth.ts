@@ -7,8 +7,6 @@ import axios from 'axios';
 
 import qs from 'querystring';
 
-//https://discord.com/oauth2/authorize?client_id=826484552029175808&permissions=1249768893497&redirect_uri=http%3A%2F%2Flocalhost:3000%2Fauth%2Fdiscord&response_type=code&scope=identify%20email%20bot%20applications.commands%20guilds%20guilds.members.read
-//https://discord.com/login?redirect_to=%2Foauth2%2Fauthorize%3Fresponse_type%3Dcode%26redirect_uri%3Dhttp%253A%252F%252Flocalhost:3000%252Fcallback%26scope%3Didentify%2520email%26client_id%3D826484552029175808
 export default async (fastify: FastifyInstance, opts: any) => {
     const getToken = async (target: string, data: string) =>
         axios
@@ -61,7 +59,11 @@ export default async (fastify: FastifyInstance, opts: any) => {
                         required: ['user_id'],
                         additionalProperties: false,
                         properties: {
-                            user_id: { type: 'string', description: '사용자 아이디', enum: ['466950273928134666'] },
+                            user_id: {
+                                type: 'string',
+                                description: '사용자 아이디',
+                                enum: ['466950273928134666', '338368635103870977', '206100523621941248'],
+                            },
                         },
                     },
                     response: {

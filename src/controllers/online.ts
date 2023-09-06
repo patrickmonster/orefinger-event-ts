@@ -1,4 +1,4 @@
-import getConnection, { query, queryPaging, SqlInsertUpdate, format } from 'utils/database';
+import getConnection, { query, SqlInsertUpdate, format } from 'utils/database';
 
 import { webhook as webhookUpdateType } from 'interfaces/webhook';
 import { deleteObjectColByKey } from 'utils/object';
