@@ -17,4 +17,13 @@ export interface ComponentCreate {
     order_by?: number;
 }
 
-export interface ComponentOptionCreate {}
+export interface ComponentOptionCreate {
+    option_id: string;
+    label_id: number;
+    value: string;
+    description_id: number;
+    emoji: string;
+    default_yn: string;
+    use_yn: string;
+    permission_type: number;
+}
