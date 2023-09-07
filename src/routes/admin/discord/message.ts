@@ -71,11 +71,16 @@ export default async (fastify: FastifyInstance, opts: any) => {
             const { channel_id } = req.params;
             const { content, embeds, components } = req.body;
 
-            return await discord.post(`/channels/${channel_id}/messages`, {
-                content,
-                embeds,
-                components,
-            });
+            return await discord
+                .post(`/channels/${channel_id}/messages`, {
+                    content,
+                    embeds,
+                    components,
+                })
+                .catch(e => {
+                    console.log(e.response.data);
+                    throw e;
+                });
         }
     );
 };
