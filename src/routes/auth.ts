@@ -1,14 +1,12 @@
 'use strict';
 import { FastifyInstance } from 'fastify';
 
-import { discord } from 'controllers/auth';
+import { discord, userIds } from 'controllers/auth';
 import { openApi } from 'utils/discordApiInstance';
 import axios from 'axios';
 
 import qs from 'querystring';
 
-//https://discord.com/oauth2/authorize?client_id=826484552029175808&permissions=1249768893497&redirect_uri=http%3A%2F%2Flocalhost:3000%2Fauth%2Fdiscord&response_type=code&scope=identify%20email%20bot%20applications.commands%20guilds%20guilds.members.read
-//https://discord.com/login?redirect_to=%2Foauth2%2Fauthorize%3Fresponse_type%3Dcode%26redirect_uri%3Dhttp%253A%252F%252Flocalhost:3000%252Fcallback%26scope%3Didentify%2520email%26client_id%3D826484552029175808
 export default async (fastify: FastifyInstance, opts: any) => {
     const getToken = async (target: string, data: string) =>
         axios
@@ -61,7 +59,11 @@ export default async (fastify: FastifyInstance, opts: any) => {
                         required: ['user_id'],
                         additionalProperties: false,
                         properties: {
-                            user_id: { type: 'string', description: '사용자 아이디', enum: ['466950273928134666'] },
+                            user_id: {
+                                type: 'string',
+                                description: '사용자 아이디',
+                                enum: ['466950273928134666', '338368635103870977', '206100523621941248'],
+                            },
                         },
                     },
                     response: {
@@ -93,14 +95,27 @@ export default async (fastify: FastifyInstance, opts: any) => {
             const scopes = ['identify', 'email'];
 
             return {
-                host: process.env.HOST,
                 client_id: process.env.DISCORD_CLIENT_ID,
                 scopes,
-                login: `https://discord.com/oauth2/authorize?response_type=code&redirect_uri=${process.env.HOST}%2Fcallback&scope=${scopes.join(
-                    '%20'
-                )}&client_id=${process.env.DISCORD_CLIENT_ID}`,
                 permissions: 1249768893497,
             };
+        }
+    );
+
+    fastify.get(
+        '/auth/infos',
+        {
+            onRequest: [fastify.authenticate],
+            schema: {
+                security: [{ Bearer: [] }],
+                description: '사용자 인증정보 수신',
+                tags: ['Auth'],
+                deprecated: false, // 비활성화
+            },
+        },
+        async req => {
+            const { id } = req.user;
+            return await userIds(id);
         }
     );
 

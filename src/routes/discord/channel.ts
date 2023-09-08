@@ -12,7 +12,9 @@ export default async (fastify: FastifyInstance, opts: any) => {
     }>(
         '/channel/:channel_id',
         {
+            onRequest: [fastify.authenticate],
             schema: {
+                security: [{ Bearer: [] }],
                 description: '채널 정보 조회',
                 tags: ['Discord'],
                 deprecated: false,

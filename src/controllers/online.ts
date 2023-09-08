@@ -1,4 +1,4 @@
-import getConnection, { query, queryPaging, SqlInsertUpdate, format } from 'utils/database';
+import getConnection, { query, SqlInsertUpdate, format } from 'utils/database';
 
 import { webhook as webhookUpdateType } from 'interfaces/webhook';
 import { deleteObjectColByKey } from 'utils/object';
@@ -45,7 +45,7 @@ export const webhookUpdate = async (data: webhookUpdateType) =>
     getConnection(async QUERY => {
         const { guild_id, user_id, type } = data;
 
-        const ids = await userIds(QUERY, user_id);
+        const ids = await userIds(user_id, QUERY);
 
         // 해당 길드의 사용자 알림을 모두 비활성화.
         await QUERY<SqlInsertUpdate>(

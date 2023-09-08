@@ -1,5 +1,5 @@
 'use strict';
-import { query, queryPaging, SqlInsertUpdate, queryFunctionType, selectPaging } from 'utils/database';
+import { query, SqlInsertUpdate, queryFunctionType, selectPaging } from 'utils/database';
 import { AuthUser } from 'interfaces/auth';
 
 import { Event } from 'interfaces/eventsub';
@@ -30,8 +30,8 @@ WHERE \`type\` in (2,3) and user_id=?
  * @param user_id
  * @returns
  */
-export const userIds = async (QUERY: queryFunctionType, user_id: string) =>
-    await QUERY<{
+export const userIds = async (user_id: string, QUERY?: queryFunctionType) =>
+    await (QUERY ? QUERY : query)<{
         user_id: string;
         type: number;
     }>(
