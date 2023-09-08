@@ -7,6 +7,7 @@ import {
     createComponent,
     updateComponent,
     getComponentDtil,
+    updateComponentOption,
 } from 'controllers/component';
 import { ComponentOptionCreate, ComponentCreate } from 'interfaces/component';
 
@@ -239,24 +240,51 @@ export default async (fastify: FastifyInstance, opts: any) => {
                 description: '컴포넌트 옵션 상세 조회',
                 tags: ['System'],
                 deprecated: false,
-                response: {
-                    200: {
-                        allOf: [
-                            { $ref: 'componentOption#' },
-                            {
-                                type: 'object',
-                                properties: {
-                                    label: { type: 'string' },
-                                    description: { type: 'string' },
-                                    default: { type: 'boolean' },
-                                    use: { type: 'boolean' },
-                                },
-                            },
-                        ],
+                params: {
+                    type: 'object',
+                    required: ['option_id'],
+                    properties: {
+                        option_id: { type: 'number' },
                     },
                 },
             },
         },
         async req => await getComponentOptionDtil(req.params.option_id)
+    );
+
+    fastify.patch<{
+        Body: ComponentOptionCreate;
+        Params: { option_id: number };
+    }>(
+        '/component/option/:option_id',
+        {
+            onRequest: [fastify.masterkey],
+            schema: {
+                security: [{ Master: [] }],
+                description: '컴포넌트 옵션 수정',
+                tags: ['System'],
+                deprecated: false,
+                params: {
+                    type: 'object',
+                    required: ['option_id'],
+                    properties: {
+                        option_id: { type: 'number' },
+                    },
+                },
+                body: {
+                    allOf: [
+                        { $ref: 'componentOption#' },
+                        {
+                            type: 'object',
+                            properties: {
+                                use_yn: { type: 'string', enum: ['Y', 'N'] },
+                                edit_yn: { type: 'string', enum: ['Y', 'N'] },
+                            },
+                        },
+                    ],
+                },
+            },
+        },
+        async req => await updateComponentOption(req.params.option_id, req.body)
     );
 };

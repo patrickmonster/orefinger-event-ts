@@ -71,7 +71,9 @@ const getConnection = async <T>(connectionPool: (queryFunction: queryFunctionTyp
                     ? JSON.parse(
                           JSON.stringify(rows, (k, v) => {
                               if (typeof v != 'string') return v; // TODO: string 이 아닌경우 리턴
-                              if (v == 'Y') return true; // TODO: yn 인경우
+                              if (k.endsWith('_yn')) return v == 'Y' ? true : false; // TODO: yn 인경우
+                              if (v == 'Y') return true;
+                              if (v == 'N') return false;
                               return v;
                           })
                       )
