@@ -1,4 +1,4 @@
-import { query, queryPaging, SqlInsertUpdate, queryFunctionType, selectPaging } from 'utils/database';
+import { query, SqlInsertUpdate, queryFunctionType, selectPaging } from 'utils/database';
 
 import { env } from 'process';
 /**

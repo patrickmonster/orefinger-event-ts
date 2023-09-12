@@ -1,4 +1,5 @@
 'use strict';
+import { Paging } from 'interfaces/swagger';
 import mysql, { Pool, PoolConnection } from 'mysql2/promise';
 import { env } from 'process';
 
@@ -70,7 +71,9 @@ const getConnection = async <T>(connectionPool: (queryFunction: queryFunctionTyp
                     ? JSON.parse(
                           JSON.stringify(rows, (k, v) => {
                               if (typeof v != 'string') return v; // TODO: string 이 아닌경우 리턴
-                              if (v == 'Y') return true; // TODO: yn 인경우
+                              if (k.endsWith('_yn')) return v == 'Y' ? true : false; // TODO: yn 인경우
+                              if (v == 'Y') return true;
+                              if (v == 'N') return false;
                               return v;
                           })
                       )
@@ -101,31 +104,38 @@ export default getConnection;
 ///////////////////////////////////////////////////////////////////////////////////////////
 let limit = 10;
 
+export type seleceQueryOption = {
+    query: string;
+    page?: number;
+    limit?: number;
+};
+
 export const query = async <E>(query: string, ...params: any[]): Promise<ResqultQuery<E>> =>
     await getConnection(async (c: queryFunctionType) => c(query, ...params));
 
 export const setLimit = (l: number) => (limit = l);
 
-export const queryPaging = async <E>(query: string, page: number = 0, ...params: any[]): Promise<ResqultQuery<E>> =>
-    await getConnection(async (c: queryFunctionType) => c(`${query}\n order by create_at limit ?, ?`, ...params, page <= 0 ? 0 : page, limit));
-
 // 페이징하여 조회
-export const selectPaging = async <E>(query: string, page: number = 0, ...params: any[]) =>
+export const selectPaging = async <E>(query: string, paging: Paging | number, ...params: any[]) =>
     await getConnection(async (c: queryFunctionType) => {
+        const page = typeof paging == 'number' ? paging : paging.page;
+        let size = typeof paging == 'number' ? limit : ((paging.limit || limit) as number);
+        const result = await c<E>(`${query}\nlimit ?, ?`, ...params, page <= 0 ? 0 : page * size, size);
         const [{ total }] = await c<{
             total: number;
         }>(
-            `SELECT COUNT(1) AS total FROM (
-            ${query}
-        ) A`,
+            `
+SELECT COUNT(1) AS total FROM (
+${query}
+) A`,
             ...params
         );
 
-        const result = await c<E>(`${query}\nlimit ?, ?`, ...params, page <= 0 ? 0 : page * limit, limit);
         return {
             total,
-            totalPage: Math.ceil(total / limit) - 1,
-            list: result,
+            totalPage: Math.ceil(total / size) - 1,
+            limit: size,
             page,
+            list: result,
         };
     }, true);

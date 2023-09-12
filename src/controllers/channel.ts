@@ -1,4 +1,4 @@
-import { query, queryPaging, SqlInsertUpdate } from 'utils/database';
+import { query, SqlInsertUpdate } from 'utils/database';
 
 export const onlineChannels = (user_id: string, channels_id: string[]) =>
     query<{

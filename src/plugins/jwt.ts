@@ -46,12 +46,13 @@ export default fp(async function (fastify, opts) {
     });
 
     fastify.decorate('authenticate', function (request: FastifyRequest, reply: FastifyReply, done: Function) {
-        try {
-            request.jwtVerify().then(() => {
+        request
+            .jwtVerify()
+            .then(() => {
                 done();
+            })
+            .catch(e => {
+                reply.code(400).send({ error: e.message });
             });
-        } catch (err) {
-            reply.send(err);
-        }
     });
 });
