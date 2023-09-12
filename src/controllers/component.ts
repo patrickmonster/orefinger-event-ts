@@ -49,13 +49,13 @@ SELECT
   a.component_id,
   a.name,
   a.label_id,
-  (SELECT message FROM text_message b where b.text_id = a.label_id) as label,
+  f_get_text(label_id) as label,
   a.label_lang,
   a.type_idx,
   c.type,
   c.tag as type_name,
   a.text_id,
-  (SELECT message FROM text_message b where b.text_id = a.text_id) as \`text\`,
+  f_get_text(text_id) as \`text\`,
   a.emoji,
   a.custom_id,
   a.value,
@@ -106,7 +106,17 @@ export const getComponentOptionList = async (page: Paging) =>
         update_at: string;
     }>(
         `
-SELECT option_id, label, value, description, emoji, default_yn, use_yn, permission_type, create_at, update_at
+SELECT 
+    option_id
+    , if (label_id is null, label, f_get_text(label_id) ) as label
+    , value
+    , if (description_id is null, description, f_get_text(description_id) ) as description
+    , emoji
+    , default_yn
+    , use_yn
+    , permission_type
+    , create_at
+    , update_at
 FROM component_option
   `,
         page
@@ -118,10 +128,10 @@ export const getComponentOptionDtil = async (option_id: number) =>
 SELECT
   option_id,
   label_id,
-  (SELECT message FROM text_message b where b.text_id = a.label_id) as label,
+  f_get_text(label_id) as label,
   value,
   description_id,
-  (SELECT message FROM text_message b where b.text_id = a.description_id) as description,
+  f_get_text(description_id) as description,
   emoji,
   default_yn as \`default\`,
   use_yn as \`use\`,
