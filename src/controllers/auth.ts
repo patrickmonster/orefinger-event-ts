@@ -58,16 +58,17 @@ export const userIds = async (user_id: string, QUERY?: queryFunctionType) =>
         create_at: string;
     }>(
         `
-SELECT user_id 
-	, \`type\` 
-    , (select tag from types WHERE \`key\` = 1 and vat.type = idx) as tag_name
-    , is_session 
-    , login 
-    , name 
-    , is_session
-from v_auth_token vat 
+select 
+    at2.auth_type
+    , at2.tag 
+    , at2.tag_kr 
+    , at3.user_id, at3.login, at3.name, at3.name_alias, at3.avatar, at3.is_session, at3.create_at 
+from auth_type at2 
+left join auth_conntection ac on at2.auth_type = ac.type and ac.auth_id = ?
+left join auth_token at3 using(\`type\`, user_id) 
 where 1=1
 and use_yn ='Y'
+and at2.auth_type <> 1
     `,
         user_id
     );
