@@ -38,6 +38,11 @@ export const userIds = async (user_id: string, QUERY?: queryFunctionType) =>
         `
 SELECT user_id 
 	, \`type\` 
+    , (select tag from types WHERE \`key\` = 1 and vat.type = idx) as tag_name
+    , is_session 
+    , login 
+    , name 
+    , is_session
 from v_auth_token vat 
 where 1=1
 and auth_id = ?
