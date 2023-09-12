@@ -1,7 +1,7 @@
 'use strict';
 import { FastifyInstance } from 'fastify';
 
-import { discord, userIds } from 'controllers/auth';
+import { authTypes, discord, userIds } from 'controllers/auth';
 import { openApi } from 'utils/discordApiInstance';
 import axios from 'axios';
 
@@ -81,8 +81,6 @@ export default async (fastify: FastifyInstance, opts: any) => {
     fastify.get(
         '/auth',
         {
-            // onRequest: [fastify.authenticate],
-            // security: [{ Bearer: [] }],
             schema: {
                 description: '디스코드 사용자 인증 - 필수 데이터',
                 tags: ['Auth'],
@@ -92,9 +90,14 @@ export default async (fastify: FastifyInstance, opts: any) => {
         async req => {
             const scopes = ['identify', 'email'];
 
+            const types = await authTypes();
+
+            console.log('types', types);
+
             return {
                 client_id: process.env.DISCORD_CLIENT_ID,
                 scopes,
+                types,
                 permissions: 1249768893497,
             };
         }

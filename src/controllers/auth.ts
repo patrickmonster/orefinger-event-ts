@@ -24,6 +24,20 @@ WHERE \`type\` in (2,3) and user_id=?
     );
 };
 
+export const authTypes = async () =>
+    await query<{
+        auth_type: number;
+        tag: string;
+        tag_kr: string;
+    }>(
+        `
+select auth_type, tag, tag_kr
+from auth_type
+WHERE 1=1
+and use_yn ='Y'
+        `
+    );
+
 /**
  * 사용자 ID들을 불러옴
  * @param QUERY
@@ -32,16 +46,28 @@ WHERE \`type\` in (2,3) and user_id=?
  */
 export const userIds = async (user_id: string, QUERY?: queryFunctionType) =>
     await (QUERY ? QUERY : query)<{
+        auth_type: number;
+        tag: string;
+        tag_kr: string;
         user_id: string;
-        type: number;
+        login: string;
+        name: string;
+        name_alias: string;
+        avatar: string;
+        is_session: boolean;
+        create_at: string;
     }>(
         `
-SELECT user_id 
-	, \`type\` 
-from v_auth_token vat 
+select 
+    at2.auth_type
+    , at2.tag 
+    , at2.tag_kr 
+    , at3.user_id, at3.login, at3.name, at3.name_alias, at3.avatar, at3.is_session, at3.create_at 
+from auth_type at2 
+left join auth_conntection ac on at2.auth_type = ac.type and ac.auth_id = ?
+left join auth_token at3 using(\`type\`, user_id) 
 where 1=1
-and auth_id = ?
-group by user_id
+and use_yn ='Y'
     `,
         user_id
     );
