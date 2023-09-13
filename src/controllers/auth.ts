@@ -38,6 +38,24 @@ and use_yn ='Y'
         `
     );
 
+export type deleteAuthConnectionAuthTypes =
+    | 'discord'
+    | 'twitch.stream'
+    | 'twitch'
+    | 'tiktok'
+    | 'afreecatv'
+    | 'kakao'
+    | 'youtube'
+    | 'toss'
+    | 'toss.test';
+export const deleteAuthConnection = async (type: deleteAuthConnectionAuthTypes, auth_id: string, user_id: string) =>
+    await query<SqlInsertUpdate>(
+        'DELETE FROM discord.auth_conntection  WHERE auth_id=? AND `type`=func_get_auth_type(?) AND user_id=?',
+        auth_id,
+        type,
+        user_id
+    );
+
 /**
  * 사용자 ID들을 불러옴
  * @param QUERY
