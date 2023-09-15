@@ -24,6 +24,20 @@ WHERE \`type\` in (2,3) and user_id=?
     );
 };
 
+export const userRefreshTokenUpdate = async (event: Event, ...types: number[]) => {
+    const { user_id, refresh_token } = event;
+    await query<SqlInsertUpdate>(
+        `
+UPDATE auth_token SET 
+?, update_at = CURRENT_TIMESTAMP 
+WHERE \`type\` in (?) and user_id=?
+        `,
+        { refresh_token },
+        types,
+        user_id + ''
+    );
+};
+
 export const authTypes = async () =>
     await query<{
         auth_type: number;

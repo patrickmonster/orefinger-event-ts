@@ -6,7 +6,7 @@ import sleep from 'utils/sleep';
 import imageBase64 from './imageBase64';
 
 const discord = axios.create({
-    baseURL: 'https://discordapp.com/api/', // discordTk
+    baseURL: 'https://discord.com/api/', // discordTk
     headers: { authorization: `Bot ${process.env.DISCORD_TOKEN}` },
 });
 
@@ -26,7 +26,7 @@ discord.interceptors.response.use(
 
 export default discord;
 export const openApi = axios.create({
-    baseURL: 'https://discordapp.com/api/', // discordTk
+    baseURL: 'https://discord.com/api/', // discordTk
 });
 
 openApi.interceptors.response.use(null, async error => {
@@ -55,3 +55,30 @@ export const createAttach = async (message: RESTPostAPIChannelMessage, ...filesU
     }
     return form;
 };
+
+export const getToken = async (refresh_token: string) =>
+    openApi.post(
+        'oauth2/token',
+        {
+            client_id: process.env.DISCORD_CLIENT_ID,
+            client_secret: process.env.DISCORD_CLIENT_SECRET,
+            grant_type: 'refresh_token',
+            refresh_token,
+        },
+        {
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+        }
+    );
+// .then(({ data }) => {
+//     // data
+//     // {
+//     //     token_type: 'Bearer',
+//     //     access_token: 'GsWzzu9j13DJCVtQCeNSLnFLVyUudY',
+//     //     expires_in: 604800,
+//     //     refresh_token: 'HStDwH0sSxgEgBcwHEv4MosVlhtEcG',
+//     //     scope: 'identify email'
+//     //   }
+
+// });
