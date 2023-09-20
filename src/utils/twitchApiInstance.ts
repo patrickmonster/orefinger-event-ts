@@ -1,5 +1,5 @@
 'use strict';
-import axios, { AxiosInstance, AxiosInterceptorManager, AxiosRequestConfig, AxiosResponse } from 'axios';
+import axios, { AxiosInstance, AxiosRequestConfig } from 'axios';
 import redis from './redis';
 import sleep from './sleep';
 
