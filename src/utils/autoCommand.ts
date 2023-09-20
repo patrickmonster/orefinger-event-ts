@@ -91,10 +91,10 @@ const flattenModules = (modules: Modules[], path?: string): Module[] => {
 export default (modulePath: string, options?: AutoCommandOptions) => {
     const option = Object.assign({ defaultFunction: () => {}, isSubfolder: true }, options);
 
-    if (!process.env.MASTER_KEY) {
-        return (id: string) =>
-            <E, F extends any>(interaction: E, args?: any[] | F) => {};
-    }
+    // if (!process.env.MASTER_KEY) {
+    //     return (id: string) =>
+    //         <E, F extends any>(interaction: E, args?: any[] | F) => {};
+    // }
 
     const modules = flattenModules(ScanDir(getOriginFileName(modulePath), [], option).modules);
     const commands: { [key: string]: Function } = {};

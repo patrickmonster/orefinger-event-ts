@@ -7,6 +7,7 @@ const getAppCommand = autoLoader(join(__dirname, 'app'), {
     pathTag: ' ',
     isLog: true,
     defaultFunction: async (interaction: appInteraction) => {
+        console.log('Component: ', interaction.name, 'is not registered.');
         await interaction.re({ content: '해당 명령은 등록 하지 않는 명령 입니다.' });
     },
 });
@@ -16,6 +17,7 @@ const getChatCommand = autoLoader(join(__dirname, 'command'), {
     isLog: true,
     isSubfolder: false,
     defaultFunction: async (interaction: appInteraction) => {
+        console.log('Component: ', interaction.name, 'is not registered.');
         await interaction.re({ content: '해당 명령은 등록 하지 않는 명령 입니다.' });
     },
 });

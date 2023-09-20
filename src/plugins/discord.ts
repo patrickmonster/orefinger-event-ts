@@ -98,7 +98,7 @@ export default fp(async function (fastify, opts) {
             JSON.stringify(body),
             `${headers['x-signature-ed25519'] || headers['X-Signature-Ed25519']}`,
             `${headers['x-signature-timestamp'] || headers['X-Signature-Timestamp']}`,
-            `${process.env.JWT_SECRET}`
+            `${process.env.DISCORD_PUBLIC_KEY}`
         )
     );
 

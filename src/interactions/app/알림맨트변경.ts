@@ -13,7 +13,9 @@ export const exec = (interaction: appInteraction) => {
     if (!message || !message.webhook_id) return; // 메세지 인터렉션만
     const { channel_id, webhook_id } = message;
 
-    // channel(channel_id, webhook_id).then(data => {});
+    channel(channel_id, webhook_id).then(data => {
+        console.log(data);
+    });
 };
 
 const api: RESTPatchAPIApplicationCommandJSONBody = {

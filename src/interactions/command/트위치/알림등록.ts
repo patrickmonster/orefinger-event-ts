@@ -4,15 +4,18 @@ import { APIApplicationCommandSubcommandOption, ApplicationCommandOptionType, Ch
 import getOptions from 'components/chatInputOption';
 import { AppChatInputInteraction } from 'interactions/app';
 import authTokenSelect from 'components/authTokenSelect';
+import onlineChannel from 'components/onlineChannel';
 
 const name = basename(__filename, __filename.endsWith('js') ? '.js' : '.ts');
 const type = ApplicationCommandOptionType.Subcommand;
 
 export const exec = async (interaction: AppChatInputInteraction) => {
-    const { user } = interaction;
+    const { member } = interaction;
 
     const channel = getOptions<string>(interaction.options, '채널', '0');
-    const user_id = getOptions<string>(interaction.options, '사용자', user?.id || '0');
+    const user_id = getOptions<string>(interaction.options, '사용자', member?.user?.id || '0');
+
+    console.log('선택자', user_id, channel);
 
     const reply = await interaction.deffer({ ephemeral: true });
 
@@ -20,8 +23,7 @@ export const exec = async (interaction: AppChatInputInteraction) => {
         if (Array.isArray(user)) {
             reply({ components: user });
         } else {
-            console.log('user', user);
-            // await authTusuSelect(reply, guild_id || '', user.auth_id || '0', user.user_id, command || '0');
+            await onlineChannel(reply, user.user_id, channel);
         }
     });
 };
