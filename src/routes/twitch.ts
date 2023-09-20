@@ -92,7 +92,7 @@ export default async (fastify: FastifyInstance, opts: any) => {
                                             type: 1,
                                             components: [
                                                 {
-                                                    url: 'https://orefinger.click/auth/twitch.stream',
+                                                    url: 'https://orefinger.click/auth',
                                                     emoji: { name: '🔑' },
                                                     label: '로그인',
                                                     style: 5,
