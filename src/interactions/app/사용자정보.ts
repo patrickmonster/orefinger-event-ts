@@ -42,9 +42,9 @@ ${user
 길드 연결 정보
 \`\`\`ansi
 ${authState
-    .slice(0, 20)
+    .slice(0, 10)
     .map(({ create_at, tag, name }) => `[0;34m឵${name}[0m឵ - ${tag} (${moment(create_at).format('YYYY년MMMDo')})`)
-    .join('\n')}\`\`\``,
+    .join('\n')}${authState.length > 10 ? `\n외 ${authState.length - 10}개의 채널` : ''}\`\`\``,
         });
     } catch (e) {
         await interaction.re({

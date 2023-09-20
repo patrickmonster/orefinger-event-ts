@@ -28,4 +28,6 @@ export default async (replay: Deferred, user_id: string, channel_id: string) => 
         name: user.display_name,
         avatar: user.profile_image_url,
     });
+
+    console.log('webhook', webhook);
 };

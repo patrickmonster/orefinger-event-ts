@@ -15,6 +15,8 @@ export const exec = (interaction: appInteraction) => {
     authTokenSelect(target_id, 'select nick', 2, 3)
         .then(async user => {
             if (Array.isArray(user)) {
+                console.log('컴포넌트 :', ...user.map(v => v.components));
+
                 await interaction.re({ components: user });
             } else {
                 await setUserNick(target_id, user.user_id);
