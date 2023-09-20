@@ -3,6 +3,7 @@ import { FastifyInstance } from 'fastify';
 
 import { auth, authTypes, deleteAuthConnection, deleteAuthConnectionAuthTypes, discord, userIds } from 'controllers/auth';
 import { openApi } from 'utils/discordApiInstance';
+import { twitchAPI } from 'utils/twitchApiInstance';
 import toss from 'utils/tossApiInstance';
 import axios from 'axios';
 
@@ -305,6 +306,22 @@ export default async (fastify: FastifyInstance, opts: any) => {
             }
         }
     );
+
+    type twitchUser = {
+        data: {
+            id: string;
+            login: string;
+            display_name: string;
+            type: string;
+            broadcaster_type: string;
+            description: string;
+            profile_image_url: string;
+            offline_image_url: string;
+            view_count: number;
+            email: string;
+            created_at: string;
+        }[];
+    };
     // 인증 모듈
     fastify.post<{
         Params: { target: string };
@@ -346,55 +363,66 @@ export default async (fastify: FastifyInstance, opts: any) => {
         },
         async (req, res) => {
             const { target } = req.params;
+            const { id } = req.user;
             const { code, redirect_uri } = req.body;
+            const types = (await authTypes(true)).find(({ tag }) => tag === target);
+            if (types === undefined) {
+                return { message: '잘못된 인증 대상입니다.' };
+            }
+
+            const client_id = `${types.client_id}`;
+            const client_secret = `${types.client_sc}`;
+
+            const params = qs.stringify({ client_id, client_secret, grant_type: 'authorization_code', code, redirect_uri });
+
+            console.log('로그인 인증 요청', params);
 
             let token;
             switch (target) {
                 case 'twitch':
-                    token = await getToken(
-                        `https://id.twitch.tv/oauth2/token`,
-                        qs.stringify({
-                            client_id: process.env.TWITCH_CLIENT_ID,
-                            client_secret: process.env.TWITCH_CLIENT_SECRET,
-                            grant_type: 'authorization_code',
-                            code,
-                            redirect_uri,
-                        })
-                    ).then(async token => {
-                        const user = await openApi.get('/users/@me', {
-                            headers: { Authorization: `Bearer ${token.access_token}` },
-                        });
-                        // .then(({ data }) => twitch(data, token.refresh_token));
-                    });
-                    break;
                 case 'twitch.stream':
-                    token = getToken(
-                        `https://id.twitch.tv/oauth2/token`,
-                        qs.stringify({
-                            client_id: process.env.TWITC_ID,
-                            client_secret: process.env.TWITCH_SECRET,
-                            grant_type: 'authorization_code',
-                            code,
-                            redirect_uri,
-                        })
-                    ).then(async token => {
-                        const user = await openApi.get('/users/@me', {
-                            headers: { Authorization: `Bearer ${token.access_token}` },
+                    token = await getToken(`https://id.twitch.tv/oauth2/token`, params).then(async token => {
+                        const {
+                            data: {
+                                data: [user],
+                            },
+                        } = await twitchAPI.get<{
+                            data: {
+                                id: string;
+                                login: string;
+                                display_name: string;
+                                type: string;
+                                broadcaster_type: string;
+                                description: string;
+                                profile_image_url: string;
+                                offline_image_url: string;
+                                view_count: number;
+                                email: string;
+                                created_at: string;
+                            }[];
+                        }>('/users', {
+                            headers: { Authorization: `Bearer ${token.access_token}`, 'Client-Id': client_id },
                         });
-                        // .then(({ data }) => twitch(data, token.refresh_token));
+
+                        await auth(
+                            target,
+                            id,
+                            {
+                                id: user.id,
+                                username: user.login,
+                                discriminator: user.display_name,
+                                email: user.email,
+                                avatar: user.profile_image_url,
+                            },
+                            token.refresh_token,
+                            user.type
+                        );
+
+                        return { message: 'success', id: user.id };
                     });
                     break;
                 case 'kakao':
-                    token = getToken(
-                        `https://kauth.kakao.com/oauth/token`,
-                        qs.stringify({
-                            client_id: process.env.KAKAO_CLIENT_ID,
-                            client_secret: process.env.KAKAO_CLIENT_SECRET,
-                            grant_type: 'authorization_code',
-                            code,
-                            redirect_uri,
-                        })
-                    ).then(async token => {});
+                    token = getToken(`https://kauth.kakao.com/oauth/token`, params).then(async token => {});
                     break;
                 default:
                     return { message: '잘못된 인증 대상입니다.' };

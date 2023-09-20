@@ -6,9 +6,19 @@ import { Event } from 'interfaces/eventsub';
 
 export const discord = async (profile: AuthUser, refreshToken: string) => auth('discord', profile.id, profile, refreshToken);
 
-export const auth = async (type: string, auth_id: string, profile: AuthUser, refreshToken: string) => {
+export const auth = async (type: string, auth_id: string, profile: AuthUser, refreshToken: string, user_type?: string) => {
     const { id, username, discriminator, email, avatar } = profile;
-    return query(`select func_auth_token(?) as user_type`, [type, '', id, auth_id, username, discriminator, email, avatar, refreshToken]);
+    return query(`select func_auth_token(?) as user_type`, [
+        type,
+        user_type || '',
+        id,
+        auth_id,
+        username,
+        discriminator,
+        email,
+        avatar,
+        refreshToken,
+    ]);
 };
 
 export const userUpdate = async (event: Event) => {
@@ -38,14 +48,18 @@ WHERE \`type\` in (?) and user_id=?
     );
 };
 
-export const authTypes = async () =>
+export const authTypes = async (isAll?: boolean) =>
     await query<{
         auth_type: number;
         tag: string;
         tag_kr: string;
+        client_id: string;
+        target: string;
+        client_sc: string;
     }>(
         `
 select auth_type, tag, tag_kr
+${isAll ? '' : '-- '}, client_id , target , client_sc
 from auth_type
 WHERE 1=1
 and use_yn ='Y'

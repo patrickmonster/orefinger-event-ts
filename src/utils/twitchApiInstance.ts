@@ -32,18 +32,18 @@ export default twitch;
 
 export const twitchAPI = axios.create({ baseURL: `https://api.twitch.tv/${API_VERSION}` });
 
-twitchAPI.interceptors.response.use(
-    ({ data }) => data, // 데이터 변환
-    async (error: any) => {
-        if (error.config && error.response && error.response.status === 429) {
-            console.log('Too Many Requests! Retrying...');
-            const { message, retry_after } = error.response.data;
-            await sleep(Math.ceil(retry_after / 1000) + 1);
-            return twitch(error.config);
-        }
-        throw error;
-    }
-);
+// twitchAPI.interceptors.response.use(
+//     ({ data }) => data, // 데이터 변환
+//     async (error: any) => {
+//         if (error.config && error.response && error.response.status === 429) {
+//             console.log('Too Many Requests! Retrying...');
+//             const { message, retry_after } = error.response.data;
+//             await sleep(Math.ceil(retry_after / 1000) + 1);
+//             return twitch(error.config);
+//         }
+//         throw error;
+//     }
+// );
 
 twitch.interceptors.response.use(
     ({ data }) => data, // 데이터 변환
