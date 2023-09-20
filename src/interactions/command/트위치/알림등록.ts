@@ -5,25 +5,37 @@ import getOptions from 'components/chatInputOption';
 import { AppChatInputInteraction } from 'interactions/app';
 import authTokenSelect from 'components/authTokenSelect';
 import onlineChannel from 'components/onlineChannel';
+import { channelCreate } from 'components/guild';
 
 const name = basename(__filename, __filename.endsWith('js') ? '.js' : '.ts');
 const type = ApplicationCommandOptionType.Subcommand;
 
 export const exec = async (interaction: AppChatInputInteraction) => {
-    const { member } = interaction;
+    const { member, guild_id } = interaction;
 
-    const channel = getOptions<string>(interaction.options, '채널', '0');
+    if (!guild_id) {
+        return await interaction.re({ content: '서버에서만 사용할 수 있습니다.', ephemeral: true });
+    }
+
+    let channel_id = getOptions<string>(interaction.options, '채널', '0');
     const user_id = getOptions<string>(interaction.options, '사용자', member?.user?.id || '0');
 
-    console.log('선택자', user_id, channel);
+    console.log('선택자', user_id, channel_id);
 
     const reply = await interaction.deffer({ ephemeral: true });
 
-    authTokenSelect(user_id, `select online ${channel}`, 2).then(async user => {
+    authTokenSelect(user_id, `select online ${channel_id}`, 2).then(async user => {
         if (Array.isArray(user)) {
             reply({ components: user });
         } else {
-            await onlineChannel(reply, user.user_id, channel);
+            if (channel_id === '0') {
+                const channel = await channelCreate(guild_id || '0', {
+                    name: `📺방송알림`,
+                    
+                });
+                console.log(channel);
+            }
+            // await onlineChannel(reply, user.user_id, channel_id);
         }
     });
 };
