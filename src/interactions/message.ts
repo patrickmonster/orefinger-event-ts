@@ -11,6 +11,7 @@ const getButtonCommand = autoLoader(join(__dirname, 'button'), {
     pathTag: ' ',
     isLog: true,
     defaultFunction: async (interaction: MessageInteraction) => {
+        console.log('Component: ', interaction.id, 'is not registered.');
         await interaction.re({ content: '해당 명령은 등록 하지 않는 명령 입니다.' });
     },
 });
@@ -19,6 +20,7 @@ const getMenuCommand = autoLoader(join(__dirname, 'menu'), {
     pathTag: ' ',
     isLog: true,
     defaultFunction: async (interaction: MessageInteraction) => {
+        console.log('Component: ', interaction.id, 'is not registered.');
         await interaction.re({ content: '해당 명령은 등록 하지 않는 명령 입니다.' });
     },
 });

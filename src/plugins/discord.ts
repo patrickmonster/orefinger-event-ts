@@ -98,7 +98,7 @@ export default fp(async function (fastify, opts) {
             JSON.stringify(body),
             `${headers['x-signature-ed25519'] || headers['X-Signature-Ed25519']}`,
             `${headers['x-signature-timestamp'] || headers['X-Signature-Timestamp']}`,
-            `${process.env.JWT_SECRET}`
+            `${process.env.DISCORD_PUBLIC_KEY}`
         )
     );
 
@@ -156,7 +156,7 @@ export default fp(async function (fastify, opts) {
                         });
                     } else {
                         fetchReply = true;
-                        await res.status(200).send({
+                        await res.code(200).send({
                             type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
                             data: appendEmpheral(message),
                         });
@@ -182,20 +182,20 @@ export default fp(async function (fastify, opts) {
             const {
                 body: { token, application_id, message },
             } = req;
-
-            const id = message ? message.id : '@original';
             let isDeferred = false;
+
+            console.log('???', message);
 
             return async (message?: ephemeral) => {
                 if (!isDeferred) {
                     isDeferred = true;
-                    await res.status(200).send({
-                        type: InteractionResponseType.DEFERRED_UPDATE_MESSAGE,
+                    await res.code(200).send({
+                        type: InteractionResponseType.DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE,
                         data: { flags: message?.ephemeral ? 64 : 0 },
                     });
                 }
                 return async (message: RESTPostAPIChannelMessage) =>
-                    await discordInteraction.patch(`/webhooks/${application_id}/${token}/messages/${id}`, appendEmpheral(message));
+                    await discordInteraction.patch(`/webhooks/${application_id}/${token}/messages/@original`, appendEmpheral(message));
             };
         }
     );

@@ -20,7 +20,7 @@ export const channels = async (guild: string) =>
     await discord.get<RESTGetAPIGuildChannelsResult>(`/guilds/${guild}/channels`).then(({ data }) => data);
 
 export const channelCreate = async (guild_id: string, data: RESTPostAPIGuildChannelJSONBody) =>
-    await discord.post<RESTPostAPIGuildChannelResult>(`/guilds/${guild_id}/channels`, data).then(({ data }) => data);
+    await discord.post<RESTPostAPIGuildChannelResult>(`/guilds/${guild_id}/channels`, data);
 
 // export const channelDelete = async (channel_id: string) =>
 

@@ -26,7 +26,7 @@ export default (
                 {
                     custom_id: `${menuProps.custom_id} ${i}`,
                     disabled: menuProps.disabled,
-                    max_values: menuProps.max_values || 0 > length ? length : menuProps.max_values,
+                    max_values: (menuProps.max_values || 0) > length ? length : menuProps.max_values,
                     min_values: menuProps.min_values || 0,
                     placeholder: menuProps.placeholder, // 기본 설명
                     type: ComponentType.StringSelect,
