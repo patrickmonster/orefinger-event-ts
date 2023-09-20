@@ -1,8 +1,9 @@
 'use strict';
 import { FastifyInstance } from 'fastify';
 
-import { discord, userIds } from 'controllers/auth';
+import { auth, authTypes, deleteAuthConnection, deleteAuthConnectionAuthTypes, discord, userIds } from 'controllers/auth';
 import { openApi } from 'utils/discordApiInstance';
+import toss from 'utils/tossApiInstance';
 import axios from 'axios';
 
 import qs from 'querystring';
@@ -83,8 +84,6 @@ export default async (fastify: FastifyInstance, opts: any) => {
     fastify.get(
         '/auth',
         {
-            // onRequest: [fastify.authenticate],
-            // security: [{ Bearer: [] }],
             schema: {
                 description: '디스코드 사용자 인증 - 필수 데이터',
                 tags: ['Auth'],
@@ -92,11 +91,12 @@ export default async (fastify: FastifyInstance, opts: any) => {
             },
         },
         async req => {
-            const scopes = ['identify', 'email'];
-
+            const scopes = ['identify', 'email', 'guilds', 'role_connections.write'];
+            const types = await authTypes();
             return {
                 client_id: process.env.DISCORD_CLIENT_ID,
                 scopes,
+                types,
                 permissions: 1249768893497,
             };
         }
@@ -116,6 +116,39 @@ export default async (fastify: FastifyInstance, opts: any) => {
         async req => {
             const { id } = req.user;
             return await userIds(id);
+        }
+    );
+
+    fastify.delete<{
+        Params: { type: deleteAuthConnectionAuthTypes; target: string };
+    }>(
+        '/auth/:type/:target',
+        {
+            onRequest: [fastify.authenticate],
+            schema: {
+                security: [{ Bearer: [] }],
+                description: '사용자의 연결된 계정을 삭제합니다.',
+                tags: ['Auth'],
+                deprecated: false, // 비활성화
+                params: {
+                    type: 'object',
+                    required: ['type', 'target'],
+                    additionalProperties: false,
+                    properties: {
+                        type: {
+                            type: 'string',
+                            description: '인증 타입',
+                            enum: ['discord', 'twitch.stream', 'twitch', 'tiktok', 'afreecatv', 'kakao', 'youtube', 'toss', 'toss.test'],
+                        },
+                        target: { type: 'string', description: '인증 대상' },
+                    },
+                },
+            },
+        },
+        async req => {
+            const { id } = req.user;
+            const { target, type } = req.params;
+            return await deleteAuthConnection(type, id, target);
         }
     );
 
@@ -186,6 +219,90 @@ export default async (fastify: FastifyInstance, opts: any) => {
                     console.error(e);
                     throw { message: e.message };
                 });
+        }
+    );
+    // 인증 모듈 - 토스
+    fastify.patch<{
+        Body: {
+            cardNumber: string;
+            cardExpirationYear: string;
+            cardExpirationMonth: string;
+            cardPassword: string;
+            customerIdentityNumber: string;
+            cardName: string;
+        };
+    }>(
+        '/auth/toss',
+        {
+            onRequest: [fastify.authenticate],
+            schema: {
+                security: [{ Bearer: [] }],
+                description: '계정 연결 - 디스코드 계정을 기반으로 토스 페이먼츠 카드 정보를 등록 합니다.',
+                tags: ['Auth'],
+                deprecated: false, // 비활성화
+                body: {
+                    type: 'object',
+                    required: ['cardNumber', 'cardExpirationYear', 'cardExpirationMonth', 'cardPassword', 'customerIdentityNumber', 'cardName'],
+                    additionalProperties: false,
+                    properties: {
+                        cardNumber: { type: 'string', description: '카드번호' },
+                        cardExpirationYear: { type: 'string', description: '카드 유효기간 연도' },
+                        cardExpirationMonth: { type: 'string', description: '카드 유효기간 월' },
+                        cardPassword: { type: 'string', description: '카드 비밀번호 앞 2자리' },
+                        customerIdentityNumber: { type: 'string', description: '주민등록번호 또는 사업자등록번호' },
+                        cardName: { type: 'string', description: '카드 별칭' },
+                        // customerKey: { type: 'string', description: '가맹점 고유 키' },
+                    },
+                },
+            },
+        },
+        async req => {
+            const { id } = req.user;
+            const { cardNumber, cardExpirationYear, cardExpirationMonth, cardPassword, customerIdentityNumber, cardName } = req.body;
+
+            try {
+                const { data: user } = await toss.post<{
+                    mId: string;
+                    customerKey: string;
+                    authenticatedAt: string;
+                    method: string;
+                    billingKey: string;
+                    cardCompany: string;
+                    cardNumber: string;
+                    card: {
+                        issuerCode: string;
+                        acquirerCode: string;
+                        number: string;
+                        cardType: string;
+                        ownerType: string;
+                    };
+                }>('/billing/authorizations/card', {
+                    cardNumber,
+                    cardExpirationYear,
+                    cardExpirationMonth,
+                    cardPassword,
+                    customerIdentityNumber,
+                    customerKey: id,
+                });
+
+                console.log(user);
+                await auth(
+                    'toss.test',
+                    id,
+                    {
+                        id,
+                        username: cardName,
+                        discriminator: user.cardNumber,
+                        email: cardNumber,
+                        avatar: user.mId,
+                    },
+                    user.billingKey
+                );
+                return { message: 'success' };
+            } catch (e) {
+                console.error(e);
+                return { message: '인증에 실패함' };
+            }
         }
     );
     // 인증 모듈

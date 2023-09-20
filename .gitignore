@@ -64,3 +64,4 @@ profile*
 *flamegraph*
 
 src/env
+sql/*

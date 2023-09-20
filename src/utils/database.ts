@@ -84,7 +84,7 @@ const getConnection = async <T>(connectionPool: (queryFunction: queryFunctionTyp
                       };
             } catch (e) {
                 console.error('SQL]', e);
-                connect!.query('INSERT INTO error_sql set `sql` = ?, target = ?', [mysql.format(query, params), env.NODE_ENV || 'dev']);
+                connect!.query('INSERT INTO discord_log.error_sql set `sql` = ?, target = ?', [mysql.format(query, params), env.NODE_ENV || 'dev']);
                 throw e;
             }
         }).then(async (result: T) => {
