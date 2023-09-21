@@ -102,7 +102,7 @@ const getConnection = async <T>(connectionPool: (queryFunction: queryFunctionTyp
 
 export default getConnection;
 ///////////////////////////////////////////////////////////////////////////////////////////
-let limit = 10;
+export let limit = 10;
 
 export type seleceQueryOption = {
     query: string;
@@ -139,3 +139,6 @@ ${query}
             list: result,
         };
     }, true);
+
+export const calTo = (query: string, ...value: any[]) =>
+    value.filter(v => v != null && v != undefined && v != '').length ? mysql.format(`${query}`, value) : '-- calTo';
