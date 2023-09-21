@@ -3,7 +3,7 @@ import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { Paging } from 'interfaces/swagger';
 export default async (fastify: FastifyInstance, opts: any) => {
     //
-    const postTypes = ['0'];
+    const postTypes = ['0', 'DN', 'NT'];
 
     fastify.get<{
         Querystring: Paging & {

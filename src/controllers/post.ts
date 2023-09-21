@@ -27,7 +27,7 @@ SELECT
     A.id
     , A.title
     , left(A.description, 100) as description
-    , A.\`type\`
+    , (SELECT tag FROM post_type pt WHERE pt.type_id = A.type) AS \`type\`
     , A.use_yn
     , A.public_yn
     , A.commant_yn
