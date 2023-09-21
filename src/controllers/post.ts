@@ -48,13 +48,47 @@ GROUP BY A.id
         paging
     );
 
+export const getCommantList = async (id: string, paging: Paging) =>
+    await selectPaging(
+        `
+SELECT id, message, post_id, auth_id, use_yn, create_at, update_at 
+FROM commant c 
+WHERE 1=1
+AND id = ?
+    `,
+        paging,
+        id
+    );
+
 export const getPostDil = async (id: string, user_id?: string) =>
     await getConnection(async query => {
         if (user_id) {
             // user_id 가 있을 경우
+            const data = {
+                id,
+                auth_id: user_id,
+            };
+            await query<SqlInsertUpdate>(`INSERT INTO post_like set ? ON DUPLICATE KEY UPDATE ? `, data, data);
         }
 
-        const sql = `
+        return query<{
+            id: string;
+            title: string;
+            description: string;
+            type: string;
+            use_yn: boolean;
+            public_yn: boolean;
+            commant_yn: boolean;
+            create_at: string;
+            update_at: string;
+            craete_user: string;
+            update_user: string;
+            bookmark: number;
+            like: number;
+            bookmark_yn?: string;
+            like_yn?: string;
+        }>(
+            `
 SELECT
     A.id
     , A.title
@@ -76,6 +110,9 @@ LEFT JOIN post_like B
     ON A.id = B.id
     AND B.delete_yn ='N'
 WHERE 1 = 1
+AND A.id = ?
 GROUP BY A.id
-        `;
+        `,
+            id
+        ).then(rows => rows[0]);
     });

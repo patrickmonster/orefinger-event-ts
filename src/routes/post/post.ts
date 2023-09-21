@@ -1,4 +1,4 @@
-import { getPostList } from 'controllers/post';
+import { getCommantList, getPostDil, getPostList } from 'controllers/post';
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { Paging } from 'interfaces/swagger';
 export default async (fastify: FastifyInstance, opts: any) => {
@@ -80,5 +80,64 @@ export default async (fastify: FastifyInstance, opts: any) => {
                 null,
                 request.query.type
             ).then(res => res.list)
+    );
+
+    fastify.get<{
+        Params: {
+            id: string;
+        };
+    }>(
+        '/:id',
+        {
+            schema: {
+                tags: ['post'],
+                description: '게시글 조회',
+                deprecated: false,
+                params: {
+                    type: 'object',
+                    properties: {
+                        id: {
+                            type: 'string',
+                        },
+                    },
+                },
+            },
+        },
+        async request => {
+            let id = undefined;
+            if (request.headers.hasOwnProperty('master')) {
+                await request.jwtVerify();
+                id = request.user.id;
+            }
+            return await getPostDil(request.params.id, id);
+        }
+    );
+
+    fastify.get<{
+        Querystring: Paging;
+        Params: {
+            id: string;
+        };
+    }>(
+        '/commant/:id',
+        {
+            schema: {
+                tags: ['post'],
+                description: '게시글 덧글 조회',
+                deprecated: false,
+                params: {
+                    type: 'object',
+                    properties: {
+                        id: {
+                            type: 'string',
+                        },
+                    },
+                },
+                querystring: {
+                    $ref: 'paging#',
+                },
+            },
+        },
+        async request => await getCommantList(request.params.id, request.query)
     );
 };
