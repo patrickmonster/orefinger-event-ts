@@ -7,7 +7,7 @@ import { env } from 'process';
 import { existsSync } from 'fs';
 import { config } from 'dotenv';
 
-import fs, { promises } from 'fs';
+import { ajvFilePlugin } from '@fastify/multipart';
 
 import { error as errorLog } from './utils/logger';
 
@@ -30,6 +30,9 @@ const server = fastify({
         transport: {
             target: '@fastify/one-line-logger',
         },
+    },
+    ajv: {
+        plugins: [ajvFilePlugin],
     },
 });
 

@@ -33,6 +33,7 @@ SELECT
     , A.commant_yn
     , A.create_at
     , A.update_at
+    , IFNULL(C.name,  A.craete_user) AS user_name 
     , A.craete_user
     , A.update_user
     , SUM(CASE WHEN B.bookmark_yn = 'Y' THEN 1 ELSE 0 END) AS bookmark
@@ -41,6 +42,7 @@ SELECT
     ${calTo(', MAX(CASE WHEN B.auth_id = ? THEN B.like_yn ELSE NULL END) AS like_yn', user_id)}
 FROM post A
 LEFT JOIN post_like B ON A.id = B.id AND B.delete_yn ='N'
+LEFT JOIN auth C ON C.auth_id = A.craete_user 
 WHERE 1 = 1
 ${calTo('AND A.`type` = ?', type)}
 GROUP BY A.id
@@ -64,11 +66,10 @@ export const getPostDil = async (id: string, user_id?: string) =>
     await getConnection(async query => {
         if (user_id) {
             // user_id 가 있을 경우
-            const data = {
+            await query<SqlInsertUpdate>(`INSERT IGNORE INTO post_like set ? `, {
                 id,
                 auth_id: user_id,
-            };
-            await query<SqlInsertUpdate>(`INSERT INTO post_like set ? ON DUPLICATE KEY UPDATE ? `, data, data);
+            });
         }
 
         return query<{
@@ -83,6 +84,7 @@ export const getPostDil = async (id: string, user_id?: string) =>
             update_at: string;
             craete_user: string;
             update_user: string;
+            views: number;
             bookmark: number;
             like: number;
             bookmark_yn?: string;
@@ -101,6 +103,7 @@ SELECT
     , A.update_at
     , A.craete_user
     , A.update_user
+    , SUM(1) AS views
     , SUM(CASE WHEN B.bookmark_yn = 'Y' THEN 1 ELSE 0 END) AS bookmark
     , SUM(CASE WHEN B.like_yn = 'Y' THEN 1 ELSE 0 END) AS \`like\`
     ${calTo(', MAX(CASE WHEN B.auth_id = ? THEN B.bookmark_yn ELSE NULL END) AS bookmark_yn', user_id)}
