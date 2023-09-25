@@ -2,15 +2,19 @@ import { MultipartFile } from '@fastify/multipart';
 import { getCommantList, getPostDil, getPostList } from 'controllers/post';
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 
+import { v4 as uuidv4 } from 'uuid';
+
 import path from 'path';
 import { upload } from 'utils/s3Apiinstance';
+import { insertFile } from 'controllers/CDN/file';
 
 export default async (fastify: FastifyInstance, opts: any) => {
     fastify.post<{
         Querystring: { name: string };
         Body: { file: MultipartFile };
+        Params: { target: string };
     }>(
-        '',
+        '/:target',
         {
             onRequest: [fastify.authenticate],
             schema: {
@@ -33,20 +37,52 @@ export default async (fastify: FastifyInstance, opts: any) => {
                         name: { type: 'string', description: '파일 이름' },
                     },
                 },
+                params: {
+                    type: 'object',
+                    required: ['target'],
+                    properties: {
+                        target: {
+                            type: 'string',
+                            description: '파일 업로드 타겟',
+                            enum: ['upload', 'profile', 'post', 'comment'],
+                        },
+                    },
+                },
             },
             validatorCompiler: () => () => true,
         },
         async req => {
             const { name } = req.query;
             const { file } = req.body;
+            const { target } = req.params;
             const { id } = req.user;
 
-            console.log('file', file);
-            console.log('name', name);
+            try {
+                const { key, type, length } = await upload(id, file, target);
 
-            // const buffer =await upload(id, file, 'upload');
+                await insertFile({
+                    name,
+                    auth_id: id,
+                    src: key,
+                    content_type: type,
+                    size: length,
+                });
 
-            return name;
+                return {
+                    status: 200,
+                    message: '파일 업로드 성공',
+                    data: {
+                        key,
+                        type,
+                        length,
+                    },
+                };
+            } catch (e) {
+                return {
+                    status: 500,
+                    message: '파일 업로드 실패',
+                };
+            }
         }
     );
 };

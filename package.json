@@ -1,6 +1,7 @@
 {
     "dependencies": {
         "@aws-sdk/client-s3": "^3.417.0",
+        "@aws-sdk/s3-request-presigner": "^3.418.0",
         "@fastify/autoload": "^5.7.1",
         "@fastify/cors": "^8.3.0",
         "@fastify/helmet": "^11.0.0",
@@ -57,8 +58,8 @@
         "build": "npx tsc --project tsconfig.json && tsc-alias -p tsconfig.json",
         "start": "node dist/app.js",
         "proxy": "ngrok http 3000",
-        "dev": "cross-env NODE_ENV=dev nodemon --watch src/ --exec ts-node -r tsconfig-paths/register src/app.ts",
-        "local": "cross-env NODE_ENV=local nodemon --watch src/ --exec ts-node -r tsconfig-paths/register src/app.ts",
+        "dev": "cross-env NODE_ENV=dev nodemon --watch src/routes --exec ts-node -r tsconfig-paths/register src/app.ts",
+        "local": "cross-env NODE_ENV=local nodemon --watch src/routes --exec ts-node -r tsconfig-paths/register src/app.ts",
         "test:twitch": "twitch event verify-subscription subscribe -F http://localhost:3000/twitch/event -s 12345678901234567890"
     }
 }
