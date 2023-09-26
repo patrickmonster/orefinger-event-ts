@@ -53,12 +53,52 @@ GROUP BY A.id
 export const getCommantList = async (id: string, paging: Paging) =>
     await selectPaging(
         `
-SELECT id, message, post_id, auth_id, use_yn, create_at, update_at 
-FROM commant c 
-WHERE 1=1
-AND id = ?
+WITH RECURSIVE cte AS (
+    SELECT 
+        0 AS pos,
+        id,
+        0 AS parent_id,
+        CAST(id AS char(255)) AS _path,
+        message,
+        post_id,
+        auth_id,
+        use_yn,
+        create_at,
+        update_at
+    FROM commant 
+    WHERE parent_id IS NULL AND post_id = ?
+    UNION ALL
+    SELECT 
+        pos + 1,
+        c.id,
+        c.parent_id,
+        concat(_path, '>', c.parent_id) AS _path,
+        c.message,
+        c.post_id,
+        c.auth_id,
+        c.use_yn,
+        c.create_at,
+        c.update_at
+    FROM commant c
+    JOIN cte ON c.parent_id = cte.id
+    WHERE c.post_id = ?
+)
+SELECT pos
+    , c.id
+    , c.message
+    , c.use_yn
+    , c.create_at
+    , c.update_at
+    , a.auth_id
+    , a.name
+    , a.tag
+    , IF(a.avatar IS NOT NULL, concat('https://cdn.discordapp.com/avatars/', a.auth_id, '/', a.avatar, '.png'), null ) AS avatar
+FROM cte c
+LEFT JOIN auth a ON c.auth_id = a.auth_id 
+ORDER BY _path, create_at
     `,
         paging,
+        id,
         id
     );
 
