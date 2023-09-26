@@ -12,7 +12,7 @@ export type Post = {
     commant_yn?: string;
     create_at: string;
     update_at: string;
-    craete_user: string;
+    create_user: string;
     update_user: string;
     bookmark: number;
     like: number;
@@ -33,8 +33,8 @@ SELECT
     , A.commant_yn
     , A.create_at
     , A.update_at
-    , IFNULL(C.name,  A.craete_user) AS user_name 
-    , A.craete_user
+    , IFNULL(C.name,  A.create_user) AS user_name 
+    , A.create_user
     , A.update_user
     , SUM(CASE WHEN B.bookmark_yn = 'Y' THEN 1 ELSE 0 END) AS bookmark
     , SUM(CASE WHEN B.like_yn = 'Y' THEN 1 ELSE 0 END) AS \`like\`
@@ -42,7 +42,7 @@ SELECT
     ${calTo(', MAX(CASE WHEN B.auth_id = ? THEN B.like_yn ELSE NULL END) AS like_yn', user_id)}
 FROM post A
 LEFT JOIN post_like B ON A.id = B.id AND B.delete_yn ='N'
-LEFT JOIN auth C ON C.auth_id = A.craete_user 
+LEFT JOIN auth C ON C.auth_id = A.create_user 
 WHERE 1 = 1
 ${calTo('AND A.`type` = ?', type)}
 GROUP BY A.id
@@ -122,7 +122,7 @@ export const getPostDil = async (id: string, user_id?: string) =>
             commant_yn: boolean;
             create_at: string;
             update_at: string;
-            craete_user: string;
+            create_user: string;
             update_user: string;
             views: number;
             bookmark: number;
@@ -141,7 +141,7 @@ SELECT
     , A.commant_yn
     , A.create_at
     , A.update_at
-    , A.craete_user
+    , A.create_user
     , A.update_user
     , SUM(1) AS views
     , SUM(CASE WHEN B.bookmark_yn = 'Y' THEN 1 ELSE 0 END) AS bookmark
