@@ -7,9 +7,9 @@ export type Post = {
     title: string;
     description: string;
     type: string;
-    use_yn: string;
-    public_yn: string;
-    commant_yn: string;
+    use_yn?: string;
+    public_yn?: string;
+    commant_yn?: string;
     create_at: string;
     update_at: string;
     craete_user: string;
@@ -159,3 +159,6 @@ GROUP BY A.id
             id
         ).then(rows => rows[0]);
     });
+
+export const postPost = async (auth_id: string, data: Pick<Post, 'title' | 'description' | 'type' | 'use_yn' | 'public_yn' | 'commant_yn'>) =>
+    await query<SqlInsertUpdate>(`INSERT INTO post set ?, create_user = ?`, data, auth_id);

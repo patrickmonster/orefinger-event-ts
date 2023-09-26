@@ -1,4 +1,4 @@
-import { getCommantList, getPostDil, getPostList } from 'controllers/post';
+import { getCommantList, getPostDil, getPostList, postPost } from 'controllers/post';
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { Paging } from 'interfaces/swagger';
 export default async (fastify: FastifyInstance, opts: any) => {
@@ -111,6 +111,41 @@ export default async (fastify: FastifyInstance, opts: any) => {
             }
             return await getPostDil(request.params.id, id);
         }
+    );
+
+    fastify.post<{
+        Body: {
+            title: string;
+            description: string;
+            type: string;
+            use_yn?: string;
+            commant_yn?: string;
+            public_yn?: string;
+        };
+    }>(
+        '',
+        {
+            onRequest: [fastify.authenticate],
+            schema: {
+                security: [{ Bearer: [] }],
+                tags: ['post'],
+                description: '게시글 작성',
+                deprecated: false,
+                body: {
+                    type: 'object',
+                    required: ['title', 'description', 'type'],
+                    properties: {
+                        title: { type: 'string', maxLength: 255, minLength: 1 },
+                        description: { type: 'string' },
+                        type: { type: 'string', enum: postTypes },
+                        use_yn: { type: 'string', enum: ['Y', 'N'] },
+                        commant_yn: { type: 'string', enum: ['Y', 'N'] },
+                        public_yn: { type: 'string', enum: ['Y', 'N'] },
+                    },
+                },
+            },
+        },
+        async req => await postPost(req.user.id, req.body)
     );
 
     fastify.get<{
