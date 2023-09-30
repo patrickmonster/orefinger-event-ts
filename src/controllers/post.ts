@@ -20,6 +20,17 @@ export type Post = {
     like_yn?: string;
 };
 
+export const getPostTypes = async () =>
+    await query<{
+        type_id: string;
+        tag: string;
+    }>(`
+select type_id, tag 
+from post_type pt 
+WHERE 1=1
+and list_yn ='Y'    
+`);
+
 export const getPostList = async (paging: Paging, user_id?: string | null, type?: string) =>
     await selectPaging<Post>(
         `

@@ -1,4 +1,4 @@
-import { getCommantList, getPostDil, getPostList, postPost } from 'controllers/post';
+import { getCommantList, getPostDil, getPostList, getPostTypes, postPost } from 'controllers/post';
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { Paging } from 'interfaces/swagger';
 export default async (fastify: FastifyInstance, opts: any) => {
@@ -35,6 +35,17 @@ export default async (fastify: FastifyInstance, opts: any) => {
             },
         },
         async request => await getPostList(request.query, request.user.id, request.query.type)
+    );
+    fastify.get(
+        '/type',
+        {
+            schema: {
+                tags: ['post'],
+                description: '게시글 타입 목록 조회',
+                deprecated: false,
+            },
+        },
+        async request => await getPostTypes()
     );
 
     fastify.get<{
@@ -87,7 +98,7 @@ export default async (fastify: FastifyInstance, opts: any) => {
             id: string;
         };
     }>(
-        '/:id',
+        'Dtail/:id',
         {
             schema: {
                 tags: ['post'],
