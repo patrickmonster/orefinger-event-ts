@@ -3,7 +3,7 @@ import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { Paging } from 'interfaces/swagger';
 export default async (fastify: FastifyInstance, opts: any) => {
     //
-    const postTypes = ['0', 'DN', 'NT'];
+    const postTypes = ['null', '0', 'DN', 'NT'];
 
     fastify.get<{
         Querystring: Paging & {
@@ -12,9 +12,8 @@ export default async (fastify: FastifyInstance, opts: any) => {
     }>(
         '',
         {
-            onRequest: [fastify.authenticate],
+            onRequest: [fastify.authenticateQuarter],
             schema: {
-                security: [{ Bearer: [] }],
                 tags: ['post'],
                 description: '게시글 목록 조회',
                 deprecated: false,
@@ -26,6 +25,7 @@ export default async (fastify: FastifyInstance, opts: any) => {
                             properties: {
                                 type: {
                                     type: 'string',
+                                    nullable: true,
                                     enum: postTypes,
                                 },
                             },
@@ -34,7 +34,11 @@ export default async (fastify: FastifyInstance, opts: any) => {
                 },
             },
         },
-        async request => await getPostList(request.query, request.user.id, request.query.type)
+        async request =>
+            await getPostList(request.query, {
+                type: request.query?.type,
+                user_id: request.user?.id,
+            })
     );
     fastify.get(
         '/type',
@@ -58,6 +62,7 @@ export default async (fastify: FastifyInstance, opts: any) => {
     }>(
         '/top/:count',
         {
+            onRequest: [fastify.authenticateQuarter],
             schema: {
                 tags: ['post'],
                 description: '게시글 목록 조회',
@@ -88,8 +93,10 @@ export default async (fastify: FastifyInstance, opts: any) => {
                     page: 0,
                     limit: Number(request.params.count),
                 },
-                null,
-                request.query.type
+                {
+                    type: request.query?.type,
+                    user_id: request.user?.id,
+                }
             ).then(res => res.list)
     );
 

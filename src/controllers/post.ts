@@ -31,7 +31,11 @@ WHERE 1=1
 and list_yn ='Y'    
 `);
 
-export const getPostList = async (paging: Paging, user_id?: string | null, type?: string) =>
+type PostTypeParams = {
+    user_id?: string;
+    type?: string;
+};
+export const getPostList = async (paging: Paging, props?: PostTypeParams) =>
     await selectPaging<Post>(
         `
 SELECT
@@ -49,13 +53,13 @@ SELECT
     , A.update_user
     , SUM(CASE WHEN B.bookmark_yn = 'Y' THEN 1 ELSE 0 END) AS bookmark
     , SUM(CASE WHEN B.like_yn = 'Y' THEN 1 ELSE 0 END) AS \`like\`
-    ${calTo(', MAX(CASE WHEN B.auth_id = ? THEN B.bookmark_yn ELSE NULL END) AS bookmark_yn', user_id)}
-    ${calTo(', MAX(CASE WHEN B.auth_id = ? THEN B.like_yn ELSE NULL END) AS like_yn', user_id)}
+    ${calTo(', MAX(CASE WHEN B.auth_id = ? THEN B.bookmark_yn ELSE NULL END) AS bookmark_yn', props?.user_id)}
+    ${calTo(', MAX(CASE WHEN B.auth_id = ? THEN B.like_yn ELSE NULL END) AS like_yn', props?.user_id)}
 FROM post A
 LEFT JOIN post_like B ON A.id = B.id AND B.delete_yn ='N'
 LEFT JOIN auth C ON C.auth_id = A.create_user 
 WHERE 1 = 1
-${calTo('AND A.`type` = ?', type)}
+${calTo('AND A.`type` = ?', props?.type)}
 GROUP BY A.id
     `,
         paging

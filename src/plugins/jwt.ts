@@ -7,6 +7,7 @@ declare module 'fastify' {
     interface FastifyInstance {
         masterkey: (request: FastifyRequest, reply: FastifyReply, done: Function) => void;
         authenticate: (request: FastifyRequest, reply: FastifyReply, done: Function) => void;
+        authenticateQuarter: (request: FastifyRequest, reply: FastifyReply, done: Function) => void;
     }
 }
 
@@ -48,11 +49,21 @@ export default fp(async function (fastify, opts) {
     fastify.decorate('authenticate', function (request: FastifyRequest, reply: FastifyReply, done: Function) {
         request
             .jwtVerify()
-            .then(() => {
-                done();
-            })
+            .then(() => done())
             .catch(e => {
                 reply.code(400).send({ error: e.message });
             });
+    });
+
+    // 인증 처리 시도 - 사용자 인증 정보가 있는 경우에 시도함.
+    fastify.decorate('authenticateQuarter', function (request: FastifyRequest, reply: FastifyReply, done: Function) {
+        if (request.headers.hasOwnProperty('Authorization') || request.headers.hasOwnProperty('authorization')) {
+            request
+                .jwtVerify()
+                .then(() => done())
+                .catch(e => {
+                    reply.code(400).send({ error: e.message });
+                });
+        } else done();
     });
 });
