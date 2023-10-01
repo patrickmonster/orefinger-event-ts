@@ -61,6 +61,7 @@ LEFT JOIN auth C ON C.auth_id = A.create_user
 WHERE 1 = 1
 ${calTo('AND A.`type` = ?', props?.type)}
 GROUP BY A.id
+ORDER BY create_at DESC
     `,
         paging
     );
