@@ -28,7 +28,8 @@ const newLine = /\n/g;
 const sqlLogger = (query: string, params: any[], rows: any[] | any) => {
     // if (env.sql_log != 'true') return rows;
     console.log('=======================================================');
-    console.log('SQL] ', mysql.format(query, params).replace(newLine, ' '), '||', env.MASTER_KEY ? JSON.stringify(rows) : rows);
+    if (env.MASTER_KEY) console.log('SQL] ', mysql.format(query, params).replace(newLine, ' '), '||', JSON.stringify(rows));
+    else console.log('SQL] ', mysql.format(query, params), '||', rows);
     console.log('=======================================================');
     return rows;
 };

@@ -42,7 +42,7 @@ SELECT
     A.id
     , A.title
     , left(A.description, 100) as description
-    , (SELECT tag FROM post_type pt WHERE pt.type_id = A.type) AS \`type\`
+    , D.tag AS \`type\`
     , A.use_yn
     , A.public_yn
     , A.commant_yn
@@ -55,11 +55,14 @@ SELECT
     , SUM(CASE WHEN B.like_yn = 'Y' THEN 1 ELSE 0 END) AS \`like\`
     ${calTo(', MAX(CASE WHEN B.auth_id = ? THEN B.bookmark_yn ELSE NULL END) AS bookmark_yn', props?.user_id)}
     ${calTo(', MAX(CASE WHEN B.auth_id = ? THEN B.like_yn ELSE NULL END) AS like_yn', props?.user_id)}
+    ${calTo(", ( SELECT 'Y' FROM post_like pl WHERE pl.id = A.id AND pl.auth_id = ? ) AS view_yn", props?.user_id)}
 FROM post A
 LEFT JOIN post_like B ON A.id = B.id AND B.delete_yn ='N'
-LEFT JOIN auth C ON C.auth_id = A.create_user 
+LEFT JOIN auth C ON C.auth_id = A.create_user  
+LEFT JOIN post_type D ON A.type = D.type_id 
 WHERE 1 = 1
 ${calTo('AND A.`type` = ?', props?.type)}
+AND D.list_yn = 'Y'
 GROUP BY A.id
 ORDER BY create_at DESC
     `,
