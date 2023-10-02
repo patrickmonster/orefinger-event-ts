@@ -16,7 +16,7 @@ LEFT JOIN v_live_state ls ON ls.auth_id = el.auth_id
 WHERE 1=1
 AND el.event_id IS NOT NULL 
 AND at2.user_id IS NOT NULL
-AND at2.is_session ='Y'
+-- AND at2.is_session ='Y'
 ORDER BY el.create_at DESC
 LIMIT 0, 30
     `
