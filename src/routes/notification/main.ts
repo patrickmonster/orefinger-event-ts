@@ -29,7 +29,7 @@ export default async (fastify: FastifyInstance, opts: any) => {
         {
             // onRequest: [fastify.authenticate],
             schema: {
-                description: '최근 방송중인 50개의 알림 리스트를 불러옵니다.',
+                description: '최근 방송중인 30개의 알림 리스트를 불러옵니다.',
                 tags: ['Notification'],
                 deprecated: false, // 비활성화
                 response: {
