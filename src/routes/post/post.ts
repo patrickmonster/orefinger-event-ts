@@ -1,4 +1,4 @@
-import { getCommantList, getPostDil, getPostList, getPostTypes, postPost } from 'controllers/post';
+import { commantPost, getCommantList, getPostDil, getPostList, getPostTypes, postPost } from 'controllers/post';
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { Paging } from 'interfaces/swagger';
 export default async (fastify: FastifyInstance, opts: any) => {
@@ -107,6 +107,7 @@ export default async (fastify: FastifyInstance, opts: any) => {
     }>(
         'Dtail/:id',
         {
+            onRequest: [fastify.authenticateQuarter],
             schema: {
                 tags: ['post'],
                 description: '게시글 조회',
@@ -122,12 +123,7 @@ export default async (fastify: FastifyInstance, opts: any) => {
             },
         },
         async request => {
-            let id = undefined;
-            if (request.headers.hasOwnProperty('master')) {
-                await request.jwtVerify();
-                id = request.user.id;
-            }
-            return await getPostDil(request.params.id, id);
+            return await getPostDil(request.params.id, request.user?.id);
         }
     );
 
@@ -192,5 +188,47 @@ export default async (fastify: FastifyInstance, opts: any) => {
             },
         },
         async request => await getCommantList(request.params.id, request.query)
+    );
+
+    fastify.post<{
+        Body: {
+            message: string;
+            parent_id?: string;
+        };
+        Params: {
+            id: string;
+        };
+    }>(
+        '/commant/:id',
+        {
+            onRequest: [fastify.authenticate],
+            schema: {
+                security: [{ Bearer: [] }],
+                tags: ['post'],
+                description: '게시글 덧글 작성',
+                deprecated: false,
+                params: {
+                    type: 'object',
+                    properties: {
+                        id: {
+                            type: 'string',
+                        },
+                    },
+                },
+                body: {
+                    type: 'object',
+                    required: ['message'],
+                    properties: {
+                        message: { type: 'string', maxLength: 255, minLength: 1 },
+                        parent_id: { type: 'string', nullable: true },
+                    },
+                },
+            },
+        },
+        async request =>
+            await commantPost(request.user.id, {
+                ...request.body,
+                post_id: request.params.id,
+            })
     );
 };
