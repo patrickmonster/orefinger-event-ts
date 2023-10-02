@@ -3,21 +3,22 @@ import { query, SqlInsertUpdate } from 'utils/database';
 export const liveList = () =>
     query(
         `
-SELECT el.auth_id, el.event_id, el.type, el.create_at 
-    , t.value as live_type
+SELECT el.auth_id, el.event_id, el.type, DATE_ADD(el.create_at, INTERVAL 9 HOUR) as create_at
+    , t.value AS live_type
     , t.tag
     , at2.login, at2.name, at2.user_type
-    , ls.title, ls.game_id, ls.game_name 
-    , (select count(0) from attendance a where a.yymm = DATE_FORMAT( NOW(), '%y%m') and el.event_id = a.event_id and el.type = a.type) as attendance
+    , ls.title, ls.game_id, ls.game_name
+    , (SELECT count(0) FROM attendance a WHERE a.yymm = DATE_FORMAT( NOW(), '%y%m') AND el.event_id = a.event_id AND el.type = a.type) AS attendance
 FROM event_live el
-join types t on t.idx = el.type
-left join auth_token at2 on at2.type =2 and at2.user_id = el.auth_id 
-left join v_live_state ls on ls.auth_id = el.auth_id
+JOIN types t ON t.idx = el.type
+LEFT JOIN auth_token at2 ON at2.type =2 AND at2.user_id = el.auth_id
+LEFT JOIN v_live_state ls ON ls.auth_id = el.auth_id
 WHERE 1=1
-and at2.user_id is not null
-and at2.is_session ='Y'
-order by el.create_at desc
-limit 0, 50
+AND el.event_id IS NOT NULL 
+AND at2.user_id IS NOT NULL
+AND at2.is_session ='Y'
+ORDER BY el.create_at DESC
+LIMIT 0, 30
     `
     );
 
