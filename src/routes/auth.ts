@@ -92,7 +92,7 @@ export default async (fastify: FastifyInstance, opts: any) => {
             },
         },
         async req => {
-            const scopes = ['identify', 'email', 'guilds', 'role_connections.write'];
+            const scopes = ['identify', 'email', 'guilds', 'role_connections.write', 'guilds.members.read'];
             const types = await authTypes();
             return {
                 client_id: process.env.DISCORD_CLIENT_ID,
