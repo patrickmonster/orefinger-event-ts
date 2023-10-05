@@ -8,6 +8,7 @@ export const format = mysql.format;
 const pool: Pool = mysql.createPool({
     host: env.DB_HOST,
     user: env.DB_USER,
+    port: Number(env.DB_PORT || 3306),
     password: env.DB_PASSWD,
     database: env.DB_DATABASE,
     connectionLimit: 4, // 연결 개수 제한
