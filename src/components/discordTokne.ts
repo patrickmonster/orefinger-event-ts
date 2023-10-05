@@ -23,11 +23,11 @@ export const getUserToken = async (user_id: string) => {
     const {
         data: { access_token, token_type, expires_in, refresh_token, scope },
     } = await axios.post<{
-        token_type: string; // : 'Bearer',
-        access_token: string; // : 'GsWzzu9j13DJCVtQCeNSLnFLVyUudY',
-        expires_in: number; // : 604800,
-        refresh_token: string; // : 'HStDwH0sSxgEgBcwHEv4MosVlhtEcG',
-        scope: string; // : 'identify email'
+        token_type: string;
+        access_token: string;
+        expires_in: number;
+        refresh_token: string;
+        scope: string;
     }>(
         'https://discord.com/api/oauth2/token',
         {
