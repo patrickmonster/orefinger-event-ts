@@ -3,7 +3,7 @@ import { FastifyInstance } from 'fastify';
 
 import { auth, authTypes, deleteAuthConnection, deleteAuthConnectionAuthTypes, discord, userIds } from 'controllers/auth';
 import { openApi } from 'utils/discordApiInstance';
-import { twitchAPI } from 'utils/twitchApiInstance';
+import twitch, { twitchAPI } from 'utils/twitchApiInstance';
 import toss from 'utils/tossApiInstance';
 import axios from 'axios';
 
@@ -92,7 +92,7 @@ export default async (fastify: FastifyInstance, opts: any) => {
             },
         },
         async req => {
-            const scopes = ['identify', 'email', 'guilds', 'role_connections.write', 'guilds.members.read'];
+            const scopes = ['identify', 'email', 'connections', 'guilds', 'role_connections.write', 'guilds.members.read'];
             const types = await authTypes();
             return {
                 client_id: process.env.DISCORD_CLIENT_ID,
@@ -208,6 +208,62 @@ export default async (fastify: FastifyInstance, opts: any) => {
                         headers: { Authorization: `${token_type} ${access_token}` },
                     });
                     await discord(user, refresh_token);
+
+                    try {
+                        const { data: connections } = await openApi.get<
+                            {
+                                id: string; // 고유 아이디
+                                name: string; // 이름
+                                type: string; // 타입
+                                friend_sync: boolean; // 친구 동기화 여부 ?
+                                metadata_visibility: number; // 메타데이터 가시성
+                                show_activity: boolean; // 활동 표시 여부
+                                two_way_link: boolean; // 양방향 링크 여부
+                                verified: boolean; // 인증 여부
+                                visibility: number; // 가시성
+                            }[]
+                        >('/users/@me/connections', {
+                            headers: { Authorization: `${token_type} ${access_token}` },
+                        });
+                        const list = connections.filter(({ type }) => type === 'twitch').map(({ id }) => id);
+                        if (list.length > 0) {
+                            const { data } = await twitch.get<{
+                                data: {
+                                    id: string;
+                                    login: string;
+                                    display_name: string;
+                                    type: string;
+                                    broadcaster_type: string;
+                                    description: string;
+                                    profile_image_url: string;
+                                    offline_image_url: string;
+                                    view_count: number;
+                                    email: string;
+                                    created_at: string;
+                                }[];
+                            }>(`/users?${list.map(id => `id=${id}`).join('&')}`);
+                            for (const twitch_user of data) {
+                                await auth(
+                                    'twitch',
+                                    user.id,
+                                    {
+                                        id: twitch_user.id,
+                                        username: twitch_user.login,
+                                        discriminator: twitch_user.display_name,
+                                        email: twitch_user.email,
+                                        avatar: twitch_user.profile_image_url,
+                                    },
+                                    'CONNECTED_USER',
+                                    twitch_user.type
+                                );
+                            }
+                        }
+                    } catch (e) {
+                        // 권한없음
+                        console.error(e);
+                    }
+
+                    // discord.
                     const jwt = fastify.jwt.sign(
                         { access_token, id: user.id },
                         {

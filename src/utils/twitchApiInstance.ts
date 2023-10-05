@@ -1,5 +1,5 @@
 'use strict';
-import axios, { AxiosResponse } from 'axios';
+import axios, { AxiosInstance, AxiosInterceptorManager, AxiosRequestConfig, AxiosResponse } from 'axios';
 import redis from './redis';
 import sleep from './sleep';
 
@@ -20,7 +20,15 @@ export type EventSubQuery =
       }
     | string;
 
-const twitch = axios.create({
+interface CustomInstance extends AxiosInstance {
+    get<T>(url: string, config?: AxiosRequestConfig): Promise<T>;
+    delete<T>(url: string, config?: AxiosRequestConfig): Promise<T>;
+    post<T>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T>;
+    put<T>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T>;
+    patch<T>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T>;
+}
+
+const twitch: CustomInstance = axios.create({
     baseURL: `https://api.twitch.tv/${API_VERSION}`,
     headers: {
         authorization: `Bearer ${process.env.TWITCH_TOKEN}`,
@@ -31,19 +39,6 @@ const twitch = axios.create({
 export default twitch;
 
 export const twitchAPI = axios.create({ baseURL: `https://api.twitch.tv/${API_VERSION}` });
-
-// twitchAPI.interceptors.response.use(
-//     ({ data }) => data, // 데이터 변환
-//     async (error: any) => {
-//         if (error.config && error.response && error.response.status === 429) {
-//             console.log('Too Many Requests! Retrying...');
-//             const { message, retry_after } = error.response.data;
-//             await sleep(Math.ceil(retry_after / 1000) + 1);
-//             return twitch(error.config);
-//         }
-//         throw error;
-//     }
-// );
 
 twitch.interceptors.response.use(
     ({ data }) => data, // 데이터 변환
@@ -57,11 +52,6 @@ twitch.interceptors.response.use(
         throw error;
     }
 );
-
-export const Get = async <T>(url: string, config?: any): Promise<T> => {
-    const { data } = await twitch.get<T>(url, config);
-    return data;
-};
 
 export const GetToken = async (id: string, sc: string, scope: string[]) => {
     const token_id = `TOKEN:${id}`;
