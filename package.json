@@ -1,10 +1,12 @@
 {
     "dependencies": {
+        "@aws-sdk/client-s3": "^3.417.0",
+        "@aws-sdk/s3-request-presigner": "^3.418.0",
         "@fastify/autoload": "^5.7.1",
         "@fastify/cors": "^8.3.0",
         "@fastify/helmet": "^11.0.0",
         "@fastify/jwt": "^7.1.0",
-        "@fastify/multipart": "^7.7.0",
+        "@fastify/multipart": "^7.7.3",
         "@fastify/oauth2": "^7.2.1",
         "@fastify/one-line-logger": "^1.2.0",
         "@fastify/sensible": "^5.2.0",
@@ -13,6 +15,7 @@
         "@fastify/swagger-ui": "^1.9.0",
         "@types/tmi.js": "^1.8.3",
         "@types/xml2js": "^0.4.11",
+        "aws-sdk": "^2.1462.0",
         "axios": "^1.4.0",
         "date-fns": "^2.30.0",
         "discord-api-types": "^0.37.50",
@@ -25,10 +28,12 @@
         "tmi.js": "^1.8.5",
         "typescript": "^5.1.3",
         "upgrade": "^1.1.0",
+        "uuid": "^9.0.1",
         "xml2js": "^0.6.0"
     },
     "devDependencies": {
         "@types/node": "^20.3.2",
+        "@types/uuid": "^9.0.4",
         "cross-env": "^7.0.3",
         "ts-node": "^10.9.1",
         "tsconfig-paths": "^4.2.0"
@@ -44,7 +49,7 @@
         "tabWidth": 4
     },
     "name": "discord-notification-ts",
-    "version": "1.2.0",
+    "version": "1.3.3",
     "main": "index.js",
     "repository": "https://github.com/patrickmonster/discord-notification-ts.git",
     "author": "Soung jin Ryu <neocat@kakao.com>",
@@ -53,8 +58,8 @@
         "build": "npx tsc --project tsconfig.json && tsc-alias -p tsconfig.json",
         "start": "node dist/app.js",
         "proxy": "ngrok http 3000",
-        "dev": "cross-env NODE_ENV=dev nodemon --watch src/ --exec ts-node -r tsconfig-paths/register src/app.ts",
-        "local": "cross-env NODE_ENV=local nodemon --watch src/ --exec ts-node -r tsconfig-paths/register src/app.ts",
+        "dev": "cross-env NODE_ENV=dev nodemon --watch src/routes --exec ts-node -r tsconfig-paths/register src/app.ts",
+        "local": "cross-env NODE_ENV=local nodemon --watch src/routes --exec ts-node -r tsconfig-paths/register src/app.ts",
         "test:twitch": "twitch event verify-subscription subscribe -F http://localhost:3000/twitch/event -s 12345678901234567890"
     }
 }

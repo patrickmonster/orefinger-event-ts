@@ -8,6 +8,7 @@ export const format = mysql.format;
 const pool: Pool = mysql.createPool({
     host: env.DB_HOST,
     user: env.DB_USER,
+    port: Number(env.DB_PORT || 3306),
     password: env.DB_PASSWD,
     database: env.DB_DATABASE,
     connectionLimit: 4, // 연결 개수 제한
@@ -28,7 +29,8 @@ const newLine = /\n/g;
 const sqlLogger = (query: string, params: any[], rows: any[] | any) => {
     // if (env.sql_log != 'true') return rows;
     console.log('=======================================================');
-    console.log('SQL] ', mysql.format(query, params).replace(newLine, ' '), '||', env.MASTER_KEY ? JSON.stringify(rows) : rows);
+    if (env.MASTER_KEY) console.log('SQL] ', mysql.format(query, params).replace(newLine, ' '), '||', JSON.stringify(rows));
+    else console.log('SQL] ', mysql.format(query, params), '||', rows);
     console.log('=======================================================');
     return rows;
 };
@@ -102,7 +104,7 @@ const getConnection = async <T>(connectionPool: (queryFunction: queryFunctionTyp
 
 export default getConnection;
 ///////////////////////////////////////////////////////////////////////////////////////////
-let limit = 10;
+export let limit = 10;
 
 export type seleceQueryOption = {
     query: string;
@@ -139,3 +141,6 @@ ${query}
             list: result,
         };
     }, true);
+
+export const calTo = (query: string, ...value: any[]) =>
+    value.filter(v => v != null && v != undefined && v != '').length ? mysql.format(`${query}`, value) : '-- calTo';
