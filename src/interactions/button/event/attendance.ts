@@ -54,7 +54,7 @@ export const exec = async (interaction: MessageInteraction, broadcaster_user_id:
     if (user === null)
         return interaction.deffer(/*{ ephemeral: true }*/).then(async send => send({ content: '처리 불가능한 상태. - 사용자를 찾을 수 없습니다.' }));
 
-    interaction.deffer(/*{ ephemeral: true }*/).then(async send => {
+    interaction.deffer({ ephemeral: true }).then(async send => {
         const advertisement = await getAdvertisement(game_id); // 광고 로딩
         redis
             .get(user_id)

@@ -1,11 +1,18 @@
 'use strict';
 import { error as errorLog } from './logger';
-import axios from 'axios';
+import axios, { AxiosInstance, AxiosRequestConfig } from 'axios';
 import { RESTPostAPIChannelMessage } from 'plugins/discord';
 import sleep from 'utils/sleep';
 import imageBase64 from './imageBase64';
 
-const discord = axios.create({
+interface CustomInstance extends AxiosInstance {
+    get<T>(url: string, config?: AxiosRequestConfig): Promise<T>;
+    delete<T>(url: string, config?: AxiosRequestConfig): Promise<T>;
+    post<T>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T>;
+    put<T>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T>;
+    patch<T>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T>;
+}
+const discord: CustomInstance = axios.create({
     baseURL: 'https://discord.com/api/', // discordTk
     headers: { authorization: `Bot ${process.env.DISCORD_TOKEN}` },
 });

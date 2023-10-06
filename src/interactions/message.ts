@@ -27,18 +27,20 @@ const getMenuCommand = autoLoader(join(__dirname, 'menu'), {
 
 const messageComponent = async (interaction: MessageInteraction) => {
     const { custom_id, component_type } = interaction;
-    const id = custom_id.startsWith(process.env.discriminator || '') ? custom_id.substring(4) : custom_id;
+    // const id = custom_id.startsWith() ? custom_id.substring(4) : custom_id;
+
+    console.log('Component: ', custom_id, interaction);
 
     switch (component_type) {
         case ComponentType.Button:
-            getButtonCommand(id)<MessageButtonInteraction>(interaction);
+            getButtonCommand(custom_id)<MessageButtonInteraction>(interaction);
             break;
         case ComponentType.StringSelect:
         case ComponentType.ChannelSelect:
         case ComponentType.UserSelect:
         case ComponentType.RoleSelect:
         case ComponentType.MentionableSelect:
-            getMenuCommand(id)<MessageMenuInteraction>(interaction);
+            getMenuCommand(custom_id)<MessageMenuInteraction>(interaction);
             break;
     }
 };

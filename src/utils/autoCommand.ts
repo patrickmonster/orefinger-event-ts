@@ -108,8 +108,7 @@ export default (modulePath: string, options?: AutoCommandOptions) => {
     return (id: string) => {
         // const command = Object.keys(commands).findIndex(i => id.startsWith(i));
         const command = Object.keys(commands).find(i => id.startsWith(i));
-
-        if (command) console.log('Event]', id);
+        console.log('Event]', id);
 
         return command
             ? <T, U = any>(interaction: T, args?: U[]) => commands[command](interaction, options?.isOption ? args : id.replace(command + ' ', ''))

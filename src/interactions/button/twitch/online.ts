@@ -2,7 +2,7 @@ import { MessageInteraction } from 'interactions/message';
 
 import authTokenSelect from 'components/authTokenSelect';
 
-import {} from 'components/onlineChannel';
+import {} from 'components/onlineTwitchChannel';
 import { getUser } from 'components/twitch';
 import menu from 'components/menu';
 
