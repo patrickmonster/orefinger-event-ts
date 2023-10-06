@@ -1,4 +1,4 @@
-import getConnection, { query, SqlInsertUpdate, format } from 'utils/database';
+import getConnection, { query, SqlInsertUpdate, format, calTo } from 'utils/database';
 
 import { webhook as webhookUpdateType } from 'interfaces/webhook';
 import { deleteObjectColByKey } from 'utils/object';
@@ -23,7 +23,7 @@ export type webhookType = {
     update_at: string;
 };
 
-export const webhook = async (auth_id: string) =>
+export const webhook = async (auth_id: string, type?: number) =>
     query<webhookType>(
         `
 select ec.type
@@ -34,7 +34,7 @@ from event_channel ec
 inner join v_auth_token vat  on vat.user_id  = ec.user_id and vat.type = 2        
 left join types t on t.idx = ec.type
 where 1=1
--- and ec.type = 14
+${calTo('AND ec.type = ?', type)}
 and vat.auth_id = ? 
 and delete_yn ='N'
     `,
