@@ -7,7 +7,8 @@ export const drawImageWithRadius = (
     y: number,
     width = image.width,
     height = image.height,
-    radius = width / 2
+    radius = width / 2,
+    drowLine = true
 ) => {
     console.log('IMG]drawImageWithRadius', image, x, y, width, height, radius);
 
@@ -16,9 +17,69 @@ export const drawImageWithRadius = (
         ctx.lineWidth = 1;
 
         ctx.arc(x + radius, y + radius, radius, 0, Math.PI * 2, true);
-        ctx.stroke();
+        if (drowLine) ctx.stroke();
         ctx.clip();
         ctx.drawImage(image, x, y, width, height);
+    });
+};
+
+export const bluerSpace = (ctx: CanvasRenderingContext2D, image: Image, x: number, y: number, width: number, height: number, blur = 2) => {
+    console.log('IMG]bluerSpace', x, y, width, height);
+
+    trance(ctx, () => {
+        let sum = 0;
+        let delta = 5;
+        let alpha_left = 1 / (2 * Math.PI * delta * delta);
+        let step = blur < 3 ? 1 : 2;
+        for (let y = -blur; y <= blur; y += step) {
+            for (let x = -blur; x <= blur; x += step) {
+                let weight = alpha_left * Math.exp(-(x * x + y * y) / (2 * delta * delta));
+                sum += weight;
+            }
+        }
+
+        for (let y = -blur; y <= blur; y += step) {
+            for (let x = -blur; x <= blur; x += step) {
+                ctx.globalAlpha = ((alpha_left * Math.exp(-(x * x + y * y) / (2 * delta * delta))) / sum) * blur;
+                ctx.drawImage(image, x, y, width, height);
+            }
+        }
+    });
+};
+
+export const drawFullColor = (
+    ctx: CanvasRenderingContext2D,
+    image: Image,
+    color: string,
+    x: number,
+    y: number,
+    width = image.width,
+    height = image.height,
+    radius?: number
+) => {
+    console.log('IMG]drawFullColor', image, color, x, y, width, height);
+    const tmpCtx = createCanvas(image.width, image.height).getContext('2d');
+    if (radius) {
+        drawImageWithRadius(tmpCtx, image, 0, 0, image.width, image.height, image.width / 2, false);
+    } else tmpCtx.drawImage(image, 0, 0);
+
+    const red = parseInt(color.substring(1, 3), 16);
+    const green = parseInt(color.substring(3, 5), 16);
+    const blue = parseInt(color.substring(5, 7), 16);
+
+    const imageData = tmpCtx.getImageData(0, 0, image.width, image.height);
+    const pixels = imageData.data;
+
+    for (let i = 0, n = pixels.length; i < n; i += 4) {
+        pixels[i] = red;
+        pixels[i + 1] = green;
+        pixels[i + 2] = blue;
+    }
+
+    tmpCtx.putImageData(imageData, 0, 0);
+
+    trance(ctx, () => {
+        ctx.drawImage(tmpCtx.canvas, x, y, width, height);
     });
 };
 
