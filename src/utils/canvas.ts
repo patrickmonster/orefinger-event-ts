@@ -15,6 +15,7 @@ export const drawImageWithRadius = (
     trance(ctx, () => {
         ctx.strokeStyle = '#ffffff';
         ctx.lineWidth = 1;
+        ctx.moveTo(x + radius * 2, y + radius);
 
         ctx.arc(x + radius, y + radius, radius, 0, Math.PI * 2, true);
         if (drowLine) ctx.stroke();
@@ -57,6 +58,8 @@ export const drawText = (ctx: CanvasRenderingContext2D, txt: string, x: number, 
     trance(ctx, () => {
         ctx.font = font?.font || '30px Arial';
         ctx.fillText(txt, x, y);
+        ctx.strokeStyle = '#ffffff59';
+        ctx.strokeText(txt, x, y);
         if (stroke) {
             ctx.strokeStyle = stroke;
             ctx.strokeText(txt, x, y);

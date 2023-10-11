@@ -1,5 +1,5 @@
 'use strict';
-import { query, SqlInsertUpdate, queryFunctionType, selectPaging } from 'utils/database';
+import { query, format, SqlInsertUpdate, queryFunctionType, selectPaging } from 'utils/database';
 import { AuthUser } from 'interfaces/auth';
 
 import { Event } from 'interfaces/eventsub';
@@ -201,4 +201,34 @@ ${name ? '' : '-- '}and name = ?
         user_id,
         login,
         name
+    );
+
+// 옵션에 대한 사용자 정보를 불러옴
+export const getAuthOption = (user_id: string, option: string) =>
+    query<{
+        user_id: string;
+        auth_id: string;
+        login: string;
+        name: string;
+        kr_name: string;
+        user_type: string;
+        avatar: string;
+    }>(
+        `
+SELECT
+    vat.user_id
+    , vat.auth_id
+    , vat.login
+    , vat.name
+    , vat.kr_name
+    , vat.user_type
+    , vat.avatar
+FROM v_auth_token vat
+LEFT JOIN auth_option ao ON vat.auth_id = ao.auth_id
+WHERE vat.user_id = ?
+    AND vat.type = 2
+    AND ao.auth_id IS NOT NULL
+    AND ao.${format(option)} = 'Y'
+    `,
+        user_id
     );
