@@ -1,6 +1,6 @@
 'use strict';
 import axios, { AxiosInstance, AxiosInterceptorManager, AxiosRequestConfig, AxiosResponse } from 'axios';
-// import redis from './redis';
+import redis from './redis';
 import sleep from './sleep';
 
 const API_VERSION = 'helix';
@@ -53,85 +53,85 @@ twitch.interceptors.response.use(
     }
 );
 
-// export const GetToken = async (id: string, sc: string, scope: string[]) => {
-//     const token_id = `TOKEN:${id}`;
-//     let token;
-//     try {
-//         token = await redis.get(token_id);
-//         if (token) return { token, id, scope };
-//     } catch (err) {}
+export const GetToken = async (id: string, sc: string, scope: string[]) => {
+    const token_id = `TOKEN:${id}`;
+    let token;
+    try {
+        token = await redis.get(token_id);
+        if (token) return { token, id, scope };
+    } catch (err) {}
 
-//     console.log('TOKEN] ', id, sc);
+    console.log('TOKEN] ', id, sc);
 
-//     const { data } = await axios.post(
-//         `https://id.twitch.tv/oauth2/token?client_id=${id}&client_secret=${sc}&grant_type=client_credentials&${scope.join('%20')}`
-//     );
-//     await redis.set(token_id, data.access_token, {
-//         EX: data.expires_in - 10,
-//     });
+    const { data } = await axios.post(
+        `https://id.twitch.tv/oauth2/token?client_id=${id}&client_secret=${sc}&grant_type=client_credentials&${scope.join('%20')}`
+    );
+    await redis.set(token_id, data.access_token, {
+        EX: data.expires_in - 10,
+    });
 
-//     return { token: data.access_token, id, scope };
-// };
+    return { token: data.access_token, id, scope };
+};
 
-// export const GetClientToken = async () =>
-//     await GetToken(process.env.TWITCH_CLIENT || '', process.env.TWITCH_SECRET || '', ['channel:read:subscriptions', 'user:read:email']);
+export const GetClientToken = async () =>
+    await GetToken(process.env.TWITCH_CLIENT || '', process.env.TWITCH_SECRET || '', ['channel:read:subscriptions', 'user:read:email']);
 
-// export const GetClientTokenHeader = async () => {
-//     const { token, id } = await GetClientToken();
+export const GetClientTokenHeader = async () => {
+    const { token, id } = await GetClientToken();
 
-//     console.log('LOADING CLIENT TOKEN', token, id);
+    console.log('LOADING CLIENT TOKEN', token, id);
 
-//     return { Authorization: `Bearer ${token}`, 'Client-Id': id };
-// };
+    return { Authorization: `Bearer ${token}`, 'Client-Id': id };
+};
 
-// export const CreateSubscribe = async (target: any) =>
-//     await axios.post(
-//         'https://api.twitch.tv/helix/eventsub/subscriptions',
-//         Object.assign(
-//             {
-//                 version: '1',
-//                 transport: {
-//                     method: 'webhook',
-//                     callback: `https://event.orefinger.click/event/twitch`,
-//                     secret: `${process.env.TWITCH_EVENTSUB_SECRET || '12345678901234567890'}`,
-//                 },
-//             },
-//             target
-//         ),
-//         {
-//             headers: await GetClientTokenHeader(),
-//         }
-//     );
+export const CreateSubscribe = async (target: any) =>
+    await axios.post(
+        'https://api.twitch.tv/helix/eventsub/subscriptions',
+        Object.assign(
+            {
+                version: '1',
+                transport: {
+                    method: 'webhook',
+                    callback: `https://event.orefinger.click/event/twitch`,
+                    secret: `${process.env.TWITCH_EVENTSUB_SECRET || '12345678901234567890'}`,
+                },
+            },
+            target
+        ),
+        {
+            headers: await GetClientTokenHeader(),
+        }
+    );
 
-// export const GetSubscribe = async (query: EventSubQuery) => {
-//     let targetUrl = '/eventsub/subscriptions';
-//     if (typeof query === 'string') {
-//         targetUrl += `?after=${query}`;
-//     } else {
-//         targetUrl += `?${Object.entries(query)
-//             .map(([key, value]) => `${key}=${value}`)
-//             .join('&')}`;
-//     }
+export const GetSubscribe = async (query: EventSubQuery) => {
+    let targetUrl = '/eventsub/subscriptions';
+    if (typeof query === 'string') {
+        targetUrl += `?after=${query}`;
+    } else {
+        targetUrl += `?${Object.entries(query)
+            .map(([key, value]) => `${key}=${value}`)
+            .join('&')}`;
+    }
 
-//     console.log('GetSubscribe', targetUrl);
+    console.log('GetSubscribe', targetUrl);
 
-//     return twitchAPI.get<{
-//         total: number;
-//         data: {
-//             id: string;
-//             status: string;
-//             type: string;
-//             version: string;
-//             condition: any;
-//             created_at: string;
-//             cost: number;
-//         }[];
-//         max_total_cost: number;
-//         total_cost: number;
-//         pagination: {
-//             cursor?: string;
-//         };
-//     }>(targetUrl, {
-//         headers: await GetClientTokenHeader(),
-//     });
-// };
+    return twitchAPI.get<{
+        total: number;
+        data: {
+            id: string;
+            status: string;
+            type: string;
+            version: string;
+            condition: any;
+            created_at: string;
+            cost: number;
+        }[];
+        max_total_cost: number;
+        total_cost: number;
+        pagination: {
+            cursor?: string;
+        };
+    }>(targetUrl, {
+        headers: await GetClientTokenHeader(),
+    });
+};

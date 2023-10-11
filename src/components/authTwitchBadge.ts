@@ -164,6 +164,4 @@ export default async (user_id: string, user: User, channel: Channel | null | und
     });
 
     canvas.createPNGStream().pipe(createWriteStream(savePath));
-
-    return canvas.toBuffer('image/png');
 };

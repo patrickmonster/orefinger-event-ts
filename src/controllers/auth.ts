@@ -204,7 +204,7 @@ ${name ? '' : '-- '}and name = ?
     );
 
 // 옵션에 대한 사용자 정보를 불러옴
-export const getAuthOption = (user_id: string, option: string) =>
+export const getAuthBadge = (user_id: string) =>
     query<{
         user_id: string;
         auth_id: string;
@@ -215,7 +215,7 @@ export const getAuthOption = (user_id: string, option: string) =>
         avatar: string;
     }>(
         `
-SELECT
+SELECT 
     vat.user_id
     , vat.auth_id
     , vat.login
@@ -223,12 +223,11 @@ SELECT
     , vat.kr_name
     , vat.user_type
     , vat.avatar
-FROM v_auth_token vat
-LEFT JOIN auth_option ao ON vat.auth_id = ao.auth_id
-WHERE vat.user_id = ?
-    AND vat.type = 2
-    AND ao.auth_id IS NOT NULL
-    AND ao.${format(option)} = 'Y'
+FROM auth_option ao
+LEFT JOIN v_auth_token vat ON ao.auth_id = vat.auth_id  
+WHERE badge = ?
+AND vat.type = 2
+AND vat.user_id = badge 
     `,
         user_id
     );

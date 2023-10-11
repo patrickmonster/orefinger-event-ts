@@ -5,7 +5,7 @@ import dayjs from 'dayjs';
 import { join } from 'path';
 import { existsSync, createReadStream } from 'fs';
 
-import { getAuthOption } from 'controllers/auth';
+import { getAuthBadge } from 'controllers/auth';
 import api from 'utils/twitchApiInstance';
 import authTwitchBadge from 'components/authTwitchBadge';
 
@@ -33,9 +33,8 @@ export default async (fastify: FastifyInstance, opts: any) => {
 
             if (existsSync(badgePath)) {
                 res.send(createReadStream(badgePath));
-                return;
             } else {
-                getAuthOption(req.params.id, 'badge_yn').then(async ([user]) => {
+                getAuthBadge(req.params.id).then(async ([user]) => {
                     const logo = await loadImage('https://cdn.orefinger.click/public/logo.png');
                     if (!user) {
                         const canvas = createCanvas(w, h);
@@ -67,7 +66,10 @@ export default async (fastify: FastifyInstance, opts: any) => {
                         }[];
                     }>(`/streams?user_id=${id}&type=live`);
 
-                    res.send(await authTwitchBadge(id, user, channel, badgePath));
+                    // res.send();
+                    await authTwitchBadge(id, user, channel, badgePath);
+
+                    res.send(createReadStream(badgePath));
                 });
             }
         }
