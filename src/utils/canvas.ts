@@ -47,6 +47,23 @@ export const bluerSpace = (ctx: CanvasRenderingContext2D, image: Image, x: numbe
     });
 };
 
+type DrawTextOption = {
+    font?: string;
+    color?: string;
+};
+export const drawText = (ctx: CanvasRenderingContext2D, txt: string, x: number, y: number, font?: DrawTextOption, stroke?: string) => {
+    console.log('IMG]drawText', txt, x, y);
+
+    trance(ctx, () => {
+        ctx.font = font?.font || '30px Arial';
+        ctx.fillText(txt, x, y);
+        if (stroke) {
+            ctx.strokeStyle = stroke;
+            ctx.strokeText(txt, x, y);
+        }
+    });
+};
+
 export const drawFullColor = (
     ctx: CanvasRenderingContext2D,
     image: Image,
@@ -81,6 +98,14 @@ export const drawFullColor = (
     trance(ctx, () => {
         ctx.drawImage(tmpCtx.canvas, x, y, width, height);
     });
+};
+
+export const width = (ctx: CanvasRenderingContext2D, w: number) => {
+    return (w / ctx.canvas.width) * 100;
+};
+
+export const height = (ctx: CanvasRenderingContext2D, h: number) => {
+    return (h / ctx.canvas.width) * 100;
 };
 
 export const trance = (ctx: CanvasRenderingContext2D, func = () => {}) => {
