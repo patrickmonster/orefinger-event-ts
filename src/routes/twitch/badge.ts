@@ -29,7 +29,7 @@ export default async (fastify: FastifyInstance, opts: any) => {
             const w = 500,
                 h = 500;
             //
-            const badgePath = join(process.env.EFS_ROOT || '~/efs', 'badge', `${id}.png`);
+            const badgePath = join(process.env.EFS_ROOT || process.cwd(), 'badge', `${id}.png`);
 
             if (existsSync(badgePath)) {
                 res.send(createReadStream(badgePath));
