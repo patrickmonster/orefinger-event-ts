@@ -48,9 +48,13 @@ export default async (user_id: string, user: User, channel: Channel | null | und
         data: [color],
     } = await api.get<{ data: { color: string }[] }>(`/chat/color?user_id=${user_id}`);
 
+    console.log('color', color);
+
     ctx.textAlign = 'center';
 
+    console.log('loading image', user.avatar);
     const img = await loadImage(user.avatar);
+    console.log('loading image', 'https://cdn.orefinger.click/public/logo.png');
     const logo = await loadImage('https://cdn.orefinger.click/public/logo.png');
 
     bluerSpace(ctx, img, 0, 0, w, h, 6);

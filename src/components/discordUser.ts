@@ -8,7 +8,9 @@ import { getUser as getTwitchUser } from './twitch';
  * @param auth_id Discord ID
  */
 export const setUserNick = async (twitch_id: string, auth_id: string) => {
-    const [user] = await getTwitchUser(twitch_id);
+    const {
+        data: [user],
+    } = await getTwitchUser(twitch_id);
     const nick = (user.display_name.toLowerCase() == user.login ? user.display_name : `${user.display_name}(${user.login})`).substring(0, 32);
     return await discord.patch(`/guilds/${process.env.GUILD_ID}/members/${auth_id}`, {
         nick,

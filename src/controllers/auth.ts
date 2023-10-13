@@ -22,14 +22,17 @@ export const auth = async (type: string, auth_id: string, profile: AuthUser, ref
 };
 
 export const userUpdate = async (event: Event) => {
-    const { user_id, user_login, user_name, email } = event;
+    const { user_id, user_login, user_name } = event;
+    const obj: Event = { login: user_login, name: user_name };
+    if (event.avatar) obj.avatar = event.avatar;
+    if (event.email) obj.email = event.email;
     await query<SqlInsertUpdate>(
         `
 UPDATE auth_token SET 
 ?, update_at = CURRENT_TIMESTAMP 
 WHERE \`type\` in (2,3) and user_id=?
         `,
-        { login: user_login, name: user_name, email },
+        obj,
         user_id + ''
     );
 };
