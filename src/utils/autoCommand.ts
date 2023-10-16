@@ -1,4 +1,5 @@
-import fs, { promises } from 'fs';
+import { APIApplicationCommandInteractionDataBasicOption } from 'discord-api-types/v10';
+import fs from 'fs';
 import path, { join, parse } from 'path';
 
 export type Module = {
@@ -7,6 +8,7 @@ export type Module = {
     path?: string;
     module: {
         exec: Function;
+        default: APIApplicationCommandInteractionDataBasicOption;
         alias?: string[];
     };
 };
@@ -87,33 +89,36 @@ const flattenModules = (modules: Modules[], path?: string): Module[] => {
     }
     return flatModules;
 };
+type ModuleFunction = { [key: string]: Function };
 
-export default (modulePath: string, options?: AutoCommandOptions) => {
+export default (
+    modulePath: string,
+    options?: AutoCommandOptions
+): [APIApplicationCommandInteractionDataBasicOption[], (id: string) => <T, U = any>(interaction: T, args?: U[] | undefined) => any] => {
     const option = Object.assign({ defaultFunction: () => {}, isSubfolder: true }, options);
 
-    // if (!process.env.MASTER_KEY) {
-    //     return (id: string) =>
-    //         <E, F extends any>(interaction: E, args?: any[] | F) => {};
-    // }
-
     const modules = flattenModules(ScanDir(getOriginFileName(modulePath), [], option).modules);
-    const commands: { [key: string]: Function } = {};
-    for (const command of modules) {
-        const { path, name, module } = command;
+    // const modulesAPI = modules.map((api) => api);
+    const commands = modules.reduce((acc, { name, path, module }) => {
         const custom_id = `${path ? path + ' ' : ''}${name}`;
-        if (module.exec) commands[custom_id] = module.exec;
+        if (module.exec) acc[custom_id] = module.exec;
         else console.error('ERROR] exec is not defined', custom_id);
-    }
+        return acc;
+    }, {} as ModuleFunction);
 
-    return (id: string) => {
-        // const command = Object.keys(commands).findIndex(i => id.startsWith(i));
-        const command = Object.keys(commands).find(i => id.startsWith(i));
-        console.log('Event]', id);
+    return [
+        modules.map(({ module }) => module.default),
+        (id: string) => {
+            // const command = Object.keys(commands).findIndex(i => id.startsWith(i));
+            const command = Object.keys(commands).find(i => id.startsWith(i));
 
-        return command
-            ? <T, U = any>(interaction: T, args?: U[]) => commands[command](interaction, options?.isOption ? args : id.replace(command + ' ', ''))
-            : option.defaultFunction;
-    };
+            if (command) console.log('Event]', id);
+
+            return command
+                ? <T, U = any>(interaction: T, args?: U[]) => commands[command](interaction, options?.isOption ? args : id.replace(command + ' ', ''))
+                : option.defaultFunction;
+        },
+    ];
 };
 export const findCommand = (id: string, commands: { [k: string]: Function }, defaultFunction = () => {}) => {
     const command = Object.keys(commands).find(i => id.startsWith(i));

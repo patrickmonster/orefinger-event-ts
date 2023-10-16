@@ -58,6 +58,7 @@
     "license": "MIT",
     "scripts": {
         "build": "npx tsc --project tsconfig.json && tsc-alias -p tsconfig.json",
+        "cmdLocal": "cross-env NODE_ENV=local ts-node -r tsconfig-paths/register src/discordCommands.ts",
         "start": "node dist/app.js",
         "proxy": "ngrok http 3000",
         "bot": "cross-env NODE_ENV=local nodemon --watch src/interactions --exec ts-node -r tsconfig-paths/register src/app.ts",

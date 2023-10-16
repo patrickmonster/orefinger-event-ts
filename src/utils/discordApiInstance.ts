@@ -1,9 +1,9 @@
 'use strict';
-import { error as errorLog } from './logger';
 import axios, { AxiosInstance, AxiosRequestConfig } from 'axios';
 import { RESTPostAPIChannelMessage } from 'plugins/discord';
 import sleep from 'utils/sleep';
 import imageBase64 from './imageBase64';
+import { error as errorLog } from './logger';
 
 interface CustomInstance extends AxiosInstance {
     get<T>(url: string, config?: AxiosRequestConfig): Promise<T>;
