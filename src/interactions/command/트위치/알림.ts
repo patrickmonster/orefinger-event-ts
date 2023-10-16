@@ -1,11 +1,16 @@
+import {
+    APIApplicationCommandSubcommandOption,
+    ApplicationCommandOptionType,
+    ChannelType,
+    RESTGetAPIGuildChannelsResult,
+    SelectMenuDefaultValueType,
+} from 'discord-api-types/v10';
 import { basename } from 'path';
-import { APIApplicationCommandSubcommandOption, ApplicationCommandOptionType, ChannelType } from 'discord-api-types/v10';
 
 import getOptions from 'components/chatInputOption';
+import { onlineChannels } from 'controllers/channel';
 import { AppChatInputInteraction } from 'interactions/app';
-import authTokenSelect from 'components/authTokenSelect';
-import onlineChannel from 'components/onlineTwitchChannel';
-import { channelCreate } from 'components/guild';
+import discord from 'utils/discordApiInstance';
 
 const name = basename(__filename, __filename.endsWith('js') ? '.js' : '.ts');
 const type = ApplicationCommandOptionType.Subcommand;
@@ -13,39 +18,38 @@ const type = ApplicationCommandOptionType.Subcommand;
 export const exec = async (interaction: AppChatInputInteraction) => {
     const { member, guild_id } = interaction;
 
-    if (!guild_id) {
-        return await interaction.re({ content: '서버에서만 사용할 수 있습니다.', ephemeral: true });
-    }
+    if (!guild_id) return await interaction.re({ content: '서버에서만 사용할 수 있습니다.', ephemeral: true });
+
+    let channel_id = getOptions<string>(interaction.options, '채널', '0');
+    const user_id = getOptions<string>(interaction.options, '사용자', member?.user?.id || '0');
 
     const reply = await interaction.deffer({ ephemeral: true });
 
-    const user_id = getOptions<string>(interaction.options, '사용자', member?.user?.id || '0');
+    // 활성 채널 목록
+    const channels = await discord
+        .get<RESTGetAPIGuildChannelsResult>(`/guilds/${guild_id}/channels`)
+        .then(async channels => await onlineChannels({ channels_id: channels.map(({ id }) => id) }));
 
-    authTokenSelect(user_id, `select twitch`, 2).then(user => {
-        if (Array.isArray(user)) {
-            reply({ components: user });
-        } else {
-            onlineChannel(reply, user.user_id, guild_id);
-        }
+    await reply({
+        content: '채널 목록',
+        components: [
+            {
+                type: 1,
+                components: [
+                    {
+                        type: 8,
+                        custom_id: 'online_channel',
+                        max_values: 1,
+                        min_values: 1,
+                        default_values: channels.map(({ channel_id }) => ({
+                            id: channel_id,
+                            type: SelectMenuDefaultValueType.Channel,
+                        })),
+                    },
+                ],
+            },
+        ],
     });
-
-    // console.log('선택자', user_id, channel_id);
-
-    // const reply = await interaction.deffer({ ephemeral: true });
-
-    // authTokenSelect(user_id, `select online ${channel_id}`, 2).then(async user => {
-    //     if (Array.isArray(user)) {
-    //         reply({ components: user });
-    //     } else {
-    //         if (channel_id === '0') {
-    //             const channel = await channelCreate(guild_id || '0', {
-    //                 name: `📺방송알림`,
-    //             });
-    //             console.log(channel);
-    //         }
-    //         // await onlineChannel(reply, user.user_id, channel_id);
-    //     }
-    // });
 };
 
 const api: APIApplicationCommandSubcommandOption = {
@@ -53,13 +57,13 @@ const api: APIApplicationCommandSubcommandOption = {
     type,
     description: '트위치 알림을 등록합니다.',
     options: [
-        // {
-        //     name: '채널',
-        //     type: ApplicationCommandOptionType.Channel,
-        //     channel_types: [ChannelType.GuildText, ChannelType.GuildAnnouncement],
-        //     description: '알림을 받을 채널을 선택해 주세요!',
-        //     required: true,
-        // },
+        {
+            name: '채널',
+            type: ApplicationCommandOptionType.Channel,
+            channel_types: [ChannelType.GuildText, ChannelType.GuildAnnouncement],
+            description: '알림을 받을 채널을 선택해 주세요!',
+            required: true,
+        },
         {
             name: '사용자',
             type: ApplicationCommandOptionType.User,

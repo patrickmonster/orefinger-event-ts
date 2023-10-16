@@ -1,6 +1,11 @@
-import { query, SqlInsertUpdate } from 'utils/database';
+import { calTo, query, SqlInsertUpdate } from 'utils/database';
 
-export const onlineChannels = (user_id: string, channels_id: string[]) =>
+type OnlineChannelsProps = {
+    user_id?: string;
+    channels_id?: string[];
+};
+
+export const onlineChannels = ({ channels_id, user_id }: OnlineChannelsProps) =>
     query<{
         type: number;
         user_id: string;
@@ -15,8 +20,6 @@ export const onlineChannels = (user_id: string, channels_id: string[]) =>
 select \`type\`, user_id, name, channel_id, custom_ment, url, create_at, update_at 
 from v_event_channel vec 
 where 1=1
-and user_id = ? 
-and channel_id in (?)`,
-        user_id,
-        channels_id
+${calTo('and user_id = ?', user_id)}
+${calTo('and channel_id in (?)', channels_id)}`
     );

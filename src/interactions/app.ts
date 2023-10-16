@@ -1,9 +1,9 @@
-import { InteractionEvent, APIApplicationCommandInteraction, APIApplicationCommandInteractionData, ApplicationCommandType } from 'plugins/discord';
 import { APIChatInputApplicationCommandInteractionData, APIContextMenuInteractionData } from 'discord-api-types/v10';
+import { APIApplicationCommandInteraction, APIApplicationCommandInteractionData, ApplicationCommandType, InteractionEvent } from 'plugins/discord';
 
-import autoLoader from 'utils/autoCommand';
 import { join } from 'path';
-const getAppCommand = autoLoader(join(__dirname, 'app'), {
+import autoLoader from 'utils/autoCommand';
+const [appCommands, getAppCommand] = autoLoader(join(__dirname, 'app'), {
     pathTag: ' ',
     isLog: true,
     defaultFunction: async (interaction: appInteraction) => {
@@ -12,7 +12,7 @@ const getAppCommand = autoLoader(join(__dirname, 'app'), {
     },
 });
 
-const getChatCommand = autoLoader(join(__dirname, 'command'), {
+const [chatCommand, getChatCommand] = autoLoader(join(__dirname, 'command'), {
     pathTag: ' ',
     isLog: true,
     isSubfolder: false,
@@ -42,7 +42,12 @@ const appComponent = async (interaction: appInteraction) => {
     }
 };
 
+export const api = [...appCommands, ...chatCommand];
 export default appComponent;
+
+// /applications/{application.id}/commands
+
+// export { appCommands, chatCommand };
 
 // APIChatInputApplicationCommandInteractionData
 // APIUserApplicationCommandInteractionData

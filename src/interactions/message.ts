@@ -1,13 +1,13 @@
-import autoLoader from 'utils/autoCommand';
-import { InteractionEvent, ComponentType, APIMessageComponentInteraction, APIMessageComponentInteractionData } from 'plugins/discord';
 import { APIMessageButtonInteractionData, APIMessageSelectMenuInteractionData } from 'discord-api-types/v10';
 import { join } from 'path';
+import { APIMessageComponentInteraction, APIMessageComponentInteractionData, ComponentType, InteractionEvent } from 'plugins/discord';
+import autoLoader from 'utils/autoCommand';
 
 export type MessageInteraction = InteractionEvent & Omit<APIMessageComponentInteraction, 'data' | 'type'> & APIMessageComponentInteractionData;
 export type MessageButtonInteraction = InteractionEvent & Omit<APIMessageComponentInteraction, 'data' | 'type'> & APIMessageButtonInteractionData;
 export type MessageMenuInteraction = InteractionEvent & Omit<APIMessageComponentInteraction, 'data' | 'type'> & APIMessageSelectMenuInteractionData;
 
-const getButtonCommand = autoLoader(join(__dirname, 'button'), {
+const [, getButtonCommand] = autoLoader(join(__dirname, 'button'), {
     pathTag: ' ',
     isLog: true,
     defaultFunction: async (interaction: MessageInteraction) => {
@@ -16,7 +16,7 @@ const getButtonCommand = autoLoader(join(__dirname, 'button'), {
     },
 });
 
-const getMenuCommand = autoLoader(join(__dirname, 'menu'), {
+const [, getMenuCommand] = autoLoader(join(__dirname, 'menu'), {
     pathTag: ' ',
     isLog: true,
     defaultFunction: async (interaction: MessageInteraction) => {
