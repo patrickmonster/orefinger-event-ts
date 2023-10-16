@@ -1,4 +1,8 @@
-import { APIApplicationCommandInteractionDataBasicOption } from 'discord-api-types/v10';
+import {
+    APIApplicationCommandInteractionDataBasicOption,
+    APIApplicationCommandInteractionDataOption,
+    ApplicationCommandOptionType,
+} from 'discord-api-types/v10';
 import fs from 'fs';
 import path, { join, parse } from 'path';
 
@@ -51,9 +55,13 @@ const ScanDir = (modulePath: string, basePath: string[], options?: AutoCommandOp
         const filePath = path.join(modulePath, file);
         const stat = fs.statSync(filePath); // await promises.stat(filePath);
         try {
-            if (stat.isDirectory() && options?.isSubfolder) {
-                modules.push(ScanDir(filePath, [...basePath, file], options));
-            } else modules.push(FileLoader(filePath, options)); // Module[]
+            if (stat.isDirectory()) {
+                if (options?.isSubfolder) {
+                    modules.push(ScanDir(filePath, [...basePath, file], options));
+                }
+            } else {
+                modules.push(FileLoader(filePath, options)); // Module[]
+            }
             // Module | ModuleDir
         } catch (err) {
             console.error(err);
@@ -73,7 +81,11 @@ const getOriginFileName = (path: string) => {
 };
 
 // 다차원 배열을 1차원 배열로 변환
-const flattenModules = (modules: Modules[], path?: string): Module[] => {
+const flattenModules = <E extends APIApplicationCommandInteractionDataOption>(
+    modules: Modules[],
+    path?: string,
+    isSubCommand?: boolean
+): Module[] => {
     const flatModules: Module[] = [];
     for (const module of modules) {
         if ('module' in module) {
@@ -84,9 +96,27 @@ const flattenModules = (modules: Modules[], path?: string): Module[] => {
             });
         } else {
             // ModuleDir
-            flatModules.push(...flattenModules(module.modules, module.path));
+            if (isSubCommand) continue;
+            const modules = flattenModules<APIApplicationCommandInteractionDataBasicOption>(module.modules, module.path);
+            for (const module of modules) {
+                flatModules.push({
+                    name: path || '',
+                    ext: '.dir',
+                    module: {
+                        exec: () => {},
+                        default: {
+                            name: module.name,
+                            type: ApplicationCommandOptionType.Subcommand,
+                            options: module.module.default,
+                        },
+                    },
+                    // ...module,
+                    // path: path ? path + ' ' + module.path : module.path,
+                });
+            }
         }
     }
+
     return flatModules;
 };
 type ModuleFunction = { [key: string]: Function };
@@ -94,10 +124,13 @@ type ModuleFunction = { [key: string]: Function };
 export default (
     modulePath: string,
     options?: AutoCommandOptions
-): [APIApplicationCommandInteractionDataBasicOption[], (id: string) => <T, U = any>(interaction: T, args?: U[] | undefined) => any] => {
+): [APIApplicationCommandInteractionDataOption[], (id: string) => <T, U = any>(interaction: T, args?: U[] | undefined) => any] => {
     const option = Object.assign({ defaultFunction: () => {}, isSubfolder: true }, options);
 
-    const modules = flattenModules(ScanDir(getOriginFileName(modulePath), [], option).modules);
+    const dir = ScanDir(getOriginFileName(modulePath), [], option).modules;
+    console.log('SCAN]', dir);
+
+    const modules = flattenModules<APIApplicationCommandInteractionDataOption>(dir);
     // const modulesAPI = modules.map((api) => api);
     const commands = modules.reduce((acc, { name, path, module }) => {
         const custom_id = `${path ? path + ' ' : ''}${name}`;
@@ -109,7 +142,6 @@ export default (
     return [
         modules.map(({ module }) => module.default),
         (id: string) => {
-            // const command = Object.keys(commands).findIndex(i => id.startsWith(i));
             const command = Object.keys(commands).find(i => id.startsWith(i));
 
             if (command) console.log('Event]', id);
