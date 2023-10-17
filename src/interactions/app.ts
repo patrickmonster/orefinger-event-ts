@@ -47,5 +47,10 @@ const appComponent = async (interaction: appInteraction) => {
     }
 };
 
-export const api = [...apiApp, ...apiChat];
+// export const api = [...apiApp, ...apiChat];
+export const api = {
+    app: apiApp,
+    chat: apiChat,
+};
+
 export default appComponent;
