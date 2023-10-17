@@ -1,13 +1,13 @@
 /**
  * @file discordCommands.ts
- * @description 디스코드 커맨드를 자동으로 등록합니다.
+ * @description 디스코드 커맨드를 갱신합니다.
  *
  */
 
 import { config } from 'dotenv';
 import { existsSync } from 'fs';
 import { join } from 'path';
-import { env, exit } from 'process';
+import { env } from 'process';
 
 const envDir = join(env.PWD || __dirname, `/.env`);
 if (existsSync(envDir)) {
@@ -19,16 +19,31 @@ if (existsSync(envDir)) {
     });
 }
 
-import { api as commandOptions } from './interactions/app';
+// import discord from 'utils/discordApiInstance';
+// import { api } from './interactions/app';
+import './interactions/message';
 
 const bigintConvert = (key: string, value: any) => (typeof value === 'bigint' ? value.toString() : value);
-console.log('api] ', JSON.stringify(commandOptions, bigintConvert));
 
-exit(0);
-// api.get(`/applications/${env.DISCORD_CLIENT_ID}/commands`).then(res => {
+const commands = [];
+
+// for (const command of api) {
+//     const { name, file } = command;
+//     try {
+//         const f = require(file).default;
+//         console.log('Load Command]', name, f);
+//         commands.push(f);
+//     } catch (err) {
+//         console.log('Load Command Error]', name);
+//     }
+// }
+
+// discord.get(`/applications/${env.DISCORD_CLIENT_ID}/commands`).then(res => {
 //     console.log('명령어 조회]', res);
 // });
-// api.put(`/applications/${env.DISCORD_CLIENT_ID}/commands`, JSON.parse(JSON.stringify(commandOptions, bigintConvert)))
+
+// discord
+//     .put(`/applications/${env.DISCORD_CLIENT_ID}/commands`, JSON.parse(JSON.stringify(commands, bigintConvert)))
 //     .then(res => {
 //         console.log('명령어 등록]', res);
 
@@ -38,3 +53,5 @@ exit(0);
 //         console.error('명령어 등록 실패]', err.response.data);
 //         process.exit(1);
 //     });
+
+process.exit(0);

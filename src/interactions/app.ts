@@ -3,26 +3,22 @@ import { APIApplicationCommandInteraction, APIApplicationCommandInteractionData,
 
 import { join } from 'path';
 import autoLoader from 'utils/autoCommand';
-const [appCommands, getAppCommand] = autoLoader(join(__dirname, 'app'), {
+
+const [appCommands] = autoLoader(join(__dirname, 'app'), {
     pathTag: ' ',
     isLog: true,
     isSubfolder: false,
-    defaultFunction: async (interaction: appInteraction) => {
-        console.log('Component: ', interaction.name, 'is not registered.');
-        await interaction.re({ content: '해당 명령은 등록 하지 않는 명령 입니다.' });
-    },
 });
 
-const [chatCommand, getChatCommand] = autoLoader(join(__dirname, 'command'), {
+const [chatCommand] = autoLoader(join(__dirname, 'command'), {
     pathTag: ' ',
     isLog: true,
     isSubfolder: true,
-    defaultFunction: async (interaction: appInteraction) => {
-        console.log('Component: ', interaction.name, 'is not registered.');
-        await interaction.re({ content: '해당 명령은 등록 하지 않는 명령 입니다.' });
-    },
+    // defaultFunction: async (interaction: appInteraction) => {
+    //     console.log('Component: ', interaction.name, 'is not registered.');
+    //     await interaction.re({ content: '해당 명령은 등록 하지 않는 명령 입니다.' });
+    // },
 });
-
 export type appInteraction = InteractionEvent & Omit<APIApplicationCommandInteraction, 'data' | 'type'> & APIApplicationCommandInteractionData;
 export type AppChatInputInteraction = InteractionEvent &
     Omit<APIApplicationCommandInteraction, 'data' | 'type'> &
@@ -35,21 +31,18 @@ const appComponent = async (interaction: appInteraction) => {
     switch (type) {
         case ApplicationCommandType.Message:
         case ApplicationCommandType.User:
-            getAppCommand(interaction.name)<AppContextMenuInteraction>(interaction);
+            const target = appCommands.find(command => command.name === interaction.name);
+            if (target) {
+                const { file } = target;
+                require(file).exec(interaction);
+            }
+            // getAppCommand(interaction.name)<AppContextMenuInteraction>(interaction);
             break;
         case ApplicationCommandType.ChatInput:
-            getChatCommand(interaction.name)<AppChatInputInteraction>(interaction);
+            // getChatCommand(interaction.name)<AppChatInputInteraction>(interaction);
             break;
     }
 };
 
 export const api = [...appCommands, ...chatCommand];
 export default appComponent;
-
-// /applications/{application.id}/commands
-
-// export { appCommands, chatCommand };
-
-// APIChatInputApplicationCommandInteractionData
-// APIUserApplicationCommandInteractionData
-// APIMessageApplicationCommandInteractionData
