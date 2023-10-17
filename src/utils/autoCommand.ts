@@ -108,11 +108,11 @@ export default (modulePath: string, options?: AutoCommandOptions): [{ name: stri
         file: i.file,
     })); // 트리 직열화
 
-    console.log(
-        'AutoCommand] Loading commands',
-        modules.map(i => i.name),
-        list
-    );
+    option.isLog &&
+        console.log(
+            'AutoCommand] Loading commands',
+            modules.map(i => i.name)
+        );
 
     return [modules, list];
 };

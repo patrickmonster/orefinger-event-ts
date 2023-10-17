@@ -19,58 +19,82 @@ if (existsSync(envDir)) {
     });
 }
 
-// import discord from 'utils/discordApiInstance';
-import { ApplicationCommandOptionType } from 'discord-api-types/v10';
+import discord from 'utils/discordApiInstance';
+import {
+    ApplicationCommandOptionType,
+    ApplicationCommandType,
+    RESTPatchAPIApplicationCommandJSONBody,
+    RESTPutAPIApplicationCommandsJSONBody,
+} from 'discord-api-types/v10';
 import { api } from './interactions/app';
+
+function registerCmd(commands: RESTPutAPIApplicationCommandsJSONBody) {
+    discord
+        .put(`/applications/${env.DISCORD_CLIENT_ID}/commands`, JSON.parse(JSON.stringify(commands, bigintConvert)))
+        .then(res => {
+            console.log('명령어 등록]', res);
+            process.exit(0);
+        })
+        .catch(err => {
+            console.error('명령어 등록 실패]', err.response.data);
+            process.exit(1);
+        });
+}
 
 const bigintConvert = (key: string, value: any) => (typeof value === 'bigint' ? value.toString() : value);
 
 const loadFile = (path: string) => require(path).default;
-const loadSubCommand = (module: any) => {
-    const { name, type, options } = module;
-    // return {
-    //     name,
-    //     type,
-    //     options:
-    // };
-};
-//
-// const commands = loadAPI(api);
-const commands = [];
-for (const module of api) {
-    if ('modules' in module) {
-        const { modules } = module;
+const commands: RESTPutAPIApplicationCommandsJSONBody = [];
 
-        const options = [];
+// 앱커맨드
+for (const { file } of api.app) commands.push(loadFile(file));
 
-        // 서브커맨드
-        commands.push({
-            name: module.name,
-            type: ApplicationCommandOptionType.Subcommand,
-            // options: loadAPI(modules),
-        });
-        // 폴더
-    } else {
-        commands.push(loadFile(module.file));
-    }
+for (const module of api.chat) {
+    // 서브커맨드 그룹
+    commands.push({
+        name: module.name,
+        description: `${module.name} 명령어`, // 왜 필수?
+        type: ApplicationCommandType.ChatInput,
+        options: [],
+    });
+    // if ('modules' in module) {
+    //     const { modules } = module;
+    //     // let type: ApplicationCommandOptionType.Subcommand | ApplicationCommandOptionType.SubcommandGroup = ApplicationCommandOptionType.Subcommand;
+    //     // const options = modules.map(module => {
+    //     //     if ('modules' in module) {
+    //     //         type = ApplicationCommandOptionType.SubcommandGroup;
+    //     //         const { modules } = module;
+
+    //     //         return {
+    //     //             name: module.name,
+    //     //             type: ApplicationCommandOptionType.Subcommand,
+    //     //             options: modules.map(module => {
+    //     //                 if ('modules' in module) throw new Error('서브 커맨드 그룹은 3단계까지만 지원합니다.');
+    //     //                 return loadFile(module.file);
+    //     //             }),
+    //     //         };
+    //     //     }
+
+    //     //     return loadFile(module.file);
+    //     // });
+
+    //     // 서브커맨드
+    //     // commands.push({
+    //     //     name: module.name,
+    //     //     type,
+    //     //     options,
+    //     // });
+    //     // 폴더
+    // } else {
+    //     commands.push(loadFile(module.file));
+    // }
 }
+console.log('명령어 로드 완료]', JSON.stringify(commands));
 
-console.log('명령어 로드 완료]', ...commands);
+// registerCmd(commands);
 
 process.exit(0);
 
 // discord.get(`/applications/${env.DISCORD_CLIENT_ID}/commands`).then(res => {
 //     console.log('명령어 조회]', res);
 // });
-
-// discord
-//     .put(`/applications/${env.DISCORD_CLIENT_ID}/commands`, JSON.parse(JSON.stringify(commands, bigintConvert)))
-//     .then(res => {
-//         console.log('명령어 등록]', res);
-
-//         process.exit(0);
-//     })
-//     .catch(err => {
-//         console.error('명령어 등록 실패]', err.response.data);
-//         process.exit(1);
-//     });
