@@ -19,36 +19,58 @@ if (existsSync(envDir)) {
     });
 }
 
-import discord from 'utils/discordApiInstance';
+// import discord from 'utils/discordApiInstance';
+import { ApplicationCommandOptionType } from 'discord-api-types/v10';
 import { api } from './interactions/app';
 
 const bigintConvert = (key: string, value: any) => (typeof value === 'bigint' ? value.toString() : value);
 
+const loadFile = (path: string) => require(path).default;
+const loadSubCommand = (module: any) => {
+    const { name, type, options } = module;
+    // return {
+    //     name,
+    //     type,
+    //     options:
+    // };
+};
+//
+// const commands = loadAPI(api);
 const commands = [];
+for (const module of api) {
+    if ('modules' in module) {
+        const { modules } = module;
 
-for (const command of api) {
-    const { name, file } = command;
-    try {
-        const f = require(file).default;
-        console.log('Load Command]', name, f);
-        commands.push(f);
-    } catch (err) {
-        console.log('Load Command Error]', name);
+        const options = [];
+
+        // 서브커맨드
+        commands.push({
+            name: module.name,
+            type: ApplicationCommandOptionType.Subcommand,
+            // options: loadAPI(modules),
+        });
+        // 폴더
+    } else {
+        commands.push(loadFile(module.file));
     }
 }
+
+console.log('명령어 로드 완료]', ...commands);
+
+process.exit(0);
 
 // discord.get(`/applications/${env.DISCORD_CLIENT_ID}/commands`).then(res => {
 //     console.log('명령어 조회]', res);
 // });
 
-discord
-    .put(`/applications/${env.DISCORD_CLIENT_ID}/commands`, JSON.parse(JSON.stringify(commands, bigintConvert)))
-    .then(res => {
-        console.log('명령어 등록]', res);
+// discord
+//     .put(`/applications/${env.DISCORD_CLIENT_ID}/commands`, JSON.parse(JSON.stringify(commands, bigintConvert)))
+//     .then(res => {
+//         console.log('명령어 등록]', res);
 
-        process.exit(0);
-    })
-    .catch(err => {
-        console.error('명령어 등록 실패]', err.response.data);
-        process.exit(1);
-    });
+//         process.exit(0);
+//     })
+//     .catch(err => {
+//         console.error('명령어 등록 실패]', err.response.data);
+//         process.exit(1);
+//     });

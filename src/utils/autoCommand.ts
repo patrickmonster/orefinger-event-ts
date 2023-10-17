@@ -97,10 +97,7 @@ const util = {
  * @param options
  * @returns
  */
-export default (
-    modulePath: string,
-    options?: AutoCommandOptions
-): [{ name: string; file: string; path: string[]; pathTag: string }[], (id: string) => string] => {
+export default (modulePath: string, options?: AutoCommandOptions): [{ name: string; file: string; path: string[]; pathTag: string }[], Modules[]] => {
     const option = Object.assign({ isSubfolder: true, pathTag: ' ' }, options);
 
     const list = util.scanDir(util.getOriginFileName(modulePath), option); // 디렉토리 스캔
@@ -113,15 +110,9 @@ export default (
 
     console.log(
         'AutoCommand] Loading commands',
-        modules.map(i => i.name)
+        modules.map(i => i.name),
+        list
     );
 
-    return [
-        modules,
-        (id: string) => {
-            const file = modules.find(module => module.name === id)?.file;
-            if (!file) return null;
-            return require(file);
-        },
-    ];
+    return [modules, list];
 };
