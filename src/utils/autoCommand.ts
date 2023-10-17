@@ -48,7 +48,7 @@ const util = {
     scanDir: (modulePath: string, options?: AutoCommandOptions, basePath?: string[]): Modules[] => {
         if (!basePath) basePath = []; // 경로 저장
         const files = fs.readdirSync(modulePath);
-        options?.isLog && console.log('AutoCommand] ScanDir', files, basePath);
+        options?.isLog && console.log('AutoCommand] ScanDir', files);
 
         const out: Modules[] = [];
         for (const file of files) {
@@ -110,6 +110,11 @@ export default (
         path: i.path,
         file: i.file,
     })); // 트리 직열화
+
+    console.log(
+        'AutoCommand] Loading commands',
+        modules.map(i => i.name)
+    );
 
     return [
         modules,

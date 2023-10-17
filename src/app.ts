@@ -1,11 +1,11 @@
-import fastify from 'fastify';
 import AutoLoad from '@fastify/autoload';
 import helmet from '@fastify/helmet';
+import fastify from 'fastify';
 
+import { config } from 'dotenv';
+import { existsSync } from 'fs';
 import { join } from 'path';
 import { env } from 'process';
-import { existsSync } from 'fs';
-import { config } from 'dotenv';
 
 import { ajvFilePlugin } from '@fastify/multipart';
 

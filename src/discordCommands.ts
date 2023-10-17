@@ -19,39 +19,36 @@ if (existsSync(envDir)) {
     });
 }
 
-// import discord from 'utils/discordApiInstance';
-// import { api } from './interactions/app';
-import './interactions/message';
+import discord from 'utils/discordApiInstance';
+import { api } from './interactions/app';
 
 const bigintConvert = (key: string, value: any) => (typeof value === 'bigint' ? value.toString() : value);
 
 const commands = [];
 
-// for (const command of api) {
-//     const { name, file } = command;
-//     try {
-//         const f = require(file).default;
-//         console.log('Load Command]', name, f);
-//         commands.push(f);
-//     } catch (err) {
-//         console.log('Load Command Error]', name);
-//     }
-// }
+for (const command of api) {
+    const { name, file } = command;
+    try {
+        const f = require(file).default;
+        console.log('Load Command]', name, f);
+        commands.push(f);
+    } catch (err) {
+        console.log('Load Command Error]', name);
+    }
+}
 
 // discord.get(`/applications/${env.DISCORD_CLIENT_ID}/commands`).then(res => {
 //     console.log('명령어 조회]', res);
 // });
 
-// discord
-//     .put(`/applications/${env.DISCORD_CLIENT_ID}/commands`, JSON.parse(JSON.stringify(commands, bigintConvert)))
-//     .then(res => {
-//         console.log('명령어 등록]', res);
+discord
+    .put(`/applications/${env.DISCORD_CLIENT_ID}/commands`, JSON.parse(JSON.stringify(commands, bigintConvert)))
+    .then(res => {
+        console.log('명령어 등록]', res);
 
-//         process.exit(0);
-//     })
-//     .catch(err => {
-//         console.error('명령어 등록 실패]', err.response.data);
-//         process.exit(1);
-//     });
-
-process.exit(0);
+        process.exit(0);
+    })
+    .catch(err => {
+        console.error('명령어 등록 실패]', err.response.data);
+        process.exit(1);
+    });
