@@ -36,10 +36,8 @@ const appComponent = async (interaction: appInteraction) => {
                 const { file } = target;
                 require(file).exec(interaction);
             }
-            // getAppCommand(interaction.name)<AppContextMenuInteraction>(interaction);
             break;
         case ApplicationCommandType.ChatInput:
-            // getChatCommand(interaction.name)<AppChatInputInteraction>(interaction);
             break;
     }
 };

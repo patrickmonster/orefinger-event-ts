@@ -23,15 +23,18 @@ const getCommand = <E extends InteractionEvent>(
     }[]
 ) =>
     list
-        .reduce<ComponentReturnType<E>[]>((prev, { file, path, pathTag }) => {
+        .reduce<ComponentReturnType<E>[]>((prev, { name: fileName, file, path, pathTag }) => {
             const command: {
                 name: string;
-                alias: string[];
+                default: { alias: string[] | string };
                 exec: EXEC<E>;
             } = require(file);
 
-            for (const alias of command?.alias) prev.push([[...path, alias].join(pathTag), command.exec]);
-            prev.push([command.name, command.exec]);
+            prev.push([command.name || fileName, command.exec]);
+
+            const aliasList = command?.default?.alias ? (Array.isArray(command.default.alias) ? command.default.alias : [command.default.alias]) : [];
+            for (const alias of aliasList) prev.push([[...path, alias].join(pathTag), command.exec]);
+
             return prev;
         }, [])
         .sort(([a], [b]) => b.length - a.length); // 정렬 (긴것부터 찾도록)

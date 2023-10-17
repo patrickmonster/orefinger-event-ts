@@ -1,14 +1,14 @@
 'use strict';
 
-import fp from 'fastify-plugin';
 import Multipart from '@fastify/multipart';
+import fp from 'fastify-plugin';
 
 /**
  * This plugins adds some utilities to handle http errors
  *
  * @see https://github.com/fastify/fastify-sensible
  */
-module.exports = fp(async function (fastify, opts) {
+export default fp(async function (fastify, opts) {
     fastify.addSchema({
         $id: 'fileUpload',
         type: 'object',

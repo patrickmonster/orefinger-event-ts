@@ -1,13 +1,8 @@
-import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
-import path from 'path';
+import { FastifyInstance } from 'fastify';
 import { createSubscribe } from 'utils/token';
 
-import AutoLoad from '@fastify/autoload';
-
-import { join } from 'path';
-
-import twitch from './twitch';
 import auth from './auth';
+import twitch from './twitch';
 
 export default async (fastify: FastifyInstance, opts: any) => {
     fastify.register(auth);

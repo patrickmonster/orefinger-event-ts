@@ -1,7 +1,7 @@
 'use strict';
-import fp from 'fastify-plugin';
 import crypto from 'crypto';
-import { FastifyRequest, FastifyReply } from 'fastify';
+import { FastifyReply, FastifyRequest } from 'fastify';
+import fp from 'fastify-plugin';
 
 declare module 'fastify' {
     interface FastifyInstance {
@@ -16,7 +16,7 @@ declare module 'fastify' {
  */
 export default fp(async function (fastify, opts) {
     //
-    const SECRET = `${process.env.TWITCH_EVENTSUB_SECRET || opts.TWITCH_SECRET || '12345678901234567890'}`;
+    const SECRET = `${process.env.TWITCH_EVENTSUB_SECRET || '12345678901234567890'}`;
 
     fastify.decorate('verifyTwitchEventSub', function (request: FastifyRequest, reply: FastifyReply) {
         const { body, headers } = request;
