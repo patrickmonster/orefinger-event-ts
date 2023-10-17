@@ -1,13 +1,11 @@
 import {
     APIApplicationCommandSubcommandOption,
     ApplicationCommandOptionType,
-    ChannelType,
     RESTGetAPIGuildChannelsResult,
     SelectMenuDefaultValueType,
 } from 'discord-api-types/v10';
 import { basename } from 'path';
 
-import getOptions from 'components/chatInputOption';
 import { onlineChannels } from 'controllers/channel';
 import { AppChatInputInteraction } from 'interactions/app';
 import discord from 'utils/discordApiInstance';
@@ -19,9 +17,6 @@ export const exec = async (interaction: AppChatInputInteraction) => {
     const { member, guild_id } = interaction;
 
     if (!guild_id) return await interaction.re({ content: '서버에서만 사용할 수 있습니다.', ephemeral: true });
-
-    let channel_id = getOptions<string>(interaction.options, '채널', '0');
-    const user_id = getOptions<string>(interaction.options, '사용자', member?.user?.id || '0');
 
     const reply = await interaction.deffer({ ephemeral: true });
 
@@ -57,13 +52,13 @@ const api: APIApplicationCommandSubcommandOption = {
     type,
     description: '트위치 알림을 등록합니다.',
     options: [
-        {
-            name: '채널',
-            type: ApplicationCommandOptionType.Channel,
-            channel_types: [ChannelType.GuildText, ChannelType.GuildAnnouncement],
-            description: '알림을 받을 채널을 선택해 주세요!',
-            required: true,
-        },
+        // {
+        //     name: '채널',
+        //     type: ApplicationCommandOptionType.Channel,
+        //     channel_types: [ChannelType.GuildText, ChannelType.GuildAnnouncement],
+        //     description: '알림을 받을 채널을 선택해 주세요!',
+        //     required: true,
+        // },
         {
             name: '사용자',
             type: ApplicationCommandOptionType.User,

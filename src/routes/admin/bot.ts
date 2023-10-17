@@ -1,13 +1,13 @@
-import { FastifyInstance, FastifyRequest, FastifyReply, FastifyError } from 'fastify';
-import { InteractionResponseType } from 'discord-interactions';
 import { APIInteraction, InteractionType } from 'discord-api-types/v10';
+import { InteractionResponseType } from 'discord-interactions';
+import { FastifyInstance } from 'fastify';
 
 import { InteractionEvent } from 'plugins/discord';
 
+import app from 'interactions/app';
+import autocomp from 'interactions/autocomp';
 import message from 'interactions/message';
 import model from 'interactions/model';
-import autocomp from 'interactions/autocomp';
-import app from 'interactions/app';
 
 export default async (fastify: FastifyInstance, opts: any) => {
     // const message = require('interactions/message').default;

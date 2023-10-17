@@ -1,21 +1,21 @@
 'use strict';
+import { InteractionResponseType, verifyKey } from 'discord-interactions';
+import { FastifyReply, FastifyRequest } from 'fastify';
 import fp from 'fastify-plugin';
-import { FastifyRequest, FastifyReply } from 'fastify';
-import { verifyKey, InteractionResponseType } from 'discord-interactions';
 
 import axios from 'axios';
 
 /// TYPE def
 import {
-    APIInteraction,
-    APIApplicationCommandInteraction,
-    APIMessageComponentInteraction,
     APIApplicationCommandAutocompleteInteraction,
-    APIModalSubmitInteraction,
+    APIApplicationCommandInteraction,
+    APIInteraction,
+    APIMessageComponentInteraction,
     APIModalInteractionResponseCallbackData,
+    APIModalSubmitInteraction,
 } from 'discord-api-types/v10';
 
-import { RESTPostAPIChannelMessageJSONBody, RESTGetAPIChannelMessageResult } from 'discord-api-types/rest/v10';
+import { RESTGetAPIChannelMessageResult, RESTPostAPIChannelMessageJSONBody } from 'discord-api-types/rest/v10';
 
 export type Interaction =
     | APIApplicationCommandInteraction
@@ -24,18 +24,17 @@ export type Interaction =
     | APIModalSubmitInteraction;
 
 export {
-    APIApplicationCommandInteraction,
-    APIMessageComponentInteraction,
     APIApplicationCommandAutocompleteInteraction,
+    APIApplicationCommandInteraction,
+    APIApplicationCommandInteractionData,
+    APIChatInputApplicationCommandInteractionData,
+    APIMessageComponentInteraction,
+    APIMessageComponentInteractionData,
+    APIModalSubmission,
     APIModalSubmitInteraction,
-
+    ApplicationCommandType,
     // 컴포넌트
     ComponentType,
-    ApplicationCommandType,
-    APIMessageComponentInteractionData, // 메세지 처리 (버튼/매뉴등등)
-    APIApplicationCommandInteractionData, // 앱 처리
-    APIChatInputApplicationCommandInteractionData, // 채팅 입력 슬레시 명령
-    APIModalSubmission, // 모달 처리
 } from 'discord-api-types/v10';
 
 // 비공개 응답
@@ -184,9 +183,8 @@ export default fp(async function (fastify, opts) {
             } = req;
             let isDeferred = false;
 
-            console.log('???', message);
-
             return async (message?: ephemeral) => {
+                console.log('deferred', message);
                 if (!isDeferred) {
                     isDeferred = true;
                     await res.code(200).send({

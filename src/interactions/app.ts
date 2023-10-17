@@ -4,13 +4,13 @@ import { APIApplicationCommandInteraction, APIApplicationCommandInteractionData,
 import { join } from 'path';
 import autoLoader from 'utils/autoCommand';
 
-const [appCommands] = autoLoader(join(__dirname, 'app'), {
+const [appCommands, apiApp] = autoLoader(join(__dirname, 'app'), {
     pathTag: ' ',
     isLog: true,
     isSubfolder: false,
 });
 
-const [chatCommand] = autoLoader(join(__dirname, 'command'), {
+const [chatCommand, apiChat] = autoLoader(join(__dirname, 'command'), {
     pathTag: ' ',
     isLog: true,
     isSubfolder: true,
@@ -34,13 +34,18 @@ const appComponent = async (interaction: appInteraction) => {
             const target = appCommands.find(command => command.name === interaction.name);
             if (target) {
                 const { file } = target;
-                require(file).exec(interaction);
+                await require(file).exec(interaction);
             }
             break;
         case ApplicationCommandType.ChatInput:
+            const chatCommandTarget = chatCommand.find(command => command.name === interaction.name);
+            if (chatCommandTarget) {
+                const { file } = chatCommandTarget;
+                await require(file).exec(interaction);
+            }
             break;
     }
 };
 
-export const api = [...appCommands, ...chatCommand];
+export const api = [...apiApp, ...apiChat];
 export default appComponent;
