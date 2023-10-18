@@ -18,23 +18,29 @@ export const exec = async (interaction: AppChatInputInteraction, selectOption: A
     if (!guild_id) return await interaction.re({ content: '서버에서만 사용할 수 있습니다.', ephemeral: true });
 
     const reply = await interaction.deffer({ ephemeral: true });
-
     const type = selectOption.find(({ name }) => name === '타입')?.value;
+
+    console.log('타입', type);
 
     // [ { name: '타입', type: 4, value: 3 } ]
     switch (type) {
         case 0: {
             // 알림 (in discord)
             const events = await channels(guild_id);
+            console.log('events', events);
+
+            break;
         }
         case 1: {
             // 채팅 (in twitch)
+            break;
         }
         case 2: {
             // 임베드 (in viewer)
+            break;
         }
         default: {
-            await interaction.re({ content: '옵션은 필수 값 입니다', ephemeral: true });
+            await reply({ content: '옵션은 필수 값 입니다', ephemeral: true });
         }
     }
 };
