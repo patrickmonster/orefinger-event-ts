@@ -24,3 +24,23 @@ ${calTo('AND channel_id in (?)', channels_id)}`,
         user_id,
         channels_id
     );
+
+export const eventChannels = ({ channels_id, user_id }: OnlineChannelsProps) =>
+    query<{
+        type: number;
+        user_id: string;
+        name: string;
+        guild_id: string;
+        channel_id: string;
+        custom_ment: string;
+        hook_id: string;
+        hook_token: string;
+        delete_yn: string;
+        create_at: string;
+        update_at: string;
+    }>(`
+SELECT \`type\`, user_id, name, guild_id, channel_id, custom_ment, hook_id, hook_token, delete_yn, create_at, update_at 
+FROM event_channel
+WHERE 1=1
+${calTo('AND user_id = ?', user_id)}
+${calTo('AND channel_id in (?)', channels_id)}`);

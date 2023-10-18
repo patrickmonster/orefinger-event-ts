@@ -37,7 +37,7 @@ const sqlLogger = (query: string, params: any[], rows: any[] | any) => {
 
 // 커넥션 쿼리 함수
 // select / insert / update / delete
-type ResqultQuery<E> = E extends SqlInsertUpdate ? sqlInsertUpdate : E[];
+type ResqultQuery<E> = E extends SqlInsertUpdate ? sqlInsertUpdate : Array<E>;
 type ResqultPaggingQuery<E> = E extends SqlInsertUpdate
     ? null
     : {

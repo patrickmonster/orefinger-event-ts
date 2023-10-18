@@ -1,6 +1,6 @@
 'use strict';
-import { query, format, SqlInsertUpdate, queryFunctionType, selectPaging } from 'utils/database';
 import { AuthUser } from 'interfaces/auth';
+import { SqlInsertUpdate, calTo, query, queryFunctionType, selectPaging } from 'utils/database';
 
 import { Event } from 'interfaces/eventsub';
 
@@ -125,7 +125,7 @@ and use_yn ='Y'
         user_id
     );
 
-export const tokens = (user_id: string, ...types: number[]) =>
+export const tokens = (auth_id: string, ...types: number[]) =>
     query<{
         type: number;
         user_id: string;
@@ -155,11 +155,10 @@ select vat.type
     , update_at
 from v_auth_token vat 
 where auth_id = ?
-${types.length ? '' : '-- '}and vat.type in (?)
+${calTo('AND vat.type in (?)', types)}
 group by user_id
 `,
-        user_id,
-        types
+        auth_id
     );
 
 //
