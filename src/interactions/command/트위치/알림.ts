@@ -50,7 +50,7 @@ export const exec = async (interaction: AppChatInputInteraction) => {
 const api: APIApplicationCommandSubcommandOption = {
     name,
     type,
-    description: '트위치 알림을 등록합니다.',
+    description: '트위치 알림을 설정하거나, 설정합니다..',
     options: [
         // {
         //     name: '채널',

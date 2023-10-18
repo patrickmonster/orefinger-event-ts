@@ -1,4 +1,4 @@
-import { APIChatInputApplicationCommandInteractionData, APIContextMenuInteractionData } from 'discord-api-types/v10';
+import { APIChatInputApplicationCommandInteractionData, APIContextMenuInteractionData, ApplicationCommandOptionType } from 'discord-api-types/v10';
 import { APIApplicationCommandInteraction, APIApplicationCommandInteractionData, ApplicationCommandType, InteractionEvent } from 'plugins/discord';
 
 import { join } from 'path';
@@ -37,13 +37,27 @@ const appComponent = async (interaction: appInteraction) => {
                 await require(file).exec(interaction);
             }
             break;
-        case ApplicationCommandType.ChatInput:
-            const chatCommandTarget = chatCommand.find(command => command.name === interaction.name);
+        case ApplicationCommandType.ChatInput: {
+            const chatCommandNames: string[] = [interaction.name];
+            if ('options' in interaction && interaction.options?.length) {
+                for (const option of interaction.options) {
+                    if ([ApplicationCommandOptionType.Subcommand, ApplicationCommandOptionType.SubcommandGroup].includes(option.type)) {
+                        chatCommandNames.push(option.name);
+                        if (option.type == ApplicationCommandOptionType.SubcommandGroup) {
+                            chatCommandNames.push(option.options[0].name);
+                        }
+                    }
+                }
+            }
+            const chatCommandTarget = chatCommand.find(
+                command => command.path.filter(path => chatCommandNames.includes(path)).length === command.path.length
+            );
             if (chatCommandTarget) {
                 const { file } = chatCommandTarget;
                 await require(file).exec(interaction);
             }
             break;
+        }
     }
 };
 
