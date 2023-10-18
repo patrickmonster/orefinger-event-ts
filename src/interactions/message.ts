@@ -55,6 +55,10 @@ const messageComponent = async (interaction: MessageInteraction) => {
             if (buttonCommand) {
                 const [name, exec] = buttonCommand;
                 return await exec(interaction, ...id.replace(new RegExp(name, 'gi'), '').split(' '));
+            } else {
+                console.log('Component: ', custom_id, 'is not registered.');
+                await interaction.re({ content: '해당 컴포넌트는 등록 하지 않는 컴포넌트 입니다.' });
+                return;
             }
             break;
         case ComponentType.StringSelect:
@@ -66,13 +70,12 @@ const messageComponent = async (interaction: MessageInteraction) => {
             if (menuCommand) {
                 const [name, exec] = menuCommand;
                 return await exec(interaction, ...id.replace(new RegExp(name, 'gi'), '').split(' '));
+            } else {
+                console.log('Component: ', custom_id, 'is not registered.');
+                await interaction.re({ content: '해당 컴포넌트는 등록 하지 않는 컴포넌트 입니다.' });
+                return;
             }
             break;
-    }
-    if (command == undefined) {
-        console.log('Component: ', custom_id, 'is not registered.');
-        await interaction.re({ content: '해당 컴포넌트는 등록 하지 않는 컴포넌트 입니다.' });
-        return;
     }
 };
 
