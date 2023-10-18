@@ -190,4 +190,34 @@ export default async (fastify: FastifyInstance, opts: any) => {
                 user_id: req.user.id,
             })
     );
+
+    fastify.patch<{
+        Querystring: { id: string[] };
+    }>(
+        '/update/user',
+        {
+            schema: {
+                tags: ['Twitch'],
+                summary: '사용자 정보 갱신',
+                description: '사용자 정보 업데이트',
+                querystring: {
+                    type: 'object',
+                    required: ['id'],
+                    properties: {
+                        id: {
+                            type: 'array',
+                            items: {
+                                type: 'string',
+                            },
+                        },
+                    },
+                },
+            },
+        },
+        async req => {
+            //
+            const { id } = req.query;
+            return id;
+        }
+    );
 };

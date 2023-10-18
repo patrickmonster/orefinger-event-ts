@@ -17,7 +17,9 @@
         "@types/xml2js": "^0.4.11",
         "aws-sdk": "^2.1462.0",
         "axios": "^1.4.0",
+        "canvas": "^2.11.2",
         "date-fns": "^2.30.0",
+        "dayjs": "^1.11.10",
         "discord-api-types": "^0.37.50",
         "discord-interactions": "^3.4.0",
         "dotenv": "^16.3.1",
@@ -49,7 +51,7 @@
         "tabWidth": 4
     },
     "name": "discord-notification-ts",
-    "version": "1.3.3",
+    "version": "1.4.0",
     "main": "index.js",
     "repository": "https://github.com/patrickmonster/discord-notification-ts.git",
     "author": "Soung jin Ryu <neocat@kakao.com>",
@@ -60,6 +62,7 @@
         "proxy": "ngrok http 3000",
         "dev": "cross-env NODE_ENV=dev nodemon --watch src/routes --exec ts-node -r tsconfig-paths/register src/app.ts",
         "local": "cross-env NODE_ENV=local nodemon --watch src/routes --exec ts-node -r tsconfig-paths/register src/app.ts",
+        "var": "release.bat",
         "test:twitch": "twitch event verify-subscription subscribe -F http://localhost:3000/twitch/event -s 12345678901234567890"
     }
 }

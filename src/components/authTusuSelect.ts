@@ -18,7 +18,7 @@ export default async (
     role_id: string
 ) => {
     getUser(twitch_id)
-        .then(async ([user]) => {
+        .then(async ({ data: [user] }) => {
             if (!user) {
                 return await reply({
                     content: '트수 정보를 찾을 수 없습니다.',
