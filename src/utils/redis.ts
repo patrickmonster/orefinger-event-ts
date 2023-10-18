@@ -29,3 +29,9 @@ process.on('SIGINT', function () {
 client.connect().catch(e => console.error(e));
 
 export default client;
+
+export const REDIS_KEY = {
+    DISCORD: {
+        GUILD_CHANNELS: (id: string) => `discord:channel:${id}`,
+    },
+};

@@ -122,6 +122,8 @@ export default fp(async function (fastify, opts) {
         }
     };
 
+    fastify.decorateRequest('api', discordInteraction);
+
     // 인터렉션 응답
     fastify.decorateRequest(
         'createReply',
