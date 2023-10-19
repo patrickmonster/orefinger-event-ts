@@ -1,12 +1,11 @@
-import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
+import { FastifyInstance } from 'fastify';
 
-import { Paging } from 'interfaces/swagger';
 import { getAuthUsers } from 'controllers/auth';
 
 export default async (fastify: FastifyInstance, opts: any) => {
     //
     fastify.get<{
-        Querystring: Paging & {
+        Querystring: {
             auth_id?: string;
             user_id?: string;
             login?: string;

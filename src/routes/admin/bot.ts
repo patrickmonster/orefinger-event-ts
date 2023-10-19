@@ -30,8 +30,10 @@ export default async (fastify: FastifyInstance, opts: any) => {
         },
         (req, res) => {
             const { body } = req;
-            if (!fastify.verifyKey(req)) {
-                // 승인되지 않음
+            console.log('process.env.DISCORD_PUBLIC_KEY', process.env.DISCORD_PUBLIC_KEY);
+
+            if (process.env.DISCORD_PUBLIC_KEY && !fastify.verifyKey(req)) {
+                // 승인되지 않음 && process.env.DISCORD_PUBLIC_KEY
                 return res.status(401).send('Bad request signature');
             }
 
@@ -56,6 +58,8 @@ export default async (fastify: FastifyInstance, opts: any) => {
                 follow: req.createFollowup(req, res),
                 raw: { body: body, res: res },
             };
+
+            console.log('interactionEvent', interactionEvent);
 
             switch (body.type) {
                 case InteractionType.ApplicationCommand:

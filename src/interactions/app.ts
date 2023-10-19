@@ -32,6 +32,7 @@ export type AppContextMenuInteraction = InteractionEvent & Omit<APIApplicationCo
 
 const appComponent = async (interaction: appInteraction) => {
     const { type } = interaction;
+    console.log('appComponent', interaction.name, type);
 
     switch (type) {
         case ApplicationCommandType.Message:

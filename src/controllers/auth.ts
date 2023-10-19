@@ -1,6 +1,6 @@
 'use strict';
 import { AuthUser } from 'interfaces/auth';
-import { SqlInsertUpdate, YN, calTo, query, queryFunctionType, selectPaging } from 'utils/database';
+import { SqlInsertUpdate, YN, calTo, query, queryFunctionType } from 'utils/database';
 
 import { Event } from 'interfaces/eventsub';
 
@@ -178,14 +178,13 @@ and g.name > ''`,
     );
 
 export type GetAuthUsersSearchOption = {
-    page: number;
     user_id?: string;
     auth_id?: string;
     login?: string;
     name?: string;
 };
-export const getAuthUsers = ({ page = 0, user_id, auth_id, login, name }: GetAuthUsersSearchOption) =>
-    selectPaging<{
+export const getAuthUsers = ({ user_id, auth_id, login, name }: GetAuthUsersSearchOption) =>
+    query<{
         type: number;
         user_id: string;
         auth_id: string;
@@ -209,10 +208,5 @@ ${calTo('AND auth_id = ?', auth_id)}
 ${calTo('AND user_id = ?', user_id)}
 ${calTo('AND login = ?', login)}
 ${calTo('AND name = ?', name)}
-    `,
-        page,
-        auth_id,
-        user_id,
-        login,
-        name
+    `
     );
