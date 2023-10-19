@@ -1,5 +1,7 @@
+import { channelUpsert } from 'controllers/channel';
 import {
     RESTGetAPIChannelWebhooksResult,
+    RESTGetAPIGuildChannelsResult,
     RESTGetAPIGuildResult,
     RESTPostAPIChannelWebhookResult,
     RESTPostAPIGuildChannelJSONBody,
@@ -17,17 +19,33 @@ const roleRegex = /@([ㄱ-ㅎ가-힣a-zA-Z0-9]+)(~\d)?/gim; // 역할
 
 export const guild = async (guild_id: string) => await discord.get<RESTGetAPIGuildResult>(`/guilds/${guild_id}`);
 
-export const channels = async (guild: string) => {
-    const channels = (await redis.get(REDIS_KEY.DISCORD.GUILD_CHANNELS(guild))) as RESTGetAPIChannelWebhooksResult | null;
-    if (channels) return channels;
+export const channels = async (guild: string, isCash = false) => {
+    if (isCash) {
+        const channels = await redis.get(REDIS_KEY.DISCORD.GUILD_CHANNELS(guild));
+        if (channels) return JSON.parse(channels) as RESTGetAPIGuildChannelsResult;
+    }
 
-    const data = await discord.get<RESTGetAPIChannelWebhooksResult>(`/guilds/${guild}/channels`);
+    const data = await discord.get<RESTGetAPIGuildChannelsResult>(`/guilds/${guild}/channels`);
     await redis.set(REDIS_KEY.DISCORD.GUILD_CHANNELS(guild), JSON.stringify(data), { EX: 60 * 60 });
+    const update = await channelUpsert(data.map(e => ({ guild_id: guild, channel_id: e.id, name: e.name || '', type: e.type })));
+    console.log('LOADING CHANNEL', update);
     return data;
 };
 
-export const channelCreate = async (guild_id: string, data: RESTPostAPIGuildChannelJSONBody) =>
-    await discord.post<RESTPostAPIGuildChannelResult>(`/guilds/${guild_id}/channels`, data);
+export const channelCreate = async (guild_id: string, data: RESTPostAPIGuildChannelJSONBody) => {
+    const channel = await discord.post<RESTPostAPIGuildChannelResult>(`/guilds/${guild_id}/channels`, data);
+    const update = await channelUpsert([
+        {
+            guild_id,
+            channel_id: channel.id,
+            name: channel.name || '',
+            type: channel.type,
+        },
+    ]);
+
+    console.log('CREATE CHANNEL', update);
+    return channel;
+};
 
 // export const channelDelete = async (channel_id: string) =>
 
