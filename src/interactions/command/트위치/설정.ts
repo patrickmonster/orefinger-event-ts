@@ -26,9 +26,14 @@ export const exec = async (interaction: AppChatInputInteraction, selectOption: A
     switch (type) {
         case 0: {
             // 알림 (in discord)
-            const events = await channels(guild_id);
-            console.log('events', events);
+            /**
+             * 1. 채널 목록을 가져온다.
+             * 2. 채널 목록을 선택할 수 있게 한다.
+             */
+            const events = await channels(guild_id); // 현재 채널 목록
+            //
 
+            console.log('events', events);
             break;
         }
         case 1: {

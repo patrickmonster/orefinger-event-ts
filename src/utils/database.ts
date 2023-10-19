@@ -5,6 +5,8 @@ import { env } from 'process';
 
 export const format = mysql.format;
 
+export type YN = 'Y' | 'N' | boolean;
+
 const pool: Pool = mysql.createPool({
     host: env.DB_HOST,
     user: env.DB_USER,

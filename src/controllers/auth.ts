@@ -1,6 +1,6 @@
 'use strict';
 import { AuthUser } from 'interfaces/auth';
-import { SqlInsertUpdate, calTo, query, queryFunctionType, selectPaging } from 'utils/database';
+import { SqlInsertUpdate, YN, calTo, query, queryFunctionType, selectPaging } from 'utils/database';
 
 import { Event } from 'interfaces/eventsub';
 
@@ -184,16 +184,31 @@ export type GetAuthUsersSearchOption = {
     login?: string;
     name?: string;
 };
-export const getAuthUsers = ({ page = 0, user_id = '', auth_id = '', login = '', name = '' }: GetAuthUsersSearchOption) =>
-    selectPaging(
+export const getAuthUsers = ({ page = 0, user_id, auth_id, login, name }: GetAuthUsersSearchOption) =>
+    selectPaging<{
+        type: number;
+        user_id: string;
+        auth_id: string;
+        login: string;
+        name: string;
+        kr_name: string;
+        user_type: number;
+        email: string;
+        avatar: string;
+        avatar_id: string;
+        refresh_token: string;
+        is_session: YN;
+        create_at: string;
+        update_at: string;
+    }>(
         `
 select *
 from v_auth_token vat 
 where 1=1
-${auth_id ? '' : '-- '}and auth_id = ?
-${user_id ? '' : '-- '}and user_id = ?
-${login ? '' : '-- '}and login = ?
-${name ? '' : '-- '}and name = ?
+${calTo('AND auth_id = ?', auth_id)}
+${calTo('AND user_id = ?', user_id)}
+${calTo('AND login = ?', login)}
+${calTo('AND name = ?', name)}
     `,
         page,
         auth_id,

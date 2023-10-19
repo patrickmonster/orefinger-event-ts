@@ -42,7 +42,7 @@ const loadFile = (path: string) => require(path).default;
 const commands: RESTPutAPIApplicationCommandsJSONBody = [];
 
 // 앱커맨드 (1뎁스)
-for (const { file } of api.app) commands.push(loadFile(file));
+// for (const { file } of api.app) commands.push(loadFile(file));
 for (const module of api.chat) {
     console.log('명령어 로드]', module.name);
 
