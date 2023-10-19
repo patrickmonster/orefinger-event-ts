@@ -47,7 +47,6 @@ const messageComponent = async (interaction: MessageInteraction) => {
     const id = custom_id.startsWith('4866') ? custom_id.substring(4) : custom_id;
 
     console.log('Component: ', custom_id); // 구버전 이벤트와 병합
-    let command = undefined;
 
     switch (component_type) {
         case ComponentType.Button:
