@@ -10,11 +10,6 @@ import message from 'interactions/message';
 import model from 'interactions/model';
 
 export default async (fastify: FastifyInstance, opts: any) => {
-    // const message = require('interactions/message').default;
-    // const model = require('interactions/model').default;
-    // const autocomp = require('interactions/autocomp').default;
-    // const app = require('interactions/app').default;
-
     fastify.post<{
         Body: APIInteraction;
         Headers: { 'x-signature-ed25519': string; 'x-signature-timestamp': string };
@@ -32,8 +27,13 @@ export default async (fastify: FastifyInstance, opts: any) => {
         (req, res) => {
             const { body } = req;
 
-            if (!fastify.verifyKey(req)) {
-                // 승인되지 않음
+            try {
+                if (!fastify.verifyKey(req)) {
+                    // 승인되지 않음
+                    return res.status(401).send('인증 할 수 없습니다.');
+                }
+            } catch (error) {
+                console.log('error', error);
                 return res.status(401).send('인증 할 수 없습니다.');
             }
 
