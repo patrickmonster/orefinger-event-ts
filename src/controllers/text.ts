@@ -1,8 +1,14 @@
-import { query, selectPaging, SqlInsertUpdate } from 'utils/database';
+import { calTo, query, selectPaging, SqlInsertUpdate } from 'utils/database';
 
 import { TextCreate } from 'interfaces/text';
+import { Paging } from 'interfaces/swagger';
 
-export const getTextList = async (page: number, tag: string | undefined, message: string | undefined) =>
+type TextListProps = {
+    tag?: string;
+    message?: string;
+};
+
+export const getTextList = async (page: Paging, props: TextListProps) =>
     selectPaging<{
         text_id: number;
         tag: string;
@@ -14,12 +20,10 @@ export const getTextList = async (page: number, tag: string | undefined, message
 SELECT text_id, tag, message, create_at, update_at
 FROM text_message
 WHERE 1=1
-${tag ? '' : '-- '}AND tag LIKE CONCAT('%', ?, '%')
-${message ? '' : '-- '}AND message LIKE CONCAT('%', ?, '%')
+${calTo("AND tag LIKE CONCAT('%', ?, '%')", props.tag)}
+${calTo("AND message LIKE CONCAT('%', ?, '%')", props.message)}
     `,
-        page,
-        tag,
-        message
+        page
     );
 
 export const createText = async (text: TextCreate) => query(`INSERT INTO text_message set ?`, text);

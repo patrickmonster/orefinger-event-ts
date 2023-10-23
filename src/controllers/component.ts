@@ -37,12 +37,35 @@ export const getComponentList = async (page: Paging) =>
         }
     >(
         `
-SELECT *
-FROM component`,
+SELECT c.component_id
+    , c.name
+    , c.label
+    , c.label_lang
+    , c.type_idx
+    , ct.tag AS \`type\`
+    , c.text_id
+    , c.emoji
+    , c.custom_id
+    , c.value
+    , c.\`style\`
+    , c.min_values
+    , c.max_values
+    , c.disabled_yn
+    , c.required_yn
+    , c.use_yn
+    , c.edit_yn
+    , c.permission_type
+    , c.create_at
+    , c.update_at
+    , c.order_by
+    , c.label_id
+    , c.style_id
+FROM component c
+LEFT JOIN component_type ct ON c.type_idx = ct.type_idx  `,
         page
     );
 
-export const getComponentDtil = async (component_id: number) =>
+export const getComponentDtil = async (component_id: number | string) =>
     query<Component>(
         `
 SELECT
