@@ -1,8 +1,9 @@
 'use strict';
-import { InteractionResponseType, verifyKey } from 'discord-interactions';
+// import { InteractionResponseType, verifyKey } from 'discord-interactions';
 import { FastifyReply, FastifyRequest } from 'fastify';
 import fp from 'fastify-plugin';
 import rawBody from 'fastify-raw-body';
+import { InteractionResponseType, verifyKey } from 'utils/interaction';
 
 import axios from 'axios';
 
@@ -101,17 +102,15 @@ export default fp(async function (fastify, opts) {
         routes: [], // array of routes, **`global`** will be ignored, wildcard routes not supported
     });
 
-    //
-
     // const isValidRequest = verifyKey(JSON.stringify(body), headers['x-signature-ed25519'], headers['x-signature-timestamp'], process.env.DISCORD_PUBLIC_KEY);
     // if (!isValidRequest) {
     //     res.code(401).send('Bad request signatureOK');
     //     return;
     // }
 
-    fastify.decorate('verifyKey', ({ body, headers }) =>
+    fastify.decorate('verifyKey', ({ body, headers, rawBody }) =>
         verifyKey(
-            JSON.stringify(body),
+            rawBody || JSON.stringify(body),
             `${headers['x-signature-ed25519'] || headers['X-Signature-Ed25519']}`,
             `${headers['x-signature-timestamp'] || headers['X-Signature-Timestamp']}`,
             `${process.env.DISCORD_PUBLIC_KEY}`
