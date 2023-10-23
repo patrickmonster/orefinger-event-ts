@@ -49,7 +49,7 @@ export default async (fastify: FastifyInstance, opts: any) => {
                 },
             },
         },
-        async req => await getTextList(req.query.page || 0, req.query.tag, req.query.message)
+        async req => await getTextList(req.query, req.query)
     );
 
     fastify.post<{

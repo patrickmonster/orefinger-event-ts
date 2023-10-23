@@ -2,6 +2,7 @@
 import { InteractionResponseType, verifyKey } from 'discord-interactions';
 import { FastifyReply, FastifyRequest } from 'fastify';
 import fp from 'fastify-plugin';
+import rawBody from 'fastify-raw-body';
 
 import axios from 'axios';
 
@@ -91,6 +92,22 @@ export default fp(async function (fastify, opts) {
             Authorization: `Bot ${process.env.DISCORD_BOT_TOKEN}`,
         },
     });
+
+    fastify.register(rawBody, {
+        field: 'rawBody', // change the default request.rawBody property name
+        global: false, // add the rawBody to every request. **Default true**
+        encoding: 'utf8', // set it to false to set rawBody as a Buffer **Default utf8**
+        runFirst: true, // get the body before any preParsing hook change/uncompress it. **Default false**
+        routes: [], // array of routes, **`global`** will be ignored, wildcard routes not supported
+    });
+
+    //
+
+    // const isValidRequest = verifyKey(JSON.stringify(body), headers['x-signature-ed25519'], headers['x-signature-timestamp'], process.env.DISCORD_PUBLIC_KEY);
+    // if (!isValidRequest) {
+    //     res.code(401).send('Bad request signatureOK');
+    //     return;
+    // }
 
     fastify.decorate('verifyKey', ({ body, headers }) =>
         verifyKey(

@@ -1,6 +1,8 @@
 import { MessageMenuInteraction } from 'interactions/message';
 
 import { getMessage } from 'controllers/message';
+import { getComponentDtil, getComponentList } from 'controllers/component';
+import menu from 'components/menu';
 
 /**
  *
@@ -13,24 +15,43 @@ export const exec = async (interaction: MessageMenuInteraction) => {
         values: [message_id],
     } = interaction;
 
-    let id = 14;
-    switch (message_id) {
-        case 'notice':
-            id = 15;
-            break;
-        case 'auth':
-            id = 16;
-            break;
-        default:
-        case 'question':
-            id = 14;
-            break;
-    }
+    // const reply = await interaction.deffer({ ephemeral: true });
 
-    const message = await getMessage(user?.id || 0, id);
-    if (!message) return;
-
-    await interaction.re(message);
+    getComponentDtil(message_id).then(component => {
+        const {
+            component_id,
+            name,
+            label_id,
+            label_lang,
+            type_idx,
+            type,
+            type_name,
+            text_id,
+            emoji,
+            custom_id,
+            value,
+            style,
+            style_name,
+            min_values,
+            max_values,
+            disabled,
+            required,
+            use_yn,
+            edit,
+            permission_type,
+            create_at,
+            update_at,
+            order_by,
+        } = component;
+        interaction.re({
+            embeds: [
+                {
+                    title: `${component_id}]${name}`,
+                    description: '',
+                },
+            ],
+        });
+    });
 };
 
 //  해당 명령은 등록 하지 않는 명령 입니다.
