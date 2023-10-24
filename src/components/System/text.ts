@@ -14,13 +14,12 @@ moment.locale('ko');
  * @param interaction
  */
 export const textSelect = (interaction: MessageMenuInteraction | AppChatInputInteraction, custom_id: string) => {
-    const { user } = interaction;
     let page = 0;
 
     if ('values' in interaction) page = parseInt(interaction.values[0]) - 1;
 
     getTextList({ page, limit: 15 }, {}).then(({ page, limit, total, list, totalPage }) => {
-        interaction.re({
+        interaction.reply({
             components: menu(
                 {
                     custom_id,

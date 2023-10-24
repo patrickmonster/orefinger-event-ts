@@ -1,8 +1,8 @@
 import { MessageInteraction } from 'interactions/message';
 import { RESTPostAPIChannelMessage } from 'plugins/discord';
 
-import { attendance } from 'controllers/twitch';
 import { getAdvertisement } from 'controllers/message';
+import { attendance } from 'controllers/twitch';
 
 import createCalender from 'utils/createCalender';
 import redis from 'utils/redis';
@@ -52,33 +52,35 @@ export const exec = async (interaction: MessageInteraction, broadcaster_user_id:
     const user_id = `attendance:${user?.id}`; // 키 조합식
 
     if (user === null)
-        return interaction.deffer(/*{ ephemeral: true }*/).then(async send => send({ content: '처리 불가능한 상태. - 사용자를 찾을 수 없습니다.' }));
+        return interaction
+            .differ(/*{ ephemeral: true }*/)
+            .then(async send => await interaction.reply({ content: '처리 불가능한 상태. - 사용자를 찾을 수 없습니다.' }));
 
-    interaction.deffer({ ephemeral: true }).then(async send => {
-        const advertisement = await getAdvertisement(game_id); // 광고 로딩
-        redis
-            .get(user_id)
-            .then(async data => {
-                let message = data ? JSON.parse(data) : null;
-                if (!message) {
-                    message = await getMessage(broadcaster_user_id, `${user?.id}`);
-                    redis.set(user_id, JSON.stringify(message), {
-                        // 10분
-                        EX: 60 * 10,
-                    });
-                } else redis.expire(user_id, 60 * 10); // 연장
+    await interaction.differ({ ephemeral: true });
 
-                message.embeds?.push(advertisement);
-                await send(message);
-            })
-            .catch(err => {
-                console.log(err);
-                send({
-                    content: '처리 불가능한 상태.',
-                    embeds: [advertisement],
+    const advertisement = await getAdvertisement(game_id); // 광고 로딩
+    redis
+        .get(user_id)
+        .then(async data => {
+            let message = data ? JSON.parse(data) : null;
+            if (!message) {
+                message = await getMessage(broadcaster_user_id, `${user?.id}`);
+                redis.set(user_id, JSON.stringify(message), {
+                    // 10분
+                    EX: 60 * 10,
                 });
+            } else redis.expire(user_id, 60 * 10); // 연장
+
+            message.embeds?.push(advertisement);
+            await interaction.reply(message);
+        })
+        .catch(err => {
+            console.log(err);
+            interaction.reply({
+                content: '처리 불가능한 상태.',
+                embeds: [advertisement],
             });
-    });
+        });
 };
 
 //  해당 명령은 등록 하지 않는 명령 입니다.

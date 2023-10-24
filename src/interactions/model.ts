@@ -1,6 +1,6 @@
-import { InteractionEvent, APIModalSubmitInteraction, APIModalSubmission } from 'plugins/discord';
+import { APIModalSubmission, APIModalSubmitInteraction, IReply } from 'plugins/discord';
 
-export type modelInteraction = Omit<InteractionEvent, 'model'> & Omit<APIModalSubmitInteraction, 'data' | 'type'> & APIModalSubmission;
+export type modelInteraction = IReply & Omit<APIModalSubmitInteraction, 'data' | 'type'> & APIModalSubmission;
 
 const modelComponent = async (interaction: modelInteraction) => {
     //

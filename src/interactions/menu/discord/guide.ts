@@ -30,7 +30,7 @@ export const exec = async (interaction: MessageMenuInteraction) => {
     const message = await getMessage(user?.id || 0, id);
     if (!message) return;
 
-    await interaction.re(message);
+    await interaction.reply(message);
 };
 
 //  해당 명령은 등록 하지 않는 명령 입니다.

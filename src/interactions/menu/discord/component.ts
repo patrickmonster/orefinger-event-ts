@@ -1,8 +1,6 @@
 import { MessageMenuInteraction } from 'interactions/message';
 
-import { getMessage } from 'controllers/message';
-import { getComponentDtil, getComponentList } from 'controllers/component';
-import menu from 'components/menu';
+import { getComponentDtil } from 'controllers/component';
 
 /**
  *
@@ -43,7 +41,7 @@ export const exec = async (interaction: MessageMenuInteraction) => {
             update_at,
             order_by,
         } = component;
-        interaction.re({
+        interaction.reply({
             embeds: [
                 {
                     title: `${component_id}]${name}`,

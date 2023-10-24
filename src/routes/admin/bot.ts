@@ -6,7 +6,6 @@ import { FastifyInstance } from 'fastify';
 // import autocomp from 'interactions/autocomp';
 // import message from 'interactions/message';
 // import model from 'interactions/model';
-import { InteractionEvent } from 'plugins/discord';
 
 export default async (fastify: FastifyInstance, opts: any) => {
     let app: any = null;
@@ -17,10 +16,10 @@ export default async (fastify: FastifyInstance, opts: any) => {
     fastify.server.on('listening', () => {
         console.log('onListen');
 
-        // app = require('interactions/app').default;
-        // autocomp = require('interactions/autocomp').default;
-        // message = require('interactions/message').default;
-        // model = require('interactions/model').default;
+        app = require('interactions/app').default;
+        autocomp = require('interactions/autocomp').default;
+        message = require('interactions/message').default;
+        model = require('interactions/model').default;
     });
 
     fastify.post<{
@@ -39,12 +38,6 @@ export default async (fastify: FastifyInstance, opts: any) => {
         },
         (req, res) => {
             const { body } = req;
-            console.log('처리');
-
-            // if (!fastify.verifyKey(req)) {
-            //     // 승인되지 않음
-            //     return res.status(401).send('인증 할 수 없습니다.');
-            // }
 
             // 상태체크 처리
             if (body.type === InteractionType.Ping) {
@@ -53,36 +46,35 @@ export default async (fastify: FastifyInstance, opts: any) => {
             }
 
             // 자동완성처리
-            // if (body.type === InteractionType.ApplicationCommandAutocomplete) {
-            //     console.log('autocomp');
-            //     return autocomp(body, res);
-            //     // return res.status(200).send({ type: InteractionResponseType.APPLICATION_COMMAND_AUTOCOMPLETE_RESULT });
-            // }
+            if (body.type === InteractionType.ApplicationCommandAutocomplete) {
+                console.log('autocomp');
+                return autocomp(body, res);
+            }
 
             // 응답이 유동적인 처리를 해야함.
-            const interactionEvent: InteractionEvent = {
-                re: req.createReply(req, res),
-                model: req.createModel(req, res),
-                deffer: req.createDeferred(req, res),
-                follow: req.createFollowup(req, res),
-                raw: { body: body, res: res },
+            const interaction = fastify.interaction(req, res);
+
+            const msg = {
+                ...interaction,
             };
 
-            console.log('interactionEvent', interactionEvent);
+            console.log('msg', msg);
 
-            // switch (body.type) {
-            //     case InteractionType.ApplicationCommand:
-            //         app && app(Object.assign(body, interactionEvent, body.data));
-            //         break;
-            //     case InteractionType.MessageComponent:
-            //         message && message(Object.assign(body, interactionEvent, body.data));
-            //         break;
-            //     case InteractionType.ModalSubmit:
-            //         model && model(Object.assign(body, interactionEvent, body.data));
-            //         break;
-            //     default:
-            //         break;
-            // }
+            fastify.log.info('interactionEvent', body.type, body.guild_id, body?.channel_id || 'DM', body.member?.user?.id, body.id);
+
+            switch (body.type) {
+                case InteractionType.ApplicationCommand:
+                    app && app(msg);
+                    break;
+                case InteractionType.MessageComponent:
+                    message && message(msg);
+                    break;
+                case InteractionType.ModalSubmit:
+                    model && model(msg);
+                    break;
+                default:
+                    break;
+            }
         }
     );
 };

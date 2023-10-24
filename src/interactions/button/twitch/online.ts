@@ -3,8 +3,6 @@ import { MessageInteraction } from 'interactions/message';
 import authTokenSelect from 'components/authTokenSelect';
 
 import {} from 'components/onlineTwitchChannel';
-import { getUser } from 'components/twitch';
-import menu from 'components/menu';
 
 /**
  *
@@ -14,13 +12,13 @@ import menu from 'components/menu';
 export const exec = async (interaction: MessageInteraction, [command]: string[]) => {
     const { user, guild_id } = interaction;
 
-    const reply = await interaction.deffer({
+    const reply = await interaction.differ({
         ephemeral: true,
     });
 
     authTokenSelect(user?.id || '0', `select online ${command || 0}`, 2).then(async user => {
         if (Array.isArray(user)) {
-            reply({
+            interaction.reply({
                 components: user,
             });
         } else {

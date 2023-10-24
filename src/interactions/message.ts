@@ -1,20 +1,20 @@
 import { APIMessageButtonInteractionData, APIMessageSelectMenuInteractionData } from 'discord-api-types/v10';
 import { join } from 'path';
-import { APIMessageComponentInteraction, ComponentType, InteractionEvent } from 'plugins/discord';
+import { APIMessageComponentInteraction, ComponentType, IReply } from 'plugins/discord';
 import autoLoader from 'utils/autoCommand';
 
-export type MessageButtonInteraction = InteractionEvent & Omit<APIMessageComponentInteraction, 'data' | 'type'> & APIMessageButtonInteractionData;
-export type MessageMenuInteraction = InteractionEvent & Omit<APIMessageComponentInteraction, 'data' | 'type'> & APIMessageSelectMenuInteractionData;
+export type MessageButtonInteraction = IReply & Omit<APIMessageComponentInteraction, 'data' | 'type'> & APIMessageButtonInteractionData;
+export type MessageMenuInteraction = IReply & Omit<APIMessageComponentInteraction, 'data' | 'type'> & APIMessageSelectMenuInteractionData;
 
 export type MessageInteraction = MessageButtonInteraction | MessageMenuInteraction;
 
-type EXEC<E extends InteractionEvent> = (interaction: E, ...args: string[]) => Promise<void>;
-type ComponentReturnType<E extends InteractionEvent> = [string, EXEC<E>];
+type EXEC<E extends IReply> = (interaction: E, ...args: string[]) => Promise<void>;
+type ComponentReturnType<E extends IReply> = [string, EXEC<E>];
 
 const [buttons] = autoLoader(join(__dirname, 'button'), { pathTag: ' ', isLog: true });
 const [menus] = autoLoader(join(__dirname, 'menu'), { pathTag: ' ', isLog: true });
 
-const getCommand = <E extends InteractionEvent>(
+const getCommand = <E extends IReply>(
     list: {
         name: string;
         pathTag: string;
@@ -56,7 +56,7 @@ const messageComponent = async (interaction: MessageInteraction) => {
                 return await exec(interaction, ...id.replace(new RegExp(name, 'gi'), '').split(' '));
             } else {
                 console.log('Component: ', custom_id, 'is not registered.');
-                await interaction.re({ content: '해당 컴포넌트는 등록 하지 않는 컴포넌트 입니다.' });
+                await interaction.reply({ content: '해당 컴포넌트는 등록 하지 않는 컴포넌트 입니다.' });
                 return;
             }
             break;
@@ -71,7 +71,7 @@ const messageComponent = async (interaction: MessageInteraction) => {
                 return await exec(interaction, ...id.replace(new RegExp(name, 'gi'), '').split(' '));
             } else {
                 console.log('Component: ', custom_id, 'is not registered.');
-                await interaction.re({ content: '해당 컴포넌트는 등록 하지 않는 컴포넌트 입니다.' });
+                await interaction.reply({ content: '해당 컴포넌트는 등록 하지 않는 컴포넌트 입니다.' });
                 return;
             }
             break;

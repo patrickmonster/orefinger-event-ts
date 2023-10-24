@@ -1,26 +1,18 @@
-import moment from 'moment';
-import { APIActionRowComponent, APIStringSelectComponent } from 'discord-api-types/v10';
 import { getUser } from './twitch';
-import { RESTPostAPIChannelMessage } from 'plugins/discord';
 
-import discord from 'utils/discordApiInstance';
 import { tusu } from 'controllers/role';
+import { IReply } from 'plugins/discord';
+import discord from 'utils/discordApiInstance';
 import errorEmbed from './errorEmbed';
 
 /**
  * 트수 역할지급
  */
-export default async (
-    reply: (message: RESTPostAPIChannelMessage) => Promise<void>,
-    guild_id: string,
-    user_id: string,
-    twitch_id: string,
-    role_id: string
-) => {
+export default async (interaction: IReply, guild_id: string, user_id: string, twitch_id: string, role_id: string) => {
     getUser(twitch_id)
         .then(async ({ data: [user] }) => {
             if (!user) {
-                return await reply({
+                return await interaction.reply({
                     content: '트수 정보를 찾을 수 없습니다.',
                 });
             }
@@ -29,7 +21,7 @@ export default async (
             const [data] = await tusu(user_id, nick, role_id);
 
             if (!data) {
-                return await reply({
+                return await interaction.reply({
                     embeds: [
                         errorEmbed('AUTH_TUSU_SELECT', {
                             target: `${guild_id}/${user_id}`,
@@ -45,7 +37,7 @@ export default async (
 
             try {
                 await discord.put(`/guilds/${guild_id}/members/${user_id}/roles/${role_id}`);
-                await reply({
+                await interaction.reply({
                     content: `
 <@${role_id}>역할 부여가 완료되었습니다!
 
@@ -67,7 +59,7 @@ export default async (
                     await discord.patch(`/guilds/${guild_id}/members/${user_id}`, { nick });
                 } catch (e) {}
             } catch (e) {
-                return await reply({
+                return await interaction.reply({
                     embeds: [
                         errorEmbed('AUTH_TUSU_SELECT', {
                             target: `${guild_id}/${user_id}`,
@@ -79,7 +71,7 @@ export default async (
             }
         })
         .catch(async e => {
-            return await reply({
+            return await interaction.reply({
                 embeds: [
                     errorEmbed('AUTH_TUSU_SELECT', {
                         target: `${guild_id}/${user_id}`,
