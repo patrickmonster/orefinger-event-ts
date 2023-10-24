@@ -150,8 +150,7 @@ export const verifyKey = (
 
         const signatureData = valueToUint8Array(signature, 'hex');
         const publicKeyData = valueToUint8Array(clientPublicKey, 'hex');
-        console.log(message, signatureData, publicKeyData);
-        return nacl.sign.detached.verify(message, signatureData, publicKeyData);
+        return nacl.sign.detached.verify(message, valueToUint8Array(signature, 'hex'), publicKeyData);
     } catch (ex) {
         console.error('[discord-interactions]: Invalid verifyKey parameters', ex);
         return false;

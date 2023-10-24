@@ -37,14 +37,20 @@ const server = fastify({
 });
 
 server.register(helmet, { global: true });
+
 server.register(AutoLoad, { dir: join(__dirname, 'plugins') });
 server.register(AutoLoad, { dir: join(__dirname, 'routes'), ignorePattern: /.*(test|spec).*/ });
+
+const bootTime = Date.now();
 
 server.listen({ port: 3000, host: '::' }, (err, address) => {
     if (err) {
         console.error(err);
         process.exit(1);
     }
+
+    const time = Date.now() - bootTime;
+    console.log(`Server started in  ${Math.floor(time / 1000)} (${time}ms)`);
     console.log(`Server listening at ${address}`);
 });
 

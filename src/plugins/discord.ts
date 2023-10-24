@@ -68,6 +68,7 @@ export type InteractionEvent = {
 declare module 'fastify' {
     interface FastifyInstance {
         verifyKey: (request: FastifyRequest) => boolean;
+        verifyDiscordKey: (request: FastifyRequest, reply: FastifyReply, done: Function) => void;
     }
 
     interface FastifyRequest {
@@ -116,6 +117,22 @@ export default fp(async function (fastify, opts) {
             `${process.env.DISCORD_PUBLIC_KEY}`
         )
     );
+
+    // 인증 처리 시도 - 사용자 인증 정보가 있는 경우에 시도함.
+    fastify.decorate('verifyDiscordKey', (request: FastifyRequest, reply: FastifyReply, done: Function) => {
+        const { body, headers, method } = request;
+        if (method === 'POST') {
+            console.log('인증 시도', request);
+            const isValidRequest = verifyKey(
+                JSON.stringify(body),
+                `${headers['x-signature-ed25519'] || headers['X-Signature-Ed25519']}`,
+                `${headers['x-signature-timestamp'] || headers['X-Signature-Timestamp']}`,
+                `${process.env.DISCORD_PUBLIC_KEY}`
+            );
+            if (isValidRequest) return done();
+        }
+        return reply.code(401).send('Bad request signature');
+    });
 
     /**
      * 메세지를 string으로 받으면 content로 설정

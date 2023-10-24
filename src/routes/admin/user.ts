@@ -12,7 +12,7 @@ export default async (fastify: FastifyInstance, opts: any) => {
             name?: string;
         };
     }>(
-        '/user',
+        '/',
         {
             onRequest: [fastify.masterkey],
             schema: {
@@ -39,3 +39,5 @@ export default async (fastify: FastifyInstance, opts: any) => {
         async req => await getAuthUsers(req.query)
     );
 };
+
+export const autoPrefix = '/user';
