@@ -62,6 +62,7 @@
         "start": "node dist/app.js",
         "proxy": "ngrok http 3000",
         "bot": "cross-env NODE_ENV=local nodemon --watch src/interactions --exec ts-node -r tsconfig-paths/register src/app.ts",
+        "bot2": "cross-env NODE_ENV=local2 nodemon --watch src/interactions --exec ts-node -r tsconfig-paths/register src/app.ts",
         "dev": "cross-env NODE_ENV=dev nodemon --watch src/routes --exec ts-node -r tsconfig-paths/register src/app.ts",
         "local": "cross-env NODE_ENV=local nodemon --watch src/routes --exec ts-node -r tsconfig-paths/register src/app.ts",
         "local2": "cross-env NODE_ENV=local2 nodemon --watch src/routes --exec ts-node -r tsconfig-paths/register src/app.ts",

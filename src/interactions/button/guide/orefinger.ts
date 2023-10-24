@@ -12,7 +12,7 @@ export const exec = async (interaction: MessageInteraction) => {
 
     const message = await getMessage(user?.id || '0', 13);
 
-    if (!message) interaction.re(message);
+    if (!message) interaction.reply(message);
 };
 
 //  해당 명령은 등록 하지 않는 명령 입니다.

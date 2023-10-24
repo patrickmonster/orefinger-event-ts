@@ -15,7 +15,9 @@ export const exec = async (interaction: AppChatInputInteraction, selectOption: A
 
     const type = selectOption.find(({ name }) => ['타입'].includes(name))?.value;
 
-    const reply = await interaction.deffer({ ephemeral: true });
+    console.log('????', interaction);
+
+    await interaction.differ({ ephemeral: true });
     switch (type) {
         case choices.indexOf('텍스트'):
             {
@@ -23,7 +25,7 @@ export const exec = async (interaction: AppChatInputInteraction, selectOption: A
             }
             break;
         default:
-            reply({ content: '선택한 타입이 없습니다.', ephemeral: true });
+            interaction.reply({ content: '선택한 타입이 없습니다.', ephemeral: true });
             break;
     }
 };
