@@ -8,13 +8,13 @@ import {
 import { createQueryKey, selectQueryKeyPaging } from 'utils/queryKey';
 
 /**
- * 신규 리스트 선택 매뉴 생성
+ * 신규 쿼리키 생성
  * @param sql
  * @param params
  * @returns APIActionRowComponent<APIMessageActionRowComponent>[]
  */
 export const selectComponentMenuByKey = async (
-    menuProps: Omit<APIBaseSelectMenuComponent<ComponentType.StringSelect>, 'type'> & { button_id: string },
+    menuProps: Omit<APIBaseSelectMenuComponent<ComponentType.StringSelect>, 'type'>,
     sql: string,
     ...params: any[]
 ): Promise<APIActionRowComponent<APIMessageActionRowComponent>[]> => {
@@ -23,11 +23,12 @@ export const selectComponentMenuByKey = async (
 };
 
 /**
- *
- * @param queryKey
+ * 쿼리키로 메뉴 컴포넌트 생성
+ * @param queryKey 쿼리키
+ * @returns APIActionRowComponent<APIMessageActionRowComponent>[]
  */
-export const selectComponentMenuKey = async (queryKey: string): Promise<APIActionRowComponent<APIMessageActionRowComponent>[]> => {
-    const out = await selectQueryKeyPaging<APISelectMenuOption>(queryKey, { page: 0, limit: 15 });
+export const selectComponentMenuKey = async (queryKey: string, page?: number): Promise<APIActionRowComponent<APIMessageActionRowComponent>[]> => {
+    const out = await selectQueryKeyPaging<APISelectMenuOption>(queryKey, { page: page ?? 0, limit: 15 });
     console.log('SystemComponent] selectComponentMenuByKey', queryKey, out);
 
     // 키의 보존시간이 만료됨.
@@ -40,9 +41,6 @@ export const selectComponentMenuKey = async (queryKey: string): Promise<APIActio
         ];
 
     const { result, other } = out;
-    /*
-
-    */
     return [
         {
             type: ComponentType.ActionRow,
@@ -61,14 +59,14 @@ export const selectComponentMenuKey = async (queryKey: string): Promise<APIActio
                     type: ComponentType.Button,
                     style: 1,
                     label: '이전',
-                    custom_id: `${other.button_id} ${result.page - 1} ${queryKey}`,
-                    disabled: result.page != 0,
+                    custom_id: result.page == 0 ? queryKey : `key ${result.page - 1} ${queryKey}`,
+                    disabled: result.page == 0,
                 },
                 {
                     type: ComponentType.Button,
                     style: 1,
                     label: '다음',
-                    custom_id: `${other.button_id} ${result.page + 1} ${queryKey}`,
+                    custom_id: `key ${result.page + 1} ${queryKey}`,
                     disabled: result.page >= result.totalPage - 1,
                 },
             ],

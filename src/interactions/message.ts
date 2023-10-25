@@ -46,14 +46,15 @@ const messageComponent = async (interaction: MessageInteraction) => {
     const { custom_id, component_type } = interaction;
     const id = custom_id.startsWith('4866') ? custom_id.substring(4) : custom_id;
 
-    console.log('Component: ', custom_id); // 구버전 이벤트와 병합
+    console.log('Component: ', custom_id, id); // 구버전 이벤트와 병합
 
     switch (component_type) {
         case ComponentType.Button:
             const buttonCommand = buttonComponent.find(module => id.startsWith(module[0]));
             if (buttonCommand) {
                 const [name, exec] = buttonCommand;
-                return await exec(interaction, ...id.replace(new RegExp(name, 'gi'), '').split(' '));
+
+                return await exec(interaction, ...id.substring(name.length + 1).split(' '));
             } else {
                 console.log('Component: ', custom_id, 'is not registered.');
                 await interaction.reply({ content: '해당 컴포넌트는 등록 하지 않는 컴포넌트 입니다.' });
@@ -68,7 +69,7 @@ const messageComponent = async (interaction: MessageInteraction) => {
             const menuCommand = menuComponent.find(module => id.startsWith(module[0]));
             if (menuCommand) {
                 const [name, exec] = menuCommand;
-                return await exec(interaction, ...id.replace(new RegExp(name, 'gi'), '').split(' '));
+                return await exec(interaction, ...id.substring(name.length + 1).split(' '));
             } else {
                 console.log('Component: ', custom_id, 'is not registered.');
                 await interaction.reply({ content: '해당 컴포넌트는 등록 하지 않는 컴포넌트 입니다.' });

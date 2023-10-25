@@ -41,7 +41,15 @@ function registerCmd(commands: RESTPutAPIApplicationCommandsJSONBody) {
 
 const bigintConvert = (key: string, value: any) => (typeof value === 'bigint' ? value.toString() : value);
 
-const loadFile = (path: string) => require(path).default;
+const loadFile = (path: string) => {
+    const file = require(path);
+    if (env.TARGET_GUILD) {
+        // 어드민 길드용
+        if (file.isAdmin) return file.default;
+    } else {
+        if (!file.isAdmin) return file.default;
+    }
+};
 const commands: RESTPutAPIApplicationCommandsJSONBody = [];
 
 // 앱커맨드 (1뎁스)
@@ -52,23 +60,27 @@ for (const module of api.chat) {
     if ('modules' in module) {
         // 그룹 파일
         const { modules } = module;
-        const options = modules.map(module => {
-            // load subcommand
-            if ('modules' in module) {
-                const { modules } = module;
-                const options = modules.map(module => {
-                    if ('modules' in module) throw new Error('서브 커맨드 그룹은 3단계까지만 지원합니다.');
-                    return loadFile(module.file);
-                });
+        const options = modules
+            .map(module => {
+                // load subcommand
+                if ('modules' in module) {
+                    const { modules } = module;
+                    const options = modules
+                        .map(module => {
+                            if ('modules' in module) throw new Error('서브 커맨드 그룹은 3단계까지만 지원합니다.');
+                            return loadFile(module.file);
+                        })
+                        .filter(v => v);
 
-                return {
-                    name: module.name,
-                    description: `${module.name} 명령어`,
-                    type: ApplicationCommandOptionType.SubcommandGroup,
-                    options,
-                };
-            } else return loadFile(module.file);
-        });
+                    return {
+                        name: module.name,
+                        description: `${module.name} 명령어`,
+                        type: ApplicationCommandOptionType.SubcommandGroup,
+                        options,
+                    };
+                } else return loadFile(module.file);
+            })
+            .filter(v => v);
 
         // 서브커맨드 그룹
         commands.push({
@@ -84,7 +96,7 @@ for (const module of api.chat) {
 }
 console.log('명령어 로드 완료]', JSON.stringify(commands));
 
-registerCmd(commands);
+registerCmd(commands.filter(v => v));
 
 // process.exit(0);
 
