@@ -9,7 +9,16 @@ import { selectComponentMenuByKey } from 'components/systemComponent';
 import { AppChatInputInteraction } from 'interactions/app';
 
 // import api from "utils/discordApiInstance"
-const choices = ['component', 'component_group', 'component_option', 'component_option_connection', 'component_low', 'component_col'];
+const choices = [
+    'component_type',
+    'component_style',
+    'component',
+    'component_group',
+    'component_option',
+    'component_option_connection',
+    'component_low',
+    'component_col',
+];
 
 export const exec = async (interaction: AppChatInputInteraction, selectOption: APIApplicationCommandInteractionDataBasicOption[]) => {
     console.log('컴포넌트 수신', selectOption);
@@ -28,7 +37,7 @@ export const exec = async (interaction: AppChatInputInteraction, selectOption: A
                         disabled: false,
                         max_values: 1,
                         min_values: 1,
-                        button_id: 'key component',
+                        button_id: 'key',
                     },
                     `
 SELECT  
@@ -52,7 +61,7 @@ LEFT JOIN component_type ct ON c.type_idx = ct.type_idx
                         disabled: false,
                         max_values: 1,
                         min_values: 1,
-                        button_id: 'key group',
+                        button_id: 'key',
                     },
                     `
 SELECT 
@@ -74,7 +83,7 @@ FROM component_group cg
                         disabled: false,
                         max_values: 1,
                         min_values: 1,
-                        button_id: 'key option',
+                        button_id: 'key',
                     },
                     `
 SELECT 
@@ -97,10 +106,11 @@ FROM component_option co
                         disabled: false,
                         max_values: 1,
                         min_values: 1,
-                        button_id: 'key option conn',
+                        button_id: 'key',
                     },
                     `
-SELECT CAST(coc.option_id AS CHAR) AS value
+SELECT json_object( 'name', IF( coc.use_yn  = 'Y', '🔴','⚫')) AS emoji 
+    , CAST(coc.option_id AS CHAR) AS value
     , CONCAT( c.name , '->', co.label ) AS label 
 FROM component_option_connection coc
 LEFT JOIN component c on c.type_idx = 3 AND c.component_id = coc.component_id
@@ -110,8 +120,92 @@ LEFT JOIN component_option co ON co.option_id = coc.option_id
             });
             break;
         case choices.indexOf('component_low'):
+            interaction.reply({
+                content: `${choices[type]}`,
+                components: await selectComponentMenuByKey(
+                    {
+                        custom_id: 'discord component component_low',
+                        placeholder: '컴포넌트를 선택해주세요!',
+                        disabled: false,
+                        max_values: 1,
+                        min_values: 1,
+                        button_id: 'key',
+                    },
+                    `
+SELECT  json_object( 'name', IF( cl.use_yn = 'Y', '🔴','⚫')) AS emoji 
+    , CAST(cl.idx AS CHAR) AS value
+    , CONCAT( cg.name  , '->', c.name )  AS label
+FROM component_low cl 
+LEFT JOIN component c ON c.component_id  = cl.component_id 
+LEFT JOIN component_group cg  ON cl.group_id = cg.group_id 
+                    `
+                ),
+            });
             break;
         case choices.indexOf('component_col'):
+            interaction.reply({
+                content: `${choices[type]}`,
+                components: await selectComponentMenuByKey(
+                    {
+                        custom_id: 'discord component component_col',
+                        placeholder: '컴포넌트를 선택해주세요!',
+                        disabled: false,
+                        max_values: 1,
+                        min_values: 1,
+                        button_id: 'key',
+                    },
+                    `
+SELECT  json_object( 'name', IF( cc.use_yn = 'Y', '🔴','⚫')) AS emoji 
+    , CAST(cc.idx AS CHAR) AS value
+    , CONCAT( cg2.name  , '->', cg.name )  AS label
+FROM component_col cc 
+LEFT JOIN component_group cg2 ON cg2.group_id = cc.group_id  
+LEFT JOIN component_group cg  ON cc.component_id =  cg.group_id  
+                    `
+                ),
+            });
+            break;
+        case choices.indexOf('component_type'):
+            interaction.reply({
+                content: `${choices[type]}`,
+                components: await selectComponentMenuByKey(
+                    {
+                        custom_id: 'discord component component_type',
+                        placeholder: '컴포넌트를 선택해주세요!',
+                        disabled: false,
+                        max_values: 1,
+                        min_values: 1,
+                        button_id: 'key',
+                    },
+                    `
+SELECT json_object( 'name', IF( use_yn = 'Y', '🔴','⚫')) AS emoji
+    , CAST(type_idx AS CHAR) AS value
+    , CONCAT( code, '] ', tag) AS label
+FROM component_type ct 
+                    `
+                ),
+            });
+            break;
+        case choices.indexOf('component_style'):
+            interaction.reply({
+                content: `${choices[type]}`,
+                components: await selectComponentMenuByKey(
+                    {
+                        custom_id: 'discord component component_style',
+                        placeholder: '컴포넌트를 선택해주세요!',
+                        disabled: false,
+                        max_values: 1,
+                        min_values: 1,
+                        button_id: 'key',
+                    },
+                    `
+SELECT json_object( 'name', IF( use_yn = 'Y', '🔴','⚫')) AS emoji
+    , CAST(style_idx  AS CHAR) AS value
+    , tag AS label
+FROM component_style cs  
+                    `
+                ),
+            });
             break;
         default:
             interaction.reply({ content: '선택한 타입이 없습니다.', ephemeral: true });
