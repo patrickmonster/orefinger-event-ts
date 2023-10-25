@@ -27,7 +27,7 @@ export const exec = async (interaction: AppChatInputInteraction, selectOption: A
                         disabled: false,
                         max_values: 1,
                         min_values: 1,
-                        button_id: 'discord component',
+                        button_id: 'key component',
                     },
                     `
 SELECT  
@@ -40,9 +40,27 @@ LEFT JOIN component_type ct ON c.type_idx = ct.type_idx
                     `
                 ),
             });
-
             break;
         case choices.indexOf('component_group'):
+            interaction.reply({
+                components: await selectComponentMenuByKey(
+                    {
+                        custom_id: 'discord component component_group',
+                        placeholder: '컴포넌트를 선택해주세요!',
+                        disabled: false,
+                        max_values: 1,
+                        min_values: 1,
+                        button_id: 'key group',
+                    },
+                    `
+SELECT 
+    json_object( 'name', IF( group_type = 'G', '📂', '📄')) AS emoji
+    , CAST(group_id AS CHAR) AS value
+    , name AS label 
+FROM component_group cg 
+                    `
+                ),
+            });
             break;
         case choices.indexOf('component_option'):
             break;
