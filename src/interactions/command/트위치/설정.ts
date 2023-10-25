@@ -15,9 +15,9 @@ const type = ApplicationCommandOptionType.Subcommand;
 
 export const exec = async (interaction: AppChatInputInteraction, selectOption: APIApplicationCommandInteractionDataBasicOption[]) => {
     const { member, guild_id, channel } = interaction;
-    if (!guild_id) return await interaction.re({ content: '서버에서만 사용할 수 있습니다.', ephemeral: true });
+    if (!guild_id) return await interaction.reply({ content: '서버에서만 사용할 수 있습니다.', ephemeral: true });
 
-    const reply = await interaction.deffer({ ephemeral: true });
+    const reply = await interaction.differ({ ephemeral: true });
     const type = selectOption.find(({ name }) => name === '타입')?.value;
 
     console.log('타입', type);
@@ -45,7 +45,7 @@ export const exec = async (interaction: AppChatInputInteraction, selectOption: A
             break;
         }
         default: {
-            await reply({ content: '옵션은 필수 값 입니다', ephemeral: true });
+            await interaction.reply({ content: '옵션은 필수 값 입니다', ephemeral: true });
         }
     }
 };
