@@ -6,7 +6,6 @@ import {
     ComponentType,
 } from 'discord-api-types/v10';
 import { createQueryKey, selectQueryKeyPaging } from 'utils/queryKey';
-import { QueryKey } from 'utils/redis';
 
 /**
  * 신규 리스트 선택 매뉴 생성
@@ -19,11 +18,18 @@ export const selectComponentMenuByKey = async (
     sql: string,
     ...params: any[]
 ): Promise<APIActionRowComponent<APIMessageActionRowComponent>[]> => {
-    const limit = 15;
     const key = await createQueryKey({ sql, params, other: JSON.stringify(menuProps) });
-    const out = await selectQueryKeyPaging<APISelectMenuOption>(key, { page: 0, limit });
+    return await selectComponentMenuKey(key);
+};
 
-    console.log('SystemComponent] selectComponentMenuByKey', key, out);
+/**
+ *
+ * @param queryKey
+ */
+export const selectComponentMenuKey = async (queryKey: string): Promise<APIActionRowComponent<APIMessageActionRowComponent>[]> => {
+    const out = await selectQueryKeyPaging<APISelectMenuOption>(queryKey, { page: 0, limit: 15 });
+    console.log('SystemComponent] selectComponentMenuByKey', queryKey, out);
+
     // 키의 보존시간이 만료됨.
     if (!out || !out.result.list.length)
         return [
@@ -55,25 +61,17 @@ export const selectComponentMenuByKey = async (
                     type: ComponentType.Button,
                     style: 1,
                     label: '이전',
-                    custom_id: `${menuProps.button_id} ${result.page - 1} ${key}`,
+                    custom_id: `${other.button_id} ${result.page - 1} ${queryKey}`,
                     disabled: result.page != 0,
                 },
                 {
                     type: ComponentType.Button,
                     style: 1,
                     label: '다음',
-                    custom_id: `${menuProps.button_id} ${result.page + 1} ${key}`,
+                    custom_id: `${other.button_id} ${result.page + 1} ${queryKey}`,
                     disabled: result.page >= result.totalPage - 1,
                 },
             ],
         },
     ];
-};
-
-/**
- *
- * @param queryKey
- */
-export const selectComponentMenuKey = async (queryKey: QueryKey) => {
-    //
 };
