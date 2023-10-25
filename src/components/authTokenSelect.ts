@@ -1,7 +1,7 @@
 import { tokens } from 'controllers/auth';
-import menu from './menu';
-import moment from 'moment';
 import { APIActionRowComponent, APIStringSelectComponent } from 'discord-api-types/v10';
+import moment from 'moment';
+import menu from 'utils/menuComponent';
 
 moment.locale('ko');
 
