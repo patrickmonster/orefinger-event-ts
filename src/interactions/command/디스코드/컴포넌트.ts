@@ -20,6 +20,7 @@ export const exec = async (interaction: AppChatInputInteraction, selectOption: A
     switch (type) {
         case choices.indexOf('component'):
             interaction.reply({
+                content: `${type}`,
                 components: await selectComponentMenuByKey(
                     {
                         custom_id: 'discord component component',
@@ -43,6 +44,7 @@ LEFT JOIN component_type ct ON c.type_idx = ct.type_idx
             break;
         case choices.indexOf('component_group'):
             interaction.reply({
+                content: `${type}`,
                 components: await selectComponentMenuByKey(
                     {
                         custom_id: 'discord component component_group',
@@ -63,8 +65,49 @@ FROM component_group cg
             });
             break;
         case choices.indexOf('component_option'):
+            interaction.reply({
+                content: `${type}`,
+                components: await selectComponentMenuByKey(
+                    {
+                        custom_id: 'discord component component_option',
+                        placeholder: '컴포넌트를 선택해주세요!',
+                        disabled: false,
+                        max_values: 1,
+                        min_values: 1,
+                        button_id: 'key option',
+                    },
+                    `
+SELECT 
+    json_object( IF(regexp_like(emoji, '^[0-9]+$'), 'id', 'name'), IF(emoji < '' OR emoji IS NULL, '▫', emoji)) AS emoji
+    , CAST(option_id  AS CHAR) AS value
+    , label AS label
+    , LEFT(CONCAT(value, '] ', description), 100)  AS description 
+FROM component_option co 
+                    `
+                ),
+            });
             break;
         case choices.indexOf('component_option_connection'):
+            interaction.reply({
+                content: `${type}`,
+                components: await selectComponentMenuByKey(
+                    {
+                        custom_id: 'discord component component_option_connect',
+                        placeholder: '컴포넌트를 선택해주세요!',
+                        disabled: false,
+                        max_values: 1,
+                        min_values: 1,
+                        button_id: 'key option conn',
+                    },
+                    `
+SELECT CAST(coc.option_id AS CHAR) AS value
+    , CONCAT( c.name , '->', co.label ) AS label 
+FROM component_option_connection coc
+LEFT JOIN component c on c.type_idx = 3 AND c.component_id = coc.component_id
+LEFT JOIN component_option co ON co.option_id = coc.option_id 
+                    `
+                ),
+            });
             break;
         case choices.indexOf('component_low'):
             break;
