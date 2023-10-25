@@ -13,6 +13,7 @@ import {
     APIApplicationCommandInteraction,
     APICommandAutocompleteInteractionResponseCallbackData,
     APIInteraction,
+    APIMessage,
     APIMessageComponentInteraction,
     APIModalInteractionResponseCallbackData,
     APIModalSubmitInteraction,
@@ -67,7 +68,33 @@ interface CustomInstance extends AxiosInstance {
     patch<T>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T>;
 }
 
+// ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+const discordInteraction: CustomInstance = axios.create({ baseURL: 'https://discord.com/api', headers: { 'Content-Type': 'application/json' } });
+
+discordInteraction.interceptors.response.use(
+    ({ data }) => {
+        console.log('================= AXIOS RESPONSE (Success) ==================');
+        console.log(data);
+        console.log('=============================================================');
+        return data;
+    },
+    error => {
+        console.error('================= AXIOS RESPONSE (Error) ==================');
+        console.error({
+            status: error.response.status,
+            statusText: error.response.statusText,
+            data: error.response.data,
+        });
+        console.error(error.config.data);
+        console.error('=============================================================');
+        return Promise.reject(error);
+    }
+);
+
 export interface IReply {
+    interaction: Reply;
+
     reply(message: RESTPostAPIChannelMessage): Promise<void>;
     differ(message?: ephemeral): Promise<void>;
     auth(message: APICommandAutocompleteInteractionResponseCallbackData): Promise<void>;
@@ -75,31 +102,9 @@ export interface IReply {
     edit(message: RESTPostAPIChannelMessage): Promise<void>;
     differEdit(message: RESTPostAPIChannelMessage): Promise<void>;
     follow(message: RESTPostAPIChannelMessage): Promise<IReply>;
+    get(): Promise<APIMessage>;
+    remove(): Promise<void>;
 }
-
-// ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-const discordInteraction: CustomInstance = axios.create({ baseURL: 'https://discord.com/api', headers: { 'Content-Type': 'application/json' } });
-
-discordInteraction.interceptors.response.use(
-    ({ data }) => {
-        if (process.env.NODE_ENV === 'local2') {
-            console.log('================= AXIOS RESPONSE ==================');
-            console.log(data);
-            console.log('==================================================');
-        }
-        return data;
-    },
-    error => {
-        if (process.env.NODE_ENV === 'local2') {
-            console.error('================= AXIOS RESPONSE ==================');
-            console.error(error);
-            console.error('==================================================');
-        }
-        console.error(error.response.data.message);
-        return Promise.reject(error);
-    }
-);
 
 class Reply {
     private req: FastifyRequest<{ Body: APIInteraction }>;
@@ -135,10 +140,10 @@ class Reply {
     }
 
     public async get() {
-        return await discordInteraction.get(`/webhooks/${this.application_id}/${this.token}/messages/${this.id}`);
+        return await discordInteraction.get<APIMessage>(`/webhooks/${this.application_id}/${this.token}/messages/${this.id}`);
     }
     public async remove() {
-        return await discordInteraction.delete(`/webhooks/${this.application_id}/${this.token}/messages/${this.id}`);
+        await discordInteraction.delete(`/webhooks/${this.application_id}/${this.token}/messages/${this.id}`);
     }
 
     /**
@@ -235,16 +240,42 @@ class Reply {
             });
         else return Promise.reject('선처리 메세지 수정은 컴포넌트 이벤트에서만 사용할 수 있습니다.');
     }
+
+    *[Symbol.iterator]() {
+        yield this.get.bind(this);
+        yield this.remove.bind(this);
+        yield this.auth.bind(this);
+        yield this.differ.bind(this);
+        yield this.differEdit.bind(this);
+        yield this.edit.bind(this);
+        yield this.follow.bind(this);
+        yield this.model.bind(this);
+        yield this.reply.bind(this);
+    }
+
     /**
      * 후행 처리 응답 메세지
      * @param message
      * @returns
      */
-    public async follow(message: RESTPostAPIChannelMessage) {
+    public async follow(message: RESTPostAPIChannelMessage): Promise<IReply> {
         return await discordInteraction
             .post<APIWebhook>(`/webhooks/${this.application_id}/${this.token}`, this.appendEmpheral(message))
             .then(({ id }) => {
-                return new Reply(this.req, this.res, id);
+                const reply = new Reply(this.req, this.res, id);
+
+                return {
+                    reply: reply.reply.bind(reply),
+                    differ: reply.differ.bind(reply),
+                    auth: reply.auth.bind(reply),
+                    model: reply.model.bind(reply),
+                    edit: reply.edit.bind(reply),
+                    differEdit: reply.differEdit.bind(reply),
+                    follow: reply.follow.bind(reply),
+                    get: reply.get.bind(reply),
+                    remove: reply.remove.bind(reply),
+                    interaction: reply,
+                };
             });
     }
 }
@@ -292,6 +323,21 @@ export default fp(async function (fastify, opts) {
                 Body: APIInteraction;
             }>,
             res: FastifyReply
-        ) => new Reply(req, res)
+        ): IReply => {
+            const reply = new Reply(req, res);
+
+            return {
+                reply: reply.reply.bind(reply),
+                differ: reply.differ.bind(reply),
+                auth: reply.auth.bind(reply),
+                model: reply.model.bind(reply),
+                edit: reply.edit.bind(reply),
+                differEdit: reply.differEdit.bind(reply),
+                follow: reply.follow.bind(reply),
+                get: reply.get.bind(reply),
+                remove: reply.remove.bind(reply),
+                interaction: reply,
+            };
+        }
     );
 });

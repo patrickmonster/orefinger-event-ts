@@ -2,11 +2,6 @@ import { APIInteraction, InteractionType } from 'discord-api-types/v10';
 import { InteractionResponseType } from 'discord-interactions';
 import { FastifyInstance } from 'fastify';
 
-// import app from 'interactions/app';
-// import autocomp from 'interactions/autocomp';
-// import message from 'interactions/message';
-// import model from 'interactions/model';
-
 export default async (fastify: FastifyInstance, opts: any) => {
     let app: any = null;
     let message: any = null;
@@ -53,12 +48,7 @@ export default async (fastify: FastifyInstance, opts: any) => {
 
             // 응답이 유동적인 처리를 해야함.
             const interaction = fastify.interaction(req, res);
-
-            const msg = {
-                ...interaction,
-            };
-
-            console.log('msg', msg);
+            const msg: any = { ...body, ...body.data, ...interaction };
 
             fastify.log.info('interactionEvent', body.type, body.guild_id, body?.channel_id || 'DM', body.member?.user?.id, body.id);
 

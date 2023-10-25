@@ -5,17 +5,15 @@ import {
 } from 'discord-api-types/v10';
 import { basename } from 'path';
 
-import { textSelect } from 'components/System/text';
+import { componentSelect, textSelect } from 'components/System/setting';
 import { AppChatInputInteraction } from 'interactions/app';
 
-const choices = ['텍스트'];
+const choices = ['텍스트', '컴포넌트'];
 
 export const exec = async (interaction: AppChatInputInteraction, selectOption: APIApplicationCommandInteractionDataBasicOption[]) => {
     console.log('컴포넌트 수신', selectOption);
 
     const type = selectOption.find(({ name }) => ['타입'].includes(name))?.value;
-
-    console.log('????', interaction);
 
     await interaction.differ({ ephemeral: true });
     switch (type) {
@@ -24,6 +22,9 @@ export const exec = async (interaction: AppChatInputInteraction, selectOption: A
                 textSelect(interaction, 'select discord text');
             }
             break;
+        case choices.indexOf('컴포넌트'): {
+            componentSelect(interaction, 'select discord component');
+        }
         default:
             interaction.reply({ content: '선택한 타입이 없습니다.', ephemeral: true });
             break;
