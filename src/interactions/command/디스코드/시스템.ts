@@ -5,10 +5,10 @@ import {
 } from 'discord-api-types/v10';
 import { basename } from 'path';
 
-import { componentSelect, textSelect } from 'components/System/setting';
+import { selectComponentMenuByKey } from 'components/systemComponent';
 import { AppChatInputInteraction } from 'interactions/app';
 
-const choices = ['텍스트', '컴포넌트'];
+const choices = ['텍스트', 'auth_type'];
 
 export const exec = async (interaction: AppChatInputInteraction, selectOption: APIApplicationCommandInteractionDataBasicOption[]) => {
     console.log('컴포넌트 수신', selectOption);
@@ -18,13 +18,48 @@ export const exec = async (interaction: AppChatInputInteraction, selectOption: A
     await interaction.differ({ ephemeral: true });
     switch (type) {
         case choices.indexOf('텍스트'):
-            {
-                textSelect(interaction, 'select discord text');
-            }
+            interaction.reply({
+                content: `${choices[type]}`,
+                components: await selectComponentMenuByKey(
+                    {
+                        custom_id: 'discord system text',
+                        placeholder: '텍스트 선택해주세요!',
+                        disabled: false,
+                        max_values: 1,
+                        min_values: 1,
+                        button_id: 'key',
+                    },
+                    `
+SELECT CAST(text_id AS CHAR) AS value
+    , tag AS label
+    , LEFT(message, 100) AS description
+FROM text_message
+WHERE parent_id IS NULL 
+                `
+                ),
+            });
             break;
-        case choices.indexOf('컴포넌트'): {
-            componentSelect(interaction, 'select discord component');
-        }
+        case choices.indexOf('auth_type'):
+            interaction.reply({
+                content: `${choices[type]}`,
+                components: await selectComponentMenuByKey(
+                    {
+                        custom_id: 'discord system auth_type',
+                        placeholder: '인증을 선택해주세요!',
+                        disabled: false,
+                        max_values: 1,
+                        min_values: 1,
+                        button_id: 'key',
+                    },
+                    `
+SELECT json_object( 'name', IF( use_yn = 'Y', '🔴','⚫')) AS emoji
+    ,  CAST(auth_type AS CHAR) AS value
+    , CONCAT(tag, '] ',tag_kr) AS label
+FROM auth_type at2 
+                    `
+                ),
+            });
+            break;
         default:
             interaction.reply({ content: '선택한 타입이 없습니다.', ephemeral: true });
             break;
