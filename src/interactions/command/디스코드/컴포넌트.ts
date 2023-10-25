@@ -37,7 +37,6 @@ export const exec = async (interaction: AppChatInputInteraction, selectOption: A
                         disabled: false,
                         max_values: 1,
                         min_values: 1,
-                        button_id: 'key',
                     },
                     `
 SELECT  
@@ -61,7 +60,6 @@ LEFT JOIN component_type ct ON c.type_idx = ct.type_idx
                         disabled: false,
                         max_values: 1,
                         min_values: 1,
-                        button_id: 'key',
                     },
                     `
 SELECT 
@@ -83,7 +81,6 @@ FROM component_group cg
                         disabled: false,
                         max_values: 1,
                         min_values: 1,
-                        button_id: 'key',
                     },
                     `
 SELECT 
@@ -106,7 +103,6 @@ FROM component_option co
                         disabled: false,
                         max_values: 1,
                         min_values: 1,
-                        button_id: 'key',
                     },
                     `
 SELECT json_object( 'name', IF( coc.use_yn  = 'Y', '🔴','⚫')) AS emoji 
@@ -129,7 +125,6 @@ LEFT JOIN component_option co ON co.option_id = coc.option_id
                         disabled: false,
                         max_values: 1,
                         min_values: 1,
-                        button_id: 'key',
                     },
                     `
 SELECT  json_object( 'name', IF( cl.use_yn = 'Y', '🔴','⚫')) AS emoji 
@@ -152,7 +147,6 @@ LEFT JOIN component_group cg  ON cl.group_id = cg.group_id
                         disabled: false,
                         max_values: 1,
                         min_values: 1,
-                        button_id: 'key',
                     },
                     `
 SELECT  json_object( 'name', IF( cc.use_yn = 'Y', '🔴','⚫')) AS emoji 
@@ -175,7 +169,6 @@ LEFT JOIN component_group cg  ON cc.component_id =  cg.group_id
                         disabled: false,
                         max_values: 1,
                         min_values: 1,
-                        button_id: 'key',
                     },
                     `
 SELECT json_object( 'name', IF( use_yn = 'Y', '🔴','⚫')) AS emoji
@@ -196,7 +189,6 @@ FROM component_type ct
                         disabled: false,
                         max_values: 1,
                         min_values: 1,
-                        button_id: 'key',
                     },
                     `
 SELECT json_object( 'name', IF( use_yn = 'Y', '🔴','⚫')) AS emoji
@@ -228,5 +220,6 @@ const api: APIApplicationCommandSubcommandOption = {
     ],
 };
 
+export const isAdmin = true; // 봇 관리자만 사용 가능
 // 인터렉션 이벤트
 export default api;

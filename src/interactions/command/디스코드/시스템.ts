@@ -27,7 +27,6 @@ export const exec = async (interaction: AppChatInputInteraction, selectOption: A
                         disabled: false,
                         max_values: 1,
                         min_values: 1,
-                        button_id: 'key',
                     },
                     `
 SELECT CAST(text_id AS CHAR) AS value
@@ -49,7 +48,6 @@ WHERE parent_id IS NULL
                         disabled: false,
                         max_values: 1,
                         min_values: 1,
-                        button_id: 'key',
                     },
                     `
 SELECT json_object( 'name', IF( use_yn = 'Y', '🔴','⚫')) AS emoji
@@ -80,6 +78,8 @@ const api: APIApplicationCommandSubcommandOption = {
         },
     ],
 };
+
+export const isAdmin = true; // 봇 관리자만 사용 가능
 
 // 인터렉션 이벤트
 export default api;
