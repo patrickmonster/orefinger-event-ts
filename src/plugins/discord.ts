@@ -121,7 +121,7 @@ class Reply {
             Body: APIInteraction;
         }>,
         res: FastifyReply,
-        id = '@original'
+        id?: string
     ) {
         const {
             body: { token, application_id, message, type },
@@ -130,7 +130,7 @@ class Reply {
         req.log.info(`INTERACTION] ${JSON.stringify(req.body)}`);
 
         this.id = id ?? '@original';
-        this.isReply = message?.id ? true : false;
+        this.isReply = false;
         this.token = token;
         this.application_id = application_id;
         this.type = type;
@@ -165,7 +165,7 @@ class Reply {
         // 응답
         if (this.isReply) {
             await discordInteraction.patch(`/webhooks/${this.application_id}/${this.token}/messages/${this.id}`, message).catch(e => {
-                console.log('메세지 수정 실패', e.response.data);
+                console.log('메세지 수정 실패', `/webhooks/${this.application_id}/${this.token}/messages/${this.id}`, e.response.data);
             });
         } else {
             this.isReply = true;
@@ -311,7 +311,7 @@ export default fp(async function (fastify, opts) {
              * TODO: 추후 인터렉션 이벤트가 변경되면 우선적으로 확인 필요.
              *  -> 현재 PING 일때만 검증 처리되기 때문에 추가 처리가 필요함.
              */
-            if (isValidRequest || (body as APIInteraction).type !== InteractionType.Ping) return done();
+            if (isValidRequest /*|| (body as APIInteraction).type !== InteractionType.Ping */) return done();
         }
         return reply.code(401).send('Bad request signature');
     });
@@ -325,6 +325,8 @@ export default fp(async function (fastify, opts) {
             res: FastifyReply
         ): IReply => {
             const reply = new Reply(req, res);
+
+            console.log('응답생성');
 
             return {
                 reply: reply.reply.bind(reply),

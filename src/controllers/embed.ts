@@ -1,5 +1,6 @@
 import { query, selectPaging, SqlInsertUpdate } from 'utils/database';
 
+import { APIEmbed } from 'discord-api-types/v10';
 import { EmbedCreate } from 'interfaces/embed';
 
 export const getEmbedList = async (page: number) =>
@@ -22,6 +23,9 @@ select *
 from v_embed`,
         page
     );
+
+export const getEmbedDtilByEmbed = async (embed_id: number | string) =>
+    query<{ embed: APIEmbed }>(`SELECT func_get_embed(e.embed_id) AS embed FROM embed e WHERE e.embed_id = ?`, embed_id).then(res => res[0]?.embed);
 
 export const createEmbed = async (message: EmbedCreate) => query(`INSERT INTO embed set ?`, message);
 
