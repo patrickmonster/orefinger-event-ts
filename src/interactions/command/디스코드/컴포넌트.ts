@@ -17,11 +17,11 @@ export const exec = async (interaction: AppChatInputInteraction, selectOption: A
 
     const type = selectOption.find(({ name }) => ['타입'].includes(name))?.value;
 
-    const reply = await interaction.deffer({ ephemeral: true });
+    const reply = await interaction.differ({ ephemeral: true });
     switch (type) {
         case choices.indexOf('component'):
             getComponentList({ page: 0, limit: 15 }).then(res => {
-                reply({
+                interaction.reply({
                     components: menu(
                         {
                             custom_id: 'discord component 0',
@@ -38,7 +38,7 @@ export const exec = async (interaction: AppChatInputInteraction, selectOption: A
                                 label_lang,
                                 type_idx,
                                 type,
-                                type_name,
+                                label,
                                 text_id,
                                 emoji,
                                 custom_id,
@@ -58,7 +58,8 @@ export const exec = async (interaction: AppChatInputInteraction, selectOption: A
                             }) => ({
                                 label: `${name}`,
                                 value: `${component_id}`,
-                                description: ``,
+                                description: `${type}] ${label}`,
+                                emoji: { name: emoji || '▫' },
                             })
                         )
                     ),
@@ -77,7 +78,7 @@ export const exec = async (interaction: AppChatInputInteraction, selectOption: A
         case choices.indexOf('component_col'):
             break;
         default:
-            reply({ content: '선택한 타입이 없습니다.', ephemeral: true });
+            interaction.reply({ content: '선택한 타입이 없습니다.', ephemeral: true });
             break;
     }
 };

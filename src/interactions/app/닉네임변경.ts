@@ -1,4 +1,4 @@
-import { ApplicationCommandType, RESTPostAPIApplicationCommandsJSONBody, RESTPatchAPIApplicationCommandJSONBody } from 'discord-api-types/v10';
+import { ApplicationCommandType, RESTPatchAPIApplicationCommandJSONBody } from 'discord-api-types/v10';
 import { appInteraction } from 'interactions/app';
 import { basename } from 'path';
 
@@ -17,13 +17,13 @@ export const exec = (interaction: appInteraction) => {
             if (Array.isArray(user)) {
                 console.log('컴포넌트 :', ...user.map(v => v.components));
 
-                await interaction.re({ components: user });
+                await interaction.reply({ components: user });
             } else {
                 await setUserNick(target_id, user.user_id);
             }
         })
         .catch(err => {
-            interaction.re({
+            interaction.reply({
                 content: '해당하는 사용자는 로그인을 하지 않았거나, 관리자에욧!!!',
             });
         });

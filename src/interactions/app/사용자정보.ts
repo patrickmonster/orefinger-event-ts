@@ -1,4 +1,4 @@
-import { ApplicationCommandType, RESTPostAPIApplicationCommandsJSONBody, RESTPatchAPIApplicationCommandJSONBody } from 'discord-api-types/v10';
+import { ApplicationCommandType, RESTPatchAPIApplicationCommandJSONBody } from 'discord-api-types/v10';
 import { appInteraction } from 'interactions/app';
 import { basename } from 'path';
 
@@ -13,7 +13,7 @@ export const exec = async (interaction: appInteraction) => {
     const { target_id } = interaction;
 
     try {
-        await interaction.re({
+        await interaction.reply({
             content: `사용자 <@${target_id}>님의 정보를 불러오는중....`,
         });
 
@@ -28,7 +28,7 @@ export const exec = async (interaction: appInteraction) => {
 
         const authState = await userAuthState(target_id);
 
-        await interaction.re({
+        await interaction.reply({
             content: `사용자 <@${target_id}>님의 정보를 불러왔어요!
 \`\`\`ansi
 ${user
@@ -47,7 +47,7 @@ ${authState
     .join('\n')}${authState.length > 10 ? `\n외 ${authState.length - 10}개의 채널` : ''}\`\`\``,
         });
     } catch (e) {
-        await interaction.re({
+        await interaction.reply({
             content: '해당하는 사용자는 로그인을 하지 않았어요!',
         });
     }
