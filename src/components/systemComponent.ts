@@ -1,8 +1,10 @@
 import {
     APIActionRowComponent,
     APIBaseSelectMenuComponent,
+    APIButtonComponent,
     APIMessageActionRowComponent,
     APISelectMenuOption,
+    ButtonStyle,
     ComponentType,
 } from 'discord-api-types/v10';
 import { createQueryKey, selectQueryKeyPaging } from 'utils/queryKey';
@@ -14,7 +16,9 @@ import { createQueryKey, selectQueryKeyPaging } from 'utils/queryKey';
  * @returns APIActionRowComponent<APIMessageActionRowComponent>[]
  */
 export const selectComponentMenuByKey = async (
-    menuProps: Omit<APIBaseSelectMenuComponent<ComponentType.StringSelect>, 'type'>,
+    menuProps: Omit<APIBaseSelectMenuComponent<ComponentType.StringSelect>, 'type'> & {
+        buttons?: APIButtonComponent[];
+    },
     sql: string,
     ...params: any[]
 ): Promise<APIActionRowComponent<APIMessageActionRowComponent>[]> => {
@@ -64,12 +68,20 @@ export const selectComponentMenuKey = async (queryKey: string, page?: number): P
                 },
                 {
                     type: ComponentType.Button,
+                    style: ButtonStyle.Success,
+                    label: `${result.page}/${result.totalPage}`,
+                    custom_id: '${queryKey}} ${result.page}',
+                    disabled: true,
+                },
+                {
+                    type: ComponentType.Button,
                     style: 1,
                     label: '다음',
                     custom_id: `key ${result.page + 1} ${queryKey}`,
-                    disabled: result.page >= result.totalPage - 1,
+                    disabled: result.page >= result.totalPage,
                 },
-            ],
+                ...(other.buttons || []),
+            ].slice(0, 5),
         },
     ];
 };

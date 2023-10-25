@@ -1,4 +1,4 @@
-import { query, SqlInsertUpdate, selectPaging } from 'utils/database';
+import { SqlInsertUpdate, query, selectPaging } from 'utils/database';
 
 import { ComponentCreate, ComponentOptionCreate } from 'interfaces/component';
 import { Paging } from 'interfaces/swagger';
@@ -102,6 +102,59 @@ and a.component_id = ?
     `,
         component_id
     ).then(res => res[0]);
+
+export const getComponentDtilByEmbed = async (component_id: number | string) =>
+    query<{
+        embed: {
+            title: string;
+            author: any;
+            description: string;
+            fields: [
+                {
+                    name: string;
+                    value: string;
+                    inline: boolean;
+                },
+                {
+                    name: string;
+                    value: string;
+                    inline: boolean;
+                },
+                {
+                    name: string;
+                    value: string;
+                    inline: boolean;
+                }
+            ];
+            footer: { text: string };
+            timestamp: string;
+        };
+    }>(
+        `
+SELECT 
+    JSON_OBJECT(
+        'title', IFNULL(IFNULL(label, f_get_text(label_id)), 'title' ),
+        'author', JSON_OBJECT('name', c.tag),
+        'description', CONCAT(
+            'value :', IFNULL(value, '-') , '\n',
+            'custom_id :', IFNULL(custom_id, '-') , '\n',
+            '비활성/필수 :', IFNULL(disabled_yn, 'N'), '/', IFNULL(required_yn, 'N')  
+        ),
+        'fields', JSON_ARRAY( 
+            JSON_OBJECT('name', 'emoji','value', emoji, 'inline', true),
+            JSON_OBJECT('name', 'style','value', d.tag, 'inline', true),
+            JSON_OBJECT('name', 'range','value', CONCAT(IFNULL(min_values, '-') , '/', IFNULL(max_values, '-')), 'inline', false)
+        ),
+        'footer', JSON_OBJECT('text', name),
+        'timestamp', a.create_at 
+    ) AS embed
+FROM component a
+LEFT JOIN component_type c ON a.type_idx = c.type_idx 
+LEFT JOIN component_style d ON a.style_id = d.style_idx AND d.use_yn ='Y'
+WHERE a.component_id = ?
+        `,
+        component_id
+    ).then(res => res[0]?.embed);
 
 export const createComponent = async (component: ComponentCreate) => query(`INSERT INTO component set ?`, component);
 

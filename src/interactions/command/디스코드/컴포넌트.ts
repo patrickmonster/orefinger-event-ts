@@ -18,6 +18,8 @@ const choices = [
     'component_option_connection',
     'component_low',
     'component_col',
+    'embed',
+    'embed_user',
 ];
 
 export const exec = async (interaction: AppChatInputInteraction, selectOption: APIApplicationCommandInteractionDataBasicOption[]) => {
@@ -199,6 +201,45 @@ FROM component_style cs
                 ),
             });
             break;
+        case choices.indexOf('embed'):
+            interaction.reply({
+                content: `${choices[type]}`,
+                components: await selectComponentMenuByKey(
+                    {
+                        custom_id: 'discord component embed',
+                        placeholder: '컴포넌트를 선택해주세요!',
+                        disabled: false,
+                        max_values: 1,
+                        min_values: 1,
+                    },
+                    `
+SELECT CAST(embed_id  AS CHAR) AS value
+    , IFNULL(tag, '지정되지 않음')  AS label
+FROM embed e
+                    `
+                ),
+            });
+            break;
+        case choices.indexOf('embed_user'):
+            interaction.reply({
+                content: `${choices[type]}`,
+                components: await selectComponentMenuByKey(
+                    {
+                        custom_id: 'discord component embed_user',
+                        placeholder: '컴포넌트를 선택해주세요!',
+                        disabled: false,
+                        max_values: 1,
+                        min_values: 1,
+                    },
+                    `
+SELECT json_object( 'name', IF( use_yn = 'Y', '🔴','⚫')) AS emoji
+    , CAST(embed_id  AS CHAR) AS value
+	, IFNULL(tag, '지정되지 않음')  AS label
+FROM embed_user e
+                    `
+                ),
+            });
+            break;
         default:
             interaction.reply({ content: '선택한 타입이 없습니다.', ephemeral: true });
             break;
@@ -221,5 +262,4 @@ const api: APIApplicationCommandSubcommandOption = {
 };
 
 export const isAdmin = true; // 봇 관리자만 사용 가능
-// 인터렉션 이벤트
 export default api;
