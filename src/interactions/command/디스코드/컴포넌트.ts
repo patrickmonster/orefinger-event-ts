@@ -20,7 +20,7 @@ export const exec = async (interaction: AppChatInputInteraction, selectOption: A
     switch (type) {
         case choices.indexOf('component'):
             interaction.reply({
-                content: `${type}`,
+                content: `${choices[type]}`,
                 components: await selectComponentMenuByKey(
                     {
                         custom_id: 'discord component component',
@@ -44,7 +44,7 @@ LEFT JOIN component_type ct ON c.type_idx = ct.type_idx
             break;
         case choices.indexOf('component_group'):
             interaction.reply({
-                content: `${type}`,
+                content: `${choices[type]}`,
                 components: await selectComponentMenuByKey(
                     {
                         custom_id: 'discord component component_group',
@@ -66,7 +66,7 @@ FROM component_group cg
             break;
         case choices.indexOf('component_option'):
             interaction.reply({
-                content: `${type}`,
+                content: `${choices[type]}`,
                 components: await selectComponentMenuByKey(
                     {
                         custom_id: 'discord component component_option',
@@ -89,7 +89,7 @@ FROM component_option co
             break;
         case choices.indexOf('component_option_connection'):
             interaction.reply({
-                content: `${type}`,
+                content: `${choices[type]}`,
                 components: await selectComponentMenuByKey(
                     {
                         custom_id: 'discord component component_option_connect',

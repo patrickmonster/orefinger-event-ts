@@ -17,7 +17,7 @@ export const createQueryKey = async (queryKey: QueryKeyProps): Promise<QueryKey>
     const key = sha256(JSON.stringify(queryKey));
 
     await redis.set(REDIS_KEY.SQL.SELECT(key), JSON.stringify({ sql: queryKey.sql, params: queryKey.params, other: queryKey.other }), {
-        EX: 60 * 60 * 24,
+        EX: 60 * 60 * 2,
     });
 
     return key;

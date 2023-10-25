@@ -24,7 +24,14 @@ export const selectComponentMenuByKey = async (
     const out = await selectQueryKeyPaging<APISelectMenuOption>(key, { page: 0, limit });
 
     console.log('SystemComponent] selectComponentMenuByKey', key, out);
-    if (!out || !out.result.list.length) return [];
+    // 키의 보존시간이 만료됨.
+    if (!out || !out.result.list.length)
+        return [
+            {
+                type: ComponentType.ActionRow,
+                components: [{ type: ComponentType.Button, style: 1, label: '세션이 만료되었습니다', custom_id: `0`, disabled: true }],
+            },
+        ];
 
     const { result, other } = out;
     /*
@@ -48,14 +55,14 @@ export const selectComponentMenuByKey = async (
                     type: ComponentType.Button,
                     style: 1,
                     label: '이전',
-                    custom_id: `${menuProps.button_id} ${result.page - 1}`,
+                    custom_id: `${menuProps.button_id} ${result.page - 1} ${key}`,
                     disabled: result.page != 0,
                 },
                 {
                     type: ComponentType.Button,
                     style: 1,
                     label: '다음',
-                    custom_id: `${menuProps.button_id} ${result.page + 1}`,
+                    custom_id: `${menuProps.button_id} ${result.page + 1} ${key}`,
                     disabled: result.page >= result.totalPage - 1,
                 },
             ],
