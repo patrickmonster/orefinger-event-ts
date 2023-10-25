@@ -152,5 +152,18 @@ export const selectPaging = async <E>(query: string, paging: Paging | number, ..
     }
 };
 
+/**
+ * 쿼리의 해시키를 생성합니다.
+ * @param query
+ * @param params
+ * @returns
+ */
+export const getQueryKey = (query: string, ...params: any[]) => {
+    const queryOrigin = mysql.format(query, params);
+    let hash = 0;
+    for (let i = 0; i < queryOrigin.length; i++) hash += queryOrigin.charCodeAt(i);
+    return hash;
+};
+
 export const calTo = (query: string, ...value: any[]) =>
     value.filter(v => v != null && v != undefined && v != '').length ? mysql.format(`${query}`, value) : '-- calTo';

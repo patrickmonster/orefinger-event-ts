@@ -6,7 +6,7 @@ import { AppChatInputInteraction } from 'interactions/app';
 import { MessageMenuInteraction } from 'interactions/message';
 
 import { getComponentList } from 'controllers/component';
-import menu from '../menu';
+import menu from 'utils/menuComponent';
 
 moment.locale('ko');
 /**
@@ -19,7 +19,7 @@ export const textSelect = (interaction: MessageMenuInteraction | AppChatInputInt
 
     if ('values' in interaction) page = parseInt(interaction.values[0]) - 1;
 
-    getTextList({ page, limit: 15 }, {}).then(({ page, limit, total, list, totalPage }) => {
+    getTextList({ page, limit: 15 }, {}).then(({ page, total, list, totalPage }) => {
         interaction.reply({
             components: menu(
                 {

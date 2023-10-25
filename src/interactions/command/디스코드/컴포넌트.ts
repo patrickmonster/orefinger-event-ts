@@ -5,8 +5,7 @@ import {
 } from 'discord-api-types/v10';
 import { basename } from 'path';
 
-import menu from 'components/menu';
-import { getComponentList } from 'controllers/component';
+import { selectComponentMenuByKey } from 'components/systemComponent';
 import { AppChatInputInteraction } from 'interactions/app';
 
 // import api from "utils/discordApiInstance"
@@ -17,53 +16,29 @@ export const exec = async (interaction: AppChatInputInteraction, selectOption: A
 
     const type = selectOption.find(({ name }) => ['타입'].includes(name))?.value;
 
-    const reply = await interaction.differ({ ephemeral: true });
+    await interaction.differ({ ephemeral: true });
     switch (type) {
         case choices.indexOf('component'):
-            getComponentList({ page: 0, limit: 15 }).then(res => {
-                interaction.reply({
-                    components: menu(
-                        {
-                            custom_id: 'discord component 0',
-                            placeholder: '컴포넌트를 선택해주세요!',
-                            disabled: false,
-                            max_values: 1,
-                            min_values: 1,
-                        },
-                        ...res.list.map(
-                            ({
-                                component_id,
-                                name,
-                                label_id,
-                                label_lang,
-                                type_idx,
-                                type,
-                                label,
-                                text_id,
-                                emoji,
-                                custom_id,
-                                value,
-                                style,
-                                style_name,
-                                min_values,
-                                max_values,
-                                disabled,
-                                required,
-                                use_yn,
-                                edit,
-                                permission_type,
-                                create_at,
-                                update_at,
-                                order_by,
-                            }) => ({
-                                label: `${name}`,
-                                value: `${component_id}`,
-                                description: `${type}] ${label}`,
-                                emoji: { name: emoji || '▫' },
-                            })
-                        )
-                    ),
-                });
+            interaction.reply({
+                components: await selectComponentMenuByKey(
+                    {
+                        custom_id: 'discord component component',
+                        placeholder: '컴포넌트를 선택해주세요!',
+                        disabled: false,
+                        max_values: 1,
+                        min_values: 1,
+                        button_id: 'discord component',
+                    },
+                    `
+SELECT  
+    json_object( IF(regexp_like(c.emoji, '^[0-9]+$'), 'id', 'name'), IF( c.emoji < '' OR c.emoji IS NULL, '▫', c.emoji)) AS emoji
+    , CAST(component_id AS CHAR) AS value
+    , name AS label 
+    , concat(ct.tag, "] ", name) AS  description
+FROM component c
+LEFT JOIN component_type ct ON c.type_idx = ct.type_idx
+                    `
+                ),
             });
 
             break;
