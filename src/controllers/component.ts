@@ -117,7 +117,7 @@ SELECT
             '비활성/필수 :', IFNULL(disabled_yn, 'N'), '/', IFNULL(required_yn, 'N')  
         ),
         'fields', JSON_ARRAY( 
-            JSON_OBJECT('name', 'emoji','value', emoji, 'inline', true),
+            JSON_OBJECT('name', 'emoji','value', IFNULL(emoji, '없음'), 'inline', true),
             JSON_OBJECT('name', 'style','value', d.tag, 'inline', true),
             JSON_OBJECT('name', 'range','value', CONCAT(IFNULL(min_values, '-') , '/', IFNULL(max_values, '-')), 'inline', false)
         ),

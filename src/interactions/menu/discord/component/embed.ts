@@ -1,5 +1,6 @@
 import { MessageMenuInteraction } from 'interactions/message';
 
+import { editerComponent } from 'components/systemComponent';
 import { getEmbedDtilByEmbed } from 'controllers/embed';
 
 /**
@@ -20,6 +21,11 @@ export const exec = async (interaction: MessageMenuInteraction) => {
     if (!embed) {
         interaction.reply({ content: '해당 메세지를 찾을 수 없습니다.', ephemeral: true });
     } else {
-        interaction.reply({ embeds: [embed], ephemeral: true });
+        interaction.reply({
+            content: `embed 정보를 수정합니다. - ${embed_id}`,
+            embeds: [embed],
+            ephemeral: true,
+            components: [editerComponent('embed edit')],
+        });
     }
 };
