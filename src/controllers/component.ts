@@ -1,6 +1,6 @@
 import { SqlInsertUpdate, calTo, query, selectPaging } from 'utils/database';
 
-import { APIEmbed, APISelectMenuOption } from 'discord-api-types/v10';
+import { APIEmbed, APIModalInteractionResponseCallbackData, APISelectMenuOption } from 'discord-api-types/v10';
 import { ComponentCreate, ComponentOptionCreate } from 'interfaces/component';
 import { Paging } from 'interfaces/swagger';
 
@@ -130,6 +130,43 @@ SELECT
 FROM component a
 LEFT JOIN component_type c ON a.type_idx = c.type_idx 
 LEFT JOIN component_style d ON a.style_id = d.style_idx AND d.use_yn ='Y'
+WHERE a.component_id = ?
+        `,
+        component_id
+    ).then(res => res[0]);
+
+export const getComponentBaseEditByModel = async (component_id: ComponentId) =>
+    query<Omit<APIModalInteractionResponseCallbackData, 'custom_id'>>(
+        `
+SELECT CONCAT(a.component_id, '] 컴포넌트 수정') as title,
+    JSON_ARRAY(
+        JSON_OBJECT(
+            'type', 1, 'components', JSON_ARRAY(
+                JSON_OBJECT('type', 4, 'label', '이름', 'value', CAST(name AS CHAR), 'min_length', 1, 'max_length', 100, 'style', 1, 'required', true )
+            )
+        ),
+        JSON_OBJECT(
+            'type', 1, 'components', JSON_ARRAY(
+                JSON_OBJECT('type', 4, 'label', '아이디', 'value', custom_id, 'min_length', 0, 'max_length', 100, 'style', 1, 'required', false)
+            )
+        ),
+        JSON_OBJECT(
+            'type', 1, 'components', JSON_ARRAY(
+                JSON_OBJECT('type', 4, 'label', '값', 'value',value , 'min_length', 0, 'max_length', 100, 'style', 1, 'required', false)
+            )
+        ),
+        JSON_OBJECT(
+            'type', 1, 'components', JSON_ARRAY(
+                JSON_OBJECT('type', 4, 'label', '최소값', 'value',IF(min_values IS null, '', CAST(min_values AS CHAR)), 'style', 1, 'required', false)
+            )
+        ),
+        JSON_OBJECT(
+            'type', 1, 'components', JSON_ARRAY(
+                JSON_OBJECT('type', 4, 'label', '최대값', 'value',IF(max_values  IS null, '', CAST(max_values AS CHAR)), 'style', 1, 'required', false)
+            )
+        )
+    ) AS component
+FROM component a
 WHERE a.component_id = ?
         `,
         component_id

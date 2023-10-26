@@ -127,7 +127,7 @@ class Reply {
             body: { token, application_id, message, type },
         } = req;
 
-        req.log.info(`INTERACTION] ${JSON.stringify(req.body)}`);
+        // req.log.info(`INTERACTION] ${JSON.stringify(req.body)}`);
 
         this.id = id ?? '@original';
         this.isReply = false;
@@ -207,12 +207,12 @@ class Reply {
      */
     public async model(message: APIModalInteractionResponseCallbackData) {
         // 모달 응답
-        if (this.type === InteractionType.ModalSubmit)
+        if (this.type !== InteractionType.ModalSubmit)
             return await this.res.status(200).send({
                 type: InteractionResponseType.MODAL,
                 data: message,
             });
-        else return Promise.reject('모달 응답은 모달 이벤트에서만 사용할 수 있습니다.');
+        else return Promise.reject('모달 응답은 모달 이벤트에서 사용할 수 없습니다.');
     }
     /**
      * 선처리 메세지 수정
