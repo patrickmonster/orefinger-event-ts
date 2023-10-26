@@ -1,6 +1,6 @@
 import { MessageMenuInteraction } from 'interactions/message';
 
-import { getEmbedDtilByEmbed } from 'controllers/embed';
+import { getTextDtilByEmbeds } from 'controllers/text';
 
 /**
  *
@@ -9,17 +9,15 @@ import { getEmbedDtilByEmbed } from 'controllers/embed';
  */
 export const exec = async (interaction: MessageMenuInteraction) => {
     const {
-        values: [embed_id],
+        values: [text_id],
     } = interaction;
 
     await interaction.differ({ ephemeral: true });
-    const embed = await getEmbedDtilByEmbed(embed_id);
-
-    console.log('embed', embed);
+    const embed = await getTextDtilByEmbeds(text_id);
 
     if (!embed) {
         interaction.reply({ content: '해당 메세지를 찾을 수 없습니다.', ephemeral: true });
     } else {
-        interaction.reply({ embeds: [embed], ephemeral: true });
+        interaction.reply({ embeds: [embed] });
     }
 };

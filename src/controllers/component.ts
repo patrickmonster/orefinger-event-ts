@@ -1,5 +1,6 @@
 import { SqlInsertUpdate, query, selectPaging } from 'utils/database';
 
+import { APIEmbed } from 'discord-api-types/v10';
 import { ComponentCreate, ComponentOptionCreate } from 'interfaces/component';
 import { Paging } from 'interfaces/swagger';
 
@@ -61,7 +62,7 @@ SELECT c.component_id
     , c.label_id
     , c.style_id
 FROM component c
-LEFT JOIN component_type ct ON c.type_idx = ct.type_idx  `,
+LEFT JOIN component_type ct ON c.type_idx = ct.type_idx`,
         page
     );
 
@@ -104,32 +105,7 @@ and a.component_id = ?
     ).then(res => res[0]);
 
 export const getComponentDtilByEmbed = async (component_id: number | string) =>
-    query<{
-        embed: {
-            title: string;
-            author: any;
-            description: string;
-            fields: [
-                {
-                    name: string;
-                    value: string;
-                    inline: boolean;
-                },
-                {
-                    name: string;
-                    value: string;
-                    inline: boolean;
-                },
-                {
-                    name: string;
-                    value: string;
-                    inline: boolean;
-                }
-            ];
-            footer: { text: string };
-            timestamp: string;
-        };
-    }>(
+    query<{ embed: APIEmbed }>(
         `
 SELECT 
     JSON_OBJECT(
