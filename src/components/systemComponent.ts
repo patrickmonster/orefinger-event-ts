@@ -91,6 +91,101 @@ export const selectComponentMenuKey = async (queryKey: string, page?: number): P
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 // 임베드 템플릿 수정용 컴포넌트
 
+/**
+ * 에디터 컴포넌트
+ * @param embed_id
+ * @returns
+ */
+export const editerComponent = (base_id: string): APIActionRowComponent<APIMessageActionRowComponent> => {
+    return {
+        type: ComponentType.ActionRow,
+        components: [
+            {
+                type: ComponentType.Button,
+                style: ButtonStyle.Primary,
+                label: '수정',
+                custom_id: `${base_id} edit`,
+            },
+            {
+                type: ComponentType.Button,
+                style: ButtonStyle.Primary,
+                label: '복사',
+                custom_id: `${base_id} copy`,
+            },
+            {
+                type: ComponentType.Button,
+                style: ButtonStyle.Danger,
+                label: '삭제',
+                custom_id: `${base_id} delete`,
+            },
+            // {
+            //     type: ComponentType.Button,
+            //     style: ButtonStyle.Secondary,
+            //     label: '취소',
+            //     custom_id: `system cancel`,
+            // },
+        ],
+    };
+};
+
+/**
+ * 에디터 컴포넌트 - 임베드 템플릿용
+ * @param embed_id
+ * @param skip_footer 푸터를 생략할지 여부 (생략시, 방송알리미로 푸터가 고정됨)
+ * @returns
+ */
+export const editerComponentEmbedTemplate = (base_id: string, skip_footer?: boolean): APIActionRowComponent<APIMessageActionRowComponent> => {
+    const options = [
+        { label: '타이틀', value: 'title' },
+        { label: '설명', value: 'description' },
+        { label: '색상', value: 'color' },
+        { label: '이미지', value: 'image' },
+        { label: '섬네일', value: 'thumbnail' },
+        { label: '소유자', value: 'author' },
+        { label: '필드', value: 'field' },
+    ];
+
+    if (!skip_footer) options.push({ label: '푸터', value: 'footer' });
+
+    return {
+        type: ComponentType.ActionRow,
+        components: [
+            {
+                type: ComponentType.StringSelect,
+                custom_id: `${base_id} select`,
+                max_values: 1,
+                min_values: 1,
+                placeholder: '변경',
+                options,
+            },
+        ],
+    };
+};
+
+/**
+ * 에디터 컴포넌트 - 컴포넌트 템플릿용
+ * @param embed_id
+ * @param skip_footer 푸터를 생략할지 여부 (생략시, 방송알리미로 푸터가 고정됨)
+ * @returns
+ */
+export const editerComponentComponentTemplate = (base_id: string): APIActionRowComponent<APIMessageActionRowComponent> => {
+    const options = [{ label: '타입', value: 'type' }];
+
+    return {
+        type: ComponentType.ActionRow,
+        components: [
+            {
+                type: ComponentType.StringSelect,
+                custom_id: `${base_id} select`,
+                max_values: 1,
+                min_values: 1,
+                placeholder: '변경',
+                options,
+            },
+        ],
+    };
+};
+
 enum EmbedEditComponent {
     title = 'title',
     description = 'description',
