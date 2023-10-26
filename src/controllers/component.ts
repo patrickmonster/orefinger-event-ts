@@ -1,8 +1,10 @@
-import { SqlInsertUpdate, query, selectPaging } from 'utils/database';
+import { SqlInsertUpdate, calTo, query, selectPaging } from 'utils/database';
 
-import { APIEmbed } from 'discord-api-types/v10';
+import { APIEmbed, APISelectMenuOption } from 'discord-api-types/v10';
 import { ComponentCreate, ComponentOptionCreate } from 'interfaces/component';
 import { Paging } from 'interfaces/swagger';
+
+type ComponentId = number | string;
 
 export type Component = {
     component_id: number;
@@ -104,8 +106,8 @@ and a.component_id = ?
         component_id
     ).then(res => res[0]);
 
-export const getComponentDtilByEmbed = async (component_id: number | string) =>
-    query<{ embed: APIEmbed }>(
+export const getComponentDtilByEmbed = async (component_id: ComponentId) =>
+    query<{ embed: APIEmbed; type: number }>(
         `
 SELECT 
     JSON_OBJECT(
@@ -118,23 +120,24 @@ SELECT
         ),
         'fields', JSON_ARRAY( 
             JSON_OBJECT('name', 'emoji','value', IFNULL(emoji, '없음'), 'inline', true),
-            JSON_OBJECT('name', 'style','value', d.tag, 'inline', true),
+            JSON_OBJECT('name', 'style','value', IFNULL(d.tag, '없음'), 'inline', true),
             JSON_OBJECT('name', 'range','value', CONCAT(IFNULL(min_values, '-') , '/', IFNULL(max_values, '-')), 'inline', false)
         ),
         'footer', JSON_OBJECT('text', name),
         'timestamp', a.create_at 
     ) AS embed
+    , c.type_idx as type
 FROM component a
 LEFT JOIN component_type c ON a.type_idx = c.type_idx 
 LEFT JOIN component_style d ON a.style_id = d.style_idx AND d.use_yn ='Y'
 WHERE a.component_id = ?
         `,
         component_id
-    ).then(res => res[0]?.embed);
+    ).then(res => res[0]);
 
 export const createComponent = async (component: ComponentCreate) => query(`INSERT INTO component set ?`, component);
 
-export const updateComponent = async (component_id: number, component: ComponentCreate) =>
+export const updateComponent = async (component_id: ComponentId, component: Partial<ComponentCreate>) =>
     query<SqlInsertUpdate>(
         `
 UPDATE component
@@ -199,7 +202,7 @@ and a.option_id = ?
 
 export const createComponentOption = async (component: ComponentOptionCreate) => query(`INSERT INTO component_option   set ?`, component);
 
-export const updateComponentOption = async (component_id: number, component: ComponentOptionCreate) =>
+export const updateComponentOption = async (component_id: ComponentId, component: ComponentOptionCreate) =>
     query<SqlInsertUpdate>(
         `
 UPDATE component_option
@@ -207,4 +210,25 @@ SET ?, update_at=CURRENT_TIMESTAMP
 WHERE component_id=?`,
         component,
         component_id
+    );
+
+export const getComponentStyleList = async () =>
+    query<APISelectMenuOption>(
+        `
+SELECT style_idx AS label
+	, CAST(tag AS CHAR) AS value
+FROM component_style cs 
+WHERE use_yn = 'Y'
+       `
+    );
+
+export const getComponentTypeList = async (select_item?: string | number) =>
+    query<APISelectMenuOption>(
+        `
+SELECT CAST(ct.type AS CHAR) AS value
+    , tag AS label
+    ${calTo(', IF(ct.type = ?, true, false) AS `default`', select_item)}
+FROM component_type ct  
+WHERE use_yn = 'Y'
+       `
     );
