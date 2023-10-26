@@ -155,7 +155,7 @@ export const editerComponentEmbedTemplate = (base_id: string, skip_footer?: bool
                 custom_id: `${base_id} select`,
                 max_values: 1,
                 min_values: 1,
-                placeholder: '변경',
+                placeholder: '값 변경',
                 options,
             },
         ],
@@ -169,8 +169,14 @@ export const editerComponentEmbedTemplate = (base_id: string, skip_footer?: bool
  * @returns
  */
 export const editerComponentComponentTemplate = (base_id: string): APIActionRowComponent<APIMessageActionRowComponent> => {
-    const options = [{ label: '타입', value: 'type' }];
-
+    const options = [
+        // name / custom_id / value / min_length / max_length
+        { label: '기본설정', value: 'base' },
+        // label_id
+        { label: '텍스트', value: 'text' },
+        // use_yn / disabled_yn / style_id / type_id
+        { label: '옵션', value: 'type' },
+    ];
     return {
         type: ComponentType.ActionRow,
         components: [
