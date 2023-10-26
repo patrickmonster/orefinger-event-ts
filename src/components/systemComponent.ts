@@ -3,9 +3,11 @@ import {
     APIBaseSelectMenuComponent,
     APIButtonComponent,
     APIMessageActionRowComponent,
+    APIModalInteractionResponseCallbackData,
     APISelectMenuOption,
     ButtonStyle,
     ComponentType,
+    TextInputStyle,
 } from 'discord-api-types/v10';
 import { createQueryKey, selectQueryKeyPaging } from 'utils/queryKey';
 
@@ -84,4 +86,90 @@ export const selectComponentMenuKey = async (queryKey: string, page?: number): P
             ].slice(0, 5),
         },
     ];
+};
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////
+// 임베드 템플릿 수정용 컴포넌트
+
+enum EmbedEditComponent {
+    title = 'title',
+    description = 'description',
+    color = 'color',
+    footer = 'footer',
+    image = 'image',
+    thumbnail = 'thumbnail',
+    author = 'author',
+    field = 'field',
+}
+
+// 에디트 베이스 모달
+export const embedEdit = async (embed_id: string, target: EmbedEditComponent): Promise<APIModalInteractionResponseCallbackData> => {
+    switch (target) {
+        case EmbedEditComponent.title:
+            return {
+                custom_id: `embedEdit ${embed_id} ${EmbedEditComponent.title}`,
+                title: '제목',
+                components: [
+                    {
+                        type: ComponentType.ActionRow,
+                        components: [
+                            {
+                                type: ComponentType.TextInput,
+                                custom_id: 'title',
+                                style: TextInputStyle.Short,
+                                label: '제목',
+                                max_length: 100,
+                                min_length: 1,
+                            },
+                            {
+                                type: ComponentType.TextInput,
+                                custom_id: 'url',
+                                style: TextInputStyle.Short,
+                                label: '링크',
+                            },
+                        ],
+                    },
+                ],
+            };
+        case EmbedEditComponent.description:
+            break;
+        case EmbedEditComponent.color:
+            break;
+        case EmbedEditComponent.footer:
+            break;
+        case EmbedEditComponent.image:
+            break;
+        case EmbedEditComponent.thumbnail:
+            break;
+        case EmbedEditComponent.author:
+            break;
+        case EmbedEditComponent.field:
+            break;
+    }
+
+    return {
+        custom_id: `embedEdit ${embed_id} ${EmbedEditComponent.title}`,
+        title: '제목',
+        components: [
+            {
+                type: ComponentType.ActionRow,
+                components: [
+                    {
+                        type: ComponentType.TextInput,
+                        custom_id: 'title',
+                        style: TextInputStyle.Short,
+                        label: '제목',
+                        max_length: 100,
+                        min_length: 1,
+                    },
+                    {
+                        type: ComponentType.TextInput,
+                        custom_id: 'url',
+                        style: TextInputStyle.Short,
+                        label: '링크',
+                    },
+                ],
+            },
+        ],
+    };
 };
