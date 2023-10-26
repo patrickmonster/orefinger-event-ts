@@ -1,4 +1,4 @@
-import { updateComponent } from 'controllers/component';
+import { getComponentBaseEditByModel, updateComponent } from 'controllers/component';
 import { APIStringSelectComponent } from 'discord-api-types/v10';
 import { MessageMenuInteraction } from 'interactions/message';
 
@@ -18,8 +18,6 @@ export const exec = async (interaction: MessageMenuInteraction, component_id: st
         },
     } = interaction;
 
-    // ?
-
     switch (target) {
         case 'type': // 타입 변경 메뉴
             try {
@@ -29,11 +27,7 @@ export const exec = async (interaction: MessageMenuInteraction, component_id: st
                 if (!componentActionLow) throw new Error('컴포넌트를 찾을 수 없습니다.');
 
                 const componentsMenu = componentActionLow.components[0] as APIStringSelectComponent;
-
-                componentsMenu.options.forEach(option => {
-                    option.default = option.value === select_id;
-                    return option;
-                });
+                componentsMenu.options.forEach(option => ({ ...option, default: option.value === select_id }));
 
                 const label = componentsMenu.options?.find(option => option.value === select_id)?.label;
                 await updateComponent(component_id, { type_idx: parseInt(select_id) });
@@ -50,6 +44,26 @@ export const exec = async (interaction: MessageMenuInteraction, component_id: st
             } catch (error) {
                 interaction.reply({ content: '타입 변경에 실패했습니다.', ephemeral: true });
             }
+            break;
+        case 'select':
+            switch (select_id) {
+                case 'base': // name / custom_id / value / min_length / max_length
+                    // 모달처리
+                    interaction.model({
+                        ...(await getComponentBaseEditByModel(component_id)),
+                        custom_id: `base ${component_id}`,
+                    });
+                    break;
+                case 'text': // label_id
+                    // 텍스트 메뉴 선택 (페이징)
+                    break;
+                case 'type': // use_yn / disabled_yn / style_id
+                    // 옵션 메뉴 선택
+                    break;
+            }
+            break;
+        default:
+            interaction.reply({ content: '컴포넌트 수정에 실패했습니다.', ephemeral: true });
             break;
     }
 };

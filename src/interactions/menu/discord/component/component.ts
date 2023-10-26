@@ -1,6 +1,6 @@
 import { MessageMenuInteraction } from 'interactions/message';
 
-import { editerComponent, editerComponentEmbedTemplate } from 'components/systemComponent';
+import { editerComponent, editerComponentComponentTemplate } from 'components/systemComponent';
 import { getComponentDtilByEmbed, getComponentTypeList } from 'controllers/component';
 import { ComponentType } from 'discord-api-types/v10';
 
@@ -29,7 +29,7 @@ export const exec = async (interaction: MessageMenuInteraction) => {
             ephemeral: true,
             components: [
                 editerComponent(id),
-                editerComponentEmbedTemplate(id),
+                editerComponentComponentTemplate(id),
                 {
                     type: ComponentType.ActionRow,
                     components: [
