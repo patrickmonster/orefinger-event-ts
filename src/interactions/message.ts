@@ -2,45 +2,18 @@ import { APIMessageButtonInteractionData, APIMessageSelectMenuInteractionData } 
 import { join } from 'path';
 import { APIMessageComponentInteraction, ComponentType, IReply } from 'plugins/discord';
 import autoLoader from 'utils/autoCommand';
+import { getCommand } from 'utils/interaction';
 
 export type MessageButtonInteraction = IReply & Omit<APIMessageComponentInteraction, 'data' | 'type'> & APIMessageButtonInteractionData;
 export type MessageMenuInteraction = IReply & Omit<APIMessageComponentInteraction, 'data' | 'type'> & APIMessageSelectMenuInteractionData;
 
 export type MessageInteraction = MessageButtonInteraction | MessageMenuInteraction;
 
-type EXEC<E extends IReply> = (interaction: E, ...args: string[]) => Promise<void>;
-type ComponentReturnType<E extends IReply> = [string, EXEC<E>];
-
 const [buttons] = autoLoader(join(__dirname, 'button'), { pathTag: ' ', isLog: true });
 const [menus] = autoLoader(join(__dirname, 'menu'), { pathTag: ' ', isLog: true });
 
-const getCommand = <E extends IReply>(
-    list: {
-        name: string;
-        pathTag: string;
-        path: string[];
-        file: string;
-    }[]
-) =>
-    list
-        .reduce<ComponentReturnType<E>[]>((prev, { name: fileName, file, path, pathTag }) => {
-            const command: {
-                name: string;
-                default: { alias: string[] | string };
-                exec: EXEC<E>;
-            } = require(file);
-
-            prev.push([command.name || fileName, command.exec]);
-
-            const aliasList = command?.default?.alias ? (Array.isArray(command.default.alias) ? command.default.alias : [command.default.alias]) : [];
-            for (const alias of aliasList) prev.push([[...path, alias].join(pathTag), command.exec]);
-
-            return prev;
-        }, [])
-        .sort(([a], [b]) => b.length - a.length); // 정렬 (긴것부터 찾도록)
-
-const buttonComponent = getCommand<MessageButtonInteraction>(buttons);
-const menuComponent = getCommand<MessageMenuInteraction>(menus);
+const buttonComponent = getCommand<MessageButtonInteraction, string>(buttons);
+const menuComponent = getCommand<MessageMenuInteraction, string>(menus);
 
 const messageComponent = async (interaction: MessageInteraction) => {
     const { custom_id, component_type } = interaction;
