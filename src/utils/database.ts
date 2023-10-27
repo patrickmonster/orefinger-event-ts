@@ -130,11 +130,11 @@ export const selectPaging = async <E>(query: string, paging: Paging | number, ..
     try {
         connect = await pool.getConnection();
         const page = typeof paging == 'number' ? paging : paging.page;
-        let size = typeof paging == 'number' ? limit : ((paging.limit || limit) as number);
+        const size = typeof paging == 'number' ? limit : ((paging.limit || limit) as number);
         const [rows] = await connect.query<(E & RowDataPacket)[]>(`${query}\nlimit ?, ?`, [...params, page <= 0 ? 0 : page * size, size]);
         sqlLogger(query, params, rows);
         const cnt = await connect
-            .query<({ total: number } & RowDataPacket)[]>(`SELECT COUNT(1) AS total FROM (\n${query}\n) A`)
+            .query<({ total: number } & RowDataPacket)[]>(`SELECT COUNT(1) AS total FROM (\n${query}\n) A`, params)
             .then(([[rows]]) => rows.total);
 
         return {

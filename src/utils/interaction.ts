@@ -1,3 +1,4 @@
+import { IReply } from 'plugins/discord';
 import nacl from 'tweetnacl';
 
 /**
@@ -156,3 +157,33 @@ export const verifyKey = (
         return false;
     }
 };
+
+///////////////////////////////////////////////////////////////////////////////////////////////
+// 인터렉션 명령 탐색
+type EXEC<E extends IReply, F extends any> = (interaction: E, ...args: F[]) => Promise<void>;
+type ComponentReturnType<E extends IReply, F> = [string, EXEC<E, F>];
+
+export const getCommand = <E extends IReply, F>(
+    list: {
+        name: string;
+        pathTag: string;
+        path: string[];
+        file: string;
+    }[]
+) =>
+    list
+        .reduce<ComponentReturnType<E, F>[]>((prev, { name: fileName, file, path, pathTag }) => {
+            const command: {
+                name: string;
+                default: { alias: string[] | string };
+                exec: EXEC<E, F>;
+            } = require(file);
+
+            prev.push([command.name || fileName, command.exec]);
+
+            const aliasList = command?.default?.alias ? (Array.isArray(command.default.alias) ? command.default.alias : [command.default.alias]) : [];
+            for (const alias of aliasList) prev.push([[...path, alias].join(pathTag), command.exec]);
+
+            return prev;
+        }, [])
+        .sort(([a], [b]) => b.length - a.length); // 정렬 (긴것부터 찾도록)

@@ -9,7 +9,7 @@ import {
     ComponentType,
     TextInputStyle,
 } from 'discord-api-types/v10';
-import { createQueryKey, selectQueryKeyPaging } from 'utils/queryKey';
+import { createQueryKey, orOf, selectQueryKeyPaging } from 'utils/queryKey';
 
 /**
  * 신규 쿼리키 생성
@@ -20,6 +20,7 @@ import { createQueryKey, selectQueryKeyPaging } from 'utils/queryKey';
 export const selectComponentMenuByKey = async (
     menuProps: Omit<APIBaseSelectMenuComponent<ComponentType.StringSelect>, 'type'> & {
         buttons?: APIButtonComponent[];
+        isSubQuery?: boolean;
     },
     sql: string,
     ...params: any[]
@@ -33,12 +34,16 @@ export const selectComponentMenuByKey = async (
  * @param queryKey 쿼리키
  * @returns APIActionRowComponent<APIMessageActionRowComponent>[]
  */
-export const selectComponentMenuKey = async (queryKey: string, page?: number): Promise<APIActionRowComponent<APIMessageActionRowComponent>[]> => {
-    const out = await selectQueryKeyPaging<APISelectMenuOption>(queryKey, { page: page ?? 0, limit: 15 });
+export const selectComponentMenuKey = async (
+    queryKey: string,
+    page?: number,
+    searchQuery?: orOf // 변경쿼리
+): Promise<APIActionRowComponent<APIMessageActionRowComponent>[]> => {
+    const out = await selectQueryKeyPaging<APISelectMenuOption>(queryKey, { page: page ?? 0, limit: 15 }, searchQuery);
     console.log('SystemComponent] selectComponentMenuByKey', queryKey, out);
 
     // 키의 보존시간이 만료됨.
-    if (!out || !out.result.list.length)
+    if (!out)
         return [
             {
                 type: ComponentType.ActionRow,
@@ -46,7 +51,57 @@ export const selectComponentMenuKey = async (queryKey: string, page?: number): P
             },
         ];
 
-    const { result, other } = out;
+    if (!out.result.total)
+        return [
+            {
+                type: ComponentType.ActionRow,
+                components: [
+                    {
+                        type: ComponentType.Button,
+                        style: 1,
+                        label: '검색결과가 없습니다.',
+                        custom_id: `key back ${queryKey}`,
+                        disabled: searchQuery ? false : true,
+                    },
+                ],
+            },
+        ];
+
+    const { result, other, search } = out;
+
+    const buttons: APIButtonComponent[] = [
+        {
+            type: ComponentType.Button,
+            style: 1,
+            label: '이전',
+            custom_id: result.page == 0 ? queryKey : `key ${result.page - 1} ${queryKey}`,
+            disabled: result.page == 0,
+        },
+        {
+            type: ComponentType.Button,
+            style: ButtonStyle.Success,
+            label: `${result.page}/${result.totalPage}`,
+            custom_id: `key page ${queryKey}`,
+            emoji: { name: '🔍' },
+            disabled: other.isSubQuery ? true : false,
+        },
+        {
+            type: ComponentType.Button,
+            style: 1,
+            label: '다음',
+            custom_id: `key ${result.page + 1} ${queryKey}`,
+            disabled: result.page >= result.totalPage,
+        },
+    ];
+
+    if (search && Object.keys(search).length)
+        buttons.push({
+            type: ComponentType.Button,
+            style: ButtonStyle.Secondary,
+            label: '검색 초기화',
+            custom_id: `key back ${queryKey}`,
+        });
+
     return [
         {
             type: ComponentType.ActionRow,
@@ -60,30 +115,7 @@ export const selectComponentMenuKey = async (queryKey: string, page?: number): P
         },
         {
             type: ComponentType.ActionRow,
-            components: [
-                {
-                    type: ComponentType.Button,
-                    style: 1,
-                    label: '이전',
-                    custom_id: result.page == 0 ? queryKey : `key ${result.page - 1} ${queryKey}`,
-                    disabled: result.page == 0,
-                },
-                {
-                    type: ComponentType.Button,
-                    style: ButtonStyle.Success,
-                    label: `${result.page}/${result.totalPage}`,
-                    custom_id: '${queryKey}} ${result.page}',
-                    disabled: true,
-                },
-                {
-                    type: ComponentType.Button,
-                    style: 1,
-                    label: '다음',
-                    custom_id: `key ${result.page + 1} ${queryKey}`,
-                    disabled: result.page >= result.totalPage,
-                },
-                ...(other.buttons || []),
-            ].slice(0, 5),
+            components: [...buttons, ...(other.buttons || [])].slice(0, 5),
         },
     ];
 };
@@ -117,6 +149,12 @@ export const editerComponent = (base_id: string): APIActionRowComponent<APIMessa
                 style: ButtonStyle.Danger,
                 label: '삭제',
                 custom_id: `${base_id} delete`,
+            },
+            {
+                type: ComponentType.Button,
+                style: ButtonStyle.Danger,
+                label: '테스트',
+                custom_id: `test`,
             },
             // {
             //     type: ComponentType.Button,
