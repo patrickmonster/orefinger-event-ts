@@ -1,20 +1,8 @@
-import { MessageMenuInteraction } from 'interactions/message';
-
-import { editerComponent, editerComponentComponentTemplate } from 'components/systemComponent';
 import { getComponentDtilByEmbed, getComponentTypeList, getComponentYnMenu } from 'controllers/component';
-import { ComponentType } from 'discord-api-types/v10';
+import { ComponentType, IReply } from 'plugins/discord';
+import { editerComponent, editerComponentComponentTemplate } from './systemComponent';
 
-/**
- *
- * 가이드 호출 - 디비처리용
- * @param interaction
- */
-export const exec = async (interaction: MessageMenuInteraction) => {
-    const {
-        user,
-        values: [component_id],
-    } = interaction;
-
+export const getComponentEditor = async (interaction: IReply, component_id: string | number) => {
     await interaction.differ({ ephemeral: true });
     const data = await getComponentDtilByEmbed(component_id);
 
