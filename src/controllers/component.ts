@@ -1,4 +1,4 @@
-import { SqlInsertUpdate, calTo, query, selectPaging } from 'utils/database';
+import getConnection, { SqlInsertUpdate, calTo, query, selectPaging } from 'utils/database';
 
 import { APIEmbed, APIModalInteractionResponseCallbackData, APISelectMenuOption } from 'discord-api-types/v10';
 import { ComponentCreate, ComponentOptionCreate } from 'interfaces/component';
@@ -269,3 +269,31 @@ FROM component_type ct
 WHERE use_yn = 'Y'
        `
     );
+
+export const getComponentYnMenu = async (component_id: ComponentId) =>
+    getConnection(async query => {
+        const list = await query<{ column_name: string }>(`
+SELECT COLUMN_NAME as column_name 
+FROM INFORMATION_SCHEMA.COLUMNS
+WHERE TABLE_SCHEMA = 'discord'
+AND TABLE_NAME = 'component'
+AND COLUMN_NAME LIKE '%_yn'        
+        `);
+
+        if (!list.length) return [];
+        const [options] = await query<{ options: APISelectMenuOption[] }>(
+            `
+SELECT JSON_ARRAY(
+    ${list
+        .map(
+            ({ column_name }) => `JSON_OBJECT('label', '${column_name}', 'value', '${column_name}', 'default', IF(${column_name} = 'Y', TRUE, FALSE))`
+        )
+        .join(',')})AS \`options\`
+FROM component c
+WHERE c.component_id = ?
+            `,
+            component_id
+        );
+
+        return options.options;
+    });

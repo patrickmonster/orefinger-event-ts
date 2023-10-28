@@ -2,6 +2,7 @@ import { selectComponentMenuByKey } from 'components/systemComponent';
 import { getComponentBaseEditByModel, getComponentDtilByEmbed, updateComponent } from 'controllers/component';
 import { APIStringSelectComponent } from 'discord-api-types/v10';
 import { MessageMenuInteraction } from 'interactions/message';
+import { ComponentCreate } from 'interfaces/component';
 
 /**
  *
@@ -45,6 +46,37 @@ export const exec = async (interaction: MessageMenuInteraction, component_id: st
                 interaction.reply({ content: '타입 변경에 실패했습니다.', ephemeral: true });
             }
             break;
+        case 'yn': {
+            const { values } = interaction;
+
+            try {
+                const componentActionLow = components?.find(component =>
+                    component.components.find(component => 'custom_id' in component && component?.custom_id === custom_id)
+                );
+                if (!componentActionLow) throw new Error('컴포넌트를 찾을 수 없습니다.');
+                const componentsMenu = componentActionLow.components[0] as APIStringSelectComponent;
+
+                await updateComponent(
+                    component_id,
+                    componentsMenu.options.reduce((out, option, idx) => {
+                        const { value } = option;
+
+                        option.default = values.includes(value);
+                        return { ...out, [value]: values.includes(value) ? 'Y' : 'N' };
+                    }, {}) as Partial<ComponentCreate>
+                );
+
+                const { embed } = await getComponentDtilByEmbed(component_id);
+
+                interaction.edit({
+                    embeds: [embed],
+                    components,
+                });
+            } catch (error) {
+                interaction.reply({ content: '타입 변경에 실패했습니다.', ephemeral: true });
+            }
+            break;
+        }
         case 'select':
             switch (select_id) {
                 case 'base': // name / custom_id / value / min_length / max_length
@@ -81,9 +113,6 @@ WHERE parent_id IS NULL
                             component_id
                         ),
                     });
-                    break;
-                case 'type': // use_yn / disabled_yn / style_id
-                    // 옵션 메뉴 선택
                     break;
             }
             break;
