@@ -15,9 +15,9 @@ const choices = [
     'component',
     'component_group',
     'component_option',
-    'component_option_connection',
-    'component_low',
-    'component_col',
+    // 'component_option_connection',
+    // 'component_low',
+    // 'component_col',
     'embed',
     'embed_user',
 ];

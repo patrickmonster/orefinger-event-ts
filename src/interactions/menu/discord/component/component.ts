@@ -2,7 +2,7 @@ import { MessageMenuInteraction } from 'interactions/message';
 
 import { editerComponent, editerComponentComponentTemplate } from 'components/systemComponent';
 import { getComponentDtilByEmbed, getComponentTypeList, getComponentYnMenu } from 'controllers/component';
-import { ComponentType } from 'discord-api-types/v10';
+import { ButtonStyle, ComponentType } from 'discord-api-types/v10';
 
 /**
  *
@@ -30,7 +30,15 @@ export const exec = async (interaction: MessageMenuInteraction) => {
             embeds: [embed],
             ephemeral: true,
             components: [
-                editerComponent(id),
+                editerComponent(id, [
+                    {
+                        type: ComponentType.Button,
+                        style: ButtonStyle.Success,
+                        label: '하위 옵션 수정',
+                        custom_id: `${id} option`,
+                        disabled: ComponentType.StringSelect != type,
+                    },
+                ]),
                 editerComponentComponentTemplate(id),
                 {
                     type: ComponentType.ActionRow,

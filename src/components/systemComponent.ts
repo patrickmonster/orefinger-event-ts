@@ -110,6 +110,8 @@ export const selectComponentMenuKey = async (
                     ...JSON.parse(other),
                     type: ComponentType.StringSelect,
                     options: result.list,
+                    max_values: (other.max_values || 0) > result.list.length ? result.list.length : other.max_values,
+                    min_values: other.min_values || 0,
                 },
             ],
         },
@@ -128,7 +130,7 @@ export const selectComponentMenuKey = async (
  * @param embed_id
  * @returns
  */
-export const editerComponent = (base_id: string): APIActionRowComponent<APIMessageActionRowComponent> => {
+export const editerComponent = (base_id: string, buttons: APIButtonComponent[]): APIActionRowComponent<APIMessageActionRowComponent> => {
     return {
         type: ComponentType.ActionRow,
         components: [
@@ -150,12 +152,13 @@ export const editerComponent = (base_id: string): APIActionRowComponent<APIMessa
                 label: '삭제',
                 custom_id: `${base_id} delete`,
             },
-            {
-                type: ComponentType.Button,
-                style: ButtonStyle.Danger,
-                label: '테스트',
-                custom_id: `test`,
-            },
+            ...buttons,
+            // {
+            //     type: ComponentType.Button,
+            //     style: ButtonStyle.Danger,
+            //     label: '테스트',
+            //     custom_id: `test`,
+            // },
             // {
             //     type: ComponentType.Button,
             //     style: ButtonStyle.Secondary,
