@@ -24,16 +24,6 @@ const api: APIApplicationCommandSubcommandOption = {
     name,
     type,
     description: '알리미 인증 설정을 변경합니다.',
-    name_localizations: {
-        ko: '인증',
-        'en-US': 'Authentication',
-        ja: '認証',
-    },
-    description_localizations: {
-        ko: '알리미 인증 설정을 변경합니다.',
-        'en-US': 'Change the notification authentication settings.',
-        ja: '通知認証設定を変更します。',
-    },
     // options: [
     //     {
     //         name: '타입',

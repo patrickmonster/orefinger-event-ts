@@ -25,7 +25,7 @@ export const exec = async (interaction: MessageMenuInteraction) => {
             content: `embed 정보를 수정합니다. - ${embed_id}`,
             embeds: [embed],
             ephemeral: true,
-            components: [editerComponent('embed edit')],
+            components: [editerComponent('embed edit', [])],
         });
     }
 };
