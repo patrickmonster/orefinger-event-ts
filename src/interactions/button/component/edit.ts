@@ -16,7 +16,7 @@ export const exec = async (interaction: MessageInteraction, command_id: string, 
                 content: `${command_id} - ${target}`,
                 components: await selectComponentMenuByKey(
                     {
-                        custom_id: 'discord component component_option_connect',
+                        custom_id: `component edit ${command_id} option`,
                         placeholder: '컴포넌트를 선택해주세요!',
                         disabled: false,
                         max_values: 15,

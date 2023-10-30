@@ -1,5 +1,11 @@
 import { selectComponentMenuByKey } from 'components/systemComponent';
-import { getComponentBaseEditByModel, getComponentDtilByEmbed, updateComponent } from 'controllers/component';
+import {
+    UpdateYNConnection,
+    getComponentBaseEditByModel,
+    getComponentDtilByEmbed,
+    updateComponent,
+    updateComponentOptionConnect,
+} from 'controllers/component';
 import { APIStringSelectComponent } from 'discord-api-types/v10';
 import { MessageMenuInteraction } from 'interactions/message';
 import { ComponentCreate } from 'interfaces/component';
@@ -77,7 +83,30 @@ export const exec = async (interaction: MessageMenuInteraction, component_id: st
             }
             break;
         }
-        case 'select':
+        case 'option': {
+            const { values } = interaction;
+            // 컴포넌트 하위 옵션 변경
+            try {
+                const componentActionLow = components?.find(component =>
+                    component.components.find(component => 'custom_id' in component && component?.custom_id === custom_id)
+                );
+                if (!componentActionLow) throw new Error('컴포넌트를 찾을 수 없습니다.');
+                const componentsMenu = componentActionLow.components[0] as APIStringSelectComponent;
+
+                await updateComponentOptionConnect(
+                    component_id,
+                    componentsMenu.options.map(({ value }) => ({
+                        option_id: parseInt(value),
+                        value: values.includes(value) ? 'Y' : 'N',
+                    })) as UpdateYNConnection[]
+                );
+
+                interaction.reply({ content: '옵션 변경에 성공했습니다.', ephemeral: true });
+            } catch (error) {
+                interaction.reply({ content: '옵션 변경에 실패했습니다.', ephemeral: true });
+            }
+        }
+        case 'select': {
             switch (select_id) {
                 case 'base': // name / custom_id / value / min_length / max_length
                     const model = await getComponentBaseEditByModel(component_id);
@@ -116,6 +145,7 @@ WHERE parent_id IS NULL
                     break;
             }
             break;
+        }
         case 'text':
             {
                 await updateComponent(component_id, { label_id: parseInt(select_id) });
