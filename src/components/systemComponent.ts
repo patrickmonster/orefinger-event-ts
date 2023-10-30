@@ -11,17 +11,20 @@ import {
 } from 'discord-api-types/v10';
 import { createQueryKey, orOf, selectQueryKeyPaging } from 'utils/queryKey';
 
+type MenuProps = Omit<APIBaseSelectMenuComponent<ComponentType.StringSelect>, 'type'> & {
+    button?: APIButtonComponent;
+    isSubQuery?: boolean;
+};
+
 /**
  * 신규 쿼리키 생성
+ *  - 매뉴를 위한 쿼리키를 생성합니다.
  * @param sql
  * @param params
  * @returns APIActionRowComponent<APIMessageActionRowComponent>[]
  */
 export const selectComponentMenuByKey = async (
-    menuProps: Omit<APIBaseSelectMenuComponent<ComponentType.StringSelect>, 'type'> & {
-        buttons?: APIButtonComponent[];
-        isSubQuery?: boolean;
-    },
+    menuProps: MenuProps,
     sql: string,
     ...params: any[]
 ): Promise<APIActionRowComponent<APIMessageActionRowComponent>[]> => {
@@ -31,6 +34,7 @@ export const selectComponentMenuByKey = async (
 
 /**
  * 쿼리키로 메뉴 컴포넌트 생성
+ *  - 키를 기반으로 검색 매뉴를 생성합니다.
  * @param queryKey 쿼리키
  * @returns APIActionRowComponent<APIMessageActionRowComponent>[]
  */
@@ -69,55 +73,57 @@ export const selectComponentMenuKey = async (
 
     const { result, other, search } = out;
 
-    const buttons: APIButtonComponent[] = [
-        {
-            type: ComponentType.Button,
-            style: 1,
-            label: '이전',
-            custom_id: result.page == 0 ? queryKey : `key ${result.page - 1} ${queryKey}`,
-            disabled: result.page == 0,
-        },
-        {
-            type: ComponentType.Button,
-            style: ButtonStyle.Success,
-            label: `${result.page}/${result.totalPage}`,
-            custom_id: `key page ${queryKey}`,
-            emoji: { name: '🔍' },
-            disabled: other.isSubQuery ? true : false,
-        },
-        {
-            type: ComponentType.Button,
-            style: 1,
-            label: '다음',
-            custom_id: `key ${result.page + 1} ${queryKey}`,
-            disabled: result.page >= result.totalPage,
-        },
-    ];
-
-    if (search && Object.keys(search).length)
-        buttons.push({
-            type: ComponentType.Button,
-            style: ButtonStyle.Secondary,
-            label: '검색 초기화',
-            custom_id: `key back ${queryKey}`,
-        });
+    const menuProps: MenuProps = JSON.parse(other);
 
     return [
         {
             type: ComponentType.ActionRow,
             components: [
                 {
-                    ...JSON.parse(other),
+                    ...menuProps,
                     type: ComponentType.StringSelect,
                     options: result.list,
-                    max_values: (other.max_values || 0) > result.list.length ? result.list.length : other.max_values,
-                    min_values: other.min_values || 0,
+                    max_values: (menuProps.max_values || 0) > result.list.length ? result.list.length : menuProps.max_values,
+                    min_values: menuProps.min_values || 0,
                 },
             ],
         },
         {
             type: ComponentType.ActionRow,
-            components: [...buttons, ...(other.buttons || [])].slice(0, 5),
+            components: [
+                {
+                    type: ComponentType.Button,
+                    style: 1,
+                    // label: '이전',
+                    emoji: { name: '⬅️' },
+                    custom_id: result.page == 0 ? queryKey : `key ${result.page - 1} ${queryKey}`,
+                    disabled: result.page == 0,
+                },
+                {
+                    type: ComponentType.Button,
+                    style: ButtonStyle.Success,
+                    label: `${result.page}/${result.totalPage}`,
+                    custom_id: `key page ${queryKey}`,
+                    emoji: { name: '🔍' },
+                    disabled: other.isSubQuery ? true : false,
+                },
+                {
+                    type: ComponentType.Button,
+                    style: ButtonStyle.Secondary,
+                    label: '검색 초기화',
+                    custom_id: `key back ${queryKey}`,
+                    disabled: search && Object.keys(search).length ? false : true,
+                },
+                {
+                    type: ComponentType.Button,
+                    style: 1,
+                    // label: '다음',
+                    emoji: { name: '➡️' },
+                    custom_id: `key ${result.page + 1} ${queryKey}`,
+                    disabled: result.page >= result.totalPage,
+                },
+                other.button ? other.button : null,
+            ].filter(v => v),
         },
     ];
 };

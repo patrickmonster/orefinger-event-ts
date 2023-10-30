@@ -1,5 +1,5 @@
 import { Paging } from 'interfaces/swagger';
-import { selectPaging } from 'utils/database';
+import { resultParser, selectPaging } from 'utils/database';
 import redis, { REDIS_KEY } from 'utils/redis';
 
 // import { hash } from 'tweetnacl';
@@ -59,5 +59,5 @@ export const selectQueryKeyPaging = async <E extends {}>(queryKey: string, page:
     else if (searchOrg) runQuery = `SELECT  A.* FROM ( ${runQuery}\n) A WHERE ${searchOrQuery(searchOrg)}`;
 
     const result = await selectPaging<E>(runQuery, page, ...params);
-    return { result, other, search: search || searchOrg };
+    return { result: resultParser(result), other, search: search || searchOrg };
 };

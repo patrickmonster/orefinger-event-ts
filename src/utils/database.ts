@@ -61,6 +61,17 @@ export enum SQLType {
 // SQL 타입 - insert / update / delete 인 경우  queryFunctionType 의 리턴 타입이 sqlInsertUpdate
 export type SqlInsertUpdate = SQLType.insert | SQLType.update | SQLType.delete;
 
+export const resultParser = <E>(rows: any[] | any) =>
+    JSON.parse(
+        JSON.stringify(rows, (k, v) => {
+            if (typeof v != 'string') return v; // TODO: string 이 아닌경우 리턴
+            if (k.endsWith('_yn')) return v == 'Y' ? true : false; // TODO: yn 인경우
+            if (v == 'Y') return true;
+            if (v == 'N') return false;
+            return v;
+        })
+    );
+
 /**
  * 트렌젝션 모드로 커넥션을 가져옵니다.
  * @param connectionPool
@@ -77,15 +88,7 @@ const getConnection = async <T>(connectionPool: (queryFunction: queryFunctionTyp
                 const [rows] = await connect!.query(query, params);
                 sqlLogger(query, params, rows);
                 return Array.isArray(rows)
-                    ? JSON.parse(
-                          JSON.stringify(rows, (k, v) => {
-                              if (typeof v != 'string') return v; // TODO: string 이 아닌경우 리턴
-                              if (k.endsWith('_yn')) return v == 'Y' ? true : false; // TODO: yn 인경우
-                              if (v == 'Y') return true;
-                              if (v == 'N') return false;
-                              return v;
-                          })
-                      )
+                    ? resultParser(rows)
                     : {
                           affectedRows: rows.affectedRows,
                           changedRows: rows.changedRows,
