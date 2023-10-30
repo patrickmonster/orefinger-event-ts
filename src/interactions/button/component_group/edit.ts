@@ -1,7 +1,7 @@
 import { MessageInteraction } from 'interactions/message';
 
 import { selectComponentMenuByKey } from 'components/systemComponent';
-import { copyComponent } from 'controllers/component';
+import { ParseInt, copyComponentGroup, getComponentGroupEditByModel } from 'controllers/component';
 
 /**
  *
@@ -16,7 +16,7 @@ export const exec = async (interaction: MessageInteraction, command_id: string, 
                 content: `${command_id} - ${target}`,
                 components: await selectComponentMenuByKey(
                     {
-                        custom_id: `component edit ${command_id} option`,
+                        custom_id: `component_group edit ${command_id} option`,
                         placeholder: '컴포넌트를 선택해주세요!',
                         disabled: false,
                         max_values: 15,
@@ -32,21 +32,31 @@ FROM component_option co
 LEFT JOIN component_option_connection coc ON coc.option_id = co.option_id AND coc.component_id = ?
 WHERE 1=1
                     `,
-                    command_id
+                    ParseInt(command_id)
                 ),
             });
             break;
+        case 'edit': {
+            // 수정버튼
+            const model = await getComponentGroupEditByModel(command_id);
+
+            // 모달처리
+            interaction.model({
+                ...model,
+                custom_id: `component_group edit ${command_id}`,
+            });
+            break;
+        }
         case 'copy': {
             // 복사버튼
-            const { insertId } = await copyComponent(command_id);
-            interaction.reply({ content: '복사되었습니다. - ' + insertId, ephemeral: true });
+            const result = await copyComponentGroup(command_id);
+            interaction.reply({ content: '복사되었습니다. - ' + result.insertId, ephemeral: true });
             break;
         }
         case 'delete': {
             // 삭제버튼
-            // const { insertId } = await copyComponent(command_id);
-            // interaction.reply({ content: '복사되었습니다. - ' + insertId, ephemeral: true });
             break;
         }
+        //
     }
 };

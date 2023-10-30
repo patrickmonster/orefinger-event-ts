@@ -1,7 +1,7 @@
 import { MessageInteraction } from 'interactions/message';
 
 import { selectComponentMenuByKey } from 'components/systemComponent';
-import { copyComponent } from 'controllers/component';
+import { ParseInt } from 'controllers/component';
 
 /**
  *
@@ -9,6 +9,7 @@ import { copyComponent } from 'controllers/component';
  * @param interaction
  */
 export const exec = async (interaction: MessageInteraction, command_id: string, target: string) => {
+    await interaction.differ({ ephemeral: true });
     switch (target) {
         case 'option':
             interaction.reply({
@@ -16,7 +17,7 @@ export const exec = async (interaction: MessageInteraction, command_id: string, 
                 content: `${command_id} - ${target}`,
                 components: await selectComponentMenuByKey(
                     {
-                        custom_id: `component edit ${command_id} option`,
+                        custom_id: `component_option edit ${command_id} option`,
                         placeholder: '컴포넌트를 선택해주세요!',
                         disabled: false,
                         max_values: 15,
@@ -32,21 +33,34 @@ FROM component_option co
 LEFT JOIN component_option_connection coc ON coc.option_id = co.option_id AND coc.component_id = ?
 WHERE 1=1
                     `,
-                    command_id
+                    ParseInt(command_id)
                 ),
             });
             break;
-        case 'copy': {
-            // 복사버튼
-            const { insertId } = await copyComponent(command_id);
-            interaction.reply({ content: '복사되었습니다. - ' + insertId, ephemeral: true });
+        case 'label':
+            interaction.reply({
+                ephemeral: true,
+                content: `${command_id}] 라벨변경`,
+                components: await selectComponentMenuByKey(
+                    {
+                        custom_id: `component_option edit ${command_id} text`,
+                        placeholder: '적용하실 라벨을 선택해 주세요.',
+                        disabled: false,
+                        max_values: 1,
+                        min_values: 0,
+                    },
+                    `
+SELECT CAST(a.text_id AS CHAR) AS value
+    , a.tag AS label
+    , LEFT(a.message, 100) AS description
+    , IF(a.text_id = ( SELECT label_id FROM component_option c WHERE 1=1 AND c.option_id = ? ), true, false) AS \`default\`
+FROM text_message a
+WHERE parent_id IS NULL 
+                `,
+                    ParseInt(command_id)
+                ),
+            });
             break;
-        }
-        case 'delete': {
-            // 삭제버튼
-            // const { insertId } = await copyComponent(command_id);
-            // interaction.reply({ content: '복사되었습니다. - ' + insertId, ephemeral: true });
-            break;
-        }
+        //
     }
 };

@@ -108,6 +108,11 @@ and a.component_id = ?
         ParseInt(component_id)
     ).then(res => res[0]);
 
+/**
+ * 컴포넌트 디테일 정보를 Embde 형태로 반환합니다.
+ * @param component_id
+ * @returns
+ */
 export const getComponentDtilByEmbed = async (component_id: ComponentId) =>
     query<{ embed: APIEmbed; type: number }>(
         `
@@ -135,6 +140,103 @@ LEFT JOIN component_style d ON a.style_id = d.style_idx AND d.use_yn ='Y'
 WHERE a.component_id = ?
         `,
         ParseInt(component_id)
+    ).then(res => res[0]);
+
+/**
+ * 컴포넌트 상위 그룹 상세를 Embed 형태로 반환합니다.
+ * @param component_id
+ * @returns
+ */
+export const getComponentConnectGroupDtilByEmbed = async (component_group_id: ComponentId) =>
+    query<{ embed: APIEmbed; type: number }>(
+        `
+SELECT 
+    JSON_OBJECT(
+        'title', IFNULL(cg.name, "없음"),
+        'author', JSON_OBJECT('name', IFNULL(c.tag, '없음')),
+        'timestamp', cg.create_at 
+    ) AS embed
+    , cg.group_type as type
+FROM component_group cg
+LEFT JOIN component_type c ON cg.type_idx = c.type_idx 
+WHERE cg.group_id = ?
+        `,
+        ParseInt(component_group_id)
+    ).then(res => res[0]);
+
+/**
+ * 컴포넌트 상위 그룹 상세를 Embed 형태로 반환합니다.
+ * @param component_id
+ * @returns
+ */
+export const getComponentRowDtilByEmbed = async (component_group_id: ComponentId) =>
+    query<{ embed: APIEmbed; type: number }>(
+        `
+SELECT JSON_OBJECT(
+        'title', IFNULL(name, '없음'),
+        'timestamp', create_at,
+        'description' , CONCAT(
+            IF(component_id_0 IS NULL, '없음', (
+                SELECT 
+                    CONCAT(
+                        c.component_id, ') ',
+                        IFNULL(name, '이름이 지정되지 않음'), ' -> ',
+                        IF(emoji IS NULL ,'', CONCAT(' [',emoji, '] ')),
+                        IFNULL(IF(label_id IS NULL OR label_id > '', label, f_get_text(label_id)), 'title' )
+                    )
+                FROM component c WHERE c.component_id = component_id_0
+                )
+            ), '\n',
+            IF(component_id_1 IS NULL, '없음', (
+                SELECT 
+                    CONCAT(
+                        c.component_id, ') ',
+                        IFNULL(name, '이름이 지정되지 않음'), ' -> ',
+                        IF(emoji IS NULL ,'', CONCAT(' [',emoji, '] ')),
+                        IFNULL(IF(label_id IS NULL OR label_id > '', label, f_get_text(label_id)), 'title' )
+                    )
+                FROM component c WHERE c.component_id = component_id_1
+                )
+            ), '\n',
+            IF(component_id_2 IS NULL, '없음', (
+                SELECT 
+                    CONCAT(
+                        c.component_id, ') ',
+                        IFNULL(name, '이름이 지정되지 않음'), ' -> ',
+                        IF(emoji IS NULL ,'', CONCAT(' [',emoji, '] ')),
+                        IFNULL(IF(label_id IS NULL OR label_id > '', label, f_get_text(label_id)), 'title' )
+                    )
+                FROM component c WHERE c.component_id = component_id_2
+                )
+            ), '\n',
+            IF(component_id_3 IS NULL, '없음', (
+                SELECT 
+                    CONCAT(
+                        c.component_id, ') ',
+                        IFNULL(name, '이름이 지정되지 않음'), ' -> ',
+                        IF(emoji IS NULL ,'', CONCAT(' [',emoji, '] ')),
+                        IFNULL(IF(label_id IS NULL OR label_id > '', label, f_get_text(label_id)), 'title' )
+                    )
+                FROM component c WHERE c.component_id = component_id_3
+                )
+            ), '\n',
+            IF(component_id_4 IS NULL, '없음', (
+                SELECT 
+                    CONCAT(
+                        c.component_id, ') ',
+                        IFNULL(name, '이름이 지정되지 않음'), ' -> ',
+                        IF(emoji IS NULL ,'', CONCAT(' [',emoji, '] ')),
+                        IFNULL(IF(label_id IS NULL OR label_id > '', label, f_get_text(label_id)), 'title' )
+                    )
+                FROM component c WHERE c.component_id = component_id_4
+                )
+            )
+        )
+    ) embed
+FROM component_action_row car
+WHERE car.component_id = ?
+        `,
+        ParseInt(component_group_id)
     ).then(res => res[0]);
 
 export const getComponentBaseEditByModel = async (component_id: ComponentId) =>
@@ -172,6 +274,23 @@ FROM component a
 WHERE a.component_id = ?
         `,
         ParseInt(component_id)
+    ).then(res => res[0]);
+
+export const getComponentGroupEditByModel = async (group_id: ComponentId) =>
+    query<Omit<APIModalInteractionResponseCallbackData, 'custom_id'>>(
+        `
+SELECT CONCAT(group_id , '] 컴포넌트 그룹 수정') as title,
+    JSON_ARRAY(
+        JSON_OBJECT(
+            'type', 1, 'components', JSON_ARRAY(
+                JSON_OBJECT('type', 4,'custom_id', 'name', 'label', '이름', 'value', CAST(name AS CHAR), 'min_length', 1, 'max_length', 100, 'style', 1, 'required', true )
+            )
+        )
+    ) AS components
+FROM component_group cg 
+WHERE group_id = ?
+        `,
+        ParseInt(group_id)
     ).then(res => res[0]);
 
 export const createComponent = async (component: ComponentCreate) => query(`INSERT INTO component set ?`, component);
@@ -297,15 +416,23 @@ WHERE use_yn = 'Y'
        `
     );
 
-export const getComponentYnMenu = async (component_id: ComponentId) =>
+const YNMenu = {
+    component: 'component_id',
+    component_option: 'option_id',
+};
+
+export const getComponentYnMenu = async (component_id: ComponentId, targetTable: 'component' | 'component_option') =>
     getConnection(async query => {
-        const list = await query<{ column_name: string }>(`
+        const list = await query<{ column_name: string }>(
+            `
 SELECT COLUMN_NAME as column_name 
 FROM INFORMATION_SCHEMA.COLUMNS
 WHERE TABLE_SCHEMA = 'discord'
-AND TABLE_NAME = 'component'
+AND TABLE_NAME = ?
 AND COLUMN_NAME LIKE '%_yn'        
-        `);
+        `,
+            targetTable
+        );
 
         if (!list.length) return [];
         const [options] = await query<{ options: APISelectMenuOption[] }>(
@@ -316,11 +443,44 @@ SELECT JSON_ARRAY(
             ({ column_name }) => `JSON_OBJECT('label', '${column_name}', 'value', '${column_name}', 'default', IF(${column_name} = 'Y', TRUE, FALSE))`
         )
         .join(',')})AS \`options\`
-FROM component c
-WHERE c.component_id = ?
+FROM ${calTo('?', targetTable)} c
+WHERE c.${YNMenu[targetTable]} = ?
             `,
             ParseInt(component_id)
         );
 
         return options.options;
     });
+
+// ========================================================================================================
+/**
+ * 컴포넌트 복사
+ * @param component_id
+ * @returns
+ */
+export const copyComponent = async (component_id: ComponentId) =>
+    query<SqlInsertUpdate>(
+        `
+INSERT INTO component (name, label_id, label_lang, type_idx, text_id, emoji, custom_id, value, \`style\`, min_values, max_values, disabled_yn, required_yn, use_yn, edit_yn, permission_type, order_by)
+SELECT name, label_id, label_lang, type_idx, text_id, emoji, custom_id, value, \`style\`, min_values, max_values, disabled_yn, required_yn, use_yn, edit_yn, permission_type, order_by 
+FROM component
+WHERE component_id = ?
+    `,
+        ParseInt(component_id)
+    );
+
+/**
+ * 컴포넌트 그룹 복사
+ * @param component_id
+ * @returns
+ */
+export const copyComponentGroup = async (component_group_id: ComponentId) =>
+    query<SqlInsertUpdate>(
+        `
+INSERT INTO component_group (name, group_type, type_idx) 
+SELECT name, group_type, type_idx
+FROM component_group cg 
+WHERE group_id = ? 
+    `,
+        ParseInt(component_group_id)
+    );

@@ -18,6 +18,7 @@ const choices = [
     // 'component_option_connection',
     // 'component_low',
     // 'component_col',
+    'component_action_row',
     'embed',
     'embed_user',
 ];
@@ -52,23 +53,49 @@ LEFT JOIN component_type ct ON c.type_idx = ct.type_idx
                 ),
             });
             break;
-        case choices.indexOf('component_group'):
+        //         case choices.indexOf('component_group'):
+        //             interaction.reply({
+        //                 content: `${choices[type]}`,
+        //                 components: await selectComponentMenuByKey(
+        //                     {
+        //                         custom_id: 'discord component component_group',
+        //                         placeholder: '컴포넌트를 선택해주세요!',
+        //                         disabled: false,
+        //                         max_values: 1,
+        //                         min_values: 1,
+        //                     },
+        //                     `
+        // SELECT
+        //     json_object( 'name', IF( group_type = 'G', '📂', '📄')) AS emoji
+        //     , CAST(group_id AS CHAR) AS value
+        //     , name AS label
+        // FROM component_group cg
+        //                     `
+        //                 ),
+        //             });
+        //             break;
+        case choices.indexOf('component_action_row'):
             interaction.reply({
                 content: `${choices[type]}`,
                 components: await selectComponentMenuByKey(
                     {
-                        custom_id: 'discord component component_group',
+                        custom_id: 'discord component component_action_row',
                         placeholder: '컴포넌트를 선택해주세요!',
                         disabled: false,
                         max_values: 1,
                         min_values: 1,
                     },
                     `
-SELECT 
-    json_object( 'name', IF( group_type = 'G', '📂', '📄')) AS emoji
-    , CAST(group_id AS CHAR) AS value
-    , name AS label 
-FROM component_group cg 
+SELECT name AS label
+    , CAST(component_id AS CHAR) AS value
+    , CONCAT(
+        IFNULL(component_id_0, '없음') , ','
+        , IFNULL(component_id_1, '없음') , ','
+        , IFNULL(component_id_2, '없음') , ','
+        , IFNULL(component_id_3, '없음') , ','
+        , IFNULL(component_id_4, '없음') , ','
+    ) AS description
+FROM component_action_row car                 
                     `
                 ),
             });
