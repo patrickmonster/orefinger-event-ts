@@ -27,31 +27,6 @@ export const exec = async (interaction: MessageMenuInteraction, component_id: st
     } = interaction;
 
     switch (target) {
-        case 'type': // 타입 변경 메뉴
-            try {
-                const componentActionLow = components?.find(component =>
-                    component.components.find(component => 'custom_id' in component && component?.custom_id === custom_id)
-                );
-                if (!componentActionLow) throw new Error('컴포넌트를 찾을 수 없습니다.');
-
-                const componentsMenu = componentActionLow.components[0] as APIStringSelectComponent;
-
-                componentsMenu.options.forEach(option => ({ ...option, default: option.value === select_id }));
-                const label = componentsMenu.options?.find(option => option.value === select_id)?.label;
-                await updateComponent(component_id, { type_idx: parseInt(select_id) });
-                await interaction.edit({
-                    embeds: [
-                        {
-                            ...embed,
-                            author: { name: label ?? '컴포넌트 타입 변경' },
-                        },
-                    ],
-                    components,
-                });
-            } catch (error) {
-                interaction.reply({ content: '타입 변경에 실패했습니다.', ephemeral: true });
-            }
-            break;
         case 'yn': {
             const { values } = interaction;
 

@@ -22,9 +22,9 @@ export const exec = async (interaction: MessageMenuInteraction) => {
         interaction.reply({ content: '해당 메세지를 찾을 수 없습니다.', ephemeral: true });
     } else {
         const { embed, type } = data;
-        const id = `component edit ${component_id}`;
+        const id = `component_option edit ${component_id}`;
 
-        const ynMenu = await getComponentYnMenu(component_id);
+        const ynMenu = await getComponentYnMenu(component_id, 'component');
         interaction.reply({
             content: `컴포넌트 정보를 수정합니다. - ${component_id}`,
             embeds: [embed],

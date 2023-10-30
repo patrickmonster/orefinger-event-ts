@@ -152,12 +152,12 @@ export const editerComponent = (base_id: string, buttons: APIButtonComponent[]):
                 label: '복사',
                 custom_id: `${base_id} copy`,
             },
-            {
-                type: ComponentType.Button,
-                style: ButtonStyle.Danger,
-                label: '삭제',
-                custom_id: `${base_id} delete`,
-            },
+            // { // -- use_yn 으로 대체됨
+            //     type: ComponentType.Button,
+            //     style: ButtonStyle.Danger,
+            //     label: '삭제',
+            //     custom_id: `${base_id} delete`,
+            // },
             ...buttons,
             // {
             //     type: ComponentType.Button,
