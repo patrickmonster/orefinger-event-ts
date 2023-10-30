@@ -1,10 +1,12 @@
-import getConnection, { SqlInsertUpdate, calTo, query, selectPaging } from 'utils/database';
+import getConnection, { SqlInsertUpdate, YN, calTo, query, selectPaging } from 'utils/database';
 
 import { APIEmbed, APIModalInteractionResponseCallbackData, APISelectMenuOption } from 'discord-api-types/v10';
 import { ComponentCreate, ComponentOptionCreate } from 'interfaces/component';
 import { Paging } from 'interfaces/swagger';
 
-type ComponentId = number | string;
+export type ComponentId = number | string;
+
+export const ParseInt = (id: ComponentId) => (typeof id == 'string' ? parseInt(id) : id);
 
 export type Component = {
     component_id: number;
@@ -68,7 +70,7 @@ LEFT JOIN component_type ct ON c.type_idx = ct.type_idx`,
         page
     );
 
-export const getComponentDtil = async (component_id: number | string) =>
+export const getComponentDtil = async (component_id: ComponentId) =>
     query<Component>(
         `
 SELECT
@@ -103,7 +105,7 @@ left join component_style d on a.style_id = d.style_idx
 where 1=1
 and a.component_id = ?
     `,
-        component_id
+        ParseInt(component_id)
     ).then(res => res[0]);
 
 export const getComponentDtilByEmbed = async (component_id: ComponentId) =>
@@ -132,7 +134,7 @@ LEFT JOIN component_type c ON a.type_idx = c.type_idx
 LEFT JOIN component_style d ON a.style_id = d.style_idx AND d.use_yn ='Y'
 WHERE a.component_id = ?
         `,
-        component_id
+        ParseInt(component_id)
     ).then(res => res[0]);
 
 export const getComponentBaseEditByModel = async (component_id: ComponentId) =>
@@ -169,7 +171,7 @@ SELECT CONCAT(a.component_id, '] 컴포넌트 수정') as title,
 FROM component a
 WHERE a.component_id = ?
         `,
-        component_id
+        ParseInt(component_id)
     ).then(res => res[0]);
 
 export const createComponent = async (component: ComponentCreate) => query(`INSERT INTO component set ?`, component);
@@ -181,8 +183,33 @@ UPDATE component
 SET ?, update_at=CURRENT_TIMESTAMP
 WHERE component_id=?`,
         component,
-        component_id
+        ParseInt(component_id)
     );
+
+export type UpdateYNConnection = {
+    option_id: ComponentId;
+    value: YN;
+};
+
+export const updateComponentOptionConnect = async (component_id: ComponentId, updates: UpdateYNConnection[]) =>
+    getConnection(async query => {
+        for (const update of updates) {
+            const { option_id, value } = update;
+
+            await query(
+                `INSERT INTO component_option_connection SET ? ON DUPLICATE KEY UPDATE ?, update_at=CURRENT_TIMESTAMP
+            `,
+                {
+                    component_id: ParseInt(component_id),
+                    option_id,
+                    use_yn: value,
+                },
+                {
+                    use_yn: value,
+                }
+            );
+        }
+    });
 
 export const getComponentOptionList = async (page: Paging) =>
     selectPaging<{
@@ -246,7 +273,7 @@ UPDATE component_option
 SET ?, update_at=CURRENT_TIMESTAMP
 WHERE component_id=?`,
         component,
-        component_id
+        ParseInt(component_id)
     );
 
 export const getComponentStyleList = async () =>
@@ -292,7 +319,7 @@ SELECT JSON_ARRAY(
 FROM component c
 WHERE c.component_id = ?
             `,
-            component_id
+            ParseInt(component_id)
         );
 
         return options.options;
