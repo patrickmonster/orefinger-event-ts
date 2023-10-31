@@ -1,7 +1,7 @@
 import getConnection, { SqlInsertUpdate, YN, calTo, query, selectPaging } from 'utils/database';
 
 import { APIEmbed, APIModalInteractionResponseCallbackData, APISelectMenuOption } from 'discord-api-types/v10';
-import { ComponentCreate, ComponentOptionCreate } from 'interfaces/component';
+import { ComponentActionRow, ComponentCreate, ComponentOptionCreate } from 'interfaces/component';
 import { Paging } from 'interfaces/swagger';
 
 export type ComponentId = number | string;
@@ -173,68 +173,31 @@ export const getComponentRowDtilByEmbed = async (component_group_id: ComponentId
     query<{ embed: APIEmbed; type: number }>(
         `
 SELECT JSON_OBJECT(
-        'title', IFNULL(name, '없음'),
-        'timestamp', create_at,
-        'description' , CONCAT(
-            IF(component_id_0 IS NULL, '없음', (
-                SELECT 
-                    CONCAT(
-                        c.component_id, ') ',
-                        IFNULL(name, '이름이 지정되지 않음'), ' -> ',
-                        IF(emoji IS NULL ,'', CONCAT(' [',emoji, '] ')),
-                        IFNULL(IF(label_id IS NULL OR label_id > '', label, f_get_text(label_id)), 'title' )
-                    )
-                FROM component c WHERE c.component_id = component_id_0
-                )
-            ), '\n',
-            IF(component_id_1 IS NULL, '없음', (
-                SELECT 
-                    CONCAT(
-                        c.component_id, ') ',
-                        IFNULL(name, '이름이 지정되지 않음'), ' -> ',
-                        IF(emoji IS NULL ,'', CONCAT(' [',emoji, '] ')),
-                        IFNULL(IF(label_id IS NULL OR label_id > '', label, f_get_text(label_id)), 'title' )
-                    )
-                FROM component c WHERE c.component_id = component_id_1
-                )
-            ), '\n',
-            IF(component_id_2 IS NULL, '없음', (
-                SELECT 
-                    CONCAT(
-                        c.component_id, ') ',
-                        IFNULL(name, '이름이 지정되지 않음'), ' -> ',
-                        IF(emoji IS NULL ,'', CONCAT(' [',emoji, '] ')),
-                        IFNULL(IF(label_id IS NULL OR label_id > '', label, f_get_text(label_id)), 'title' )
-                    )
-                FROM component c WHERE c.component_id = component_id_2
-                )
-            ), '\n',
-            IF(component_id_3 IS NULL, '없음', (
-                SELECT 
-                    CONCAT(
-                        c.component_id, ') ',
-                        IFNULL(name, '이름이 지정되지 않음'), ' -> ',
-                        IF(emoji IS NULL ,'', CONCAT(' [',emoji, '] ')),
-                        IFNULL(IF(label_id IS NULL OR label_id > '', label, f_get_text(label_id)), 'title' )
-                    )
-                FROM component c WHERE c.component_id = component_id_3
-                )
-            ), '\n',
-            IF(component_id_4 IS NULL, '없음', (
-                SELECT 
-                    CONCAT(
-                        c.component_id, ') ',
-                        IFNULL(name, '이름이 지정되지 않음'), ' -> ',
-                        IF(emoji IS NULL ,'', CONCAT(' [',emoji, '] ')),
-                        IFNULL(IF(label_id IS NULL OR label_id > '', label, f_get_text(label_id)), 'title' )
-                    )
-                FROM component c WHERE c.component_id = component_id_4
-                )
-            )
+        'title', IFNULL(car.name, '없음'),
+        'timestamp', car.create_at,
+        'description', GROUP_CONCAT(
+            (SELECT tag FROM component_type ct WHERE ct.type_idx= c.type_idx), ']',
+            IFNULL(c.name, '이름이 지정되지 않음'), ' -> ',
+            IF(emoji IS NULL ,'', CONCAT(' [',emoji, '] ')),
+            IFNULL(IF(label_id IS NULL OR label_id > '', label, f_get_text(label_id)), 'title' )
+            ORDER BY car.sort_number
+            SEPARATOR '\n'
         )
-    ) embed
-FROM component_action_row car
-WHERE car.component_id = ?
+    ) AS embed
+FROM (
+    SELECT  car.component_id AS component_row_id
+        , car.name
+        , car.create_at
+        , carc.component_id
+        , carc.sort_number
+    FROM component_action_row car
+    LEFT JOIN component_action_row_connect carc 
+        ON carc.component_row_id = car.component_id 
+        AND carc.use_yn = 'Y'
+    WHERE car.component_id = ?
+) car
+LEFT JOIN component c ON c.component_id = car.component_id 
+GROUP BY car.component_row_id 
         `,
         ParseInt(component_group_id)
     ).then(res => res[0]);
@@ -293,42 +256,22 @@ WHERE group_id = ?
         ParseInt(group_id)
     ).then(res => res[0]);
 
-export const createComponent = async (component: ComponentCreate) => query(`INSERT INTO component set ?`, component);
-
-export const updateComponent = async (component_id: ComponentId, component: Partial<ComponentCreate>) =>
-    query<SqlInsertUpdate>(
+export const getComponentActionRowEditByModel = async (action_row_id: ComponentId) =>
+    query<Omit<APIModalInteractionResponseCallbackData, 'custom_id'>>(
         `
-UPDATE component
-SET ?, update_at=CURRENT_TIMESTAMP
-WHERE component_id=?`,
-        component,
-        ParseInt(component_id)
-    );
-
-export type UpdateYNConnection = {
-    option_id: ComponentId;
-    value: YN;
-};
-
-export const updateComponentOptionConnect = async (component_id: ComponentId, updates: UpdateYNConnection[]) =>
-    getConnection(async query => {
-        for (const update of updates) {
-            const { option_id, value } = update;
-
-            await query(
-                `INSERT INTO component_option_connection SET ? ON DUPLICATE KEY UPDATE ?, update_at=CURRENT_TIMESTAMP
-            `,
-                {
-                    component_id: ParseInt(component_id),
-                    option_id,
-                    use_yn: value,
-                },
-                {
-                    use_yn: value,
-                }
-            );
-        }
-    });
+SELECT CONCAT(component_id , '] 컴포넌트 그룹 수정') as title,
+    JSON_ARRAY(
+        JSON_OBJECT(
+            'type', 1, 'components', JSON_ARRAY(
+                JSON_OBJECT('type', 4,'custom_id', 'name', 'label', '이름', 'value', CAST(name AS CHAR), 'min_length', 1, 'max_length', 100, 'style', 1, 'required', true )
+            )
+        )
+    ) AS components
+FROM component_action_row 
+WHERE component_id = ? 
+        `,
+        ParseInt(action_row_id)
+    ).then(res => res[0]);
 
 export const getComponentOptionList = async (page: Paging) =>
     selectPaging<{
@@ -383,18 +326,6 @@ and a.option_id = ?
         option_id
     ).then(res => res[0]);
 
-export const createComponentOption = async (component: ComponentOptionCreate) => query(`INSERT INTO component_option   set ?`, component);
-
-export const updateComponentOption = async (component_id: ComponentId, component: ComponentOptionCreate) =>
-    query<SqlInsertUpdate>(
-        `
-UPDATE component_option
-SET ?, update_at=CURRENT_TIMESTAMP
-WHERE component_id=?`,
-        component,
-        ParseInt(component_id)
-    );
-
 export const getComponentStyleList = async () =>
     query<APISelectMenuOption>(
         `
@@ -409,7 +340,7 @@ export const getComponentTypeList = async (select_item?: string | number) =>
     query<APISelectMenuOption>(
         `
 SELECT CAST(ct.type AS CHAR) AS value
-    , tag AS label
+    , CONCAT(ct.type, ']', tag) AS label
     ${calTo(', IF(ct.type = ?, true, false) AS `default`', select_item)}
 FROM component_type ct  
 WHERE use_yn = 'Y'
@@ -443,7 +374,7 @@ SELECT JSON_ARRAY(
             ({ column_name }) => `JSON_OBJECT('label', '${column_name}', 'value', '${column_name}', 'default', IF(${column_name} = 'Y', TRUE, FALSE))`
         )
         .join(',')})AS \`options\`
-FROM ${calTo('?', targetTable)} c
+FROM ${targetTable} c
 WHERE c.${YNMenu[targetTable]} = ?
             `,
             ParseInt(component_id)
@@ -453,6 +384,87 @@ WHERE c.${YNMenu[targetTable]} = ?
     });
 
 // ========================================================================================================
+
+export const updateComponent = async (component_id: ComponentId, component: Partial<ComponentCreate>) =>
+    query<SqlInsertUpdate>(
+        `
+UPDATE component
+SET ?, update_at=CURRENT_TIMESTAMP
+WHERE component_id=?`,
+        component,
+        ParseInt(component_id)
+    );
+
+export type UpdateYNConnection = {
+    option_id: ComponentId;
+    value: YN;
+};
+
+export const updateComponentOptionConnect = async (component_id: ComponentId, updates: UpdateYNConnection[]) =>
+    getConnection(async query => {
+        for (const update of updates) {
+            const { option_id, value } = update;
+
+            await query(
+                `INSERT INTO component_option_connection SET ? ON DUPLICATE KEY UPDATE ?, update_at=CURRENT_TIMESTAMP
+            `,
+                {
+                    component_id: ParseInt(component_id),
+                    option_id,
+                    use_yn: value,
+                },
+                {
+                    use_yn: value,
+                }
+            );
+        }
+    });
+
+export const updateComponentOption = async (component_id: ComponentId, component: ComponentOptionCreate) =>
+    query<SqlInsertUpdate>(
+        `
+UPDATE component_option
+SET ?, update_at=CURRENT_TIMESTAMP
+WHERE component_id=?`,
+        component,
+        ParseInt(component_id)
+    );
+
+export const updateComponentActionRow = async (component_id: ComponentId, component: ComponentActionRow) =>
+    query<SqlInsertUpdate>(
+        `UPDATE component_action_row SET ?, update_at=CURRENT_TIMESTAMP WHERE component_id = ?`,
+        component,
+        ParseInt(component_id)
+    );
+
+// ========================================================================================================
+
+export const upsertComponentActionRow = async (component: Partial<ComponentActionRow>, component_id?: ComponentId) =>
+    query<SqlInsertUpdate>(
+        component_id
+            ? `UPDATE component_action_row SET ?, update_at=CURRENT_TIMESTAMP WHERE component_id = ${calTo('?', component_id)}`
+            : `INSERT INTO component_action_row SET ?`,
+        component
+    );
+
+// ========================================================================================================
+
+/**
+ * 컴포넌트 생성
+ * @param component
+ * @returns
+ */
+export const createComponent = async (component: ComponentCreate) => query(`INSERT INTO component SET ?`, component);
+
+/**
+ * 컴포넌트 옵션 생성
+ * @param component
+ * @returns
+ */
+export const createComponentOption = async (component: ComponentOptionCreate) => query(`INSERT INTO component_option   SET ?`, component);
+
+// ========================================================================================================
+
 /**
  * 컴포넌트 복사
  * @param component_id
@@ -483,4 +495,20 @@ FROM component_group cg
 WHERE group_id = ? 
     `,
         ParseInt(component_group_id)
+    );
+
+/**
+ * 컴포넌트 ActionRow 복사
+ * @param component_id
+ * @returns
+ */
+export const copyComponentActionRow = async (component_action_row_id: ComponentId) =>
+    query<SqlInsertUpdate>(
+        `
+INSERT INTO (name, component_id_0, component_id_1, component_id_2, component_id_3, component_id_4)
+SELECT name, component_id_0, component_id_1, component_id_2, component_id_3, component_id_4 
+FROM component_action_row car 
+WHERE component_id  = ?
+    `,
+        ParseInt(component_action_row_id)
     );

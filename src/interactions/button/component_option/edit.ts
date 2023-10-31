@@ -12,6 +12,7 @@ export const exec = async (interaction: MessageInteraction, command_id: string, 
     await interaction.differ({ ephemeral: true });
     switch (target) {
         case 'option':
+            // 컴포넌트 하위 옵션 수정
             interaction.reply({
                 ephemeral: true,
                 content: `${command_id} - ${target}`,

@@ -95,6 +95,7 @@ const getConnection = async <T>(connectionPool: (queryFunction: queryFunctionTyp
                           insertId: rows.insertId,
                       };
             } catch (e) {
+                console.error('SQL]', format(query, params));
                 console.error('SQL]', e);
                 connect!.query('INSERT INTO discord_log.error_sql set `sql` = ?, target = ?', [mysql.format(query, params), env.NODE_ENV || 'dev']);
                 throw e;
