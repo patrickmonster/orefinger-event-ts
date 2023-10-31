@@ -221,8 +221,6 @@ export const editerComponentComponentTemplate = (base_id: string): APIActionRowC
         { label: '기본설정', value: 'base' },
         // label_id
         { label: '텍스트', value: 'text' },
-        // use_yn / disabled_yn / style_id / type_id
-        { label: '옵션', value: 'type' },
     ];
     return {
         type: ComponentType.ActionRow,

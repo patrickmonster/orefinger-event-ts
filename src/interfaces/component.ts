@@ -27,3 +27,13 @@ export interface ComponentOptionCreate {
     use_yn: string;
     permission_type: number;
 }
+
+export interface ComponentActionRow {
+    component_id: number;
+    name: string;
+    component_id_0: number;
+    component_id_1: number;
+    component_id_2: number;
+    component_id_3: number;
+    component_id_4: number;
+}

@@ -2,7 +2,7 @@ import { MessageMenuInteraction } from 'interactions/message';
 
 import { editerComponent } from 'components/systemComponent';
 import { getComponentRowDtilByEmbed } from 'controllers/component';
-import { ComponentType } from 'discord-api-types/v10';
+import { ButtonStyle, ComponentType } from 'discord-api-types/v10';
 
 /**
  *
@@ -29,23 +29,20 @@ export const exec = async (interaction: MessageMenuInteraction) => {
             embeds: [embed],
             ephemeral: true,
             components: [
-                editerComponent(id, []),
-                {
-                    // 하위 옵션 수정
-                    type: ComponentType.ActionRow,
-                    components: [
-                        {
-                            custom_id: `${id} option`,
-                            type: ComponentType.StringSelect,
-                            placeholder: '하위 옵션 수정',
-                            options: [0, 1, 2, 3, 4].map(value => ({
-                                label: `${value}`,
-                                value: `${value}`,
-                                description: `${value}항목 수정`,
-                            })),
-                        },
-                    ],
-                },
+                editerComponent(id, [
+                    {
+                        type: ComponentType.Button,
+                        label: '하위 옵션 수정',
+                        style: ButtonStyle.Success,
+                        custom_id: `${id} option`,
+                    },
+                    {
+                        type: ComponentType.Button,
+                        label: '정렬 수정',
+                        style: ButtonStyle.Success,
+                        custom_id: `${id} order`,
+                    },
+                ]),
             ],
         });
     }
