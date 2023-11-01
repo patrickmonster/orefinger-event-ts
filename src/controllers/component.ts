@@ -1,6 +1,14 @@
 import getConnection, { SqlInsertUpdate, YN, calTo, query, selectPaging } from 'utils/database';
 
-import { APIEmbed, APIModalInteractionResponseCallbackData, APISelectMenuOption } from 'discord-api-types/v10';
+import {
+    APIActionRowComponent,
+    APIButtonComponent,
+    APIEmbed,
+    APIMessageActionRowComponent,
+    APIModalInteractionResponseCallbackData,
+    APISelectMenuOption,
+    ComponentType,
+} from 'discord-api-types/v10';
 import { ComponentActionRow, ComponentCreate, ComponentOptionCreate } from 'interfaces/component';
 import { Paging } from 'interfaces/swagger';
 
@@ -108,6 +116,80 @@ and a.component_id = ?
         ParseInt(component_id)
     ).then(res => res[0]);
 
+export const getComponentOptionList = async (page: Paging) =>
+    selectPaging<{
+        option_id: number;
+        label: string;
+        value: string;
+        description: string;
+        emoji: string;
+        default: boolean;
+        use_yn: boolean;
+        permission_type: string;
+        create_at: string;
+        update_at: string;
+    }>(
+        `
+SELECT 
+    option_id
+    , if (label_id is null, label, f_get_text(label_id) ) as label
+    , value
+    , if (description_id is null, description, f_get_text(description_id) ) as description
+    , emoji
+    , default_yn
+    , use_yn
+    , permission_type
+    , create_at
+    , update_at
+FROM component_option
+  `,
+        page
+    );
+export const getComponentOptionDtil = async (option_id: number) =>
+    query(
+        `
+    SELECT
+      option_id,
+      label_id,
+      f_get_text(label_id) as label,
+      value,
+      description_id,
+      f_get_text(description_id) as description,
+      emoji,
+      default_yn as \`default\`,
+      use_yn as \`use\`,
+      permission_type,
+      create_at,
+      update_at
+    FROM component_option a
+    where 1=1
+    and a.option_id = ?
+      `,
+        option_id
+    ).then(res => res[0]);
+export const getComponentStyleList = async () =>
+    query<APISelectMenuOption>(
+        `
+    SELECT style_idx AS label
+        , CAST(tag AS CHAR) AS value
+    FROM component_style cs 
+    WHERE use_yn = 'Y'
+           `
+    );
+
+export const getComponentTypeList = async (select_item?: string | number) =>
+    query<APISelectMenuOption>(
+        `
+    SELECT CAST(ct.type AS CHAR) AS value
+        , CONCAT(ct.type, ']', tag) AS label
+        ${calTo(', IF(ct.type = ?, true, false) AS `default`', select_item)}
+    FROM component_type ct  
+    WHERE use_yn = 'Y'
+           `
+    );
+
+// ========================================================================================================
+// select embed
 /**
  * 컴포넌트 디테일 정보를 Embde 형태로 반환합니다.
  * @param component_id
@@ -176,7 +258,7 @@ SELECT JSON_OBJECT(
         'title', IFNULL(car.name, '없음'),
         'timestamp', car.create_at,
         'description', GROUP_CONCAT(
-            (SELECT tag FROM component_type ct WHERE ct.type_idx= c.type_idx), ']',
+            IFNULL((SELECT tag FROM component_type ct WHERE ct.type_idx= c.type_idx), '-'), ']',
             IFNULL(c.name, '이름이 지정되지 않음'), ' -> ',
             IF(emoji IS NULL ,'', CONCAT(' [',emoji, '] ')),
             IFNULL(IF(label_id IS NULL OR label_id > '', label, f_get_text(label_id)), 'title' )
@@ -201,6 +283,9 @@ GROUP BY car.component_row_id
         `,
         ParseInt(component_group_id)
     ).then(res => res[0]);
+
+// ========================================================================================================
+// select component
 
 export const getComponentBaseEditByModel = async (component_id: ComponentId) =>
     query<Omit<APIModalInteractionResponseCallbackData, 'custom_id'>>(
@@ -273,80 +358,6 @@ WHERE component_id = ?
         ParseInt(action_row_id)
     ).then(res => res[0]);
 
-export const getComponentOptionList = async (page: Paging) =>
-    selectPaging<{
-        option_id: number;
-        label: string;
-        value: string;
-        description: string;
-        emoji: string;
-        default: boolean;
-        use_yn: boolean;
-        permission_type: string;
-        create_at: string;
-        update_at: string;
-    }>(
-        `
-SELECT 
-    option_id
-    , if (label_id is null, label, f_get_text(label_id) ) as label
-    , value
-    , if (description_id is null, description, f_get_text(description_id) ) as description
-    , emoji
-    , default_yn
-    , use_yn
-    , permission_type
-    , create_at
-    , update_at
-FROM component_option
-  `,
-        page
-    );
-
-export const getComponentOptionDtil = async (option_id: number) =>
-    query(
-        `
-SELECT
-  option_id,
-  label_id,
-  f_get_text(label_id) as label,
-  value,
-  description_id,
-  f_get_text(description_id) as description,
-  emoji,
-  default_yn as \`default\`,
-  use_yn as \`use\`,
-  permission_type,
-  create_at,
-  update_at
-FROM component_option a
-where 1=1
-and a.option_id = ?
-  `,
-        option_id
-    ).then(res => res[0]);
-
-export const getComponentStyleList = async () =>
-    query<APISelectMenuOption>(
-        `
-SELECT style_idx AS label
-	, CAST(tag AS CHAR) AS value
-FROM component_style cs 
-WHERE use_yn = 'Y'
-       `
-    );
-
-export const getComponentTypeList = async (select_item?: string | number) =>
-    query<APISelectMenuOption>(
-        `
-SELECT CAST(ct.type AS CHAR) AS value
-    , CONCAT(ct.type, ']', tag) AS label
-    ${calTo(', IF(ct.type = ?, true, false) AS `default`', select_item)}
-FROM component_type ct  
-WHERE use_yn = 'Y'
-       `
-    );
-
 const YNMenu = {
     component: 'component_id',
     component_option: 'option_id',
@@ -382,6 +393,33 @@ WHERE c.${YNMenu[targetTable]} = ?
 
         return options.options;
     });
+
+export const getComponentRowEditByOrder = async (
+    component_row_id: ComponentId,
+    button_base_id: string
+): Promise<APIActionRowComponent<APIMessageActionRowComponent>> =>
+    query<{ component: APIButtonComponent }>(
+        `
+SELECT JSON_OBJECT(
+        'type', 2, 'style', 1,
+        'label', c.name, 'custom_id', concat(?, ' ', idx),
+        'emoji', JSON_OBJECT( IF(REGEXP_LIKE(c.emoji, '^[0-9]+$'), 'id', 'name'), IF( c.emoji < '' OR c.emoji IS NULL, '▫', c.emoji))
+    ) AS component
+FROM (
+    SELECT c.*
+        , row_number() over(order by c.component_id desc) AS idx
+    FROM component_action_row_connect carc 
+    LEFT JOIN component c ON c.component_id = carc.component_id 
+    WHERE component_row_id = ?
+) c
+LIMIT 5
+    `,
+        button_base_id,
+        ParseInt(component_row_id)
+    ).then(res => ({
+        type: ComponentType.ActionRow,
+        components: res.map(({ component }) => component),
+    }));
 
 // ========================================================================================================
 
@@ -439,11 +477,31 @@ export const updateComponentActionRow = async (component_id: ComponentId, compon
 
 // ========================================================================================================
 
+/**
+ * 생성 or 수정
+ * @param component
+ * @param component_id
+ * @returns
+ */
 export const upsertComponentActionRow = async (component: Partial<ComponentActionRow>, component_id?: ComponentId) =>
     query<SqlInsertUpdate>(
         component_id
             ? `UPDATE component_action_row SET ?, update_at=CURRENT_TIMESTAMP WHERE component_id = ${calTo('?', component_id)}`
             : `INSERT INTO component_action_row SET ?`,
+        component
+    );
+
+/**
+ * 생성 or 수정 - 컴포넌트 하위 연결
+ * @param component
+ * @param component_id
+ * @returns
+ */
+export const upsertComponentActionRowConnect = async (component: Partial<ComponentActionRow>, component_id?: ComponentId) =>
+    query<SqlInsertUpdate>(
+        component_id
+            ? `UPDATE component_action_row_connect SET ?, update_at=CURRENT_TIMESTAMP WHERE component_id = ${calTo('?', component_id)}`
+            : `INSERT INTO component_action_row_connect SET ?`,
         component
     );
 
