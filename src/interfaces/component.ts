@@ -28,12 +28,10 @@ export interface ComponentOptionCreate {
     permission_type: number;
 }
 
+// component_row_id ,component_id ,sort_number
 export interface ComponentActionRow {
+    component_row_id: number;
     component_id: number;
     name: string;
-    component_id_0: number;
-    component_id_1: number;
-    component_id_2: number;
-    component_id_3: number;
-    component_id_4: number;
+    sort_number: number;
 }
