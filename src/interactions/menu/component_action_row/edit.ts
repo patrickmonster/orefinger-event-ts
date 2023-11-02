@@ -1,6 +1,7 @@
-import { UpdateYNConnection, updateComponentActionRowConnect } from 'controllers/component';
+import { upsertComponentActionRowConnect } from 'controllers/component';
 import { APIStringSelectComponent } from 'discord-api-types/v10';
 import { MessageMenuInteraction } from 'interactions/message';
+import { ComponentActionRowConnect } from 'interfaces/component';
 
 /**
  *
@@ -29,12 +30,12 @@ export const exec = async (interaction: MessageMenuInteraction, component_id: st
                 if (!componentActionLow) throw new Error('컴포넌트를 찾을 수 없습니다.');
                 const componentsMenu = componentActionLow.components[0] as APIStringSelectComponent;
 
-                await updateComponentActionRowConnect(
-                    component_id,
+                await upsertComponentActionRowConnect(
                     componentsMenu.options.map(({ value }) => ({
-                        option_id: parseInt(value),
-                        value: values.includes(value) ? 'Y' : 'N',
-                    })) as UpdateYNConnection[]
+                        component_row_id: parseInt(component_id),
+                        component_id: parseInt(value),
+                        use_yn: values.includes(value) ? 'Y' : 'N',
+                    })) as ComponentActionRowConnect[]
                 );
 
                 interaction.reply({ content: '옵션 변경에 성공했습니다.', ephemeral: true });

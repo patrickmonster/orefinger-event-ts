@@ -29,9 +29,24 @@ export interface ComponentOptionCreate {
 }
 
 // component_row_id ,component_id ,sort_number
+// @ ComponentActionRow
 export interface ComponentActionRow {
-    component_row_id: number;
-    component_id: number;
+    component_id?: number;
     name: string;
-    sort_number: number;
+    sort_number?: number;
+}
+
+export interface ComponentActionRowConnect {
+    component_row_id?: number;
+    component_id: number;
+    sort_number?: number;
+    use_yn?: 'Y' | 'N';
+}
+
+// ActionRow -> Component
+export interface ComponentOptionConnect {
+    component_id?: number;
+    option_id: number;
+    // sort_number?: number;
+    use_yn?: 'Y' | 'N';
 }
