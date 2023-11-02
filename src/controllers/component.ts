@@ -458,6 +458,32 @@ export const updateComponentOptionConnect = async (component_id: ComponentId, up
         }
     });
 
+/**
+ *
+ * @param component_id
+ * @param updates
+ * @returns
+ */
+export const updateComponentActionRowConnect = async (component_action_row_id: ComponentId, updates: UpdateYNConnection[]) =>
+    getConnection(async query => {
+        for (const update of updates) {
+            const { option_id, value } = update;
+
+            await query(
+                `INSERT INTO component_action_row_connect SET ? ON DUPLICATE KEY UPDATE ?, update_at=CURRENT_TIMESTAMP
+            `,
+                {
+                    component_row_id: ParseInt(component_action_row_id),
+                    component_id: option_id,
+                    use_yn: value,
+                },
+                {
+                    use_yn: value,
+                }
+            );
+        }
+    });
+
 export const updateComponentOption = async (component_id: ComponentId, component: ComponentOptionCreate) =>
     query<SqlInsertUpdate>(
         `
