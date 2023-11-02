@@ -1,20 +1,28 @@
 import { MessageInteraction } from 'interactions/message';
 
 import { selectComponentMenuByKey } from 'components/systemComponent';
-import { ParseInt, copyComponentActionRow, getComponentActionRowEditByModel, getComponentRowEditByOrder } from 'controllers/component';
+import {
+    ParseInt,
+    copyComponentActionRow,
+    getComponentActionRowEditByModel,
+    getComponentRowEditByOrder,
+    updateComponentActionRowConnect,
+    upsertComponentActionRowConnect,
+} from 'controllers/component';
+import { ComponentType } from 'discord-api-types/v10';
 
 /**
  *
  * 컴포넌트 action row 수정
  * @param interaction
  */
-export const exec = async (interaction: MessageInteraction, component_id: string, target: string, idx: string) => {
-    switch (target) {
+export const exec = async (interaction: MessageInteraction, component_row_id: string, type: string, component_id: string, idx: string) => {
+    switch (type) {
         case 'option':
             interaction.reply({
                 components: await selectComponentMenuByKey(
                     {
-                        custom_id: `component_action_row edit ${component_id} option`,
+                        custom_id: `component_action_row edit ${component_row_id} option`,
                         placeholder: '컴포넌트를 선택해주세요!',
                         disabled: false,
                         max_values: 5,
@@ -30,43 +38,53 @@ FROM component c
 LEFT JOIN component_type ct ON c.type_idx = ct.type_idx  
 LEFT JOIN component_action_row_connect carc ON carc.component_row_id = ? AND carc.component_id = c.component_id AND carc.use_yn ='Y'
                 `,
-                    ParseInt(component_id)
+                    ParseInt(component_row_id)
                 ),
             });
             break;
         case 'order': // 정렬상태 수정
             if (!idx) {
                 interaction.reply({
-                    components: [await getComponentRowEditByOrder(component_id, `component_action_row edit ${component_id} order`)],
+                    components: [await getComponentRowEditByOrder(component_row_id, `component_action_row edit ${component_row_id} order`)],
                 });
             } else {
                 const select = interaction.message.components;
                 if (!select || !select[0]) return; // 있을수 없음
                 const { components } = select[0];
                 // 이전에 선택된 항목개수
-                const selectItemCount = components.filter(v => v.disabled).length;
+                const selectItemCount = components.filter(v => {
+                    if (v.type !== ComponentType.Button) return false;
+                    // 비활성화 처리
 
-                if (!selectItemCount) {
-                    // 초기화 진행
-                }
+                    return v.disabled;
+                }).length;
+
+                // 첫 선택시 모두 초기화
+                if (!selectItemCount) await updateComponentActionRowConnect(component_row_id, null, { sort_number: 99 });
+                // 해당 번호 할당
+                await upsertComponentActionRowConnect({
+                    component_row_id: parseInt(component_row_id),
+                    component_id: parseInt(component_id),
+                    sort_number: parseInt(idx),
+                });
 
                 interaction.reply({ content: '정렬상태 수정' + idx, ephemeral: true });
             }
             break;
         case 'copy': {
             // 복사버튼
-            const { insertId } = await copyComponentActionRow(component_id);
+            const { insertId } = await copyComponentActionRow(component_row_id);
             interaction.reply({ content: '복사되었습니다. - ' + insertId, ephemeral: true });
             break;
         }
         case 'edit': // 수정버튼
             // 수정버튼
-            const model = await getComponentActionRowEditByModel(component_id);
+            const model = await getComponentActionRowEditByModel(component_row_id);
 
             // 모달처리
             interaction.model({
                 ...model,
-                custom_id: `component_action_row edit ${component_id}`,
+                custom_id: `component_action_row edit ${component_row_id}`,
             });
             break;
         //

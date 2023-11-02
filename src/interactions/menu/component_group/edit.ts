@@ -1,14 +1,8 @@
 import { selectComponentMenuByKey } from 'components/systemComponent';
-import {
-    UpdateYNConnection,
-    getComponentBaseEditByModel,
-    getComponentDtilByEmbed,
-    updateComponent,
-    updateComponentOptionConnect,
-} from 'controllers/component';
+import { getComponentBaseEditByModel, getComponentDtilByEmbed, updateComponent, upsertComponentOptionConnect } from 'controllers/component';
 import { APIStringSelectComponent } from 'discord-api-types/v10';
 import { MessageMenuInteraction } from 'interactions/message';
-import { ComponentCreate } from 'interfaces/component';
+import { ComponentCreate, ComponentOptionConnect } from 'interfaces/component';
 
 /**
  *
@@ -68,12 +62,12 @@ export const exec = async (interaction: MessageMenuInteraction, component_id: st
                 if (!componentActionLow) throw new Error('컴포넌트를 찾을 수 없습니다.');
                 const componentsMenu = componentActionLow.components[0] as APIStringSelectComponent;
 
-                await updateComponentOptionConnect(
-                    component_id,
+                await upsertComponentOptionConnect(
                     componentsMenu.options.map(({ value }) => ({
+                        component_id: parseInt(component_id),
                         option_id: parseInt(value),
-                        value: values.includes(value) ? 'Y' : 'N',
-                    })) as UpdateYNConnection[]
+                        use_yn: values.includes(value) ? 'Y' : 'N',
+                    })) as ComponentOptionConnect[]
                 );
 
                 interaction.reply({ content: '옵션 변경에 성공했습니다.', ephemeral: true });

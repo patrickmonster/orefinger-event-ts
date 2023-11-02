@@ -9,7 +9,7 @@ import {
     APISelectMenuOption,
     ComponentType,
 } from 'discord-api-types/v10';
-import { ComponentActionRow, ComponentCreate, ComponentOptionCreate } from 'interfaces/component';
+import { ComponentActionRow, ComponentActionRowConnect, ComponentCreate, ComponentOptionConnect, ComponentOptionCreate } from 'interfaces/component';
 import { Paging } from 'interfaces/swagger';
 
 export type ComponentId = number | string;
@@ -438,52 +438,6 @@ export type UpdateYNConnection = {
     value: YN;
 };
 
-export const updateComponentOptionConnect = async (component_id: ComponentId, updates: UpdateYNConnection[]) =>
-    getConnection(async query => {
-        for (const update of updates) {
-            const { option_id, value } = update;
-
-            await query(
-                `INSERT INTO component_option_connection SET ? ON DUPLICATE KEY UPDATE ?, update_at=CURRENT_TIMESTAMP
-            `,
-                {
-                    component_id: ParseInt(component_id),
-                    option_id,
-                    use_yn: value,
-                },
-                {
-                    use_yn: value,
-                }
-            );
-        }
-    });
-
-/**
- *
- * @param component_id
- * @param updates
- * @returns
- */
-export const updateComponentActionRowConnect = async (component_action_row_id: ComponentId, updates: UpdateYNConnection[]) =>
-    getConnection(async query => {
-        for (const update of updates) {
-            const { option_id, value } = update;
-
-            await query(
-                `INSERT INTO component_action_row_connect SET ? ON DUPLICATE KEY UPDATE ?, update_at=CURRENT_TIMESTAMP
-            `,
-                {
-                    component_row_id: ParseInt(component_action_row_id),
-                    component_id: option_id,
-                    use_yn: value,
-                },
-                {
-                    use_yn: value,
-                }
-            );
-        }
-    });
-
 export const updateComponentOption = async (component_id: ComponentId, component: ComponentOptionCreate) =>
     query<SqlInsertUpdate>(
         `
@@ -499,6 +453,17 @@ export const updateComponentActionRow = async (component_id: ComponentId, compon
         `UPDATE component_action_row SET ?, update_at=CURRENT_TIMESTAMP WHERE component_id = ?`,
         component,
         ParseInt(component_id)
+    );
+
+export const updateComponentActionRowConnect = async (
+    component_row_id: ComponentId,
+    component_id: ComponentId | null,
+    component: Partial<ComponentActionRowConnect>
+) =>
+    query<SqlInsertUpdate>(
+        `UPDATE component_action_row SET ?, update_at=CURRENT_TIMESTAMP WHERE component_row_id = ? ${calTo('AND component_id = ?', component_id)}`,
+        component,
+        ParseInt(component_row_id)
     );
 
 // ========================================================================================================
@@ -523,13 +488,77 @@ export const upsertComponentActionRow = async (component: Partial<ComponentActio
  * @param component_id
  * @returns
  */
-export const upsertComponentActionRowConnect = async (component: Partial<ComponentActionRow>, component_id?: ComponentId) =>
-    query<SqlInsertUpdate>(
-        component_id
-            ? `UPDATE component_action_row_connect SET ?, update_at=CURRENT_TIMESTAMP WHERE component_id = ${calTo('?', component_id)}`
-            : `INSERT INTO component_action_row_connect SET ?`,
-        component
-    );
+export const upsertComponentActionRowConnect = async (components: ComponentActionRowConnect | ComponentActionRowConnect[]) =>
+    getConnection(async query => {
+        const out = {
+            affectedRows: 0,
+            changedRows: 0,
+            insertId: [] as number[],
+        };
+        if (Array.isArray(components)) {
+            for (const component of components) {
+                const { affectedRows, changedRows, insertId } = await query<SqlInsertUpdate>(
+                    `INSERT INTO component_action_row_connect SET ? ON DUPLICATE KEY UPDATE ?, update_at=CURRENT_TIMESTAMP`,
+                    component,
+                    component
+                );
+                out.affectedRows += affectedRows;
+                out.changedRows += changedRows;
+                out.insertId.push(insertId);
+            }
+        } else {
+            const { affectedRows, changedRows, insertId } = await query<SqlInsertUpdate>(
+                `INSERT INTO component_action_row_connect SET ? ON DUPLICATE KEY UPDATE ?, update_at=CURRENT_TIMESTAMP`,
+                components,
+                components
+            );
+
+            out.affectedRows += affectedRows;
+            out.changedRows += changedRows;
+            out.insertId.push(insertId);
+        }
+
+        return out;
+    });
+
+/**
+ * 생성 or 수정 - 컴포넌트 옵션 하위 연결
+ * @param component
+ * @param component_id
+ * @returns
+ */
+export const upsertComponentOptionConnect = async (components: ComponentOptionConnect | ComponentOptionConnect[]) =>
+    getConnection(async query => {
+        const out = {
+            affectedRows: 0,
+            changedRows: 0,
+            insertId: [] as number[],
+        };
+        if (Array.isArray(components)) {
+            for (const component of components) {
+                const { affectedRows, changedRows, insertId } = await query<SqlInsertUpdate>(
+                    `INSERT INTO component_option_connection SET ? ON DUPLICATE KEY UPDATE ?, update_at=CURRENT_TIMESTAMP`,
+                    component,
+                    component
+                );
+                out.affectedRows += affectedRows;
+                out.changedRows += changedRows;
+                out.insertId.push(insertId);
+            }
+        } else {
+            const { affectedRows, changedRows, insertId } = await query<SqlInsertUpdate>(
+                `INSERT INTO component_option_connection SET ? ON DUPLICATE KEY UPDATE ?, update_at=CURRENT_TIMESTAMP`,
+                components,
+                components
+            );
+
+            out.affectedRows += affectedRows;
+            out.changedRows += changedRows;
+            out.insertId.push(insertId);
+        }
+
+        return out;
+    });
 
 // ========================================================================================================
 
