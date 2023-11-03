@@ -2,6 +2,8 @@ import {
     APIApplicationCommandInteractionDataBasicOption,
     APIApplicationCommandSubcommandOption,
     ApplicationCommandOptionType,
+    ButtonStyle,
+    ComponentType,
 } from 'discord-api-types/v10';
 import { basename } from 'path';
 
@@ -27,6 +29,12 @@ export const exec = async (interaction: AppChatInputInteraction, selectOption: A
                         disabled: false,
                         max_values: 1,
                         min_values: 1,
+                        button: {
+                            custom_id: 'text create',
+                            label: '텍스트 생성',
+                            type: ComponentType.Button,
+                            style: ButtonStyle.Primary,
+                        },
                     },
                     `
 SELECT CAST(text_id AS CHAR) AS value

@@ -200,12 +200,12 @@ export const getComponentDtilByEmbed = async (component_id: ComponentId) =>
         `
 SELECT 
     JSON_OBJECT(
-        'title', IFNULL(IF(label_id IS NULL, label, f_get_text(label_id)), 'title' ),
+        'title', IFNULL(IF(label_id IS NULL, label, f_get_text(label_id)), '라벨이 없습니다.' ),
         'author', JSON_OBJECT('name', c.tag),
         'description', CONCAT(
             'value :', IFNULL(value, '-') , '\n',
-            'custom_id :', IFNULL(custom_id, '-') , '\n',
-            '비활성/필수 :', IFNULL(disabled_yn, 'N'), '/', IFNULL(required_yn, 'N')  
+            'custom_id :', IFNULL(custom_id, '-') , '\n'
+            -- , '비활성/필수 :', IFNULL(disabled_yn, 'N'), '/', IFNULL(required_yn, 'N')  
         ),
         'fields', JSON_ARRAY( 
             JSON_OBJECT('name', 'emoji','value', IFNULL(emoji, '없음'), 'inline', true),
@@ -474,6 +474,20 @@ export const updateComponentActionRowConnect = async (
 // ========================================================================================================
 
 /**
+ * 생성 or 수정 - 컴포넌트
+ * @param component
+ * @param component_id
+ * @returns
+ */
+export const upsertComponent = async (component: Partial<Omit<Component, 'component_id'>>, component_id?: ComponentId) =>
+    query<SqlInsertUpdate>(
+        component_id
+            ? `UPDATE component SET ?, update_at=CURRENT_TIMESTAMP WHERE component_id = ${calTo('?', component_id)}`
+            : `INSERT INTO component SET ?`,
+        component
+    );
+
+/**
  * 생성 or 수정
  * @param component
  * @param component_id
@@ -572,14 +586,15 @@ export const upsertComponentOptionConnect = async (components: ComponentOptionCo
  * @param component
  * @returns
  */
-export const createComponent = async (component: ComponentCreate) => query(`INSERT INTO component SET ?`, component);
+export const createComponent = async (component: ComponentCreate) => query<SqlInsertUpdate>(`INSERT INTO component SET ?`, component);
 
 /**
  * 컴포넌트 옵션 생성
  * @param component
  * @returns
  */
-export const createComponentOption = async (component: ComponentOptionCreate) => query(`INSERT INTO component_option   SET ?`, component);
+export const createComponentOption = async (component: ComponentOptionCreate) =>
+    query<SqlInsertUpdate>(`INSERT INTO component_option   SET ?`, component);
 
 // ========================================================================================================
 
