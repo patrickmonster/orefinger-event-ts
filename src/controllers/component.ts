@@ -402,15 +402,15 @@ export const getComponentRowEditByOrder = async (
         `
 SELECT JSON_OBJECT(
         'type', 2, 'style', 1,
-        'label', c.name, 'custom_id', concat(?, ' ', idx),
+        'label', c.name, 'custom_id', concat(?, ' ', c.component_id),
         'emoji', JSON_OBJECT( IF(REGEXP_LIKE(c.emoji, '^[0-9]+$'), 'id', 'name'), IF( c.emoji < '' OR c.emoji IS NULL, '▫', c.emoji))
     ) AS component
 FROM (
     SELECT c.*
-        , row_number() over(order by c.component_id desc) AS idx
     FROM component_action_row_connect carc 
     LEFT JOIN component c ON c.component_id = carc.component_id 
     WHERE component_row_id = ?
+    AND carc.use_yn = 'Y'
 ) c
 LIMIT 5
     `,
