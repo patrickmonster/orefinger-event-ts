@@ -5,13 +5,9 @@ import {
 } from 'discord-api-types/v10';
 import { basename } from 'path';
 
-import { channels } from 'components/guild';
 import { AppChatInputInteraction } from 'interactions/app';
 
-// import api from "utils/discordApiInstance"
-
-const name = basename(__filename, __filename.endsWith('js') ? '.js' : '.ts');
-const type = ApplicationCommandOptionType.Subcommand;
+const choices = ['알림', '채팅', '디자인'];
 
 export const exec = async (interaction: AppChatInputInteraction, selectOption: APIApplicationCommandInteractionDataBasicOption[]) => {
     const { member, guild_id, channel } = interaction;
@@ -24,24 +20,15 @@ export const exec = async (interaction: AppChatInputInteraction, selectOption: A
 
     // [ { name: '타입', type: 4, value: 3 } ]
     switch (type) {
-        case 0: {
-            // 알림 (in discord)
-            /**
-             * 1. 채널 목록을 가져온다.
-             * 2. 채널 목록을 선택할 수 있게 한다.
-             */
-            const events = await channels(guild_id); // 현재 채널 목록
-            //
+        case choices.indexOf('알림'): {
+            break;
+        }
+        case choices.indexOf('채팅'): {
+            break;
+        }
+        case choices.indexOf('디자인'): {
+            // 임베드 디자인 수정
 
-            console.log('events', events);
-            break;
-        }
-        case 1: {
-            // 채팅 (in twitch)
-            break;
-        }
-        case 2: {
-            // 임베드 (in viewer)
             break;
         }
         default: {
@@ -51,28 +38,15 @@ export const exec = async (interaction: AppChatInputInteraction, selectOption: A
 };
 
 const api: APIApplicationCommandSubcommandOption = {
-    name,
-    type,
+    name: basename(__filename, __filename.endsWith('js') ? '.js' : '.ts'),
+    type: ApplicationCommandOptionType.Subcommand,
     description: '트위치 관련 설정을 변경합니다.',
     options: [
         {
             name: '타입',
-            type: ApplicationCommandOptionType.Integer,
+            type: ApplicationCommandOptionType.Number,
             description: '설정하실 옵션을 선택해 주세요',
-            choices: [
-                {
-                    name: '알림',
-                    value: 0,
-                },
-                {
-                    name: '채팅',
-                    value: 1,
-                },
-                // {
-                //     name: '임베드',
-                //     value: 2,
-                // },
-            ],
+            choices: choices.map((v, i) => ({ name: v, value: i })),
             required: true,
         },
     ],

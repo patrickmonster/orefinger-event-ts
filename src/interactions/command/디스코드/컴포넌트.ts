@@ -256,6 +256,12 @@ FROM component_style cs
                         disabled: false,
                         max_values: 1,
                         min_values: 1,
+                        button: {
+                            label: '새로만들기',
+                            style: ButtonStyle.Primary,
+                            custom_id: 'embed create',
+                            type: ComponentType.Button,
+                        },
                     },
                     `
 SELECT CAST(embed_id  AS CHAR) AS value
