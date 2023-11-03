@@ -37,11 +37,17 @@ export const exec = async (interaction: AppChatInputInteraction, selectOption: A
                 content: `${choices[type]}`,
                 components: await selectComponentMenuByKey(
                     {
-                        custom_id: 'discord component component',
+                        custom_id: 'component component',
                         placeholder: '컴포넌트를 선택해주세요!',
                         disabled: false,
                         max_values: 1,
                         min_values: 1,
+                        button: {
+                            label: '새로만들기',
+                            style: ButtonStyle.Primary,
+                            custom_id: 'component create',
+                            type: ComponentType.Button,
+                        },
                     },
                     `
 SELECT  
@@ -60,7 +66,7 @@ LEFT JOIN component_type ct ON c.type_idx = ct.type_idx
         //                 content: `${choices[type]}`,
         //                 components: await selectComponentMenuByKey(
         //                     {
-        //                         custom_id: 'discord component component_group',
+        //                         custom_id: 'component component_group',
         //                         placeholder: '컴포넌트를 선택해주세요!',
         //                         disabled: false,
         //                         max_values: 1,
@@ -81,7 +87,7 @@ LEFT JOIN component_type ct ON c.type_idx = ct.type_idx
                 content: `${choices[type]}`,
                 components: await selectComponentMenuByKey(
                     {
-                        custom_id: 'discord component component_action_row',
+                        custom_id: 'component component_action_row',
                         placeholder: '로우 컴포넌트를 선택해주세요!',
                         disabled: false,
                         max_values: 1,
@@ -111,11 +117,17 @@ GROUP BY car.component_id
                 content: `${choices[type]}`,
                 components: await selectComponentMenuByKey(
                     {
-                        custom_id: 'discord component component_option',
+                        custom_id: 'component component_option',
                         placeholder: '컴포넌트 옵션을 선택해주세요!',
                         disabled: false,
                         max_values: 1,
                         min_values: 1,
+                        button: {
+                            label: '새로만들기',
+                            style: ButtonStyle.Primary,
+                            custom_id: 'component_option create',
+                            type: ComponentType.Button,
+                        },
                     },
                     `
 SELECT 
@@ -133,7 +145,7 @@ FROM component_option co
         //                 content: `${choices[type]}`,
         //                 components: await selectComponentMenuByKey(
         //                     {
-        //                         custom_id: 'discord component component_option_connect',
+        //                         custom_id: 'component component_option_connect',
         //                         placeholder: '컴포넌트를 선택해주세요!',
         //                         disabled: false,
         //                         max_values: 1,
@@ -155,7 +167,7 @@ FROM component_option co
         //                 content: `${choices[type]}`,
         //                 components: await selectComponentMenuByKey(
         //                     {
-        //                         custom_id: 'discord component component_low',
+        //                         custom_id: 'component component_low',
         //                         placeholder: '컴포넌트를 선택해주세요!',
         //                         disabled: false,
         //                         max_values: 1,
@@ -177,7 +189,7 @@ FROM component_option co
         //                 content: `${choices[type]}`,
         //                 components: await selectComponentMenuByKey(
         //                     {
-        //                         custom_id: 'discord component component_col',
+        //                         custom_id: 'component component_col',
         //                         placeholder: '컴포넌트를 선택해주세요!',
         //                         disabled: false,
         //                         max_values: 1,
@@ -199,7 +211,7 @@ FROM component_option co
                 content: `${choices[type]}`,
                 components: await selectComponentMenuByKey(
                     {
-                        custom_id: 'discord component component_type',
+                        custom_id: 'component component_type',
                         placeholder: '컴포넌트를 선택해주세요!',
                         disabled: false,
                         max_values: 1,
@@ -219,7 +231,7 @@ FROM component_type ct
                 content: `${choices[type]}`,
                 components: await selectComponentMenuByKey(
                     {
-                        custom_id: 'discord component component_style',
+                        custom_id: 'component component_style',
                         placeholder: '컴포넌트를 선택해주세요!',
                         disabled: false,
                         max_values: 1,
@@ -239,7 +251,7 @@ FROM component_style cs
                 content: `${choices[type]}`,
                 components: await selectComponentMenuByKey(
                     {
-                        custom_id: 'discord component embed',
+                        custom_id: 'component embed',
                         placeholder: '컴포넌트를 선택해주세요!',
                         disabled: false,
                         max_values: 1,
@@ -258,7 +270,7 @@ FROM embed e
                 content: `${choices[type]}`,
                 components: await selectComponentMenuByKey(
                     {
-                        custom_id: 'discord component embed_user',
+                        custom_id: 'component embed_user',
                         placeholder: '컴포넌트를 선택해주세요!',
                         disabled: false,
                         max_values: 1,
