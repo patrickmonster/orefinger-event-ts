@@ -1,11 +1,27 @@
-import { APIMessageButtonInteractionData, APIMessageSelectMenuInteractionData } from 'discord-api-types/v10';
+import {
+    APIActionRowComponent,
+    APIMessageActionRowComponent,
+    APIMessageButtonInteractionData,
+    APIMessageSelectMenuInteractionData,
+} from 'discord-api-types/v10';
 import { join } from 'path';
 import { APIMessageComponentInteraction, ComponentType, IReply } from 'plugins/discord';
 import autoLoader from 'utils/autoCommand';
 import { getCommand } from 'utils/interaction';
 
-export type MessageButtonInteraction = IReply & Omit<APIMessageComponentInteraction, 'data' | 'type'> & APIMessageButtonInteractionData;
-export type MessageMenuInteraction = IReply & Omit<APIMessageComponentInteraction, 'data' | 'type'> & APIMessageSelectMenuInteractionData;
+// 반응한 컴포넌트
+export interface EventComponent {
+    component: APIActionRowComponent<APIMessageActionRowComponent> | undefined;
+}
+
+export type MessageButtonInteraction = IReply &
+    Omit<APIMessageComponentInteraction, 'data' | 'type'> &
+    APIMessageButtonInteractionData &
+    EventComponent;
+export type MessageMenuInteraction = IReply &
+    Omit<APIMessageComponentInteraction, 'data' | 'type'> &
+    APIMessageSelectMenuInteractionData &
+    EventComponent;
 
 export type MessageInteraction = MessageButtonInteraction | MessageMenuInteraction;
 
@@ -16,10 +32,20 @@ const buttonComponent = getCommand<MessageButtonInteraction, string>(buttons);
 const menuComponent = getCommand<MessageMenuInteraction, string>(menus);
 
 const messageComponent = async (interaction: MessageInteraction) => {
-    const { custom_id, component_type } = interaction;
-    const id = custom_id.startsWith('4866') ? custom_id.substring(4) : custom_id;
+    const {
+        custom_id,
+        component_type,
+        message: { components },
+    } = interaction;
 
     console.log('Component: ', custom_id); // 구버전 이벤트와 병합
+
+    // 이벤트가 발생된 컴포넌트 Row를 가져옵니다.
+    interaction.component = components?.find(component =>
+        component.components.find(component => 'custom_id' in component && component?.custom_id === custom_id)
+    );
+
+    const id = custom_id.startsWith('4866') ? custom_id.substring(4) : custom_id;
 
     switch (component_type) {
         case ComponentType.Button:

@@ -11,9 +11,9 @@ import { ComponentCreate, ComponentOptionConnect } from 'interfaces/component';
  */
 export const exec = async (interaction: MessageMenuInteraction, component_id: string, target: string) => {
     const {
-        user,
         custom_id,
         values: [select_id],
+        component,
         message: {
             embeds: [embed],
             components,
@@ -23,12 +23,9 @@ export const exec = async (interaction: MessageMenuInteraction, component_id: st
     switch (target) {
         case 'type': // 타입 변경 메뉴
             try {
-                const componentActionLow = components?.find(component =>
-                    component.components.find(component => 'custom_id' in component && component?.custom_id === custom_id)
-                );
-                if (!componentActionLow) throw new Error('컴포넌트를 찾을 수 없습니다.');
+                if (!component) throw new Error('컴포넌트를 찾을 수 없습니다.');
 
-                const componentsMenu = componentActionLow.components[0] as APIStringSelectComponent;
+                const componentsMenu = component.components[0] as APIStringSelectComponent;
 
                 componentsMenu.options.forEach(option => ({ ...option, default: option.value === select_id }));
                 const label = componentsMenu.options?.find(option => option.value === select_id)?.label;
@@ -50,11 +47,8 @@ export const exec = async (interaction: MessageMenuInteraction, component_id: st
             const { values } = interaction;
 
             try {
-                const componentActionLow = components?.find(component =>
-                    component.components.find(component => 'custom_id' in component && component?.custom_id === custom_id)
-                );
-                if (!componentActionLow) throw new Error('컴포넌트를 찾을 수 없습니다.');
-                const componentsMenu = componentActionLow.components[0] as APIStringSelectComponent;
+                if (!component) throw new Error('컴포넌트를 찾을 수 없습니다.');
+                const componentsMenu = component.components[0] as APIStringSelectComponent;
 
                 await updateComponent(
                     component_id,
@@ -81,11 +75,8 @@ export const exec = async (interaction: MessageMenuInteraction, component_id: st
             const { values } = interaction;
             // 컴포넌트 하위 옵션 변경
             try {
-                const componentActionLow = components?.find(component =>
-                    component.components.find(component => 'custom_id' in component && component?.custom_id === custom_id)
-                );
-                if (!componentActionLow) throw new Error('컴포넌트를 찾을 수 없습니다.');
-                const componentsMenu = componentActionLow.components[0] as APIStringSelectComponent;
+                if (!component) throw new Error('컴포넌트를 찾을 수 없습니다.');
+                const componentsMenu = component.components[0] as APIStringSelectComponent;
 
                 await upsertComponentOptionConnect(
                     componentsMenu.options.map(({ value }) => ({

@@ -13,6 +13,7 @@ export const exec = async (interaction: MessageMenuInteraction, component_id: st
     const {
         user,
         custom_id,
+        component,
         values: [select_id],
         message: {
             embeds: [embed],
@@ -25,11 +26,8 @@ export const exec = async (interaction: MessageMenuInteraction, component_id: st
             const { values } = interaction;
 
             try {
-                const componentActionLow = components?.find(component =>
-                    component.components.find(component => 'custom_id' in component && component?.custom_id === custom_id)
-                );
-                if (!componentActionLow) throw new Error('컴포넌트를 찾을 수 없습니다.');
-                const componentsMenu = componentActionLow.components[0] as APIStringSelectComponent;
+                if (!component) throw new Error('컴포넌트를 찾을 수 없습니다.');
+                const componentsMenu = component.components[0] as APIStringSelectComponent;
 
                 await updateComponent(
                     component_id,
@@ -56,11 +54,8 @@ export const exec = async (interaction: MessageMenuInteraction, component_id: st
             const { values } = interaction;
             // 컴포넌트 하위 옵션 변경
             try {
-                const componentActionLow = components?.find(component =>
-                    component.components.find(component => 'custom_id' in component && component?.custom_id === custom_id)
-                );
-                if (!componentActionLow) throw new Error('컴포넌트를 찾을 수 없습니다.');
-                const componentsMenu = componentActionLow.components[0] as APIStringSelectComponent;
+                if (!component) throw new Error('컴포넌트를 찾을 수 없습니다.');
+                const componentsMenu = component.components[0] as APIStringSelectComponent;
 
                 await upsertComponentOptionConnect(
                     componentsMenu.options.map(({ value }) => ({

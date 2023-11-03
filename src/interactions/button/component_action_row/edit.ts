@@ -9,14 +9,19 @@ import {
     updateComponentActionRowConnect,
     upsertComponentActionRowConnect,
 } from 'controllers/component';
-import { ComponentType } from 'discord-api-types/v10';
+import { ButtonStyle, ComponentType } from 'discord-api-types/v10';
 
 /**
  *
  * 컴포넌트 action row 수정
  * @param interaction
  */
-export const exec = async (interaction: MessageInteraction, component_row_id: string, type: string, component_id: string, idx: string) => {
+export const exec = async (interaction: MessageInteraction, component_row_id: string, type: string, component_id: string) => {
+    const {
+        component,
+        message: { components },
+        custom_id,
+    } = interaction;
     switch (type) {
         case 'option':
             interaction.reply({
@@ -43,32 +48,34 @@ LEFT JOIN component_action_row_connect carc ON carc.component_row_id = ? AND car
             });
             break;
         case 'order': // 정렬상태 수정
-            if (!idx) {
+            console.log(component_row_id, type, component_id);
+
+            if (!component_id) {
                 interaction.reply({
+                    ephemeral: true,
                     components: [await getComponentRowEditByOrder(component_row_id, `component_action_row edit ${component_row_id} order`)],
                 });
             } else {
-                const select = interaction.message.components;
-                if (!select || !select[0]) return; // 있을수 없음
-                const { components } = select[0];
+                if (!component) return; // 있을수 없음
                 // 이전에 선택된 항목개수
-                const selectItemCount = components.filter(v => {
-                    if (v.type !== ComponentType.Button) return false;
-                    // 비활성화 처리
+                const selectItemCount = component.components.filter(v => {
+                    if (v.type !== ComponentType.Button || v.style == ButtonStyle.Link) return false;
+                    // 클릭한 버튼은 비활성화
+                    if (v.custom_id == custom_id) v.disabled = true;
 
                     return v.disabled;
                 }).length;
 
                 // 첫 선택시 모두 초기화
-                if (!selectItemCount) await updateComponentActionRowConnect(component_row_id, null, { sort_number: 99 });
+                if (selectItemCount <= 1) await updateComponentActionRowConnect(component_row_id, null, { sort_number: 99 });
                 // 해당 번호 할당
                 await upsertComponentActionRowConnect({
                     component_row_id: parseInt(component_row_id),
                     component_id: parseInt(component_id),
-                    sort_number: parseInt(idx),
+                    sort_number: selectItemCount,
                 });
 
-                interaction.reply({ content: '정렬상태 수정' + idx, ephemeral: true });
+                interaction.edit({ components });
             }
             break;
         case 'copy': {
