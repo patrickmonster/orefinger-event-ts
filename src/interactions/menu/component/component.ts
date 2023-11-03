@@ -11,7 +11,8 @@ import { ButtonStyle, ComponentType } from 'discord-api-types/v10';
  */
 export const exec = async (interaction: MessageMenuInteraction) => {
     const {
-        user,
+        component,
+        message: { components },
         values: [component_id],
     } = interaction;
 
@@ -25,7 +26,9 @@ export const exec = async (interaction: MessageMenuInteraction) => {
         const id = `component edit ${component_id}`;
 
         const ynMenu = await getComponentYnMenu(component_id, 'component');
-        interaction.reply({
+        await interaction.edit({ components });
+
+        interaction.follow({
             content: `컴포넌트 정보를 수정합니다. - ${component_id}`,
             embeds: [embed],
             ephemeral: true,

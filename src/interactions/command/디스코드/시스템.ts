@@ -10,7 +10,7 @@ import { basename } from 'path';
 import { selectComponentMenuByKey } from 'components/systemComponent';
 import { AppChatInputInteraction } from 'interactions/app';
 
-const choices = ['텍스트', 'auth_type'];
+const choices = ['메세지', '텍스트', 'auth_type'];
 
 export const exec = async (interaction: AppChatInputInteraction, selectOption: APIApplicationCommandInteractionDataBasicOption[]) => {
     console.log('컴포넌트 수신', selectOption);
@@ -20,6 +20,33 @@ export const exec = async (interaction: AppChatInputInteraction, selectOption: A
     await interaction.differ({ ephemeral: true });
     switch (type) {
         case choices.indexOf('텍스트'):
+            interaction.reply({
+                content: `${choices[type]}`,
+                components: await selectComponentMenuByKey(
+                    {
+                        custom_id: 'discord system text',
+                        placeholder: '텍스트 선택해주세요!',
+                        disabled: false,
+                        max_values: 1,
+                        min_values: 1,
+                        button: {
+                            custom_id: 'text create',
+                            label: '텍스트 생성',
+                            type: ComponentType.Button,
+                            style: ButtonStyle.Primary,
+                        },
+                    },
+                    `
+SELECT CAST(text_id AS CHAR) AS value
+    , tag AS label
+    , LEFT(message, 100) AS description
+FROM text_message
+WHERE parent_id IS NULL 
+                `
+                ),
+            });
+            break;
+        case choices.indexOf('메세지'):
             interaction.reply({
                 content: `${choices[type]}`,
                 components: await selectComponentMenuByKey(
