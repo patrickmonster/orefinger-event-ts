@@ -5,6 +5,7 @@ import {
     ParseInt,
     copyComponentActionRow,
     getComponentActionRowEditByModel,
+    getComponentRowDtilByEmbed,
     getComponentRowEditByOrder,
     updateComponentActionRowConnect,
     upsertComponentActionRowConnect,
@@ -23,6 +24,13 @@ export const exec = async (interaction: MessageInteraction, component_row_id: st
         custom_id,
     } = interaction;
     switch (type) {
+        case 'reload': {
+            const { embed } = await getComponentRowDtilByEmbed(component_row_id);
+            interaction.edit({
+                embeds: [embed],
+            });
+            break;
+        }
         case 'option':
             interaction.reply({
                 components: await selectComponentMenuByKey(
