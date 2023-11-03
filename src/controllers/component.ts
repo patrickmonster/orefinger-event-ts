@@ -252,7 +252,7 @@ WHERE cg.group_id = ?
  * @returns
  */
 export const getComponentRowDtilByEmbed = async (component_group_id: ComponentId) =>
-    query<{ embed: APIEmbed; type: number }>(
+    query<{ embed: APIEmbed }>(
         `
 SELECT JSON_OBJECT(
         'title', IFNULL(car.name, '없음'),
@@ -277,6 +277,8 @@ FROM (
         ON carc.component_row_id = car.component_id 
         AND carc.use_yn = 'Y'
     WHERE car.component_id = ?
+    ORDER BY carc.sort_number 
+    LIMIT 10
 ) car
 LEFT JOIN component c ON c.component_id = car.component_id 
 GROUP BY car.component_row_id 
@@ -461,7 +463,10 @@ export const updateComponentActionRowConnect = async (
     component: Partial<ComponentActionRowConnect>
 ) =>
     query<SqlInsertUpdate>(
-        `UPDATE component_action_row SET ?, update_at=CURRENT_TIMESTAMP WHERE component_row_id = ? ${calTo('AND component_id = ?', component_id)}`,
+        `UPDATE component_action_row_connect SET ?, update_at=CURRENT_TIMESTAMP WHERE component_row_id = ? ${calTo(
+            'AND component_id = ?',
+            component_id
+        )}`,
         component,
         ParseInt(component_row_id)
     );

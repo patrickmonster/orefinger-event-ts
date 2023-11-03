@@ -55,25 +55,27 @@ export const selectComponentMenuKey = async (
             },
         ];
 
-    if (!out.result.total)
+    const { result, other, search } = out;
+
+    const menuProps: MenuProps = JSON.parse(other);
+    console.log('other', other);
+
+    if (!result.total)
         return [
             {
                 type: ComponentType.ActionRow,
                 components: [
                     {
                         type: ComponentType.Button,
-                        style: 1,
+                        style: ButtonStyle.Primary,
                         label: '검색결과가 없습니다.',
                         custom_id: `key back ${queryKey}`,
                         disabled: searchQuery ? false : true,
                     },
-                ],
+                    menuProps.button ?? null,
+                ].filter(v => v != null) as APIButtonComponent[],
             },
         ];
-
-    const { result, other, search } = out;
-
-    const menuProps: MenuProps = JSON.parse(other);
 
     return [
         {
@@ -98,7 +100,7 @@ export const selectComponentMenuKey = async (
                     emoji: { name: '⬅️' },
                     custom_id: result.page == 0 ? queryKey : `key ${result.page - 1} ${queryKey}`,
                     disabled: result.page == 0,
-                },
+                } as APIButtonComponent,
                 {
                     type: ComponentType.Button,
                     style: ButtonStyle.Success,
@@ -106,14 +108,15 @@ export const selectComponentMenuKey = async (
                     custom_id: `key page ${queryKey}`,
                     emoji: { name: '🔍' },
                     disabled: other.isSubQuery ? true : false,
-                },
+                } as APIButtonComponent,
                 {
                     type: ComponentType.Button,
                     style: ButtonStyle.Secondary,
-                    label: '검색 초기화',
+                    // label: '검색 초기화',
+                    emoji: { name: '↩️' },
                     custom_id: `key back ${queryKey}`,
                     disabled: search && Object.keys(search).length ? false : true,
-                },
+                } as APIButtonComponent,
                 {
                     type: ComponentType.Button,
                     style: 1,
@@ -121,9 +124,9 @@ export const selectComponentMenuKey = async (
                     emoji: { name: '➡️' },
                     custom_id: `key ${result.page + 1} ${queryKey}`,
                     disabled: result.page >= result.totalPage,
-                },
-                other.button ? other.button : null,
-            ].filter(v => v),
+                } as APIButtonComponent,
+                menuProps.button,
+            ].filter((v: APIButtonComponent | undefined) => v != undefined) as APIButtonComponent[],
         },
     ];
 };

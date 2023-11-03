@@ -21,7 +21,7 @@ export const exec = async (interaction: MessageMenuInteraction) => {
     if (!data) {
         interaction.reply({ content: '해당 메세지를 찾을 수 없습니다.', ephemeral: true });
     } else {
-        const { embed, type } = data;
+        const { embed } = data;
         const id = `component_action_row edit ${component_id}`;
 
         interaction.reply({
@@ -41,6 +41,12 @@ export const exec = async (interaction: MessageMenuInteraction) => {
                         label: '정렬 수정',
                         style: ButtonStyle.Success,
                         custom_id: `${id} order`,
+                    },
+                    {
+                        type: ComponentType.Button,
+                        label: '새로고침',
+                        style: ButtonStyle.Danger,
+                        custom_id: `${id} reload`,
                     },
                 ]),
             ],

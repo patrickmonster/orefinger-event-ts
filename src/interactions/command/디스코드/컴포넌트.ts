@@ -2,6 +2,8 @@ import {
     APIApplicationCommandInteractionDataBasicOption,
     APIApplicationCommandSubcommandOption,
     ApplicationCommandOptionType,
+    ButtonStyle,
+    ComponentType,
 } from 'discord-api-types/v10';
 import { basename } from 'path';
 
@@ -84,6 +86,12 @@ LEFT JOIN component_type ct ON c.type_idx = ct.type_idx
                         disabled: false,
                         max_values: 1,
                         min_values: 1,
+                        button: {
+                            label: '새로만들기',
+                            style: ButtonStyle.Primary,
+                            custom_id: 'component_action_row create',
+                            type: ComponentType.Button,
+                        },
                     },
                     `
 SELECT name AS label
