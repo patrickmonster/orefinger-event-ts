@@ -1,3 +1,4 @@
+import { createEmbed } from 'controllers/embed';
 import { MessageInteraction } from 'interactions/message';
 
 /**
@@ -7,6 +8,7 @@ import { MessageInteraction } from 'interactions/message';
  * @param interaction
  */
 export const exec = async (interaction: MessageInteraction) => {
+    // createEmbed
     // const { insertId } = await createComponent({ name: '임시항목' });
     // const model = await selectComponentBaseEditByModel(insertId);
     // // 모달처리

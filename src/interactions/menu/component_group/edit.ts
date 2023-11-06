@@ -1,9 +1,15 @@
 import { selectComponentPagingMenuByKey } from 'components/systemComponent';
-import { selectComponentBaseEditByModel, selectComponentDtilByEmbed, updateComponent, upsertComponentOptionConnect } from 'controllers/component';
+import {
+    selectComponentBaseEditByModel,
+    selectComponentDtilByEmbed,
+    updateComponent,
+    upsertComponentOptionConnect,
+} from 'controllers/component';
 import { APIStringSelectComponent } from 'discord-api-types/v10';
 import { MessageMenuInteraction } from 'interactions/message';
 import { ComponentCreate, ComponentOptionConnect } from 'interfaces/component';
 
+import QUERY from 'controllers/component/embedListQuerys';
 /**
  *
  * 가이드 호출 - 디비처리용
@@ -72,18 +78,15 @@ export const exec = async (interaction: MessageMenuInteraction, component_id: st
         }
         case 'select': {
             switch (select_id) {
-                case 'base': // name / custom_id / value / min_length / max_length
+                case 'base':
                     const model = await selectComponentBaseEditByModel(component_id);
 
-                    // 모달처리
                     interaction.model({
                         ...model,
                         custom_id: `component edit ${component_id}`,
                     });
                     break;
-                case 'text': // label_id
-                    // 텍스트 메뉴 선택 (페이징)
-
+                case 'text':
                     interaction.reply({
                         ephemeral: true,
                         content: `${component_id}] 라벨변경`,
@@ -95,14 +98,10 @@ export const exec = async (interaction: MessageMenuInteraction, component_id: st
                                 max_values: 1,
                                 min_values: 0,
                             },
-                            `
-SELECT CAST(a.text_id AS CHAR) AS value
-    , a.tag AS label
-    , LEFT(a.message, 100) AS description
-    , IF(a.text_id = ( SELECT label_id FROM component c WHERE 1=1 AND c.component_id = ? ), true, false) AS \`default\`
-FROM text_message a
-WHERE parent_id IS NULL 
-                            `,
+                            QUERY.TextMessageDefaultByMenuListQuery(
+                                `SELECT label_id FROM component c WHERE 1=1 AND c.component_id = ?`,
+                                component_id
+                            ),
                             component_id
                         ),
                     });

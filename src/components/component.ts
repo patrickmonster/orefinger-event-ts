@@ -12,13 +12,13 @@ export const getComponentEditor = async (interaction: IReply, component_id: stri
         const { embed, type } = data;
         const id = `component edit ${component_id}`;
 
-        const ynMenu = await selectComponentYnMenu(component_id);
+        const ynMenu = await selectComponentYnMenu(component_id, "component");
         interaction.reply({
             content: `컴포넌트 정보를 수정합니다. - ${component_id}`,
             embeds: [embed],
             ephemeral: true,
             components: [
-                editerComponent(id),
+                editerComponent(id, []),
                 editerComponentComponentTemplate(id),
                 {
                     type: ComponentType.ActionRow,

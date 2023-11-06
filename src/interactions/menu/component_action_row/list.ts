@@ -3,6 +3,7 @@ import { MessageMenuInteraction } from 'interactions/message';
 import { editerComponent } from 'components/systemComponent';
 import { selectComponentRowDtilByEmbed } from 'controllers/component';
 import { ButtonStyle, ComponentType } from 'discord-api-types/v10';
+import { createPrimaryButton, createSuccessButton } from 'utils/discord/component';
 
 /**
  *
@@ -11,7 +12,6 @@ import { ButtonStyle, ComponentType } from 'discord-api-types/v10';
  */
 export const exec = async (interaction: MessageMenuInteraction) => {
     const {
-        user,
         values: [component_id],
     } = interaction;
 
@@ -30,24 +30,15 @@ export const exec = async (interaction: MessageMenuInteraction) => {
             ephemeral: true,
             components: [
                 editerComponent(id, [
-                    {
-                        type: ComponentType.Button,
+                    createSuccessButton(`${id} option`, {
                         label: '하위 옵션 수정',
-                        style: ButtonStyle.Success,
-                        custom_id: `${id} option`,
-                    },
-                    {
-                        type: ComponentType.Button,
+                    }),
+                    createSuccessButton(`${id} order`, {
                         label: '정렬 수정',
-                        style: ButtonStyle.Success,
-                        custom_id: `${id} order`,
-                    },
-                    {
-                        type: ComponentType.Button,
+                    }),
+                    createSuccessButton(`${id} reload`, {
                         label: '새로고침',
-                        style: ButtonStyle.Danger,
-                        custom_id: `${id} reload`,
-                    },
+                    }),
                 ]),
             ],
         });

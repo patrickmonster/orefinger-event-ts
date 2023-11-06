@@ -20,7 +20,8 @@ export const selectEmbedList = async (page: number) =>
     }>(
         `
 select *
-from v_embed`,
+from v_embed
+        `,
         page
     );
 
