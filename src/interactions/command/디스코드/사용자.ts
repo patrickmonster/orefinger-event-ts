@@ -8,23 +8,26 @@ import { basename } from 'path';
 import { selectAuthUsers } from 'controllers/auth';
 import { AppChatInputInteraction } from 'interactions/app';
 
-// import api from "utils/discordApiInstance"
-
 const name = basename(__filename, __filename.endsWith('js') ? '.js' : '.ts');
 const type = ApplicationCommandOptionType.Subcommand;
 
-export const exec = async (interaction: AppChatInputInteraction, selectOption: APIApplicationCommandInteractionDataBasicOption[]) => {
+export const exec = async (
+    interaction: AppChatInputInteraction,
+    selectOption: APIApplicationCommandInteractionDataBasicOption[]
+) => {
     const user = selectOption.find(({ name }) => ['사용자'].includes(name))?.value;
 
     if (!user) {
         return await interaction.reply({ content: '필수값 : 사용자', ephemeral: true });
     }
+
     const list = await selectAuthUsers({ user_id: user?.toString() });
 
     interaction.reply({
         content: `<@${user}>님의 권한 목록
-${list.map(({ type, user_type, user_id, login, name, create_at }) => `${type}]${name}(${login}) - ${user_id} - ${create_at}`).join('\n')}
-        `,
+${list
+    .map(({ type, user_id, login, name, create_at }) => `${type}]${name}(${login}) - ${user_id} - ${create_at}`)
+    .join('\n')}`,
     });
 };
 

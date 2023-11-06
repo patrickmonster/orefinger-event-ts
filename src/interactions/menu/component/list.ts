@@ -2,7 +2,8 @@ import { MessageMenuInteraction } from 'interactions/message';
 
 import { editerComponent } from 'components/systemComponent';
 import { getComponentTypeList, selectComponentDtilByEmbed, selectComponentYnMenu } from 'controllers/component';
-import { ButtonStyle, ComponentType } from 'discord-api-types/v10';
+import { ComponentType } from 'discord-api-types/v10';
+import { createDangerButton, createStringSelectMenu, createSuccessButton } from 'utils/discord/component';
 
 /**
  *
@@ -17,12 +18,12 @@ export const exec = async (interaction: MessageMenuInteraction) => {
     } = interaction;
 
     await interaction.differ({ ephemeral: true });
-    const data = await selectComponentDtilByEmbed(component_id);
+    const resultData = await selectComponentDtilByEmbed(component_id);
 
-    if (!data) {
+    if (!resultData) {
         interaction.reply({ content: '해당 메세지를 찾을 수 없습니다.', ephemeral: true });
     } else {
-        const { embed, type } = data;
+        const { embed, type } = resultData;
         const id = `component edit ${component_id}`;
 
         const ynMenu = await selectComponentYnMenu(component_id, 'component');
@@ -34,53 +35,29 @@ export const exec = async (interaction: MessageMenuInteraction) => {
             ephemeral: true,
             components: [
                 editerComponent(id, [
-                    {
-                        type: ComponentType.Button,
-                        style: ButtonStyle.Success,
-                        label: '하위 옵션 수정',
-                        custom_id: `${id} option`,
+                    createSuccessButton(`${id} option`, {
+                        label: '하위 옵션 추가',
                         disabled: ComponentType.StringSelect != type,
-                    },
-                    {
-                        type: ComponentType.Button,
-                        style: ButtonStyle.Success,
+                    }),
+                    createSuccessButton(`${id} text`, {
                         label: '텍스트 수정',
-                        custom_id: `${id} text`,
-                    },
-                    {
-                        type: ComponentType.Button,
+                    }),
+                    createDangerButton(`${id} reload`, {
                         label: '새로고침',
-                        style: ButtonStyle.Danger,
-                        custom_id: `${id} reload`,
-                    },
+                    }),
                 ]),
-                // editerComponentComponentTemplate(id),
-                {
-                    type: ComponentType.ActionRow,
-                    components: [
-                        {
-                            type: ComponentType.StringSelect,
-                            custom_id: `${id} type`,
-                            max_values: 1,
-                            min_values: 1,
-                            placeholder: '컴포넌트 타입을 선택해주세요.',
-                            options: await getComponentTypeList(type),
-                        },
-                    ],
-                },
-                {
-                    type: ComponentType.ActionRow,
-                    components: [
-                        {
-                            type: ComponentType.StringSelect,
-                            custom_id: `${id} yn`,
-                            max_values: ynMenu.length,
-                            min_values: 0,
-                            placeholder: '컴포넌트 타입을 선택해주세요.',
-                            options: ynMenu,
-                        },
-                    ],
-                },
+                createStringSelectMenu(`${id} type`, {
+                    options: await getComponentTypeList(type),
+                    placeholder: '컴포넌트 타입을 선택해주세요.',
+                    max_values: 1,
+                    min_values: 1,
+                }),
+                createStringSelectMenu(`${id} yn`, {
+                    options: ynMenu,
+                    placeholder: '활성화 옵션을 선택해주세요.',
+                    max_values: ynMenu.length,
+                    min_values: 0,
+                }),
             ],
         });
     }
