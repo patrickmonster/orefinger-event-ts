@@ -3,7 +3,7 @@ import { MessageMenuInteraction } from 'interactions/message';
 
 /**
  *
- * 가이드 호출 - 디비처리용
+ * ActionRow 생성
  * @param interaction
  */
 export const exec = async (interaction: MessageMenuInteraction, values: Record<string, string>) => {
@@ -16,5 +16,5 @@ export const exec = async (interaction: MessageMenuInteraction, values: Record<s
         ephemeral: true,
         content: '생성되었습니다!',
         embeds: [embed],
-    }); // 수정사항 업데이트
+    });
 };
