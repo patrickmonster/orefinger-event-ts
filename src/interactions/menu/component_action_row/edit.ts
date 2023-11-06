@@ -9,21 +9,10 @@ import { ComponentActionRowConnect } from 'interfaces/component';
  * @param interaction
  */
 export const exec = async (interaction: MessageMenuInteraction, component_id: string, target: string) => {
-    const {
-        user,
-        custom_id,
-        component,
-        values: [select_id],
-        message: {
-            embeds: [embed],
-            components,
-        },
-    } = interaction;
+    const { component, values } = interaction;
 
     switch (target) {
         case 'option': {
-            const { values } = interaction;
-            // 컴포넌트 하위 옵션 변경
             try {
                 if (!component) throw new Error('컴포넌트를 찾을 수 없습니다.');
                 const componentsMenu = component.components[0] as APIStringSelectComponent;

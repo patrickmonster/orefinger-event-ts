@@ -2,30 +2,29 @@ import {
     APIApplicationCommandInteractionDataBasicOption,
     APIApplicationCommandSubcommandOption,
     ApplicationCommandOptionType,
-    ButtonStyle,
-    ComponentType,
 } from 'discord-api-types/v10';
 import { basename } from 'path';
 
 import { selectComponentPagingMenuByKey } from 'components/systemComponent';
 import { AppChatInputInteraction } from 'interactions/app';
 
-// import api from "utils/discordApiInstance"
+import QUERY from 'controllers/component/embedListQuerys';
+import { createPrimaryButton } from 'utils/discord/component';
+
 const choices = [
     'component_type',
     'component_style',
     'component',
-    // 'component_group',
     'component_option',
-    // 'component_option_connection',
-    // 'component_low',
-    // 'component_col',
     'component_action_row',
     'embed',
     'embed_user',
 ];
 
-export const exec = async (interaction: AppChatInputInteraction, selectOption: APIApplicationCommandInteractionDataBasicOption[]) => {
+export const exec = async (
+    interaction: AppChatInputInteraction,
+    selectOption: APIApplicationCommandInteractionDataBasicOption[]
+) => {
     console.log('컴포넌트 수신', selectOption);
 
     const type = selectOption.find(({ name }) => ['타입'].includes(name))?.value;
@@ -37,84 +36,34 @@ export const exec = async (interaction: AppChatInputInteraction, selectOption: A
                 content: `${choices[type]}`,
                 components: await selectComponentPagingMenuByKey(
                     {
-                        custom_id: 'component component',
+                        custom_id: 'component list',
                         placeholder: '컴포넌트를 선택해주세요!',
                         disabled: false,
                         max_values: 1,
                         min_values: 1,
-                        button: {
+                        button: createPrimaryButton('component create', {
                             label: '새로만들기',
-                            style: ButtonStyle.Primary,
-                            custom_id: 'component create',
-                            type: ComponentType.Button,
-                        },
+                        }),
                     },
-                    `
-SELECT  
-    json_object( IF(regexp_like(c.emoji, '^[0-9]+$'), 'id', 'name'), IF( c.emoji < '' OR c.emoji IS NULL, '▫', c.emoji)) AS emoji
-    , CAST(component_id AS CHAR) AS value
-    , CONCAT( component_id , ']' , name) AS label 
-    , concat(ct.tag, "] ", name) AS  description
-FROM component c
-LEFT JOIN component_type ct ON c.type_idx = ct.type_idx
-                    `
+                    QUERY.ComponentByMenuListQuery
                 ),
             });
             break;
-        //         case choices.indexOf('component_group'):
-        //             interaction.reply({
-        //                 content: `${choices[type]}`,
-        //                 components: await selectComponentPagingMenuByKey(
-        //                     {
-        //                         custom_id: 'component component_group',
-        //                         placeholder: '컴포넌트를 선택해주세요!',
-        //                         disabled: false,
-        //                         max_values: 1,
-        //                         min_values: 1,
-        //                     },
-        //                     `
-        // SELECT
-        //     json_object( 'name', IF( group_type = 'G', '📂', '📄')) AS emoji
-        //     , CAST(group_id AS CHAR) AS value
-        //     , name AS label
-        // FROM component_group cg
-        //                     `
-        //                 ),
-        //             });
-        //             break;
         case choices.indexOf('component_action_row'):
             interaction.reply({
                 content: `${choices[type]}`,
                 components: await selectComponentPagingMenuByKey(
                     {
-                        custom_id: 'component component_action_row',
+                        custom_id: 'component_action_row list',
                         placeholder: '로우 컴포넌트를 선택해주세요!',
                         disabled: false,
                         max_values: 1,
                         min_values: 1,
-                        button: {
+                        button: createPrimaryButton('component_action_row create', {
                             label: '새로만들기',
-                            style: ButtonStyle.Primary,
-                            custom_id: 'component_action_row create',
-                            type: ComponentType.Button,
-                        },
+                        }),
                     },
-                    `
-SELECT name AS label
-    , CAST(car.component_id AS CHAR) AS value
-    , IFNULL(
-        GROUP_CONCAT(
-            car.component_id
-            ORDER BY car.sort_number
-            SEPARATOR ', '
-        ), '없음'
-    )  AS description
-FROM component_action_row car
-LEFT JOIN component_action_row_connect carc 
-    ON carc.component_row_id = car.component_id 
-    AND carc.use_yn = 'Y'
-GROUP BY car.component_id 
-                    `
+                    QUERY.ComponentActionLowByMenuListQuery
                 ),
             });
             break;
@@ -123,112 +72,31 @@ GROUP BY car.component_id
                 content: `${choices[type]}`,
                 components: await selectComponentPagingMenuByKey(
                     {
-                        custom_id: 'component component_option',
+                        custom_id: 'component_option list',
                         placeholder: '컴포넌트 옵션을 선택해주세요!',
                         disabled: false,
                         max_values: 1,
                         min_values: 1,
-                        button: {
+                        button: createPrimaryButton('component_option create', {
                             label: '새로만들기',
-                            style: ButtonStyle.Primary,
-                            custom_id: 'component_option create',
-                            type: ComponentType.Button,
-                        },
+                        }),
                     },
-                    `
-SELECT 
-    json_object( IF(regexp_like(emoji, '^[0-9]+$'), 'id', 'name'), IF(emoji < '' OR emoji IS NULL, '▫', emoji)) AS emoji
-    , CAST(option_id  AS CHAR) AS value
-    , label AS label
-    , LEFT(CONCAT(value, '] ', description), 100)  AS description 
-FROM component_option co 
-                    `
+                    QUERY.ComponentOptionByMenuListQuery
                 ),
             });
             break;
-        //         case choices.indexOf('component_option_connection'):
-        //             interaction.reply({
-        //                 content: `${choices[type]}`,
-        //                 components: await selectComponentPagingMenuByKey(
-        //                     {
-        //                         custom_id: 'component component_option_connect',
-        //                         placeholder: '컴포넌트를 선택해주세요!',
-        //                         disabled: false,
-        //                         max_values: 1,
-        //                         min_values: 1,
-        //                     },
-        //                     `
-        // SELECT json_object( 'name', IF( coc.use_yn  = 'Y', '🔴','⚫')) AS emoji
-        //     , CAST(coc.option_id AS CHAR) AS value
-        //     , CONCAT( c.name , '->', co.label ) AS label
-        // FROM component_option_connection coc
-        // LEFT JOIN component c on c.type_idx = 3 AND c.component_id = coc.component_id
-        // LEFT JOIN component_option co ON co.option_id = coc.option_id
-        //                     `
-        //                 ),
-        //             });
-        //             break;
-        //         case choices.indexOf('component_low'):
-        //             interaction.reply({
-        //                 content: `${choices[type]}`,
-        //                 components: await selectComponentPagingMenuByKey(
-        //                     {
-        //                         custom_id: 'component component_low',
-        //                         placeholder: '컴포넌트를 선택해주세요!',
-        //                         disabled: false,
-        //                         max_values: 1,
-        //                         min_values: 1,
-        //                     },
-        //                     `
-        // SELECT  json_object( 'name', IF( cl.use_yn = 'Y', '🔴','⚫')) AS emoji
-        //     , CAST(cl.idx AS CHAR) AS value
-        //     , CONCAT( cg.name  , '->', c.name )  AS label
-        // FROM component_low cl
-        // LEFT JOIN component c ON c.component_id  = cl.component_id
-        // LEFT JOIN component_group cg  ON cl.group_id = cg.group_id
-        //                     `
-        //                 ),
-        //             });
-        //             break;
-        //         case choices.indexOf('component_col'):
-        //             interaction.reply({
-        //                 content: `${choices[type]}`,
-        //                 components: await selectComponentPagingMenuByKey(
-        //                     {
-        //                         custom_id: 'component component_col',
-        //                         placeholder: '컴포넌트를 선택해주세요!',
-        //                         disabled: false,
-        //                         max_values: 1,
-        //                         min_values: 1,
-        //                     },
-        //                     `
-        // SELECT  json_object( 'name', IF( cc.use_yn = 'Y', '🔴','⚫')) AS emoji
-        //     , CAST(cc.idx AS CHAR) AS value
-        //     , CONCAT( cg2.name  , '->', cg.name )  AS label
-        // FROM component_col cc
-        // LEFT JOIN component_group cg2 ON cg2.group_id = cc.group_id
-        // LEFT JOIN component_group cg  ON cc.component_id =  cg.group_id
-        //                     `
-        //                 ),
-        //             });
-        //             break;
         case choices.indexOf('component_type'):
             interaction.reply({
                 content: `${choices[type]}`,
                 components: await selectComponentPagingMenuByKey(
                     {
-                        custom_id: 'component component_type',
-                        placeholder: '컴포넌트를 선택해주세요!',
+                        custom_id: 'component_type list',
+                        placeholder: '컴포넌트 타입을 선택해주세요!',
                         disabled: false,
                         max_values: 1,
                         min_values: 1,
                     },
-                    `
-SELECT json_object( 'name', IF( use_yn = 'Y', '🔴','⚫')) AS emoji
-    , CAST(type_idx AS CHAR) AS value
-    , CONCAT( code, '] ', tag) AS label
-FROM component_type ct 
-                    `
+                    QUERY.ComponentTypeByMenuListQuery
                 ),
             });
             break;
@@ -237,18 +105,13 @@ FROM component_type ct
                 content: `${choices[type]}`,
                 components: await selectComponentPagingMenuByKey(
                     {
-                        custom_id: 'component component_style',
-                        placeholder: '컴포넌트를 선택해주세요!',
+                        custom_id: 'component_style list',
+                        placeholder: '컴포넌트 스타일을 선택해주세요!',
                         disabled: false,
                         max_values: 1,
                         min_values: 1,
                     },
-                    `
-SELECT json_object( 'name', IF( use_yn = 'Y', '🔴','⚫')) AS emoji
-    , CAST(style_idx  AS CHAR) AS value
-    , tag AS label
-FROM component_style cs  
-                    `
+                    QUERY.ComponentStyleByMenuListQuery
                 ),
             });
             break;
@@ -257,23 +120,16 @@ FROM component_style cs
                 content: `${choices[type]}`,
                 components: await selectComponentPagingMenuByKey(
                     {
-                        custom_id: 'component embed',
-                        placeholder: '컴포넌트를 선택해주세요!',
+                        custom_id: 'embed list',
+                        placeholder: '임베드를 선택해주세요!',
                         disabled: false,
                         max_values: 1,
                         min_values: 1,
-                        button: {
+                        button: createPrimaryButton('embed create', {
                             label: '새로만들기',
-                            style: ButtonStyle.Primary,
-                            custom_id: 'embed create',
-                            type: ComponentType.Button,
-                        },
+                        }),
                     },
-                    `
-SELECT CAST(embed_id  AS CHAR) AS value
-    , IFNULL(tag, '지정되지 않음')  AS label
-FROM embed e
-                    `
+                    QUERY.EmbedByMenuListQuery
                 ),
             });
             break;
@@ -282,18 +138,13 @@ FROM embed e
                 content: `${choices[type]}`,
                 components: await selectComponentPagingMenuByKey(
                     {
-                        custom_id: 'component embed_user',
-                        placeholder: '컴포넌트를 선택해주세요!',
+                        custom_id: 'embed_user list',
+                        placeholder: '사용자용 임베드를 선택해주세요!',
                         disabled: false,
                         max_values: 1,
                         min_values: 1,
                     },
-                    `
-SELECT json_object( 'name', IF( use_yn = 'Y', '🔴','⚫')) AS emoji
-    , CAST(embed_id  AS CHAR) AS value
-	, IFNULL(tag, '지정되지 않음')  AS label
-FROM embed_user e
-                    `
+                    QUERY.EmbedUserByMenuListQuery
                 ),
             });
             break;

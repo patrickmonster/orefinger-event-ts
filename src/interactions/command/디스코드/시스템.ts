@@ -2,17 +2,21 @@ import {
     APIApplicationCommandInteractionDataBasicOption,
     APIApplicationCommandSubcommandOption,
     ApplicationCommandOptionType,
-    ButtonStyle,
-    ComponentType,
 } from 'discord-api-types/v10';
 import { basename } from 'path';
 
 import { selectComponentPagingMenuByKey } from 'components/systemComponent';
 import { AppChatInputInteraction } from 'interactions/app';
 
-const choices = ['메세지', '텍스트', 'auth_type'];
+import QUERY from 'controllers/component/embedListQuerys';
+import { createPrimaryButton } from 'utils/discord/component';
 
-export const exec = async (interaction: AppChatInputInteraction, selectOption: APIApplicationCommandInteractionDataBasicOption[]) => {
+const choices = ['텍스트', 'auth_type'];
+
+export const exec = async (
+    interaction: AppChatInputInteraction,
+    selectOption: APIApplicationCommandInteractionDataBasicOption[]
+) => {
     console.log('컴포넌트 수신', selectOption);
 
     const type = selectOption.find(({ name }) => ['타입'].includes(name))?.value;
@@ -29,47 +33,11 @@ export const exec = async (interaction: AppChatInputInteraction, selectOption: A
                         disabled: false,
                         max_values: 1,
                         min_values: 1,
-                        button: {
-                            custom_id: 'text create',
+                        button: createPrimaryButton('text create', {
                             label: '텍스트 생성',
-                            type: ComponentType.Button,
-                            style: ButtonStyle.Primary,
-                        },
+                        }),
                     },
-                    `
-SELECT CAST(text_id AS CHAR) AS value
-    , tag AS label
-    , LEFT(message, 100) AS description
-FROM text_message
-WHERE parent_id IS NULL 
-                `
-                ),
-            });
-            break;
-        case choices.indexOf('메세지'):
-            interaction.reply({
-                content: `${choices[type]}`,
-                components: await selectComponentPagingMenuByKey(
-                    {
-                        custom_id: 'discord system text',
-                        placeholder: '텍스트 선택해주세요!',
-                        disabled: false,
-                        max_values: 1,
-                        min_values: 1,
-                        button: {
-                            custom_id: 'text create',
-                            label: '텍스트 생성',
-                            type: ComponentType.Button,
-                            style: ButtonStyle.Primary,
-                        },
-                    },
-                    `
-SELECT CAST(text_id AS CHAR) AS value
-    , tag AS label
-    , LEFT(message, 100) AS description
-FROM text_message
-WHERE parent_id IS NULL 
-                `
+                    QUERY.TextMessageByMenuListQuery
                 ),
             });
             break;
@@ -84,12 +52,7 @@ WHERE parent_id IS NULL
                         max_values: 1,
                         min_values: 1,
                     },
-                    `
-SELECT json_object( 'name', IF( use_yn = 'Y', '🔴','⚫')) AS emoji
-    ,  CAST(auth_type AS CHAR) AS value
-    , CONCAT(tag, '] ',tag_kr) AS label
-FROM auth_type at2 
-                    `
+                    QUERY.AuthTypeByMenuListQuery
                 ),
             });
             break;
