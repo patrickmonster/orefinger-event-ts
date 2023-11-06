@@ -1,12 +1,8 @@
 import { MultipartFile } from '@fastify/multipart';
-import { getCommantList, getPostDil, getPostList } from 'controllers/post';
-import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
+import { FastifyInstance } from 'fastify';
 
-import { v4 as uuidv4 } from 'uuid';
-
-import path from 'path';
-import { upload } from 'utils/s3Apiinstance';
 import { insertFile } from 'controllers/CDN/file';
+import { upload } from 'utils/s3Apiinstance';
 
 export default async (fastify: FastifyInstance, opts: any) => {
     fastify.post<{

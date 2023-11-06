@@ -5,7 +5,7 @@ import {
 } from 'discord-api-types/v10';
 import { basename } from 'path';
 
-import { getAuthUsers } from 'controllers/auth';
+import { selectAuthUsers } from 'controllers/auth';
 import { AppChatInputInteraction } from 'interactions/app';
 
 // import api from "utils/discordApiInstance"
@@ -19,7 +19,7 @@ export const exec = async (interaction: AppChatInputInteraction, selectOption: A
     if (!user) {
         return await interaction.reply({ content: '필수값 : 사용자', ephemeral: true });
     }
-    const list = await getAuthUsers({ user_id: user?.toString() });
+    const list = await selectAuthUsers({ user_id: user?.toString() });
 
     interaction.reply({
         content: `<@${user}>님의 권한 목록

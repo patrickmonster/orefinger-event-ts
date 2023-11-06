@@ -1,9 +1,9 @@
-import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
+import { FastifyInstance } from 'fastify';
 
-import { getMessageList, createMessage, updateMessage } from 'controllers/message';
+import { createMessage, selectMessageList, updateMessage } from 'controllers/message';
 
-import { Paging } from 'interfaces/swagger';
 import { MessageCreate } from 'interfaces/message';
+import { Paging } from 'interfaces/swagger';
 
 import irc from 'utils/twitchIrc';
 
@@ -55,7 +55,7 @@ export default async (fastify: FastifyInstance, opts: any) => {
                 },
             },
         },
-        async req => await getMessageList(req.query.page || 0, req.query.tag)
+        async req => await selectMessageList(req.query.page || 0, req.query.tag)
     );
 
     fastify.post<{

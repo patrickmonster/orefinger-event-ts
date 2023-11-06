@@ -1,6 +1,6 @@
 import { MessageMenuInteraction } from 'interactions/message';
 
-import { getMessage } from 'controllers/message';
+import { selectMessage } from 'controllers/message';
 
 /**
  *
@@ -27,7 +27,7 @@ export const exec = async (interaction: MessageMenuInteraction) => {
             break;
     }
 
-    const message = await getMessage(user?.id || 0, id);
+    const message = await selectMessage(user?.id || 0, id);
     if (!message) return;
 
     await interaction.reply(message);

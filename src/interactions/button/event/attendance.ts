@@ -7,7 +7,7 @@ import { attendance } from 'controllers/twitch';
 import createCalender from 'utils/createCalender';
 import redis from 'utils/redis';
 
-const getMessage = async (broadcaster_user_id: string, user_id: string): Promise<RESTPostAPIChannelMessage> => {
+const selectMessage = async (broadcaster_user_id: string, user_id: string): Promise<RESTPostAPIChannelMessage> => {
     const { is_success, list } = await attendance(user_id, broadcaster_user_id);
 
     let count = 0;
@@ -64,7 +64,7 @@ export const exec = async (interaction: MessageInteraction, broadcaster_user_id:
         .then(async data => {
             let message = data ? JSON.parse(data) : null;
             if (!message) {
-                message = await getMessage(broadcaster_user_id, `${user?.id}`);
+                message = await selectMessage(broadcaster_user_id, `${user?.id}`);
                 redis.set(user_id, JSON.stringify(message), {
                     // 10분
                     EX: 60 * 10,
