@@ -102,7 +102,13 @@ LEFT JOIN component_type ct ON c.type_idx = ct.type_idx
                     `
 SELECT name AS label
     , CAST(car.component_id AS CHAR) AS value
-    , IFNULL(GROUP_CONCAT(carc.sort_number, '] ', car.component_id), '없음')  AS description
+    , IFNULL(
+        GROUP_CONCAT(
+            car.component_id
+            ORDER BY car.sort_number
+            SEPARATOR ', '
+        ), '없음'
+    )  AS description
 FROM component_action_row car
 LEFT JOIN component_action_row_connect carc 
     ON carc.component_row_id = car.component_id 
