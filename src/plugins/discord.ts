@@ -40,7 +40,6 @@ export {
     APIModalSubmitInteraction,
     APIWebhook,
     ApplicationCommandType,
-    // 컴포넌트
     ComponentType,
 } from 'discord-api-types/v10';
 
@@ -129,8 +128,6 @@ class Reply {
         const {
             body: { token, application_id, message, type },
         } = req;
-
-        // req.log.info(`INTERACTION] ${JSON.stringify(req.body)}`);
 
         this.id = id ?? '@original';
         this.isReply = false;
