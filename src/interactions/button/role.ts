@@ -14,9 +14,8 @@ const name = basename(__filename, __filename.endsWith('js') ? '.js' : '.ts');
 export const exec = async (interaction: MessageInteraction, [command]: string[]) => {
     const { user, guild_id } = interaction;
 
-    const reply = await interaction.differ({ ephemeral: true });
-
-    authTokenSelect(user?.id || '0', `select role ${command || 0}`, 2).then(async user => {
+    await interaction.differ({ ephemeral: true });
+    await authTokenSelect(user?.id || '0', `select role ${command || 0}`, 2).then(async user => {
         if (Array.isArray(user)) {
             interaction.reply({
                 components: user,
