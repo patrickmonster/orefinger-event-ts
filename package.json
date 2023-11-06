@@ -48,7 +48,7 @@
         "singleQuote": true,
         "semi": true,
         "bracketSpacing": true,
-        "printWidth": 150,
+        "printWidth": 120,
         "tabWidth": 4
     },
     "name": "discord-notification-ts",
