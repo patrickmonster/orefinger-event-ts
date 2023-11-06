@@ -186,7 +186,7 @@ export type GetAuthUsersSearchOption = {
     login?: string;
     name?: string;
 };
-export const getAuthUsers = ({ user_id, auth_id, login, name }: GetAuthUsersSearchOption) =>
+export const selectAuthUsers = ({ user_id, auth_id, login, name }: GetAuthUsersSearchOption) =>
     query<{
         type: number;
         user_id: string;

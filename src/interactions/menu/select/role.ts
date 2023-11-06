@@ -18,7 +18,7 @@ export const exec = async (interaction: MessageMenuInteraction, [role_id]: strin
 
     await authTusuSelect(interaction, guild_id || '', user?.id || '0', user_id, role_id);
 
-    // const message = await getMessage(user?.id || 0, id);
+    // const message = await selectMessage(user?.id || 0, id);
     // if (!message) return;
 
     // await interaction.re(message);

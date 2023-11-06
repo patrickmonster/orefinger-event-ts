@@ -1,5 +1,5 @@
-import { commantPost, getCommantList, getPostDil, getPostList, getPostTypes, postPost } from 'controllers/post';
-import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
+import { commantPost, getCommantList, getPostDil, getPostTypes, postPost, selectPostList } from 'controllers/post';
+import { FastifyInstance } from 'fastify';
 import { Paging } from 'interfaces/swagger';
 export default async (fastify: FastifyInstance, opts: any) => {
     //
@@ -35,7 +35,7 @@ export default async (fastify: FastifyInstance, opts: any) => {
             },
         },
         async request =>
-            await getPostList(request.query, {
+            await selectPostList(request.query, {
                 type: request.query?.type,
                 user_id: request.user?.id,
             })
@@ -88,7 +88,7 @@ export default async (fastify: FastifyInstance, opts: any) => {
             },
         },
         async request =>
-            await getPostList(
+            await selectPostList(
                 {
                     page: 0,
                     limit: Number(request.params.count),

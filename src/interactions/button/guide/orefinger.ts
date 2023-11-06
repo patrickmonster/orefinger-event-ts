@@ -1,6 +1,6 @@
 import { MessageInteraction } from 'interactions/message';
 
-import { getMessage } from 'controllers/message';
+import { selectMessage } from 'controllers/message';
 
 /**
  *
@@ -10,7 +10,7 @@ import { getMessage } from 'controllers/message';
 export const exec = async (interaction: MessageInteraction) => {
     const { user } = interaction;
 
-    const message = await getMessage(user?.id || '0', 13);
+    const message = await selectMessage(user?.id || '0', 13);
 
     if (!message) interaction.reply(message);
 };

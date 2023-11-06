@@ -2,7 +2,7 @@ import { MessageInteraction } from 'interactions/message';
 
 import { selectComponentPagingMenuByKey } from 'components/systemComponent';
 import { copyComponent, selectComponentBaseEditByModel } from 'controllers/component';
-import { getEmbedDtilByEmbed } from 'controllers/embed';
+import { selectEmbedDtilByEmbed } from 'controllers/embed';
 
 /**
  *
@@ -12,7 +12,7 @@ import { getEmbedDtilByEmbed } from 'controllers/embed';
 export const exec = async (interaction: MessageInteraction, embed_id: string, target: string) => {
     switch (target) {
         case 'reload': {
-            const { content, embed } = await getEmbedDtilByEmbed(embed_id);
+            const { content, embed } = await selectEmbedDtilByEmbed(embed_id);
             interaction.edit({
                 content,
                 embeds: [embed],

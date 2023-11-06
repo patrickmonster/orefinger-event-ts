@@ -1,6 +1,6 @@
 import { FastifyInstance } from 'fastify';
 
-import { getAuthUsers } from 'controllers/auth';
+import { selectAuthUsers } from 'controllers/auth';
 
 export default async (fastify: FastifyInstance, opts: any) => {
     //
@@ -36,7 +36,7 @@ export default async (fastify: FastifyInstance, opts: any) => {
                 },
             },
         },
-        async req => await getAuthUsers(req.query)
+        async req => await selectAuthUsers(req.query)
     );
 };
 

@@ -3,7 +3,7 @@ import { query, selectPaging, SqlInsertUpdate } from 'utils/database';
 import { APIEmbed } from 'discord-api-types/v10';
 import { EmbedCreate } from 'interfaces/embed';
 
-export const getEmbedList = async (page: number) =>
+export const selectEmbedList = async (page: number) =>
     selectPaging<{
         embed_id: number;
         tag: string;
@@ -24,7 +24,7 @@ from v_embed`,
         page
     );
 
-export const getEmbedDtilByEmbed = async (embed_id: number | string) =>
+export const selectEmbedDtilByEmbed = async (embed_id: number | string) =>
     query<{ embed: APIEmbed; content: string }>(
         `
 SELECT func_get_embed(e.embed_id) AS embed 
