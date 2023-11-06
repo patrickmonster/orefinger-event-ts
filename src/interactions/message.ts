@@ -47,7 +47,7 @@ const getCustomComponent = (interaction: MessageInteraction) => {
     );
 };
 
-const messageComponent = async (interaction: MessageInteraction) => {
+export default async (interaction: MessageInteraction) => {
     const { custom_id, component_type } = interaction;
 
     console.log('Component: ', custom_id); // 구버전 이벤트와 병합
@@ -77,7 +77,8 @@ const messageComponent = async (interaction: MessageInteraction) => {
                 return await exec(interaction, ...id.substring(name.length + 1).split(' '));
             } else sendErrorNotFoundComponent(interaction);
             break;
+        default:
+            sendErrorNotFoundComponent(interaction);
+            break;
     }
 };
-
-export default messageComponent;

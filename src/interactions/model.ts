@@ -14,7 +14,7 @@ const [models] = autoLoader(join(__dirname, 'model'), {
 
 const modelComponents = getCommand<ModelInteraction, string | Record<string, string>>(models);
 
-const modelComponent = async (interaction: ModelInteraction) => {
+export default async (interaction: ModelInteraction) => {
     const { custom_id, components } = interaction;
     const id = custom_id.startsWith('4866') ? custom_id.substring(4) : custom_id;
 
@@ -33,5 +33,3 @@ const modelComponent = async (interaction: ModelInteraction) => {
         await interaction.reply({ content: '해당 모달은 등록하지 않은 모달 입니다.' });
     }
 };
-
-export default modelComponent;
