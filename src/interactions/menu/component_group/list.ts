@@ -2,7 +2,7 @@ import { MessageMenuInteraction } from 'interactions/message';
 
 import { editerComponent } from 'components/systemComponent';
 import { selectComponentConnectGroupDtilByEmbed } from 'controllers/component';
-import { ButtonStyle, ComponentType } from 'discord-api-types/v10';
+import { createSuccessButton } from 'utils/discord/component';
 
 /**
  *
@@ -30,12 +30,9 @@ export const exec = async (interaction: MessageMenuInteraction) => {
             ephemeral: true,
             components: [
                 editerComponent(id, [
-                    {
-                        type: ComponentType.Button,
-                        style: ButtonStyle.Success,
-                        label: '하위 옵션 수정',
-                        custom_id: `${id} option`,
-                    },
+                    createSuccessButton(`${id} option`, {
+                        label: '하위 옵션 추가',
+                    }),
                 ]),
             ],
         });

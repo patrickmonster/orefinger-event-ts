@@ -37,12 +37,7 @@ export const exec = async (interaction: MessageMenuInteraction, component_id: st
                 const label = componentsMenu.options?.find(option => option.value === select_id)?.label;
                 await updateComponent(component_id, { type_idx: parseInt(select_id) });
                 await interaction.edit({
-                    embeds: [
-                        {
-                            ...embed,
-                            author: { name: label ?? '컴포넌트 타입 변경' },
-                        },
-                    ],
+                    embeds: [{ ...embed, author: { name: label ?? '컴포넌트 타입 변경' } }],
                     components,
                 });
             } catch (error) {
