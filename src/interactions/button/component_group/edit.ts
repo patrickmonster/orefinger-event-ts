@@ -1,7 +1,7 @@
 import { MessageInteraction } from 'interactions/message';
 
 import { selectComponentPagingMenuByKey } from 'components/systemComponent';
-import { ParseInt, copyComponentGroup, getComponentGroupEditByModel } from 'controllers/component';
+import { ParseInt, copyComponentGroup, selectComponentGroupEditByModel } from 'controllers/component';
 
 /**
  *
@@ -38,7 +38,7 @@ WHERE 1=1
             break;
         case 'edit': {
             // 수정버튼
-            const model = await getComponentGroupEditByModel(command_id);
+            const model = await selectComponentGroupEditByModel(command_id);
 
             // 모달처리
             interaction.model({

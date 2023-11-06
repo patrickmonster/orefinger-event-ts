@@ -1,7 +1,7 @@
 import { MessageMenuInteraction } from 'interactions/message';
 
 import { editerComponent } from 'components/systemComponent';
-import { getComponentDtilByEmbed, getComponentTypeList, getComponentYnMenu } from 'controllers/component';
+import { getComponentTypeList, selectComponentDtilByEmbed, selectComponentYnMenu } from 'controllers/component';
 import { ButtonStyle, ComponentType } from 'discord-api-types/v10';
 
 /**
@@ -17,7 +17,7 @@ export const exec = async (interaction: MessageMenuInteraction) => {
     } = interaction;
 
     await interaction.differ({ ephemeral: true });
-    const data = await getComponentDtilByEmbed(component_id);
+    const data = await selectComponentDtilByEmbed(component_id);
 
     if (!data) {
         interaction.reply({ content: '해당 메세지를 찾을 수 없습니다.', ephemeral: true });
@@ -25,7 +25,7 @@ export const exec = async (interaction: MessageMenuInteraction) => {
         const { embed, type } = data;
         const id = `component edit ${component_id}`;
 
-        const ynMenu = await getComponentYnMenu(component_id, 'component');
+        const ynMenu = await selectComponentYnMenu(component_id, 'component');
         await interaction.edit({ components });
 
         interaction.follow({

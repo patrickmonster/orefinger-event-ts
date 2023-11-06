@@ -4,9 +4,9 @@ import { selectComponentPagingMenuByKey } from 'components/systemComponent';
 import {
     ParseInt,
     copyComponentActionRow,
-    getComponentActionRowEditByModel,
-    getComponentRowDtilByEmbed,
-    getComponentRowEditByOrder,
+    selectComponentActionRowEditByModel,
+    selectComponentRowDtilByEmbed,
+    selectComponentRowEditByOrder,
     updateComponentActionRowConnect,
     upsertComponentActionRowConnect,
 } from 'controllers/component';
@@ -25,7 +25,7 @@ export const exec = async (interaction: MessageInteraction, component_row_id: st
     } = interaction;
     switch (type) {
         case 'reload': {
-            const { embed } = await getComponentRowDtilByEmbed(component_row_id);
+            const { embed } = await selectComponentRowDtilByEmbed(component_row_id);
             interaction.edit({
                 embeds: [embed],
             });
@@ -61,7 +61,7 @@ LEFT JOIN component_action_row_connect carc ON carc.component_row_id = ? AND car
             if (!component_id) {
                 interaction.reply({
                     ephemeral: true,
-                    components: [await getComponentRowEditByOrder(component_row_id, `component_action_row edit ${component_row_id} order`)],
+                    components: [await selectComponentRowEditByOrder(component_row_id, `component_action_row edit ${component_row_id} order`)],
                 });
             } else {
                 if (!component) return; // 있을수 없음
@@ -94,7 +94,7 @@ LEFT JOIN component_action_row_connect carc ON carc.component_row_id = ? AND car
         }
         case 'edit': // 수정버튼
             // 수정버튼
-            const model = await getComponentActionRowEditByModel(component_row_id);
+            const model = await selectComponentActionRowEditByModel(component_row_id);
 
             // 모달처리
             interaction.model({

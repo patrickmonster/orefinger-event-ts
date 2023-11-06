@@ -1,5 +1,5 @@
 import { selectComponentPagingMenuByKey } from 'components/systemComponent';
-import { getComponentBaseEditByModel, getComponentDtilByEmbed, updateComponent, upsertComponentOptionConnect } from 'controllers/component';
+import { selectComponentBaseEditByModel, selectComponentDtilByEmbed, updateComponent, upsertComponentOptionConnect } from 'controllers/component';
 import { APIStringSelectComponent } from 'discord-api-types/v10';
 import { MessageMenuInteraction } from 'interactions/message';
 import { ComponentCreate, ComponentOptionConnect } from 'interfaces/component';
@@ -39,7 +39,7 @@ export const exec = async (interaction: MessageMenuInteraction, component_id: st
                     }, {}) as Partial<ComponentCreate>
                 );
 
-                const { embed } = await getComponentDtilByEmbed(component_id);
+                const { embed } = await selectComponentDtilByEmbed(component_id);
 
                 interaction.edit({
                     embeds: [embed],
@@ -73,7 +73,7 @@ export const exec = async (interaction: MessageMenuInteraction, component_id: st
         case 'select': {
             switch (select_id) {
                 case 'base': // name / custom_id / value / min_length / max_length
-                    const model = await getComponentBaseEditByModel(component_id);
+                    const model = await selectComponentBaseEditByModel(component_id);
 
                     // 모달처리
                     interaction.model({
@@ -113,7 +113,7 @@ WHERE parent_id IS NULL
         case 'text':
             {
                 await updateComponent(component_id, { label_id: parseInt(select_id) });
-                const { embed } = await getComponentDtilByEmbed(component_id);
+                const { embed } = await selectComponentDtilByEmbed(component_id);
                 interaction.reply({
                     content: `변경된 렌더링 - ${component_id}`,
                     embeds: [embed],

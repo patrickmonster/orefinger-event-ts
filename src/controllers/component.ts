@@ -42,7 +42,7 @@ export type Component = {
     order_by: number;
 };
 
-export const getComponentList = async (page: Paging) =>
+export const selectComponentList = async (page: Paging) =>
     selectPaging<
         Component & {
             label: string;
@@ -78,7 +78,7 @@ LEFT JOIN component_type ct ON c.type_idx = ct.type_idx`,
         page
     );
 
-export const getComponentDtil = async (component_id: ComponentId) =>
+export const selectComponentDtil = async (component_id: ComponentId) =>
     query<Component>(
         `
 SELECT
@@ -145,7 +145,7 @@ FROM component_option
   `,
         page
     );
-export const getComponentOptionDtil = async (option_id: number) =>
+export const selectComponentOptionDtil = async (option_id: number) =>
     query(
         `
     SELECT
@@ -167,7 +167,7 @@ export const getComponentOptionDtil = async (option_id: number) =>
       `,
         option_id
     ).then(res => res[0]);
-export const getComponentStyleList = async () =>
+export const selectComponentStyleList = async () =>
     query<APISelectMenuOption>(
         `
     SELECT style_idx AS label
@@ -195,7 +195,7 @@ export const getComponentTypeList = async (select_item?: string | number) =>
  * @param component_id
  * @returns
  */
-export const getComponentDtilByEmbed = async (component_id: ComponentId) =>
+export const selectComponentDtilByEmbed = async (component_id: ComponentId) =>
     query<{ embed: APIEmbed; type: number }>(
         `
 SELECT 
@@ -229,7 +229,7 @@ WHERE a.component_id = ?
  * @param component_id
  * @returns
  */
-export const getComponentConnectGroupDtilByEmbed = async (component_group_id: ComponentId) =>
+export const selectComponentConnectGroupDtilByEmbed = async (component_group_id: ComponentId) =>
     query<{ embed: APIEmbed; type: number }>(
         `
 SELECT 
@@ -251,7 +251,7 @@ WHERE cg.group_id = ?
  * @param component_id
  * @returns
  */
-export const getComponentRowDtilByEmbed = async (component_group_id: ComponentId) =>
+export const selectComponentRowDtilByEmbed = async (component_group_id: ComponentId) =>
     query<{ embed: APIEmbed }>(
         `
 SELECT JSON_OBJECT(
@@ -289,7 +289,7 @@ GROUP BY car.component_row_id
 // ========================================================================================================
 // select component
 
-export const getComponentBaseEditByModel = async (component_id: ComponentId) =>
+export const selectComponentBaseEditByModel = async (component_id: ComponentId) =>
     query<Omit<APIModalInteractionResponseCallbackData, 'custom_id'>>(
         `
 SELECT CONCAT(a.component_id, '] 컴포넌트 수정') as title,
@@ -326,44 +326,7 @@ WHERE a.component_id = ?
         ParseInt(component_id)
     ).then(res => res[0]);
 
-export const getEmbedBaseEditByModel = async (component_id: ComponentId) =>
-    query<Omit<APIModalInteractionResponseCallbackData, 'custom_id'>>(
-        `
-SELECT CONCAT(a.component_id, '] 컴포넌트 수정') as title,
-    JSON_ARRAY(
-        JSON_OBJECT(
-            'type', 1, 'components', JSON_ARRAY(
-                JSON_OBJECT('type', 4,'custom_id', 'name', 'label', '이름', 'value', CAST(name AS CHAR), 'min_length', 1, 'max_length', 100, 'style', 1, 'required', true )
-            )
-        ),
-        JSON_OBJECT(
-            'type', 1, 'components', JSON_ARRAY(
-                JSON_OBJECT('type', 4,'custom_id', 'custom_id', 'label', '아이디', 'value', IFNULL(custom_id, ''), 'min_length', 0, 'max_length', 100, 'style', 1, 'required', false)
-            )
-        ),
-        JSON_OBJECT(
-            'type', 1, 'components', JSON_ARRAY(
-                JSON_OBJECT('type', 4,'custom_id', 'value', 'label', '값', 'value',IFNULL(value, '') , 'min_length', 0, 'max_length', 100, 'style', 1, 'required', false)
-            )
-        ),
-        JSON_OBJECT(
-            'type', 1, 'components', JSON_ARRAY(
-                JSON_OBJECT('type', 4,'custom_id', 'min_values', 'label', '최소값', 'value',IF(min_values IS null, '', CAST(min_values AS CHAR)), 'style', 1, 'required', false)
-            )
-        ),
-        JSON_OBJECT(
-            'type', 1, 'components', JSON_ARRAY(
-                JSON_OBJECT('type', 4,'custom_id', 'max_values', 'label', '최대값', 'value',IF(max_values  IS null, '', CAST(max_values AS CHAR)), 'style', 1, 'required', false)
-            )
-        )
-    ) AS components
-FROM component a
-WHERE a.component_id = ?
-        `,
-        ParseInt(component_id)
-    ).then(res => res[0]);
-
-export const getComponentGroupEditByModel = async (group_id: ComponentId) =>
+export const selectComponentGroupEditByModel = async (group_id: ComponentId) =>
     query<Omit<APIModalInteractionResponseCallbackData, 'custom_id'>>(
         `
 SELECT CONCAT(group_id , '] 컴포넌트 그룹 수정') as title,
@@ -380,7 +343,7 @@ WHERE group_id = ?
         ParseInt(group_id)
     ).then(res => res[0]);
 
-export const getComponentActionRowEditByModel = async (action_row_id: ComponentId) =>
+export const selectComponentActionRowEditByModel = async (action_row_id: ComponentId) =>
     query<Omit<APIModalInteractionResponseCallbackData, 'custom_id'>>(
         `
 SELECT CONCAT(component_id , '] 컴포넌트 그룹 수정') as title,
@@ -402,7 +365,7 @@ const YNMenu = {
     component_option: 'option_id',
 };
 
-export const getComponentYnMenu = async (component_id: ComponentId, targetTable: 'component' | 'component_option') =>
+export const selectComponentYnMenu = async (component_id: ComponentId, targetTable: 'component' | 'component_option') =>
     getConnection(async query => {
         const list = await query<{ column_name: string }>(
             `
@@ -433,7 +396,7 @@ WHERE c.${YNMenu[targetTable]} = ?
         return options.options;
     });
 
-export const getComponentRowEditByOrder = async (
+export const selectComponentRowEditByOrder = async (
     component_row_id: ComponentId,
     button_base_id: string
 ): Promise<APIActionRowComponent<APIMessageActionRowComponent>> =>

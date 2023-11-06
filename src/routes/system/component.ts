@@ -1,15 +1,15 @@
-import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
+import { FastifyInstance } from 'fastify';
 
 import {
-    getComponentOptionList,
-    getComponentOptionDtil,
-    getComponentList,
     createComponent,
+    getComponentOptionList,
+    selectComponentDtil,
+    selectComponentList,
+    selectComponentOptionDtil,
     updateComponent,
-    getComponentDtil,
     updateComponentOption,
 } from 'controllers/component';
-import { ComponentOptionCreate, ComponentCreate } from 'interfaces/component';
+import { ComponentCreate, ComponentOptionCreate } from 'interfaces/component';
 
 import { Paging } from 'interfaces/swagger';
 
@@ -67,7 +67,7 @@ export default async (fastify: FastifyInstance, opts: any) => {
                 },
             },
         },
-        async req => await getComponentList(req.query)
+        async req => await selectComponentList(req.query)
     );
 
     fastify.get<{
@@ -90,7 +90,7 @@ export default async (fastify: FastifyInstance, opts: any) => {
                 },
             },
         },
-        async req => await getComponentDtil(req.params.component_id)
+        async req => await selectComponentDtil(req.params.component_id)
     );
 
     fastify.post<{
@@ -249,7 +249,7 @@ export default async (fastify: FastifyInstance, opts: any) => {
                 },
             },
         },
-        async req => await getComponentOptionDtil(req.params.option_id)
+        async req => await selectComponentOptionDtil(req.params.option_id)
     );
 
     fastify.patch<{
