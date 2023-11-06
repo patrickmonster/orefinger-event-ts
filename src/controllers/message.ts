@@ -36,7 +36,6 @@ WHERE message_id=?`,
         message_id
     );
 
-// TODO: 메세지 조회 - 임베드 컴포넌트
 const regEx = /\{([0-9A-Za-z_]+)\}/i;
 type Tage = {
     [key: string]: string | number | boolean;
