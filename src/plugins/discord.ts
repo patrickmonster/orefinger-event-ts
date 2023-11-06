@@ -70,7 +70,10 @@ interface CustomInstance extends AxiosInstance {
 
 // ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-const discordInteraction: CustomInstance = axios.create({ baseURL: 'https://discord.com/api', headers: { 'Content-Type': 'application/json' } });
+const discordInteraction: CustomInstance = axios.create({
+    baseURL: 'https://discord.com/api',
+    headers: { 'Content-Type': 'application/json' },
+});
 
 discordInteraction.interceptors.response.use(
     ({ data }) => {
@@ -140,7 +143,9 @@ class Reply {
     }
 
     public async get() {
-        return await discordInteraction.get<APIMessage>(`/webhooks/${this.application_id}/${this.token}/messages/${this.id}`);
+        return await discordInteraction.get<APIMessage>(
+            `/webhooks/${this.application_id}/${this.token}/messages/${this.id}`
+        );
     }
     public async remove() {
         await discordInteraction.delete(`/webhooks/${this.application_id}/${this.token}/messages/${this.id}`);
@@ -155,7 +160,9 @@ class Reply {
      * @returns
      */
     private appendEmpheral(message: RESTPostAPIChannelMessageParams): RESTPostAPIChannelMessageJSONBody {
-        return typeof message === 'string' ? { content: message } : Object.assign(message, message.ephemeral ? { flags: 64 } : {});
+        return typeof message === 'string'
+            ? { content: message }
+            : Object.assign(message, message.ephemeral ? { flags: 64 } : {});
     }
     /**
      * 응답
@@ -164,9 +171,15 @@ class Reply {
     public async reply(message: RESTPostAPIChannelMessage) {
         // 응답
         if (this.isReply) {
-            await discordInteraction.patch(`/webhooks/${this.application_id}/${this.token}/messages/${this.id}`, message).catch(e => {
-                console.log('메세지 수정 실패', `/webhooks/${this.application_id}/${this.token}/messages/${this.id}`, e.response.data);
-            });
+            await discordInteraction
+                .patch(`/webhooks/${this.application_id}/${this.token}/messages/${this.id}`, message)
+                .catch(e => {
+                    console.log(
+                        '메세지 수정 실패',
+                        `/webhooks/${this.application_id}/${this.token}/messages/${this.id}`,
+                        e.response.data
+                    );
+                });
         } else {
             this.isReply = true;
             await this.res.code(200).send({
@@ -241,18 +254,6 @@ class Reply {
         else return Promise.reject('선처리 메세지 수정은 컴포넌트 이벤트에서만 사용할 수 있습니다.');
     }
 
-    *[Symbol.iterator]() {
-        yield this.get.bind(this);
-        yield this.remove.bind(this);
-        yield this.auth.bind(this);
-        yield this.differ.bind(this);
-        yield this.differEdit.bind(this);
-        yield this.edit.bind(this);
-        yield this.follow.bind(this);
-        yield this.model.bind(this);
-        yield this.reply.bind(this);
-    }
-
     /**
      * 후행 처리 응답 메세지
      * @param message
@@ -277,6 +278,18 @@ class Reply {
                     interaction: reply,
                 };
             });
+    }
+
+    *[Symbol.iterator]() {
+        yield this.get.bind(this);
+        yield this.remove.bind(this);
+        yield this.auth.bind(this);
+        yield this.differ.bind(this);
+        yield this.differEdit.bind(this);
+        yield this.edit.bind(this);
+        yield this.follow.bind(this);
+        yield this.model.bind(this);
+        yield this.reply.bind(this);
     }
 }
 
@@ -303,15 +316,10 @@ export default fp(async function (fastify, opts) {
 
     // 인증 처리 시도 - 사용자 인증 정보가 있는 경우에 시도함.
     fastify.decorate('verifyDiscordKey', (request: FastifyRequest, reply: FastifyReply, done: Function) => {
-        const { body, headers, method } = request;
+        const { method } = request;
         if (method === 'POST') {
             const isValidRequest = fastify.verifyKey(request);
-            // 인증정보 type 이 1일때만 success가 떨어져서 임의 처리함. (수시로 인증 처리한다고 되어 있음.)
-            /**
-             * TODO: 추후 인터렉션 이벤트가 변경되면 우선적으로 확인 필요.
-             *  -> 현재 PING 일때만 검증 처리되기 때문에 추가 처리가 필요함.
-             */
-            if (isValidRequest /*|| (body as APIInteraction).type !== InteractionType.Ping */) return done();
+            if (isValidRequest) return done();
         }
         return reply.code(401).send('Bad request signature');
     });
