@@ -1,4 +1,4 @@
-import { selectComponentMenuKey } from 'components/systemComponent';
+import { selectComponentPagingMenuKey } from 'components/systemComponent';
 import { ComponentType } from 'discord-api-types/v10';
 import { MessageInteraction } from 'interactions/message';
 
@@ -39,11 +39,11 @@ export const exec = async (interaction: MessageInteraction, ...params: string[])
             await interaction.remove();
             break;
         case 'back': // 검색
-            interaction.edit({ components: await selectComponentMenuKey(key, 0, {}) });
+            interaction.edit({ components: await selectComponentPagingMenuKey(key, 0, {}) });
             break;
         default: // 페이징
             interaction.edit({
-                components: await selectComponentMenuKey(key, Number(page)),
+                components: await selectComponentPagingMenuKey(key, Number(page)),
             });
             break;
     }

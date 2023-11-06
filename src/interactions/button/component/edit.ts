@@ -1,6 +1,6 @@
 import { MessageInteraction } from 'interactions/message';
 
-import { selectComponentMenuByKey } from 'components/systemComponent';
+import { selectComponentPagingMenuByKey } from 'components/systemComponent';
 import { copyComponent, getComponentBaseEditByModel, getComponentDtilByEmbed } from 'controllers/component';
 
 /**
@@ -21,7 +21,7 @@ export const exec = async (interaction: MessageInteraction, component_id: string
             interaction.reply({
                 ephemeral: true,
                 content: `${component_id} - ${target}`,
-                components: await selectComponentMenuByKey(
+                components: await selectComponentPagingMenuByKey(
                     {
                         custom_id: `component edit ${component_id} option`,
                         placeholder: '컴포넌트를 선택해주세요!',
@@ -57,7 +57,7 @@ WHERE 1=1
             interaction.reply({
                 ephemeral: true,
                 content: `${component_id}] 라벨변경`,
-                components: await selectComponentMenuByKey(
+                components: await selectComponentPagingMenuByKey(
                     {
                         custom_id: `component edit ${component_id} text`,
                         placeholder: '적용하실 라벨을 선택해 주세요.',

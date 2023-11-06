@@ -6,7 +6,7 @@ import {
     APISelectMenuOption,
     ComponentType,
 } from 'discord-api-types/v10';
-import { createPrimaryButton, createSecondaryButton, createSuccessButton } from 'utils/discord/component';
+import { createPrimaryButton, createSecondaryButton, createStringSelectMenu, createSuccessButton } from 'utils/discord/component';
 import createQueryKey, { orOf, selectQueryKeyPaging } from 'utils/queryKey';
 
 type MenuProps = Omit<APIBaseSelectMenuComponent<ComponentType.StringSelect>, 'type'> & {
@@ -21,13 +21,13 @@ type MenuProps = Omit<APIBaseSelectMenuComponent<ComponentType.StringSelect>, 't
  * @param params
  * @returns APIActionRowComponent<APIMessageActionRowComponent>[]
  */
-export const selectComponentMenuByKey = async (
+export const selectComponentPagingMenuByKey = async (
     menuProps: MenuProps,
     sql: string,
     ...params: any[]
 ): Promise<APIActionRowComponent<APIMessageActionRowComponent>[]> => {
     const queryKey = await createQueryKey({ sql, params, other: JSON.stringify(menuProps) });
-    return await selectComponentMenuKey(queryKey);
+    return await selectComponentPagingMenuKey(queryKey);
 };
 
 /**
@@ -38,19 +38,19 @@ export const selectComponentMenuByKey = async (
  * @param searchQuery 변경쿼리
  * @returns APIActionRowComponent<APIMessageActionRowComponent>[]
  */
-export const selectComponentMenuKey = async (
+export const selectComponentPagingMenuKey = async (
     queryKey: string,
     page?: number,
     searchQuery?: orOf
 ): Promise<APIActionRowComponent<APIMessageActionRowComponent>[]> => {
     const resultQuery = await selectQueryKeyPaging<APISelectMenuOption>(queryKey, { page: page ?? 0, limit: 15 }, searchQuery);
-    console.log('SystemComponent] selectComponentMenuByKey', queryKey, resultQuery);
+    console.log('SystemComponent] selectComponentPagingMenuByKey', queryKey, resultQuery);
 
     if (!resultQuery)
         return [
             {
                 type: ComponentType.ActionRow,
-                components: [{ type: ComponentType.Button, style: 1, label: '세션이 만료되었습니다', custom_id: `0`, disabled: true }],
+                components: [createPrimaryButton(`0`, { label: '세션이 만료되었습니다.', disabled: true })],
             },
         ];
 
@@ -73,18 +73,12 @@ export const selectComponentMenuKey = async (
         ];
 
     return [
-        {
-            type: ComponentType.ActionRow,
-            components: [
-                {
-                    ...menuProps,
-                    type: ComponentType.StringSelect,
-                    options: result.list,
-                    max_values: (menuProps.max_values || 0) > result.list.length ? result.list.length : menuProps.max_values,
-                    min_values: menuProps.min_values || 0,
-                },
-            ],
-        },
+        createStringSelectMenu(menuProps.custom_id, {
+            ...menuProps,
+            options: result.list,
+            max_values: (menuProps.max_values || 0) > result.list.length ? result.list.length : menuProps.max_values,
+            min_values: menuProps.min_values || 0,
+        }),
         {
             type: ComponentType.ActionRow,
             components: [
@@ -148,19 +142,12 @@ export const editerComponentEmbedTemplate = (base_id: string, skip_footer?: bool
 
     if (!skip_footer) options.push({ label: '푸터', value: 'footer' });
 
-    return {
-        type: ComponentType.ActionRow,
-        components: [
-            {
-                type: ComponentType.StringSelect,
-                custom_id: `${base_id} select`,
-                max_values: 1,
-                min_values: 1,
-                placeholder: '값 변경',
-                options,
-            },
-        ],
-    };
+    return createStringSelectMenu(`${base_id} select`, {
+        max_values: 1,
+        min_values: 1,
+        placeholder: '값 변경',
+        options,
+    });
 };
 
 /**
@@ -171,33 +158,14 @@ export const editerComponentEmbedTemplate = (base_id: string, skip_footer?: bool
  */
 export const editerComponentComponentTemplate = (base_id: string): APIActionRowComponent<APIMessageActionRowComponent> => {
     const options = [
-        // name / custom_id / value / min_length / max_length
         { label: '기본설정', value: 'base' },
-        // label_id
         { label: '텍스트', value: 'text' },
     ];
-    return {
-        type: ComponentType.ActionRow,
-        components: [
-            {
-                type: ComponentType.StringSelect,
-                custom_id: `${base_id} select`,
-                max_values: 1,
-                min_values: 1,
-                placeholder: '변경',
-                options,
-            },
-        ],
-    };
-};
 
-enum EmbedEditComponent {
-    title = 'title',
-    description = 'description',
-    color = 'color',
-    footer = 'footer',
-    image = 'image',
-    thumbnail = 'thumbnail',
-    author = 'author',
-    field = 'field',
-}
+    return createStringSelectMenu(`${base_id} select`, {
+        max_values: 1,
+        min_values: 1,
+        placeholder: '변경',
+        options,
+    });
+};

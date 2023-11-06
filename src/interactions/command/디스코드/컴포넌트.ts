@@ -7,7 +7,7 @@ import {
 } from 'discord-api-types/v10';
 import { basename } from 'path';
 
-import { selectComponentMenuByKey } from 'components/systemComponent';
+import { selectComponentPagingMenuByKey } from 'components/systemComponent';
 import { AppChatInputInteraction } from 'interactions/app';
 
 // import api from "utils/discordApiInstance"
@@ -35,7 +35,7 @@ export const exec = async (interaction: AppChatInputInteraction, selectOption: A
         case choices.indexOf('component'):
             interaction.reply({
                 content: `${choices[type]}`,
-                components: await selectComponentMenuByKey(
+                components: await selectComponentPagingMenuByKey(
                     {
                         custom_id: 'component component',
                         placeholder: '컴포넌트를 선택해주세요!',
@@ -64,7 +64,7 @@ LEFT JOIN component_type ct ON c.type_idx = ct.type_idx
         //         case choices.indexOf('component_group'):
         //             interaction.reply({
         //                 content: `${choices[type]}`,
-        //                 components: await selectComponentMenuByKey(
+        //                 components: await selectComponentPagingMenuByKey(
         //                     {
         //                         custom_id: 'component component_group',
         //                         placeholder: '컴포넌트를 선택해주세요!',
@@ -85,7 +85,7 @@ LEFT JOIN component_type ct ON c.type_idx = ct.type_idx
         case choices.indexOf('component_action_row'):
             interaction.reply({
                 content: `${choices[type]}`,
-                components: await selectComponentMenuByKey(
+                components: await selectComponentPagingMenuByKey(
                     {
                         custom_id: 'component component_action_row',
                         placeholder: '로우 컴포넌트를 선택해주세요!',
@@ -121,7 +121,7 @@ GROUP BY car.component_id
         case choices.indexOf('component_option'):
             interaction.reply({
                 content: `${choices[type]}`,
-                components: await selectComponentMenuByKey(
+                components: await selectComponentPagingMenuByKey(
                     {
                         custom_id: 'component component_option',
                         placeholder: '컴포넌트 옵션을 선택해주세요!',
@@ -149,7 +149,7 @@ FROM component_option co
         //         case choices.indexOf('component_option_connection'):
         //             interaction.reply({
         //                 content: `${choices[type]}`,
-        //                 components: await selectComponentMenuByKey(
+        //                 components: await selectComponentPagingMenuByKey(
         //                     {
         //                         custom_id: 'component component_option_connect',
         //                         placeholder: '컴포넌트를 선택해주세요!',
@@ -171,7 +171,7 @@ FROM component_option co
         //         case choices.indexOf('component_low'):
         //             interaction.reply({
         //                 content: `${choices[type]}`,
-        //                 components: await selectComponentMenuByKey(
+        //                 components: await selectComponentPagingMenuByKey(
         //                     {
         //                         custom_id: 'component component_low',
         //                         placeholder: '컴포넌트를 선택해주세요!',
@@ -193,7 +193,7 @@ FROM component_option co
         //         case choices.indexOf('component_col'):
         //             interaction.reply({
         //                 content: `${choices[type]}`,
-        //                 components: await selectComponentMenuByKey(
+        //                 components: await selectComponentPagingMenuByKey(
         //                     {
         //                         custom_id: 'component component_col',
         //                         placeholder: '컴포넌트를 선택해주세요!',
@@ -215,7 +215,7 @@ FROM component_option co
         case choices.indexOf('component_type'):
             interaction.reply({
                 content: `${choices[type]}`,
-                components: await selectComponentMenuByKey(
+                components: await selectComponentPagingMenuByKey(
                     {
                         custom_id: 'component component_type',
                         placeholder: '컴포넌트를 선택해주세요!',
@@ -235,7 +235,7 @@ FROM component_type ct
         case choices.indexOf('component_style'):
             interaction.reply({
                 content: `${choices[type]}`,
-                components: await selectComponentMenuByKey(
+                components: await selectComponentPagingMenuByKey(
                     {
                         custom_id: 'component component_style',
                         placeholder: '컴포넌트를 선택해주세요!',
@@ -255,7 +255,7 @@ FROM component_style cs
         case choices.indexOf('embed'):
             interaction.reply({
                 content: `${choices[type]}`,
-                components: await selectComponentMenuByKey(
+                components: await selectComponentPagingMenuByKey(
                     {
                         custom_id: 'component embed',
                         placeholder: '컴포넌트를 선택해주세요!',
@@ -280,7 +280,7 @@ FROM embed e
         case choices.indexOf('embed_user'):
             interaction.reply({
                 content: `${choices[type]}`,
-                components: await selectComponentMenuByKey(
+                components: await selectComponentPagingMenuByKey(
                     {
                         custom_id: 'component embed_user',
                         placeholder: '컴포넌트를 선택해주세요!',

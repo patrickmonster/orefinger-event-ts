@@ -1,6 +1,6 @@
 import { MessageInteraction } from 'interactions/message';
 
-import { selectComponentMenuByKey } from 'components/systemComponent';
+import { selectComponentPagingMenuByKey } from 'components/systemComponent';
 import { copyComponent, getComponentBaseEditByModel } from 'controllers/component';
 import { getEmbedDtilByEmbed } from 'controllers/embed';
 
@@ -12,8 +12,10 @@ import { getEmbedDtilByEmbed } from 'controllers/embed';
 export const exec = async (interaction: MessageInteraction, embed_id: string, target: string) => {
     switch (target) {
         case 'reload': {
+            const { content, embed } = await getEmbedDtilByEmbed(embed_id);
             interaction.edit({
-                embeds: [await getEmbedDtilByEmbed(embed_id)],
+                content,
+                embeds: [embed],
             });
             break;
         }
@@ -21,7 +23,7 @@ export const exec = async (interaction: MessageInteraction, embed_id: string, ta
             interaction.reply({
                 ephemeral: true,
                 content: `${embed_id} - ${target}`,
-                components: await selectComponentMenuByKey(
+                components: await selectComponentPagingMenuByKey(
                     {
                         custom_id: `component edit ${embed_id} option`,
                         placeholder: '컴포넌트를 선택해주세요!',
@@ -57,7 +59,7 @@ WHERE 1=1
             interaction.reply({
                 ephemeral: true,
                 content: `${embed_id}] 라벨변경`,
-                components: await selectComponentMenuByKey(
+                components: await selectComponentPagingMenuByKey(
                     {
                         custom_id: `component edit ${embed_id} text`,
                         placeholder: '적용하실 라벨을 선택해 주세요.',
