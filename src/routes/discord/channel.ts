@@ -1,7 +1,4 @@
-import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
-
-import { getComponentList, createComponent, updateComponent, getComponentDtil } from 'controllers/component';
-import { ComponentCreate } from 'interfaces/component';
+import { FastifyInstance } from 'fastify';
 
 import discord from 'utils/discordApiInstance';
 

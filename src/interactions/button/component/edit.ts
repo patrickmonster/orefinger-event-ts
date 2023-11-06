@@ -1,7 +1,7 @@
 import { MessageInteraction } from 'interactions/message';
 
 import { selectComponentPagingMenuByKey } from 'components/systemComponent';
-import { copyComponent, getComponentBaseEditByModel, getComponentDtilByEmbed } from 'controllers/component';
+import { copyComponent, selectComponentBaseEditByModel, selectComponentDtilByEmbed } from 'controllers/component';
 
 /**
  *
@@ -11,7 +11,7 @@ import { copyComponent, getComponentBaseEditByModel, getComponentDtilByEmbed } f
 export const exec = async (interaction: MessageInteraction, component_id: string, target: string) => {
     switch (target) {
         case 'reload': {
-            const { embed } = await getComponentDtilByEmbed(component_id);
+            const { embed } = await selectComponentDtilByEmbed(component_id);
             interaction.edit({
                 embeds: [embed],
             });
@@ -44,7 +44,7 @@ WHERE 1=1
             });
             break;
         case 'edit': {
-            const model = await getComponentBaseEditByModel(component_id);
+            const model = await selectComponentBaseEditByModel(component_id);
 
             // 모달처리
             interaction.model({

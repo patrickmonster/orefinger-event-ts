@@ -1,4 +1,4 @@
-import { getComponentRowDtilByEmbed, upsertComponentActionRow } from 'controllers/component';
+import { selectComponentRowDtilByEmbed, upsertComponentActionRow } from 'controllers/component';
 import { MessageMenuInteraction } from 'interactions/message';
 
 /**
@@ -8,7 +8,7 @@ import { MessageMenuInteraction } from 'interactions/message';
  */
 export const exec = async (interaction: MessageMenuInteraction, values: Record<string, string>, target: string) => {
     await upsertComponentActionRow(values, target);
-    const data = await getComponentRowDtilByEmbed(target);
+    const data = await selectComponentRowDtilByEmbed(target);
     if (!data) return await interaction.edit({ content: '해당 메세지를 찾을 수 없습니다.', ephemeral: true });
 
     const { embed } = data;

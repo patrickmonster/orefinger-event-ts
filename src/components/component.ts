@@ -1,10 +1,10 @@
-import { getComponentDtilByEmbed, getComponentTypeList, getComponentYnMenu } from 'controllers/component';
+import { getComponentTypeList, selectComponentDtilByEmbed, selectComponentYnMenu } from 'controllers/component';
 import { ComponentType, IReply } from 'plugins/discord';
 import { editerComponent, editerComponentComponentTemplate } from './systemComponent';
 
 export const getComponentEditor = async (interaction: IReply, component_id: string | number) => {
     await interaction.differ({ ephemeral: true });
-    const data = await getComponentDtilByEmbed(component_id);
+    const data = await selectComponentDtilByEmbed(component_id);
 
     if (!data) {
         interaction.reply({ content: '해당 메세지를 찾을 수 없습니다.', ephemeral: true });
@@ -12,7 +12,7 @@ export const getComponentEditor = async (interaction: IReply, component_id: stri
         const { embed, type } = data;
         const id = `component edit ${component_id}`;
 
-        const ynMenu = await getComponentYnMenu(component_id);
+        const ynMenu = await selectComponentYnMenu(component_id);
         interaction.reply({
             content: `컴포넌트 정보를 수정합니다. - ${component_id}`,
             embeds: [embed],

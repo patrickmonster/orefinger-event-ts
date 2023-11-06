@@ -1,7 +1,7 @@
 import { MessageInteraction } from 'interactions/message';
 
 import { selectComponentPagingMenuByKey } from 'components/systemComponent';
-import { copyComponent, getComponentBaseEditByModel } from 'controllers/component';
+import { copyComponent, selectComponentBaseEditByModel } from 'controllers/component';
 import { getEmbedDtilByEmbed } from 'controllers/embed';
 
 /**
@@ -46,7 +46,7 @@ WHERE 1=1
             });
             break;
         case 'edit': {
-            const model = await getComponentBaseEditByModel(embed_id);
+            const model = await selectComponentBaseEditByModel(embed_id);
 
             // 모달처리
             interaction.model({

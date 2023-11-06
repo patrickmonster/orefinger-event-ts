@@ -8,7 +8,7 @@ import { MessageInteraction } from 'interactions/message';
  */
 export const exec = async (interaction: MessageInteraction) => {
     // const { insertId } = await createComponent({ name: '임시항목' });
-    // const model = await getComponentBaseEditByModel(insertId);
+    // const model = await selectComponentBaseEditByModel(insertId);
     // // 모달처리
     // interaction.model({
     //     ...model,
