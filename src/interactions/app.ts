@@ -65,7 +65,12 @@ const getChatCommandNames = (interaction: AppChatInputInteraction) => {
     return { chatCommandTarget, selectOption };
 };
 
-const appComponent = async (interaction: appInteraction) => {
+export const api = {
+    app: apiApp,
+    chat: apiChat,
+};
+
+export default async (interaction: appInteraction) => {
     const { type } = interaction;
     console.log('appComponent', interaction.name, type);
 
@@ -88,10 +93,3 @@ const appComponent = async (interaction: appInteraction) => {
         }
     }
 };
-
-export const api = {
-    app: apiApp,
-    chat: apiChat,
-};
-
-export default appComponent;
