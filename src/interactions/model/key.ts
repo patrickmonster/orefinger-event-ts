@@ -1,4 +1,4 @@
-import { selectComponentMenuKey } from 'components/systemComponent';
+import { selectComponentPagingMenuKey } from 'components/systemComponent';
 import { MessageMenuInteraction } from 'interactions/message';
 
 /**
@@ -16,7 +16,7 @@ export const exec = async (interaction: MessageMenuInteraction, values: Record<s
             // label, value, description
             interaction.reply({
                 ephemeral: true,
-                components: await selectComponentMenuKey(key, 0, { label: values.value, value: values.value, description: values.value }),
+                components: await selectComponentPagingMenuKey(key, 0, { label: values.value, value: values.value, description: values.value }),
             });
             return;
     }

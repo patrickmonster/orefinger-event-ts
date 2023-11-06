@@ -25,7 +25,15 @@ from v_embed`,
     );
 
 export const getEmbedDtilByEmbed = async (embed_id: number | string) =>
-    query<{ embed: APIEmbed }>(`SELECT func_get_embed(e.embed_id) AS embed FROM embed e WHERE e.embed_id = ?`, embed_id).then(res => res[0]?.embed);
+    query<{ embed: APIEmbed; content: string }>(
+        `
+SELECT func_get_embed(e.embed_id) AS embed 
+    , CONCAT('embed : ' ,IFnull(tag, '지정되지 않음'), ' - ',e.embed_id) AS content
+FROM embed e 
+WHERE e.embed_id = ?
+        `,
+        embed_id
+    ).then(res => res[0]);
 
 export const createEmbed = async (message: EmbedCreate) => query(`INSERT INTO embed set ?`, message);
 

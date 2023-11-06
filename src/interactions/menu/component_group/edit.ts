@@ -1,4 +1,4 @@
-import { selectComponentMenuByKey } from 'components/systemComponent';
+import { selectComponentPagingMenuByKey } from 'components/systemComponent';
 import { getComponentBaseEditByModel, getComponentDtilByEmbed, updateComponent, upsertComponentOptionConnect } from 'controllers/component';
 import { APIStringSelectComponent } from 'discord-api-types/v10';
 import { MessageMenuInteraction } from 'interactions/message';
@@ -87,7 +87,7 @@ export const exec = async (interaction: MessageMenuInteraction, component_id: st
                     interaction.reply({
                         ephemeral: true,
                         content: `${component_id}] 라벨변경`,
-                        components: await selectComponentMenuByKey(
+                        components: await selectComponentPagingMenuByKey(
                             {
                                 custom_id: `component edit ${component_id} text`,
                                 placeholder: '적용하실 라벨을 선택해 주세요.',

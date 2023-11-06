@@ -1,6 +1,6 @@
 import { MessageInteraction } from 'interactions/message';
 
-import { selectComponentMenuByKey } from 'components/systemComponent';
+import { selectComponentPagingMenuByKey } from 'components/systemComponent';
 import { ParseInt, copyComponentGroup, getComponentGroupEditByModel } from 'controllers/component';
 
 /**
@@ -14,7 +14,7 @@ export const exec = async (interaction: MessageInteraction, command_id: string, 
             interaction.reply({
                 ephemeral: true,
                 content: `${command_id} - ${target}`,
-                components: await selectComponentMenuByKey(
+                components: await selectComponentPagingMenuByKey(
                     {
                         custom_id: `component_group edit ${command_id} option`,
                         placeholder: '컴포넌트를 선택해주세요!',

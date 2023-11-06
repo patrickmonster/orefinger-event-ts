@@ -7,7 +7,7 @@ import {
 } from 'discord-api-types/v10';
 import { basename } from 'path';
 
-import { selectComponentMenuByKey } from 'components/systemComponent';
+import { selectComponentPagingMenuByKey } from 'components/systemComponent';
 import { AppChatInputInteraction } from 'interactions/app';
 
 const choices = ['메세지', '텍스트', 'auth_type'];
@@ -22,7 +22,7 @@ export const exec = async (interaction: AppChatInputInteraction, selectOption: A
         case choices.indexOf('텍스트'):
             interaction.reply({
                 content: `${choices[type]}`,
-                components: await selectComponentMenuByKey(
+                components: await selectComponentPagingMenuByKey(
                     {
                         custom_id: 'discord system text',
                         placeholder: '텍스트 선택해주세요!',
@@ -49,7 +49,7 @@ WHERE parent_id IS NULL
         case choices.indexOf('메세지'):
             interaction.reply({
                 content: `${choices[type]}`,
-                components: await selectComponentMenuByKey(
+                components: await selectComponentPagingMenuByKey(
                     {
                         custom_id: 'discord system text',
                         placeholder: '텍스트 선택해주세요!',
@@ -76,7 +76,7 @@ WHERE parent_id IS NULL
         case choices.indexOf('auth_type'):
             interaction.reply({
                 content: `${choices[type]}`,
-                components: await selectComponentMenuByKey(
+                components: await selectComponentPagingMenuByKey(
                     {
                         custom_id: 'discord system auth_type',
                         placeholder: '인증을 선택해주세요!',

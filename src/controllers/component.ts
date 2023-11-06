@@ -326,6 +326,43 @@ WHERE a.component_id = ?
         ParseInt(component_id)
     ).then(res => res[0]);
 
+export const getEmbedBaseEditByModel = async (component_id: ComponentId) =>
+    query<Omit<APIModalInteractionResponseCallbackData, 'custom_id'>>(
+        `
+SELECT CONCAT(a.component_id, '] 컴포넌트 수정') as title,
+    JSON_ARRAY(
+        JSON_OBJECT(
+            'type', 1, 'components', JSON_ARRAY(
+                JSON_OBJECT('type', 4,'custom_id', 'name', 'label', '이름', 'value', CAST(name AS CHAR), 'min_length', 1, 'max_length', 100, 'style', 1, 'required', true )
+            )
+        ),
+        JSON_OBJECT(
+            'type', 1, 'components', JSON_ARRAY(
+                JSON_OBJECT('type', 4,'custom_id', 'custom_id', 'label', '아이디', 'value', IFNULL(custom_id, ''), 'min_length', 0, 'max_length', 100, 'style', 1, 'required', false)
+            )
+        ),
+        JSON_OBJECT(
+            'type', 1, 'components', JSON_ARRAY(
+                JSON_OBJECT('type', 4,'custom_id', 'value', 'label', '값', 'value',IFNULL(value, '') , 'min_length', 0, 'max_length', 100, 'style', 1, 'required', false)
+            )
+        ),
+        JSON_OBJECT(
+            'type', 1, 'components', JSON_ARRAY(
+                JSON_OBJECT('type', 4,'custom_id', 'min_values', 'label', '최소값', 'value',IF(min_values IS null, '', CAST(min_values AS CHAR)), 'style', 1, 'required', false)
+            )
+        ),
+        JSON_OBJECT(
+            'type', 1, 'components', JSON_ARRAY(
+                JSON_OBJECT('type', 4,'custom_id', 'max_values', 'label', '최대값', 'value',IF(max_values  IS null, '', CAST(max_values AS CHAR)), 'style', 1, 'required', false)
+            )
+        )
+    ) AS components
+FROM component a
+WHERE a.component_id = ?
+        `,
+        ParseInt(component_id)
+    ).then(res => res[0]);
+
 export const getComponentGroupEditByModel = async (group_id: ComponentId) =>
     query<Omit<APIModalInteractionResponseCallbackData, 'custom_id'>>(
         `

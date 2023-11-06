@@ -1,19 +1,19 @@
 import axios from 'axios';
 import redis from 'utils/redis';
 
-const scope = ['channel:read:subscriptions', 'user:read:email']; // 권한
+const subscribeScope = ['channel:read:subscriptions', 'user:read:email']; // 권한
 
 export const getToken = async (id: string, sc: string) => {
     let token;
 
     try {
         token = await redis.get(`token:${id}`);
-        if (token) return { token, id, scope };
+        if (token) return { token, id, scope: subscribeScope };
     } catch (e) {}
 
     try {
         const { data } = await axios.post(
-            `https://id.twitch.tv/oauth2/token?client_id=${id}&client_secret=${sc}&grant_type=client_credentials&scope=${scope.join('%20')}`
+            `https://id.twitch.tv/oauth2/token?client_id=${id}&client_secret=${sc}&grant_type=client_credentials&scope=${subscribeScope.join('%20')}`
         );
         await redis.set(`token:${id}`, data.access_token, {
             EX: data.expires_in - 10,
@@ -21,7 +21,7 @@ export const getToken = async (id: string, sc: string) => {
 
         console.log({ message: '토큰 발급', data });
 
-        return { token: data.access_token, id, scope };
+        return { token: data.access_token, id, scope: subscribeScope };
     } catch (e) {
         console.error({ message: '토큰 발급 실패', e });
         throw e;

@@ -4,6 +4,8 @@ import {
     APIButtonComponentWithCustomId,
     APIButtonComponentWithURL,
     APIModalActionRowComponent,
+    APISelectMenuComponent,
+    APIStringSelectComponent,
     APITextInputComponent,
     ButtonStyle,
     ComponentType,
@@ -38,6 +40,20 @@ export const createUrlButton = (url: string, props: Omit<APIButtonComponentBase<
         ...props,
     };
 };
+
+export const createStringSelectMenu = (
+    custom_id: string,
+    props: Omit<APIStringSelectComponent, 'type' | 'custom_id'>
+): APIActionRowComponent<APISelectMenuComponent> => ({
+    type: ComponentType.ActionRow,
+    components: [
+        {
+            type: ComponentType.StringSelect,
+            custom_id,
+            ...props,
+        },
+    ],
+});
 
 export const createTextInput = (
     custom_id: string,

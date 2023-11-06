@@ -66,9 +66,7 @@ export const GetToken = async (id: string, sc: string, scope: string[]) => {
     const { data } = await axios.post(
         `https://id.twitch.tv/oauth2/token?client_id=${id}&client_secret=${sc}&grant_type=client_credentials&${scope.join('%20')}`
     );
-    await redis.set(token_id, data.access_token, {
-        EX: data.expires_in - 10,
-    });
+    await redis.set(token_id, data.access_token, { EX: data.expires_in - 10 });
 
     return { token: data.access_token, id, scope };
 };

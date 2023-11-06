@@ -1,6 +1,6 @@
 import { MessageInteraction } from 'interactions/message';
 
-import { selectComponentMenuByKey } from 'components/systemComponent';
+import { selectComponentPagingMenuByKey } from 'components/systemComponent';
 import {
     ParseInt,
     copyComponentActionRow,
@@ -33,7 +33,7 @@ export const exec = async (interaction: MessageInteraction, component_row_id: st
         }
         case 'option':
             interaction.reply({
-                components: await selectComponentMenuByKey(
+                components: await selectComponentPagingMenuByKey(
                     {
                         custom_id: `component_action_row edit ${component_row_id} option`,
                         placeholder: '컴포넌트를 선택해주세요!',
