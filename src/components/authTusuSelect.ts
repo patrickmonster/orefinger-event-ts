@@ -29,7 +29,6 @@ export default async (interaction: IReply, guild_id: string, user_id: string, tw
                             description: '데이터 무결성 오류 - 해당지급기가 존재하지 않습니다!',
                         }),
                     ],
-                    // components :
                 });
             }
 

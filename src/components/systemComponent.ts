@@ -3,13 +3,11 @@ import {
     APIBaseSelectMenuComponent,
     APIButtonComponent,
     APIMessageActionRowComponent,
-    APIModalInteractionResponseCallbackData,
     APISelectMenuOption,
-    ButtonStyle,
     ComponentType,
-    TextInputStyle,
 } from 'discord-api-types/v10';
-import { createQueryKey, orOf, selectQueryKeyPaging } from 'utils/queryKey';
+import { createPrimaryButton, createSecondaryButton, createSuccessButton } from 'utils/discord/component';
+import createQueryKey, { orOf, selectQueryKeyPaging } from 'utils/queryKey';
 
 type MenuProps = Omit<APIBaseSelectMenuComponent<ComponentType.StringSelect>, 'type'> & {
     button?: APIButtonComponent;
@@ -28,26 +26,27 @@ export const selectComponentMenuByKey = async (
     sql: string,
     ...params: any[]
 ): Promise<APIActionRowComponent<APIMessageActionRowComponent>[]> => {
-    const key = await createQueryKey({ sql, params, other: JSON.stringify(menuProps) });
-    return await selectComponentMenuKey(key);
+    const queryKey = await createQueryKey({ sql, params, other: JSON.stringify(menuProps) });
+    return await selectComponentMenuKey(queryKey);
 };
 
 /**
  * 쿼리키로 메뉴 컴포넌트 생성
  *  - 키를 기반으로 검색 매뉴를 생성합니다.
  * @param queryKey 쿼리키
+ * @param page 페이지
+ * @param searchQuery 변경쿼리
  * @returns APIActionRowComponent<APIMessageActionRowComponent>[]
  */
 export const selectComponentMenuKey = async (
     queryKey: string,
     page?: number,
-    searchQuery?: orOf // 변경쿼리
+    searchQuery?: orOf
 ): Promise<APIActionRowComponent<APIMessageActionRowComponent>[]> => {
-    const out = await selectQueryKeyPaging<APISelectMenuOption>(queryKey, { page: page ?? 0, limit: 15 }, searchQuery);
-    console.log('SystemComponent] selectComponentMenuByKey', queryKey, out);
+    const resultQuery = await selectQueryKeyPaging<APISelectMenuOption>(queryKey, { page: page ?? 0, limit: 15 }, searchQuery);
+    console.log('SystemComponent] selectComponentMenuByKey', queryKey, resultQuery);
 
-    // 키의 보존시간이 만료됨.
-    if (!out)
+    if (!resultQuery)
         return [
             {
                 type: ComponentType.ActionRow,
@@ -55,23 +54,19 @@ export const selectComponentMenuKey = async (
             },
         ];
 
-    const { result, other, search } = out;
+    const { result, other, search } = resultQuery;
 
     const menuProps: MenuProps = JSON.parse(other);
-    console.log('other', other);
 
     if (!result.total)
         return [
             {
                 type: ComponentType.ActionRow,
                 components: [
-                    {
-                        type: ComponentType.Button,
-                        style: ButtonStyle.Primary,
+                    createPrimaryButton(`key back ${queryKey}`, {
                         label: '검색결과가 없습니다.',
-                        custom_id: `key back ${queryKey}`,
                         disabled: searchQuery ? false : true,
-                    },
+                    }),
                     menuProps.button ?? null,
                 ].filter(v => v != null) as APIButtonComponent[],
             },
@@ -93,38 +88,22 @@ export const selectComponentMenuKey = async (
         {
             type: ComponentType.ActionRow,
             components: [
-                {
-                    type: ComponentType.Button,
-                    style: 1,
-                    // label: '이전',
+                createPrimaryButton(result.page == 0 ? queryKey : `key ${result.page - 1} ${queryKey}`, {
                     emoji: { name: '⬅️' },
-                    custom_id: result.page == 0 ? queryKey : `key ${result.page - 1} ${queryKey}`,
                     disabled: result.page == 0,
-                } as APIButtonComponent,
-                {
-                    type: ComponentType.Button,
-                    style: ButtonStyle.Success,
+                }),
+                createSuccessButton(`key page ${queryKey}`, {
                     label: `${result.page}/${result.totalPage}`,
-                    custom_id: `key page ${queryKey}`,
-                    emoji: { name: '🔍' },
                     disabled: other.isSubQuery ? true : false,
-                } as APIButtonComponent,
-                {
-                    type: ComponentType.Button,
-                    style: ButtonStyle.Secondary,
-                    // label: '검색 초기화',
+                }),
+                createSecondaryButton(`key back ${queryKey}`, {
                     emoji: { name: '↩️' },
-                    custom_id: `key back ${queryKey}`,
                     disabled: search && Object.keys(search).length ? false : true,
-                } as APIButtonComponent,
-                {
-                    type: ComponentType.Button,
-                    style: 1,
-                    // label: '다음',
+                }),
+                createPrimaryButton(`key ${result.page + 1} ${queryKey}`, {
                     emoji: { name: '➡️' },
-                    custom_id: `key ${result.page + 1} ${queryKey}`,
                     disabled: result.page >= result.totalPage,
-                } as APIButtonComponent,
+                }),
                 menuProps.button,
             ].filter((v: APIButtonComponent | undefined) => v != undefined) as APIButtonComponent[],
         },
@@ -143,37 +122,9 @@ export const editerComponent = (base_id: string, buttons: APIButtonComponent[]):
     return {
         type: ComponentType.ActionRow,
         components: [
-            {
-                type: ComponentType.Button,
-                style: ButtonStyle.Primary,
-                label: '수정',
-                custom_id: `${base_id} edit`,
-            },
-            {
-                type: ComponentType.Button,
-                style: ButtonStyle.Primary,
-                label: '복사',
-                custom_id: `${base_id} copy`,
-            },
-            // { // -- use_yn 으로 대체됨
-            //     type: ComponentType.Button,
-            //     style: ButtonStyle.Danger,
-            //     label: '삭제',
-            //     custom_id: `${base_id} delete`,
-            // },
+            createPrimaryButton(`${base_id} edit`, { label: '수정' }),
+            createPrimaryButton(`${base_id} copy`, { label: '복사' }),
             ...buttons,
-            // {
-            //     type: ComponentType.Button,
-            //     style: ButtonStyle.Danger,
-            //     label: '테스트',
-            //     custom_id: `test`,
-            // },
-            // {
-            //     type: ComponentType.Button,
-            //     style: ButtonStyle.Secondary,
-            //     label: '취소',
-            //     custom_id: `system cancel`,
-            // },
         ],
     };
 };
@@ -250,75 +201,3 @@ enum EmbedEditComponent {
     author = 'author',
     field = 'field',
 }
-
-// 에디트 베이스 모달
-export const embedEdit = async (embed_id: string, target: EmbedEditComponent): Promise<APIModalInteractionResponseCallbackData> => {
-    switch (target) {
-        case EmbedEditComponent.title:
-            return {
-                custom_id: `embedEdit ${embed_id} ${EmbedEditComponent.title}`,
-                title: '제목',
-                components: [
-                    {
-                        type: ComponentType.ActionRow,
-                        components: [
-                            {
-                                type: ComponentType.TextInput,
-                                custom_id: 'title',
-                                style: TextInputStyle.Short,
-                                label: '제목',
-                                max_length: 100,
-                                min_length: 1,
-                            },
-                            {
-                                type: ComponentType.TextInput,
-                                custom_id: 'url',
-                                style: TextInputStyle.Short,
-                                label: '링크',
-                            },
-                        ],
-                    },
-                ],
-            };
-        case EmbedEditComponent.description:
-            break;
-        case EmbedEditComponent.color:
-            break;
-        case EmbedEditComponent.footer:
-            break;
-        case EmbedEditComponent.image:
-            break;
-        case EmbedEditComponent.thumbnail:
-            break;
-        case EmbedEditComponent.author:
-            break;
-        case EmbedEditComponent.field:
-            break;
-    }
-
-    return {
-        custom_id: `embedEdit ${embed_id} ${EmbedEditComponent.title}`,
-        title: '제목',
-        components: [
-            {
-                type: ComponentType.ActionRow,
-                components: [
-                    {
-                        type: ComponentType.TextInput,
-                        custom_id: 'title',
-                        style: TextInputStyle.Short,
-                        label: '제목',
-                        max_length: 100,
-                        min_length: 1,
-                    },
-                    {
-                        type: ComponentType.TextInput,
-                        custom_id: 'url',
-                        style: TextInputStyle.Short,
-                        label: '링크',
-                    },
-                ],
-            },
-        ],
-    };
-};

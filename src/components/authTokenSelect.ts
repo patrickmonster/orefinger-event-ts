@@ -1,7 +1,7 @@
 import { tokens } from 'controllers/auth';
 import { APIActionRowComponent, APIStringSelectComponent } from 'discord-api-types/v10';
 import moment from 'moment';
-import menu from 'utils/menuComponent';
+import menuComponentBuild from 'utils/menuComponentBuild';
 
 moment.locale('ko');
 
@@ -31,7 +31,7 @@ export default (user_id: string, custom_id: string, ...types: number[]): Promise
             case 1:
                 return user[0];
             default:
-                return menu(
+                return menuComponentBuild(
                     {
                         custom_id,
                         placeholder: '인증을 완료하실 계정을 선택 해 주세요!',

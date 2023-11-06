@@ -1,7 +1,7 @@
-import getConnection, { query, SqlInsertUpdate, format, calTo } from 'utils/database';
+import getConnection, { SqlInsertUpdate, calTo, format, query } from 'utils/database';
 
 import { webhook as webhookUpdateType } from 'interfaces/webhook';
-import { deleteObjectColByKey } from 'utils/object';
+import { deleteObjectByKey } from 'utils/object';
 import { userIds } from './auth';
 
 export type webhookType = {
@@ -55,7 +55,7 @@ export const webhookUpdate = async (data: webhookUpdateType) =>
             type
         );
 
-        const inData = deleteObjectColByKey(data, 'user_id', 'type');
+        const inData = deleteObjectByKey(data, 'user_id', 'type');
         // 해당 길드의 사용자 알림을 한개 생성 / 업데이트
         await QUERY<SqlInsertUpdate>(
             `
@@ -70,7 +70,7 @@ from (
 ON DUPLICATE KEY UPDATE ?, update_at=CURRENT_TIMESTAMP, delete_yn='N'
             `,
             ids.map(v => v.user_id),
-            deleteObjectColByKey(inData, 'guild_id')
+            deleteObjectByKey(inData, 'guild_id')
         );
 
         return QUERY<webhookType>(
