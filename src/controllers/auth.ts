@@ -4,9 +4,16 @@ import { SqlInsertUpdate, YN, calTo, query, queryFunctionType } from 'utils/data
 
 import { Event } from 'interfaces/eventsub';
 
-export const discord = async (profile: AuthUser, refreshToken: string) => auth('discord', profile.id, profile, refreshToken);
+export const discord = async (profile: AuthUser, refreshToken: string) =>
+    auth('discord', profile.id, profile, refreshToken);
 
-export const auth = async (type: string, auth_id: string, profile: AuthUser, refreshToken: string, user_type?: string) => {
+export const auth = async (
+    type: string,
+    auth_id: string,
+    profile: AuthUser,
+    refreshToken: string,
+    user_type?: string
+) => {
     const { id, username, discriminator, email, avatar } = profile;
     return query(`select func_auth_token(?) as user_type`, [
         type,
