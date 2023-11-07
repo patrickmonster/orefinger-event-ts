@@ -9,7 +9,13 @@ import {
     APISelectMenuOption,
     ComponentType,
 } from 'discord-api-types/v10';
-import { ComponentActionRow, ComponentActionRowConnect, ComponentCreate, ComponentOptionConnect, ComponentOptionCreate } from 'interfaces/component';
+import {
+    ComponentActionRow,
+    ComponentActionRowConnect,
+    ComponentCreate,
+    ComponentOptionConnect,
+    ComponentOptionCreate,
+} from 'interfaces/component';
 import { Paging } from 'interfaces/swagger';
 
 export type ComponentId = number | string;
@@ -170,21 +176,24 @@ export const selectComponentOptionDtil = async (option_id: number) =>
 export const selectComponentStyleList = async () =>
     query<APISelectMenuOption>(
         `
-    SELECT style_idx AS label
-        , CAST(tag AS CHAR) AS value
-    FROM component_style cs 
-    WHERE use_yn = 'Y'
+SELECT style_idx AS label
+    , CAST(tag AS CHAR) AS value
+FROM component_style cs 
+WHERE use_yn = 'Y'
            `
     );
 
-export const getComponentTypeList = async (select_item?: string | number) =>
+export const getComponentTypeList = async (component_id?: ComponentId) =>
     query<APISelectMenuOption>(
         `
-    SELECT CAST(ct.type AS CHAR) AS value
-        , CONCAT(ct.type, ']', tag) AS label
-        ${calTo(', IF(ct.type = ?, true, false) AS `default`', select_item)}
-    FROM component_type ct  
-    WHERE use_yn = 'Y'
+SELECT CAST(ct.type AS CHAR) AS value
+    , CONCAT(ct.type, ']', tag) AS label
+    ${calTo(
+        ', IF(ct.type = ( SELECT type_idx FROM component c WHERE c.component_id = ? ), true, false) AS `default`',
+        component_id
+    )}
+FROM component_type ct  
+WHERE use_yn = 'Y'
            `
     );
 
@@ -196,7 +205,7 @@ export const getComponentTypeList = async (select_item?: string | number) =>
  * @returns
  */
 export const selectComponentDtilByEmbed = async (component_id: ComponentId) =>
-    query<{ embed: APIEmbed; type: number }>(
+    query<{ embed: APIEmbed }>(
         `
 SELECT 
     JSON_OBJECT(
@@ -215,14 +224,13 @@ SELECT
         'footer', JSON_OBJECT('text', name),
         'timestamp', a.create_at 
     ) AS embed
-    , c.type_idx as type
 FROM component a
 LEFT JOIN component_type c ON a.type_idx = c.type_idx 
 LEFT JOIN component_style d ON a.style_id = d.style_idx AND d.use_yn ='Y'
 WHERE a.component_id = ?
         `,
         ParseInt(component_id)
-    ).then(res => res[0]);
+    ).then(res => res[0].embed);
 
 /**
  * 컴포넌트 상위 그룹 상세를 Embed 형태로 반환합니다.
@@ -230,7 +238,7 @@ WHERE a.component_id = ?
  * @returns
  */
 export const selectComponentConnectGroupDtilByEmbed = async (component_group_id: ComponentId) =>
-    query<{ embed: APIEmbed; type: number }>(
+    query<{ embed: APIEmbed }>(
         `
 SELECT 
     JSON_OBJECT(
@@ -238,13 +246,12 @@ SELECT
         'author', JSON_OBJECT('name', IFNULL(c.tag, '없음')),
         'timestamp', cg.create_at 
     ) AS embed
-    , cg.group_type as type
 FROM component_group cg
 LEFT JOIN component_type c ON cg.type_idx = c.type_idx 
 WHERE cg.group_id = ?
         `,
         ParseInt(component_group_id)
-    ).then(res => res[0]);
+    ).then(res => res[0].embed);
 
 /**
  * 컴포넌트 상위 그룹 상세를 Embed 형태로 반환합니다.
@@ -284,7 +291,7 @@ LEFT JOIN component c ON c.component_id = car.component_id
 GROUP BY car.component_row_id 
         `,
         ParseInt(component_group_id)
-    ).then(res => res[0]);
+    ).then(res => res[0].embed);
 
 // ========================================================================================================
 // select component
@@ -384,7 +391,8 @@ AND COLUMN_NAME LIKE '%_yn'
 SELECT JSON_ARRAY(
     ${list
         .map(
-            ({ column_name }) => `JSON_OBJECT('label', '${column_name}', 'value', '${column_name}', 'default', IF(${column_name} = 'Y', TRUE, FALSE))`
+            ({ column_name }) =>
+                `JSON_OBJECT('label', '${column_name}', 'value', '${column_name}', 'default', IF(${column_name} = 'Y', TRUE, FALSE))`
         )
         .join(',')})AS \`options\`
 FROM ${targetTable} c
@@ -479,7 +487,10 @@ export const updateComponentActionRowConnect = async (
  * @param component_id
  * @returns
  */
-export const upsertComponent = async (component: Partial<Omit<Component, 'component_id'>>, component_id?: ComponentId) =>
+export const upsertComponent = async (
+    component: Partial<Omit<Component, 'component_id'>>,
+    component_id?: ComponentId
+) =>
     query<SqlInsertUpdate>(
         component_id
             ? `UPDATE component SET ?, update_at=CURRENT_TIMESTAMP WHERE component_id = ${calTo('?', component_id)}`
@@ -496,7 +507,10 @@ export const upsertComponent = async (component: Partial<Omit<Component, 'compon
 export const upsertComponentActionRow = async (component: Partial<ComponentActionRow>, component_id?: ComponentId) =>
     query<SqlInsertUpdate>(
         component_id
-            ? `UPDATE component_action_row SET ?, update_at=CURRENT_TIMESTAMP WHERE component_id = ${calTo('?', component_id)}`
+            ? `UPDATE component_action_row SET ?, update_at=CURRENT_TIMESTAMP WHERE component_id = ${calTo(
+                  '?',
+                  component_id
+              )}`
             : `INSERT INTO component_action_row SET ?`,
         component
     );
@@ -507,7 +521,9 @@ export const upsertComponentActionRow = async (component: Partial<ComponentActio
  * @param component_id
  * @returns
  */
-export const upsertComponentActionRowConnect = async (components: ComponentActionRowConnect | ComponentActionRowConnect[]) =>
+export const upsertComponentActionRowConnect = async (
+    components: ComponentActionRowConnect | ComponentActionRowConnect[]
+) =>
     getConnection(async query => {
         const out = {
             affectedRows: 0,
@@ -586,7 +602,8 @@ export const upsertComponentOptionConnect = async (components: ComponentOptionCo
  * @param component
  * @returns
  */
-export const createComponent = async (component: ComponentCreate) => query<SqlInsertUpdate>(`INSERT INTO component SET ?`, component);
+export const createComponent = async (component: ComponentCreate) =>
+    query<SqlInsertUpdate>(`INSERT INTO component SET ?`, component);
 
 /**
  * 컴포넌트 옵션 생성
