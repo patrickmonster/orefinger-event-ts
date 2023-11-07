@@ -6,7 +6,16 @@ WORKDIR /usr/src/app
 
 # curl 모듈 설치
 RUN apk --no-cache add curl
-
+RUN apk --update --no-cache add \
+    make \
+    g++ \
+    jpeg-dev \
+    cairo-dev \
+    giflib-dev \
+    pango-dev \
+    libtool \
+    autoconf \
+    automake
 
 # 패키지 설치
 COPY *.json ./
