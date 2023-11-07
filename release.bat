@@ -75,6 +75,12 @@ set /p input="현재 브런치를 병합 하시겠습니까? 승인(엔터)/종�
 
 if not "%input%" == "" (
     echo "브런치를 병합합니다."
+    if not "!featBranch:feat/=!" == "!featBranch!" (
+        echo "현재 브런치가 feat/* 브런치가 아닙니다."
+        echo "브런치를 feat/* 브런치만 병합이 가능합니다."
+        git checkout !featBranch!
+        exit /b 1
+    )
     REM git checkout !featBranch!
     git merge !featBranch!
     git push

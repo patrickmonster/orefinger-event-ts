@@ -4,11 +4,11 @@
 featBranch=$(git branch --show-current)
 
 # 현재 브런치 정보 확인
-if [[ ! $featBranch == feat/* ]]; then
-    echo "현재 브런치가 feat/* 브런치가 아닙니다."
-    echo "브런치를 feat/* 브런치로 변경 후 다시 시도해주세요."
-    exit 1
-fi
+# if [[ ! $featBranch == feat/* ]]; then
+#     echo "현재 브런치가 feat/* 브런치가 아닙니다."
+#     echo "브런치를 feat/* 브런치로 변경 후 다시 시도해주세요."
+#     exit 1
+# fi
 
 # 현재 커밋 적용
 echo "현재 브런치를 커밋합니다."
@@ -77,6 +77,14 @@ open "https://github.com/patrickmonster/orefinger-event-ts/compare/master...rele
 read -p "현재 브런치를 병합 하시겠습니까? 승인(엔터)/종료(다른키)" input
 
 if [[ -z "$input" ]]; then
+
+    if [[ ! $featBranch == feat/* ]]; then
+        echo "현재 브런치가 feat/* 브런치가 아닙니다."
+        echo "브런치를 feat/* 브런치인 경우에만, 버전 관리가 가능합니다."
+        git checkout $featBranch
+        exit 1
+    fi
+    
     echo "브런치를 병합합니다."
     # git checkout $featBranch
     git merge $featBranch
