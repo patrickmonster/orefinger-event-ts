@@ -3,12 +3,10 @@ import { MessageInteraction } from 'interactions/message';
 
 /**
  *
- * 컴포넌트 action row 수정
+ * 컴포넌트 생성
  * @param interaction
  */
 export const exec = async (interaction: MessageInteraction) => {
-    //
-
     const { insertId } = await createComponent({ name: '임시항목' });
     const model = await selectComponentBaseEditByModel(insertId);
 
