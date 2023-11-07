@@ -2,8 +2,6 @@ import { MessageInteraction } from 'interactions/message';
 
 import authTokenSelect from 'components/authTokenSelect';
 
-import {} from 'components/onlineTwitchChannel';
-
 /**
  *
  * 온라인 알림 이벤트 등록
