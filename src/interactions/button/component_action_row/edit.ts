@@ -17,7 +17,12 @@ import { ButtonStyle, ComponentType } from 'discord-api-types/v10';
  * 컴포넌트 action row 수정
  * @param interaction
  */
-export const exec = async (interaction: MessageInteraction, component_row_id: string, type: string, component_id: string) => {
+export const exec = async (
+    interaction: MessageInteraction,
+    component_row_id: string,
+    type: string,
+    component_id: string
+) => {
     const {
         component,
         message: { components },
@@ -25,9 +30,8 @@ export const exec = async (interaction: MessageInteraction, component_row_id: st
     } = interaction;
     switch (type) {
         case 'reload': {
-            const { embed } = await selectComponentRowDtilByEmbed(component_row_id);
             interaction.edit({
-                embeds: [embed],
+                embeds: [await selectComponentRowDtilByEmbed(component_row_id)],
             });
             break;
         }
@@ -61,7 +65,12 @@ LEFT JOIN component_action_row_connect carc ON carc.component_row_id = ? AND car
             if (!component_id) {
                 interaction.reply({
                     ephemeral: true,
-                    components: [await selectComponentRowEditByOrder(component_row_id, `component_action_row edit ${component_row_id} order`)],
+                    components: [
+                        await selectComponentRowEditByOrder(
+                            component_row_id,
+                            `component_action_row edit ${component_row_id} order`
+                        ),
+                    ],
                 });
             } else {
                 if (!component) return; // 있을수 없음
@@ -75,7 +84,8 @@ LEFT JOIN component_action_row_connect carc ON carc.component_row_id = ? AND car
                 }).length;
 
                 // 첫 선택시 모두 초기화
-                if (selectItemCount <= 1) await updateComponentActionRowConnect(component_row_id, null, { sort_number: 99 });
+                if (selectItemCount <= 1)
+                    await updateComponentActionRowConnect(component_row_id, null, { sort_number: 99 });
                 // 해당 번호 할당
                 await upsertComponentActionRowConnect({
                     component_row_id: parseInt(component_row_id),

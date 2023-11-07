@@ -6,7 +6,12 @@ import {
     APISelectMenuOption,
     ComponentType,
 } from 'discord-api-types/v10';
-import { createPrimaryButton, createSecondaryButton, createStringSelectMenu, createSuccessButton } from 'utils/discord/component';
+import {
+    createPrimaryButton,
+    createSecondaryButton,
+    createStringSelectMenu,
+    createSuccessButton,
+} from 'utils/discord/component';
 import createQueryKey, { orOf, selectQueryKeyPaging } from 'utils/queryKey';
 
 type MenuProps = Omit<APIBaseSelectMenuComponent<ComponentType.StringSelect>, 'type'> & {
@@ -43,7 +48,11 @@ export const selectComponentPagingMenuKey = async (
     page?: number,
     searchQuery?: orOf
 ): Promise<APIActionRowComponent<APIMessageActionRowComponent>[]> => {
-    const resultQuery = await selectQueryKeyPaging<APISelectMenuOption>(queryKey, { page: page ?? 0, limit: 15 }, searchQuery);
+    const resultQuery = await selectQueryKeyPaging<APISelectMenuOption>(
+        queryKey,
+        { page: page ?? 0, limit: 15 },
+        searchQuery
+    );
     console.log('SystemComponent] selectComponentPagingMenuByKey', queryKey, resultQuery);
 
     if (!resultQuery)
@@ -112,7 +121,10 @@ export const selectComponentPagingMenuKey = async (
  * @param embed_id
  * @returns
  */
-export const editerComponent = (base_id: string, buttons: APIButtonComponent[]): APIActionRowComponent<APIMessageActionRowComponent> => {
+export const editerComponent = (
+    base_id: string,
+    buttons: APIButtonComponent[]
+): APIActionRowComponent<APIMessageActionRowComponent> => {
     return {
         type: ComponentType.ActionRow,
         components: [
@@ -129,7 +141,10 @@ export const editerComponent = (base_id: string, buttons: APIButtonComponent[]):
  * @param skip_footer 푸터를 생략할지 여부 (생략시, 방송알리미로 푸터가 고정됨)
  * @returns
  */
-export const editerComponentEmbedTemplate = (base_id: string, skip_footer?: boolean): APIActionRowComponent<APIMessageActionRowComponent> => {
+export const editerComponentEmbedTemplate = (
+    base_id: string,
+    skip_footer?: boolean
+): APIActionRowComponent<APIMessageActionRowComponent> => {
     const options = [
         { label: '타이틀', value: 'title' },
         { label: '설명', value: 'description' },
@@ -146,26 +161,6 @@ export const editerComponentEmbedTemplate = (base_id: string, skip_footer?: bool
         max_values: 1,
         min_values: 1,
         placeholder: '값 변경',
-        options,
-    });
-};
-
-/**
- * 에디터 컴포넌트 - 컴포넌트 템플릿용
- * @param embed_id
- * @param skip_footer 푸터를 생략할지 여부 (생략시, 방송알리미로 푸터가 고정됨)
- * @returns
- */
-export const editerComponentComponentTemplate = (base_id: string): APIActionRowComponent<APIMessageActionRowComponent> => {
-    const options = [
-        { label: '기본설정', value: 'base' },
-        { label: '텍스트', value: 'text' },
-    ];
-
-    return createStringSelectMenu(`${base_id} select`, {
-        max_values: 1,
-        min_values: 1,
-        placeholder: '변경',
         options,
     });
 };

@@ -8,10 +8,9 @@ import { MessageMenuInteraction } from 'interactions/message';
  */
 export const exec = async (interaction: MessageMenuInteraction, values: Record<string, string>) => {
     const { insertId } = await upsertComponentActionRow(values);
-    const data = await selectComponentRowDtilByEmbed(insertId);
-    if (!data) return await interaction.edit({ content: '해당 메세지를 찾을 수 없습니다.', ephemeral: true });
+    const embed = await selectComponentRowDtilByEmbed(insertId);
+    if (!embed) return await interaction.edit({ content: '해당 메세지를 찾을 수 없습니다.', ephemeral: true });
 
-    const { embed } = data;
     interaction.reply({
         ephemeral: true,
         content: '생성되었습니다!',

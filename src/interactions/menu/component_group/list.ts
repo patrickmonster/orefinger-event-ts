@@ -16,12 +16,11 @@ export const exec = async (interaction: MessageMenuInteraction) => {
     } = interaction;
 
     await interaction.differ({ ephemeral: true });
-    const data = await selectComponentConnectGroupDtilByEmbed(component_id);
+    const embed = await selectComponentConnectGroupDtilByEmbed(component_id);
 
-    if (!data) {
+    if (!embed) {
         interaction.reply({ content: '해당 메세지를 찾을 수 없습니다.', ephemeral: true });
     } else {
-        const { embed, type } = data;
         const id = `component_group edit ${component_id}`;
 
         interaction.reply({

@@ -2,8 +2,7 @@ import { MessageMenuInteraction } from 'interactions/message';
 
 import { editerComponent } from 'components/systemComponent';
 import { selectComponentRowDtilByEmbed } from 'controllers/component';
-import { ButtonStyle, ComponentType } from 'discord-api-types/v10';
-import { createPrimaryButton, createSuccessButton } from 'utils/discord/component';
+import { createSuccessButton } from 'utils/discord/component';
 
 /**
  *
@@ -16,12 +15,11 @@ export const exec = async (interaction: MessageMenuInteraction) => {
     } = interaction;
 
     await interaction.differ({ ephemeral: true });
-    const data = await selectComponentRowDtilByEmbed(component_id);
+    const embed = await selectComponentRowDtilByEmbed(component_id);
 
-    if (!data) {
+    if (!embed) {
         interaction.reply({ content: '해당 메세지를 찾을 수 없습니다.', ephemeral: true });
     } else {
-        const { embed } = data;
         const id = `component_action_row edit ${component_id}`;
 
         interaction.reply({

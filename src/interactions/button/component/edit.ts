@@ -11,9 +11,8 @@ import { copyComponent, selectComponentBaseEditByModel, selectComponentDtilByEmb
 export const exec = async (interaction: MessageInteraction, component_id: string, target: string) => {
     switch (target) {
         case 'reload': {
-            const { embed } = await selectComponentDtilByEmbed(component_id);
             interaction.edit({
-                embeds: [embed],
+                embeds: [await selectComponentDtilByEmbed(component_id)],
             });
             break;
         }

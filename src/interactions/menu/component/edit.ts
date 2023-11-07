@@ -61,10 +61,9 @@ export const exec = async (interaction: MessageMenuInteraction, component_id: st
                     }, {}) as Partial<ComponentCreate>
                 );
 
-                const { embed } = await selectComponentDtilByEmbed(component_id);
 
                 interaction.edit({
-                    embeds: [embed],
+                    embeds: [await selectComponentDtilByEmbed(component_id);],
                     components,
                 });
             } catch (error) {
@@ -127,10 +126,9 @@ export const exec = async (interaction: MessageMenuInteraction, component_id: st
         }
         case 'text': {
             await updateComponent(component_id, { label_id: parseInt(select_id) });
-            const { embed } = await selectComponentDtilByEmbed(component_id);
             interaction.reply({
                 content: `변경된 렌더링 - ${component_id}`,
-                embeds: [embed],
+                embeds: [await selectComponentDtilByEmbed(component_id);],
                 ephemeral: true,
             });
             break;
