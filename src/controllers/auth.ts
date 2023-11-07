@@ -1,12 +1,19 @@
 'use strict';
-import { query, format, SqlInsertUpdate, queryFunctionType, selectPaging } from 'utils/database';
 import { AuthUser } from 'interfaces/auth';
+import { SqlInsertUpdate, YN, calTo, query, queryFunctionType } from 'utils/database';
 
 import { Event } from 'interfaces/eventsub';
 
-export const discord = async (profile: AuthUser, refreshToken: string) => auth('discord', profile.id, profile, refreshToken);
+export const discord = async (profile: AuthUser, refreshToken: string) =>
+    auth('discord', profile.id, profile, refreshToken);
 
-export const auth = async (type: string, auth_id: string, profile: AuthUser, refreshToken: string, user_type?: string) => {
+export const auth = async (
+    type: string,
+    auth_id: string,
+    profile: AuthUser,
+    refreshToken: string,
+    user_type?: string
+) => {
     const { id, username, discriminator, email, avatar } = profile;
     return query(`select func_auth_token(?) as user_type`, [
         type,
@@ -125,7 +132,7 @@ and use_yn ='Y'
         user_id
     );
 
-export const tokens = (user_id: string, ...types: number[]) =>
+export const tokens = (auth_id: string, ...types: number[]) =>
     query<{
         type: number;
         user_id: string;
@@ -155,11 +162,10 @@ select vat.type
     , update_at
 from v_auth_token vat 
 where auth_id = ?
-${types.length ? '' : '-- '}and vat.type in (?)
+${calTo('AND vat.type in (?)', types)}
 group by user_id
 `,
-        user_id,
-        types
+        auth_id
     );
 
 //
@@ -182,28 +188,37 @@ and g.name > ''`,
     );
 
 export type GetAuthUsersSearchOption = {
-    page: number;
     user_id?: string;
     auth_id?: string;
     login?: string;
     name?: string;
 };
-export const getAuthUsers = ({ page = 0, user_id = '', auth_id = '', login = '', name = '' }: GetAuthUsersSearchOption) =>
-    selectPaging(
+export const selectAuthUsers = ({ user_id, auth_id, login, name }: GetAuthUsersSearchOption) =>
+    query<{
+        type: number;
+        user_id: string;
+        auth_id: string;
+        login: string;
+        name: string;
+        kr_name: string;
+        user_type: number;
+        email: string;
+        avatar: string;
+        avatar_id: string;
+        refresh_token: string;
+        is_session: YN;
+        create_at: string;
+        update_at: string;
+    }>(
         `
 select *
 from v_auth_token vat 
 where 1=1
-${auth_id ? '' : '-- '}and auth_id = ?
-${user_id ? '' : '-- '}and user_id = ?
-${login ? '' : '-- '}and login = ?
-${name ? '' : '-- '}and name = ?
-    `,
-        page,
-        auth_id,
-        user_id,
-        login,
-        name
+${calTo('AND auth_id = ?', auth_id)}
+${calTo('AND user_id = ?', user_id)}
+${calTo('AND login = ?', login)}
+${calTo('AND name = ?', name)}
+    `
     );
 
 // 옵션에 대한 사용자 정보를 불러옴

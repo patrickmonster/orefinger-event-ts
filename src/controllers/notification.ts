@@ -1,4 +1,4 @@
-import { query, SqlInsertUpdate } from 'utils/database';
+import { query } from 'utils/database';
 
 export const liveList = () =>
     query(
@@ -22,7 +22,7 @@ LIMIT 0, 30
     `
     );
 
-export const getUserEvents = (user_id: string, events: string[]) =>
+export const selectUserEvents = (user_id: string, events: string[]) =>
     query(
         `
 SELECT ei.type, ei.user_id, ei.token, ei.data, ei.use_yn, t.value 

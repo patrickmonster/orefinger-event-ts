@@ -1,9 +1,9 @@
-import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
+import { FastifyInstance } from 'fastify';
 
-import { getEmbedList, createEmbed, updateEmbed } from 'controllers/embed';
+import { createEmbed, selectEmbedList, updateEmbed } from 'controllers/embed';
 
-import { Paging } from 'interfaces/swagger';
 import { EmbedCreate } from 'interfaces/embed';
+import { Paging } from 'interfaces/swagger';
 
 export default async (fastify: FastifyInstance, opts: any) => {
     fastify.addSchema({
@@ -90,7 +90,7 @@ export default async (fastify: FastifyInstance, opts: any) => {
                 querystring: { $ref: 'paging#' },
             },
         },
-        async req => await getEmbedList(req.query.page)
+        async req => await selectEmbedList(req.query.page)
     );
 
     fastify.post<{

@@ -1,9 +1,11 @@
 'use strict';
 import { Paging } from 'interfaces/swagger';
-import mysql, { Pool, PoolConnection } from 'mysql2/promise';
+import mysql, { Pool, PoolConnection, RowDataPacket } from 'mysql2/promise';
 import { env } from 'process';
 
 export const format = mysql.format;
+
+export type YN = 'Y' | 'N' | boolean;
 
 const pool: Pool = mysql.createPool({
     host: env.DB_HOST,
@@ -37,13 +39,13 @@ const sqlLogger = (query: string, params: any[], rows: any[] | any) => {
 
 // 커넥션 쿼리 함수
 // select / insert / update / delete
-type ResqultQuery<E> = E extends SqlInsertUpdate ? sqlInsertUpdate : E[];
+type ResqultQuery<E> = E extends SqlInsertUpdate ? sqlInsertUpdate : Array<E>;
 type ResqultPaggingQuery<E> = E extends SqlInsertUpdate
     ? null
     : {
           total: number;
           totalPage: number;
-          list: E[];
+          list: ResqultQuery<E>;
           listCount: number;
           page: number;
       };
@@ -59,6 +61,23 @@ export enum SQLType {
 // SQL 타입 - insert / update / delete 인 경우  queryFunctionType 의 리턴 타입이 sqlInsertUpdate
 export type SqlInsertUpdate = SQLType.insert | SQLType.update | SQLType.delete;
 
+export const resultParser = <E>(rows: any[] | any) =>
+    JSON.parse(
+        JSON.stringify(rows, (k, v) => {
+            if (typeof v != 'string') return v;
+            if (k.endsWith('_yn')) return v == 'Y' ? true : false;
+            if (v == 'Y') return true;
+            if (v == 'N') return false;
+            return v;
+        })
+    );
+
+/**
+ * 트렌젝션 모드로 커넥션을 가져옵니다.
+ * @param connectionPool
+ * @param isTransaction
+ * @returns
+ */
 const getConnection = async <T>(connectionPool: (queryFunction: queryFunctionType) => Promise<T>, isTransaction = false) => {
     let connect: PoolConnection | null = null;
     try {
@@ -68,23 +87,15 @@ const getConnection = async <T>(connectionPool: (queryFunction: queryFunctionTyp
             try {
                 const [rows] = await connect!.query(query, params);
                 sqlLogger(query, params, rows);
-
                 return Array.isArray(rows)
-                    ? JSON.parse(
-                          JSON.stringify(rows, (k, v) => {
-                              if (typeof v != 'string') return v; // TODO: string 이 아닌경우 리턴
-                              if (k.endsWith('_yn')) return v == 'Y' ? true : false; // TODO: yn 인경우
-                              if (v == 'Y') return true;
-                              if (v == 'N') return false;
-                              return v;
-                          })
-                      )
+                    ? resultParser(rows)
                     : {
                           affectedRows: rows.affectedRows,
                           changedRows: rows.changedRows,
                           insertId: rows.insertId,
                       };
             } catch (e) {
+                console.error('SQL]', format(query, params));
                 console.error('SQL]', e);
                 connect!.query('INSERT INTO discord_log.error_sql set `sql` = ?, target = ?', [mysql.format(query, params), env.NODE_ENV || 'dev']);
                 throw e;
@@ -118,29 +129,45 @@ export const query = async <E>(query: string, ...params: any[]): Promise<Resqult
 export const setLimit = (l: number) => (limit = l);
 
 // 페이징하여 조회
-export const selectPaging = async <E>(query: string, paging: Paging | number, ...params: any[]) =>
-    await getConnection(async (c: queryFunctionType) => {
+export const selectPaging = async <E>(query: string, paging: Paging | number, ...params: any[]) => {
+    let connect: PoolConnection | null = null;
+    try {
+        connect = await pool.getConnection();
         const page = typeof paging == 'number' ? paging : paging.page;
-        let size = typeof paging == 'number' ? limit : ((paging.limit || limit) as number);
-        const result = await c<E>(`${query}\nlimit ?, ?`, ...params, page <= 0 ? 0 : page * size, size);
-        const [{ total }] = await c<{
-            total: number;
-        }>(
-            `
-SELECT COUNT(1) AS total FROM (
-${query}
-) A`,
-            ...params
-        );
+        const size = typeof paging == 'number' ? limit : ((paging.limit || limit) as number);
+        const [rows] = await connect.query<(E & RowDataPacket)[]>(`${query}\nlimit ?, ?`, [...params, page <= 0 ? 0 : page * size, size]);
+        sqlLogger(query, params, rows);
+        const cnt = await connect
+            .query<({ total: number } & RowDataPacket)[]>(`SELECT COUNT(1) AS total FROM (\n${query}\n) A`, params)
+            .then(([[rows]]) => rows.total);
 
         return {
-            total,
-            totalPage: Math.ceil(total / size) - 1,
+            total: cnt,
+            totalPage: Math.ceil(cnt / size) - 1,
             limit: size,
             page,
-            list: result,
+            list: rows,
         };
-    }, true);
+    } catch (e) {
+        console.error('SQL]', e);
+        throw e;
+    } finally {
+        if (connect) connect.release();
+    }
+};
+
+/**
+ * 쿼리의 해시키를 생성합니다.
+ * @param query
+ * @param params
+ * @returns
+ */
+export const getQueryKey = (query: string, ...params: any[]) => {
+    const queryOrigin = mysql.format(query, params);
+    let hash = 0;
+    for (let i = 0; i < queryOrigin.length; i++) hash += queryOrigin.charCodeAt(i);
+    return hash;
+};
 
 export const calTo = (query: string, ...value: any[]) =>
     value.filter(v => v != null && v != undefined && v != '').length ? mysql.format(`${query}`, value) : '-- calTo';

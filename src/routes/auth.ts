@@ -1,11 +1,11 @@
 'use strict';
 import { FastifyInstance } from 'fastify';
 
+import axios from 'axios';
 import { auth, authTypes, deleteAuthConnection, deleteAuthConnectionAuthTypes, discord, userIds } from 'controllers/auth';
 import { openApi } from 'utils/discordApiInstance';
-import twitch, { twitchAPI } from 'utils/twitchApiInstance';
 import toss from 'utils/tossApiInstance';
-import axios from 'axios';
+import twitch, { twitchAPI } from 'utils/twitchApiInstance';
 
 import qs from 'querystring';
 

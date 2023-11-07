@@ -1,27 +1,30 @@
-import { FastifyInstance, FastifyRequest, FastifyReply, FastifyError } from 'fastify';
-import { InteractionResponseType } from 'discord-interactions';
 import { APIInteraction, InteractionType } from 'discord-api-types/v10';
-
-import { InteractionEvent } from 'plugins/discord';
-
-import message from 'interactions/message';
-import model from 'interactions/model';
-import autocomp from 'interactions/autocomp';
-import app from 'interactions/app';
+import { InteractionResponseType } from 'discord-interactions';
+import { FastifyInstance } from 'fastify';
 
 export default async (fastify: FastifyInstance, opts: any) => {
-    // const message = require('interactions/message').default;
-    // const model = require('interactions/model').default;
-    // const autocomp = require('interactions/autocomp').default;
-    // const app = require('interactions/app').default;
+    let app: any = null;
+    let message: any = null;
+    let model: any = null;
+    let autocomp: any = null;
+
+    fastify.server.on('listening', () => {
+        console.log('onListen');
+
+        app = require('interactions/app').default;
+        autocomp = require('interactions/autocomp').default;
+        message = require('interactions/message').default;
+        model = require('interactions/model').default;
+    });
 
     fastify.post<{
         Body: APIInteraction;
     }>(
-        '/bot',
+        '',
         {
+            preHandler: [fastify.verifyDiscordKey],
             schema: {
-                hide: true,
+                // hide: true,
                 description: '봇 인터렉션 이벤트 수신부 - 연결 및 사용 X',
                 summary: '인터렉션 이벤트',
                 tags: ['Admin'],
@@ -30,10 +33,6 @@ export default async (fastify: FastifyInstance, opts: any) => {
         },
         (req, res) => {
             const { body } = req;
-            if (!fastify.verifyKey(req)) {
-                // 승인되지 않음
-                return res.status(401).send('Bad request signature');
-            }
 
             // 상태체크 처리
             if (body.type === InteractionType.Ping) {
@@ -45,27 +44,23 @@ export default async (fastify: FastifyInstance, opts: any) => {
             if (body.type === InteractionType.ApplicationCommandAutocomplete) {
                 console.log('autocomp');
                 return autocomp(body, res);
-                // return res.status(200).send({ type: InteractionResponseType.APPLICATION_COMMAND_AUTOCOMPLETE_RESULT });
             }
 
             // 응답이 유동적인 처리를 해야함.
-            const interactionEvent: InteractionEvent = {
-                re: req.createReply(req, res),
-                model: req.createModel(req, res),
-                deffer: req.createDeferred(req, res),
-                follow: req.createFollowup(req, res),
-                raw: { body: body, res: res },
-            };
+            const interaction = fastify.interaction(req, res);
+            const msg: any = { ...body, ...body.data, ...interaction };
+
+            fastify.log.info('interactionEvent', body.type, body.guild_id, body?.channel_id || 'DM', body.member?.user?.id, body.id);
 
             switch (body.type) {
                 case InteractionType.ApplicationCommand:
-                    app(Object.assign(body, interactionEvent, body.data));
+                    app && app(msg);
                     break;
                 case InteractionType.MessageComponent:
-                    message(Object.assign(body, interactionEvent, body.data));
+                    message && message(msg);
                     break;
                 case InteractionType.ModalSubmit:
-                    model(Object.assign(body, interactionEvent, body.data));
+                    model && model(msg);
                     break;
                 default:
                     break;
@@ -73,3 +68,5 @@ export default async (fastify: FastifyInstance, opts: any) => {
         }
     );
 };
+
+export const autoPrefix = '/bot';

@@ -1,5 +1,5 @@
 'use strict';
-import getConnection, { query, selectPaging, sqlInsertUpdate, SqlInsertUpdate } from 'utils/database';
+import getConnection, { calTo, query, selectPaging, SqlInsertUpdate } from 'utils/database';
 // import { Subscription } from 'interfaces/twitch';
 import { Event, Subscription } from 'interfaces/eventsub';
 
@@ -245,3 +245,16 @@ limit 10
         `,
         auth_id
     );
+
+export const getEventChannel = async (user_id: string, type?: number) => {
+    query(
+        `
+SELECT \`type\`, user_id, name, guild_id, channel_id, custom_ment, hook_id, hook_token, delete_yn, create_at, update_at 
+FROM event_channel
+WHERE 1=1
+${calTo('AND `type` = ? ', type)}
+AND user_id =  ?
+    `,
+        user_id
+    );
+};

@@ -1,5 +1,5 @@
-import { getErrorLogs } from 'controllers/admin';
-import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
+import { selectErrorLogs } from 'controllers/admin';
+import { FastifyInstance } from 'fastify';
 import { Paging } from 'interfaces/swagger';
 
 export default async (fastify: FastifyInstance, opts: any) => {
@@ -26,6 +26,6 @@ export default async (fastify: FastifyInstance, opts: any) => {
                 },
             },
         },
-        async req => await getErrorLogs(req.query.page || 0)
+        async req => await selectErrorLogs(req.query.page || 0)
     );
 };

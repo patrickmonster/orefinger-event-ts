@@ -1,11 +1,11 @@
-import division from 'utils/division';
 import {
     APIActionRowComponent,
-    APIStringSelectComponent,
-    APISelectMenuOption,
     APIBaseSelectMenuComponent,
+    APISelectMenuOption,
+    APIStringSelectComponent,
     ComponentType,
 } from 'discord-api-types/v10';
+import division from 'utils/division';
 
 export default (
     menuProps: Omit<APIBaseSelectMenuComponent<ComponentType.StringSelect>, 'type'>,

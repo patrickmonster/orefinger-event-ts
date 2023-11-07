@@ -1,6 +1,5 @@
 import { MessageMenuInteraction } from 'interactions/message';
 
-import { getMessage } from 'controllers/message';
 import authTusuSelect from 'components/authTusuSelect';
 
 /**
@@ -15,11 +14,11 @@ export const exec = async (interaction: MessageMenuInteraction, [role_id]: strin
         guild_id,
     } = interaction;
 
-    const replay = await interaction.deffer({ ephemeral: true });
+    await interaction.differ({ ephemeral: true });
 
-    await authTusuSelect(replay, guild_id || '', user?.id || '0', user_id, role_id);
+    await authTusuSelect(interaction, guild_id || '', user?.id || '0', user_id, role_id);
 
-    // const message = await getMessage(user?.id || 0, id);
+    // const message = await selectMessage(user?.id || 0, id);
     // if (!message) return;
 
     // await interaction.re(message);

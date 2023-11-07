@@ -29,3 +29,22 @@ process.on('SIGINT', function () {
 client.connect().catch(e => console.error(e));
 
 export default client;
+
+const hashFuction = (key: string) => {
+    let hash = 0;
+    for (var i = 0; i < key.length; i++) {
+        hash += key.charCodeAt(i);
+    }
+    return hash;
+};
+
+export type QueryKey = string | number;
+
+export const REDIS_KEY = {
+    DISCORD: {
+        GUILD_CHANNELS: (id: string) => `discord:channel:${id}`,
+    },
+    SQL: {
+        SELECT: (queryKey: string | number) => `sql:select:${queryKey}`,
+    },
+};

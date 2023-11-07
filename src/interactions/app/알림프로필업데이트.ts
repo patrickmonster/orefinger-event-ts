@@ -1,10 +1,8 @@
-import axios from 'axios';
 import { basename } from 'path';
 
 import { webhook } from 'controllers/event';
-import { AppContextMenuInteraction } from 'interactions/app';
 import { ApplicationCommandType, RESTPatchAPIApplicationCommandJSONBody } from 'discord-api-types/v10';
-import menu from 'components/menu';
+import { AppContextMenuInteraction } from 'interactions/app';
 
 const name = basename(__filename, __filename.endsWith('js') ? '.js' : '.ts');
 const type = ApplicationCommandType.Message;
@@ -16,7 +14,7 @@ export const exec = async (interaction: AppContextMenuInteraction) => {
         resolved: { messages },
     } = interaction;
 
-    return await interaction.re({
+    return await interaction.reply({
         content: '준비중인 기능 입니다...',
         ephemeral: true,
     });
@@ -24,11 +22,11 @@ export const exec = async (interaction: AppContextMenuInteraction) => {
     const { webhook_id } = messages[target_id];
 
     if (!webhook_id)
-        return await interaction.re({
+        return await interaction.reply({
             embeds: [{ title: '이런... 알림이 아닌것 같아요! 방송알리미가 전송하는 맨트에 해당 명령을 해 주세요!' }],
         });
     else
-        await interaction.re({
+        await interaction.reply({
             content: '해당 알림을 불러오는중...',
             ephemeral: true,
         });
@@ -37,7 +35,7 @@ export const exec = async (interaction: AppContextMenuInteraction) => {
 
     if (!channels.length) {
         //
-        await interaction.re({
+        await interaction.reply({
             content: `알림이 아닌것 같아요...!\n현재 선택하신 메세지는, 인식할 수 없는 메세지 입니다!`,
             ephemeral: true,
         });

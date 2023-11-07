@@ -1,122 +1,118 @@
-import fs, { promises } from 'fs';
-import path, { join, parse } from 'path';
+import fs from 'fs';
+import { join, parse } from 'path';
 
-export type Module = {
+interface BaseModule {
     name: string;
-    ext: string;
-    path?: string;
-    module: {
-        exec: Function;
-        alias?: string[];
-    };
-};
-export type ModuleDir = {
-    name: string;
-    path?: string;
+    file: string;
+    regEx?: RegExp;
+    path: string[];
+}
+
+// 폴더 모듈
+interface ModuleDir extends BaseModule {
     modules: Modules[];
-};
+}
 
-export type Modules = ModuleDir | Module;
+// 파일 모듈
+interface Module extends BaseModule {
+    ext: string;
+}
 
 export interface AutoCommandOptions {
     pathTag?: string; // 모듈 경로를 표시할 태그
     isSubfolder?: boolean; // 하위 폴더를 스캔할지 여부
     isLog?: boolean; // 로그 출력 여부
-    isOption?: boolean; // 옵션 사용 여부 ( false 일 경우, 옵션을 사용하지 않음)
-    defaultFunction?: ((...interaction: any[]) => void) | boolean;
 }
 
-const FileLoader = (modulePath: string, options?: AutoCommandOptions): Module => {
-    const { name, ext } = parse(modulePath);
-    options?.isLog && console.log('AutoCommand] FileLoader', name, ext);
+export type Modules = ModuleDir | Module;
 
-    return {
-        name,
-        ext,
-        module: require(modulePath),
-    };
+const util = {
+    getOriginFileName: (path: string) => {
+        const { dir, name } = parse(path);
+        return join(dir, name);
+    },
+
+    FileLoader: (modulePath: string, options?: AutoCommandOptions): Module => {
+        const { name, ext } = parse(modulePath);
+        options?.isLog && console.log('AutoCommand] FileLoader', name, ext);
+
+        return {
+            name,
+            ext,
+            file: modulePath,
+            path: [name],
+            // module: require(modulePath) as E,
+        };
+    },
+
+    scanDir: (modulePath: string, options?: AutoCommandOptions, basePath?: string[]): Modules[] => {
+        if (!basePath) basePath = []; // 경로 저장
+        const files = fs.readdirSync(modulePath);
+        options?.isLog && console.log('AutoCommand] ScanDir', files);
+
+        const out: Modules[] = [];
+        for (const file of files) {
+            const filePath = join(modulePath, file);
+            const stat = fs.statSync(filePath); // await promises.stat(filePath);
+            try {
+                if (stat.isDirectory()) {
+                    if (options?.isSubfolder) {
+                        const path = [...basePath, file];
+                        out.push({
+                            name: file,
+                            file: filePath,
+                            path,
+                            modules: util.scanDir(filePath, options, path),
+                        });
+                    }
+                } else {
+                    out.push(util.FileLoader(filePath, options)); // Module[]
+                }
+            } catch (err) {
+                console.error(err);
+                console.log('AutoCommand] Fail', file);
+            }
+        }
+
+        return out;
+    },
+
+    flattenModules: (list: Modules[]): Module[] =>
+        list.reduce<Module[]>((acc, cur) => {
+            if ('ext' in cur) acc.push(cur);
+            else acc.push(...util.flattenModules(cur.modules).map(module => ({ ...module, path: [cur.name, ...module.path], ext: '.dir' })));
+            return acc;
+        }, []),
 };
+
 /**
- * 폴더 스캔하여 파일 로드
+ * 자동 명령어 생성
+ *
+ * 디렉토리 스캔
+ * 트리 직열화
+ *
+ *
+ * @generator 각 파일의 module.exports 를 실행
  * @param modulePath
+ * @param options
+ * @returns
  */
-const ScanDir = (modulePath: string, basePath: string[], options?: AutoCommandOptions): ModuleDir => {
-    // const files = await promises.readdir(modulePath);
-    const files = fs.readdirSync(modulePath);
-    options?.isLog && console.log('AutoCommand] ScanDir', files);
-    const modules = new Array<Modules>();
-    for (const file of files) {
-        const filePath = path.join(modulePath, file);
-        const stat = fs.statSync(filePath); // await promises.stat(filePath);
-        try {
-            if (stat.isDirectory() && options?.isSubfolder) {
-                modules.push(ScanDir(filePath, [...basePath, file], options));
-            } else modules.push(FileLoader(filePath, options)); // Module[]
-            // Module | ModuleDir
-        } catch (err) {
-            console.error(err);
-            console.log('AutoCommand] Fail', file);
-        }
-    }
-    return {
-        name: path.basename(modulePath),
-        path: basePath.join(options?.pathTag || '/'),
-        modules,
-    };
-};
+export default (modulePath: string, options?: AutoCommandOptions): [{ name: string; file: string; path: string[]; pathTag: string }[], Modules[]] => {
+    const option = Object.assign({ isSubfolder: true, pathTag: ' ' }, options);
 
-const getOriginFileName = (path: string) => {
-    const { dir, name } = parse(path);
-    return join(dir, name);
-};
+    const list = util.scanDir(util.getOriginFileName(modulePath), option); // 디렉토리 스캔
+    const modules = util.flattenModules(list).map(i => ({
+        name: i.path.join(option.pathTag),
+        pathTag: option.pathTag,
+        path: i.path,
+        file: i.file,
+    })); // 트리 직열화
 
-// 다차원 배열을 1차원 배열로 변환
-const flattenModules = (modules: Modules[], path?: string): Module[] => {
-    const flatModules: Module[] = [];
-    for (const module of modules) {
-        if ('module' in module) {
-            // Module
-            flatModules.push({
-                ...module,
-                path,
-            });
-        } else {
-            // ModuleDir
-            flatModules.push(...flattenModules(module.modules, module.path));
-        }
-    }
-    return flatModules;
-};
+    option.isLog &&
+        console.log(
+            'AutoCommand] Loading commands',
+            modules.map(i => i.name)
+        );
 
-export default (modulePath: string, options?: AutoCommandOptions) => {
-    const option = Object.assign({ defaultFunction: () => {}, isSubfolder: true }, options);
-
-    // if (!process.env.MASTER_KEY) {
-    //     return (id: string) =>
-    //         <E, F extends any>(interaction: E, args?: any[] | F) => {};
-    // }
-
-    const modules = flattenModules(ScanDir(getOriginFileName(modulePath), [], option).modules);
-    const commands: { [key: string]: Function } = {};
-    for (const command of modules) {
-        const { path, name, module } = command;
-        const custom_id = `${path ? path + ' ' : ''}${name}`;
-        if (module.exec) commands[custom_id] = module.exec;
-        else console.error('ERROR] exec is not defined', custom_id);
-    }
-
-    return (id: string) => {
-        // const command = Object.keys(commands).findIndex(i => id.startsWith(i));
-        const command = Object.keys(commands).find(i => id.startsWith(i));
-
-        if (command) console.log('Event]', id);
-
-        return command
-            ? <T, U = any>(interaction: T, args?: U[]) => commands[command](interaction, options?.isOption ? args : id.replace(command + ' ', ''))
-            : option.defaultFunction;
-    };
-};
-export const findCommand = (id: string, commands: { [k: string]: Function }, defaultFunction = () => {}) => {
-    const command = Object.keys(commands).find(i => id.startsWith(i));
-    return command ? commands[command] : defaultFunction;
+    return [modules, list];
 };

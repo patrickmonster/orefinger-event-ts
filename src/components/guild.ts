@@ -1,37 +1,60 @@
+import { channelUpsert } from 'controllers/channel';
 import {
     RESTGetAPIChannelWebhooksResult,
-    RESTPostAPIGuildChannelJSONBody,
     RESTGetAPIGuildChannelsResult,
     RESTGetAPIGuildResult,
-    RESTPostAPIGuildChannelResult,
     RESTPostAPIChannelWebhookResult,
+    RESTPostAPIGuildChannelJSONBody,
+    RESTPostAPIGuildChannelResult,
 } from 'discord-api-types/rest/v10';
 
+// import { RedisJSON } from 'redis';
 import discord from 'utils/discordApiInstance';
+import redis, { REDIS_KEY } from 'utils/redis';
 
 // 맨트 변경에 필요한 형식
 const discordRegex = /<[a]?:([\w|\d]+):(\d{17,20})>/im; // 맨션
 const emojiRegex = /:(\w+)(~\d)?:/gim; // 이모티콘
 const roleRegex = /@([ㄱ-ㅎ가-힣a-zA-Z0-9]+)(~\d)?/gim; // 역할
 
-export const guild = async (guild_id: string) => await discord.get<RESTGetAPIGuildResult>(`/guilds/${guild_id}`).then(({ data }) => data);
+export const guild = async (guild_id: string) => await discord.get<RESTGetAPIGuildResult>(`/guilds/${guild_id}`);
 
-export const channels = async (guild: string) =>
-    await discord.get<RESTGetAPIGuildChannelsResult>(`/guilds/${guild}/channels`).then(({ data }) => data);
+export const channels = async (guild: string, isCash = false) => {
+    if (isCash) {
+        const channels = await redis.get(REDIS_KEY.DISCORD.GUILD_CHANNELS(guild));
+        if (channels) return JSON.parse(channels) as RESTGetAPIGuildChannelsResult;
+    }
 
-export const channelCreate = async (guild_id: string, data: RESTPostAPIGuildChannelJSONBody) =>
-    await discord.post<RESTPostAPIGuildChannelResult>(`/guilds/${guild_id}/channels`, data);
+    const data = await discord.get<RESTGetAPIGuildChannelsResult>(`/guilds/${guild}/channels`);
+    await redis.set(REDIS_KEY.DISCORD.GUILD_CHANNELS(guild), JSON.stringify(data), { EX: 60 * 60 });
+    const update = await channelUpsert(data.map(e => ({ guild_id: guild, channel_id: e.id, name: e.name || '', type: e.type })));
+    console.log('LOADING CHANNEL', update);
+    return data;
+};
+
+export const channelCreate = async (guild_id: string, data: RESTPostAPIGuildChannelJSONBody) => {
+    const channel = await discord.post<RESTPostAPIGuildChannelResult>(`/guilds/${guild_id}/channels`, data);
+    const update = await channelUpsert([
+        {
+            guild_id,
+            channel_id: channel.id,
+            name: channel.name || '',
+            type: channel.type,
+        },
+    ]);
+
+    console.log('CREATE CHANNEL', update);
+    return channel;
+};
 
 // export const channelDelete = async (channel_id: string) =>
 
-export const channel = async (channel_id: string) =>
-    await discord.get<RESTPostAPIGuildChannelResult>(`/channels/${channel_id}`).then(({ data }) => data);
+export const channel = async (channel_id: string) => await discord.get<RESTPostAPIGuildChannelResult>(`/channels/${channel_id}`);
 
-export const webhooks = async (channel_id: string) =>
-    await discord.get<RESTGetAPIChannelWebhooksResult>(`/channels/${channel_id}/webhooks`).then(({ data }) => data);
+export const webhooks = async (channel_id: string) => await discord.get<RESTGetAPIChannelWebhooksResult>(`/channels/${channel_id}/webhooks`);
 
 export const webhookCreate = async (channel_id: string, data: { name: string; avatar?: string }) =>
-    await discord.post<RESTPostAPIChannelWebhookResult>(`/channels/${channel_id}/webhooks`, data).then(({ data }) => data);
+    await discord.post<RESTPostAPIChannelWebhookResult>(`/channels/${channel_id}/webhooks`, data);
 
 /**
  * 맨트 변경
