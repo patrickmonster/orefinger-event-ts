@@ -1,4 +1,4 @@
-import { query, SqlInsertUpdate, queryFunctionType, selectPaging } from 'utils/database';
+import { selectPaging } from 'utils/database';
 
 import { env } from 'process';
 /**
@@ -7,7 +7,7 @@ import { env } from 'process';
  * @param query
  * @returns
  */
-export const getErrorLogs = async (page: number) =>
+export const selectErrorLogs = async (page: number) =>
     await selectPaging(
         `
 select * from error_sql es

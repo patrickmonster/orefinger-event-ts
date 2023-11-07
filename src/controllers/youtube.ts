@@ -1,8 +1,5 @@
 'use strict';
 import getConnection, { query } from 'utils/database';
-import { AuthUser } from 'interfaces/auth';
-
-import { EventSub, Event, Subscription } from 'interfaces/eventsub';
 
 export const createYutubeChannel = (user_id: string, user_name: string, channel_id: string, description: string) =>
     query(
@@ -10,7 +7,7 @@ export const createYutubeChannel = (user_id: string, user_name: string, channel_
 INSERT INTO discord.event_channel
 (\`type\`, user_id, name, channel_id, custom_ment, delete_yn)
 VALUES(120, ?, 'N')
-on duplicate key update delete_yn = 'N'
+ON DUPLICATE KEY UPDATE delete_yn = 'N'
 `,
         [user_id, user_name, channel_id, description]
     );
@@ -18,14 +15,14 @@ on duplicate key update delete_yn = 'N'
 export const createYutubeUser = (youtube_id: string, user_id: string, login: string, name: string) =>
     query(
         `
-select func_auth_token(
+SELECT func_auth_token(
     'youtube',
     '',
     ?,
     null,
     null,
     'YOUTUBE'
-) as a
+) AS a
         `,
         [
             youtube_id,
@@ -40,7 +37,7 @@ export const createYutubeEvent = (youtube_id: string, data: string) =>
         `
 INSERT INTO event_id(\`type\`, user_id, \`data\`)
 VALUES(120, ?, ?)
-on duplicate key update \`data\` = ?
+ON DUPLICATE KEY UPDATE \`data\` = ?
     `,
         youtube_id,
         data,
@@ -57,6 +54,6 @@ interface YoutubeVideo {
 export const insertYoutubeVideo = (list: YoutubeVideo[]) =>
     getConnection(async QUERY => {
         list.forEach(({ video_id, channel_id, title }) => {
-            QUERY(`INSERT ignore INTO discord.event_video (video_id, channel_id, title) VALUES(?)`, [video_id, channel_id, title]);
+            QUERY(`INSERT IGNORE INTO discord.event_video (video_id, channel_id, title) VALUES(?)`, [video_id, channel_id, title]);
         });
     });

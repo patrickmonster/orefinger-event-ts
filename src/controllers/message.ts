@@ -1,10 +1,10 @@
 import { query, selectPaging, SqlInsertUpdate } from 'utils/database';
 
-import { MessageCreate } from 'interfaces/message';
 import { RESTPostAPIChannelMessageJSONBody } from 'discord-api-types/rest/v10';
 import { APIEmbed } from 'discord-api-types/v10';
+import { MessageCreate } from 'interfaces/message';
 
-export const getMessageList = async (page: number, tag: string | undefined) =>
+export const selectMessageList = async (page: number, tag: string | undefined) =>
     selectPaging<{
         message_id: number;
         context_id: number;
@@ -36,7 +36,6 @@ WHERE message_id=?`,
         message_id
     );
 
-// TODO: 메세지 조회 - 임베드 컴포넌트
 const regEx = /\{([0-9A-Za-z_]+)\}/i;
 type Tage = {
     [key: string]: string | number | boolean;
@@ -48,7 +47,7 @@ type Tage = {
  * @param message_id
  * @returns
  */
-export const getMessage = async (user_id: string | number, message_id: number, tags: Tage = {}) =>
+export const selectMessage = async (user_id: string | number, message_id: number, tags: Tage = {}) =>
     query<Pick<RESTPostAPIChannelMessageJSONBody, 'content' | 'embeds' | 'components'>>(
         `
 select 

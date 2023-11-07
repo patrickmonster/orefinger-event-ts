@@ -1,9 +1,5 @@
-import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
+import { FastifyInstance } from 'fastify';
 
-import { getComponentList, createComponent, updateComponent, getComponentDtil } from 'controllers/component';
-import { ComponentCreate } from 'interfaces/component';
-
-import discord from 'utils/discordApiInstance';
 import { rolePermission } from 'controllers/code';
 
 export default async (fastify: FastifyInstance, opts: any) => {

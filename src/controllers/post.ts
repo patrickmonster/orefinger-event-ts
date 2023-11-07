@@ -1,4 +1,4 @@
-import getConnection, { query, SqlInsertUpdate, selectPaging, limit, calTo } from 'utils/database';
+import getConnection, { SqlInsertUpdate, calTo, query, selectPaging } from 'utils/database';
 
 import { Paging } from 'interfaces/swagger';
 
@@ -41,7 +41,7 @@ type PostTypeParams = {
     user_id?: string;
     type?: string;
 };
-export const getPostList = async (paging: Paging, props?: PostTypeParams) =>
+export const selectPostList = async (paging: Paging, props?: PostTypeParams) =>
     await selectPaging<Post>(
         `
 SELECT
