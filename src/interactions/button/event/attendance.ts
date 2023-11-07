@@ -18,7 +18,9 @@ const selectMessage = async (broadcaster_user_id: string, user_id: string): Prom
         else break;
     }
 
-    const pin = list.filter(({ attendance_time }) => attendance_time).map(({ attendance_time }) => new Date(attendance_time)); // 출석회수
+    const pin = list
+        .filter(({ attendance_time }) => attendance_time)
+        .map(({ attendance_time }) => new Date(attendance_time)); // 출석회수
     const spin = list.map(({ create_at }) => new Date(create_at)); // 방송횟수
     return {
         content: is_success ? '출석체크가 완료되었습니다!' : '이미 출석이 완료되었습니다!',
@@ -29,7 +31,8 @@ const selectMessage = async (broadcaster_user_id: string, user_id: string): Prom
                 color: 0x9147ff,
                 footer: {
                     text: 'Create by.뚱이(Patrickmonster)',
-                    icon_url: 'https://media.discordapp.net/attachments/682449668428529743/873590308502372362/79e40d246645eefc.png',
+                    icon_url:
+                        'https://media.discordapp.net/attachments/682449668428529743/873590308502372362/79e40d246645eefc.png',
                 },
                 description: `
 출석율 : ${((pin.length / spin.length) * 100).toFixed(2)}% (${pin.length}/${spin.length})
@@ -53,8 +56,10 @@ export const exec = async (interaction: MessageInteraction, broadcaster_user_id:
 
     if (user === null)
         return interaction
-            .differ(/*{ ephemeral: true }*/)
-            .then(async send => await interaction.reply({ content: '처리 불가능한 상태. - 사용자를 찾을 수 없습니다.' }));
+            .differ({ ephemeral: true })
+            .then(
+                async send => await interaction.reply({ content: '처리 불가능한 상태. - 사용자를 찾을 수 없습니다.' })
+            );
 
     await interaction.differ({ ephemeral: true });
 
