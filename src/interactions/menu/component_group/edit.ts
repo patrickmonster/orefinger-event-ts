@@ -10,6 +10,7 @@ import { MessageMenuInteraction } from 'interactions/message';
 import { ComponentCreate, ComponentOptionConnect } from 'interfaces/component';
 
 import QUERY from 'controllers/component/embedListQuerys';
+
 /**
  *
  * 가이드 호출 - 디비처리용
@@ -17,14 +18,9 @@ import QUERY from 'controllers/component/embedListQuerys';
  */
 export const exec = async (interaction: MessageMenuInteraction, component_id: string, target: string) => {
     const {
-        user,
-        custom_id,
         component,
         values: [select_id],
-        message: {
-            embeds: [embed],
-            components,
-        },
+        message: { components },
     } = interaction;
 
     switch (target) {

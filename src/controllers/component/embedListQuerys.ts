@@ -3,17 +3,9 @@ import { calTo } from 'utils/database';
 /**
  * 해당 문서는, 선택 옵션들을 불러오는 쿼리를 작성하는 문서입니다.
  * 페이징이 가능한 쿼리를 작성하는데 사용됩니다.
- *
+ *  - MVC 모델 규칙을 지키기 위하여 작성된 문서 입니다.
  * @patrickmonster
  */
-const ComponentByMenuListQuery = `
-SELECT json_object( IF(regexp_like(c.emoji, '^[0-9]+$'), 'id', 'name'), IF( c.emoji < '' OR c.emoji IS NULL, '▫', c.emoji)) AS emoji
-    , CAST(component_id AS CHAR) AS value
-    , CONCAT( component_id , ']' , name) AS label 
-    , concat(ct.tag, "] ", name) AS  description
-FROM component c
-LEFT JOIN component_type ct ON c.type_idx = ct.type_idx
-    `;
 
 const ComponentActionLowByMenuListQuery = `
 SELECT name AS label
@@ -30,6 +22,26 @@ LEFT JOIN component_action_row_connect carc
     ON carc.component_row_id = car.component_id 
     AND carc.use_yn = 'Y'
 GROUP BY car.component_id
+    `;
+
+const ComponentActionRowConnectionByMenuListQuery = `
+SELECT JSON_OBJECT( IF(REGEXP_LIKE(c.emoji, '^[0-9]+$'), 'id', 'name'), IF( c.emoji < '' OR c.emoji IS NULL, '▫', c.emoji)) AS emoji
+    , CAST(c.component_id AS CHAR) AS value
+    , CONCAT( c.component_id , ']' , name) AS label
+    , concat(ct.tag, "] ", name) AS  description
+    , IF(carc.use_yn = 'Y', TRUE, FALSE ) AS \`default\`
+FROM component c
+LEFT JOIN component_type ct ON c.type_idx = ct.type_idx  
+LEFT JOIN component_action_row_connect carc ON carc.component_row_id = ? AND carc.component_id = c.component_id AND carc.use_yn ='Y'
+    `;
+
+const ComponentByMenuListQuery = `
+SELECT json_object( IF(regexp_like(c.emoji, '^[0-9]+$'), 'id', 'name'), IF( c.emoji < '' OR c.emoji IS NULL, '▫', c.emoji)) AS emoji
+    , CAST(component_id AS CHAR) AS value
+    , CONCAT( component_id , ']' , name) AS label 
+    , concat(ct.tag, "] ", name) AS  description
+FROM component c
+LEFT JOIN component_type ct ON c.type_idx = ct.type_idx
     `;
 
 const ComponentOptionByMenuListQuery = `
@@ -104,8 +116,9 @@ WHERE parent_id IS NULL
 const TextMessageByMenuListQuery = TextMessageDefaultByMenuListQuery();
 
 export default {
-    ComponentByMenuListQuery,
     ComponentActionLowByMenuListQuery,
+    ComponentActionRowConnectionByMenuListQuery,
+    ComponentByMenuListQuery,
     ComponentOptionByMenuListQuery,
     ComponentOptionConnectionByMenuListQuery,
     ComponentTypeByMenuListQuery,

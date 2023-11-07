@@ -1,8 +1,7 @@
 import { MessageMenuInteraction } from 'interactions/message';
 
 import { editerComponent } from 'components/systemComponent';
-import { getComponentTypeList, selectComponentDtilByEmbed, selectComponentYnMenu } from 'controllers/component';
-import { ComponentType } from 'discord-api-types/v10';
+import { selectComponentDtilByEmbed, selectComponentTypeList, selectComponentYnMenu } from 'controllers/component';
 import { createDangerButton, createStringSelectMenu, createSuccessButton } from 'utils/discord/component';
 
 /**
@@ -18,12 +17,11 @@ export const exec = async (interaction: MessageMenuInteraction) => {
     } = interaction;
 
     await interaction.differ({ ephemeral: true });
-    const resultData = await selectComponentDtilByEmbed(component_id);
+    const embed = await selectComponentDtilByEmbed(component_id);
 
-    if (!resultData) {
+    if (!embed) {
         interaction.reply({ content: '해당 메세지를 찾을 수 없습니다.', ephemeral: true });
     } else {
-        const { embed, type } = resultData;
         const id = `component edit ${component_id}`;
 
         const ynMenu = await selectComponentYnMenu(component_id, 'component');
@@ -35,10 +33,10 @@ export const exec = async (interaction: MessageMenuInteraction) => {
             ephemeral: true,
             components: [
                 editerComponent(id, [
-                    createSuccessButton(`${id} option`, {
-                        label: '하위 옵션 추가',
-                        disabled: ComponentType.StringSelect != type,
-                    }),
+                    // createSuccessButton(`${id} option`, {
+                    //     label: '하위 옵션 추가',
+                    //     disabled: ComponentType.StringSelect != type,
+                    // }),
                     createSuccessButton(`${id} text`, {
                         label: '텍스트 수정',
                     }),
@@ -47,7 +45,7 @@ export const exec = async (interaction: MessageMenuInteraction) => {
                     }),
                 ]),
                 createStringSelectMenu(`${id} type`, {
-                    options: await getComponentTypeList(type),
+                    options: await selectComponentTypeList(component_id),
                     placeholder: '컴포넌트 타입을 선택해주세요.',
                     max_values: 1,
                     min_values: 1,

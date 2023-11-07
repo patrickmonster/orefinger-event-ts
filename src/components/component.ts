@@ -1,4 +1,4 @@
-import { getComponentTypeList, selectComponentDtilByEmbed, selectComponentYnMenu } from 'controllers/component';
+import { selectComponentDtilByEmbed, selectComponentTypeList, selectComponentYnMenu } from 'controllers/component';
 import { IReply } from 'plugins/discord';
 import { createStringSelectMenu } from 'utils/discord/component';
 import { editerComponent } from './systemComponent';
@@ -32,13 +32,13 @@ export const getComponentEditor = async (interaction: IReply, component_id: stri
                     max_values: 1,
                     min_values: 1,
                     placeholder: '컴포넌트 타입을 선택해주세요.',
-                    options: await getComponentTypeList(component_id),
+                    options: await selectComponentTypeList(component_id),
                 }),
                 createStringSelectMenu(`${id} yn`, {
                     max_values: ynMenu.length,
                     min_values: 0,
                     placeholder: '컴포넌트 활성여부를 선택해주세요.',
-                    options: await getComponentTypeList(component_id),
+                    options: await selectComponentTypeList(component_id),
                 }),
             ],
         });

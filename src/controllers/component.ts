@@ -151,6 +151,7 @@ FROM component_option
   `,
         page
     );
+
 export const selectComponentOptionDtil = async (option_id: number) =>
     query(
         `
@@ -183,7 +184,7 @@ WHERE use_yn = 'Y'
            `
     );
 
-export const getComponentTypeList = async (component_id?: ComponentId) =>
+export const selectComponentTypeList = async (component_id?: ComponentId) =>
     query<APISelectMenuOption>(
         `
 SELECT CAST(ct.type AS CHAR) AS value
