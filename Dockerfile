@@ -1,6 +1,6 @@
 #Dockerfile
 
-FROM node:alpine
+FROM node:18-alpine
 
 WORKDIR /usr/src/app
 
@@ -20,7 +20,7 @@ RUN apk --update --no-cache add \
 # 패키지 설치
 COPY *.json ./
 RUN npm i --force -g tsc tsc-alias typescript yarn 
-RUN yarn
+RUN npm install --force 
 
 
 COPY . .
