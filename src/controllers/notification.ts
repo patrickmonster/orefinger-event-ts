@@ -3,22 +3,30 @@ import { query } from 'utils/database';
 export const liveList = () =>
     query(
         `
-SELECT el.auth_id, el.event_id, el.type, DATE_ADD(el.create_at, INTERVAL 9 HOUR) as create_at
+SELECT 
+    el.auth_id, el.event_id, el.type, DATE_ADD(el.create_at, INTERVAL 9 HOUR) as create_at
     , t.value AS live_type
     , t.tag
     , at2.login, at2.name, at2.user_type
     , ls.title, ls.game_id, ls.game_name
     , (SELECT count(0) FROM attendance a WHERE a.yymm = DATE_FORMAT( NOW(), '%y%m') AND el.event_id = a.event_id AND el.type = a.type) AS attendance
-FROM event_live el
-JOIN types t ON t.idx = el.type
+FROM (
+    SELECT el.*
+    FROM event_live el 
+    WHERE 1=1
+    AND el.type = 14
+    AND event_id IS NOT NULL 
+    ORDER BY el.create_at DESC
+    LIMIT 30
+) el
+LEFT JOIN types t ON t.idx = el.type
 LEFT JOIN auth_token at2 ON at2.type =2 AND at2.user_id = el.auth_id
 LEFT JOIN v_live_state ls ON ls.auth_id = el.auth_id
 WHERE 1=1
 AND el.event_id IS NOT NULL 
 AND at2.user_id IS NOT NULL
 -- AND at2.is_session ='Y'
-ORDER BY el.create_at DESC
-LIMIT 0, 30
+    
     `
     );
 
