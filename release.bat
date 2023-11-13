@@ -69,6 +69,8 @@ npm pkg set version="!newVersion!"
 git add package.json
 git commit -m "release: !newVersion!"
 
+git push --set-upstream origin "release/!newVersion!"
+
 REM 
 start https://github.com/patrickmonster/orefinger-event-ts/compare/master...release/!newVersion!
 
