@@ -1,13 +1,13 @@
-import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
+import { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
 import redis from 'utils/redis';
 
-import { EventSub, Event, Subscription } from 'interfaces/eventsub';
+import { Event, EventSub, Subscription } from 'interfaces/eventsub';
 
-import { register, event as createEvent, grant, revoke, streamOnline, streamOffline, stateChangeEventChannel } from 'controllers/twitch';
-import { userUpdate } from 'controllers/auth';
+import { event as createEvent, grant, register, revoke, streamOffline, streamOnline } from 'controllers/twitch';
 
 import discord, { openApi } from 'utils/discordApiInstance';
 
+import { userUpdate } from 'controllers/auth';
 import irc from 'utils/twitchIrc';
 
 const randomIntegerInRange = (min: number, max: number) => Math.floor(Math.random() * (max - min + 1)) + min;
@@ -109,7 +109,7 @@ export default async (fastify: FastifyInstance, opts: any) => {
                 break;
             case 'stream.online':
                 {
-                    const { broadcaster_user_login, broadcaster_user_name, type } = event;
+                    const { broadcaster_user_login, broadcaster_user_name, broadcaster_user_id, type } = event;
                     if (type !== 'live') return;
                     console.log(`온라인 - ${broadcaster_user_name}(${broadcaster_user_login})`);
 
@@ -122,26 +122,29 @@ export default async (fastify: FastifyInstance, opts: any) => {
 
                         if (channels.length === 0) return; // 이벤트가 없거나, 이미 진행된 이벤트
                         irc.say(`${broadcaster_user_login}`, '안뇽! 오늘도 화이팅! daromLcat').catch(e => {});
-                        for (const { id, name, login, /* kr_name ,*/ channel_id, custom_ment, url, title, game_id, game_name } of channels) {
+                        for (const { id, /* kr_name ,*/ channel_id, custom_ment, url, title, game_id, game_name } of channels) {
                             //
                             discord
                                 .post(url, {
-                                    username: name,
+                                    username: broadcaster_user_name,
                                     content: custom_ment,
                                     embeds: [
                                         {
                                             title,
                                             // color,
-                                            url: `https://twitch.tv/${login}`,
+                                            url: `https://twitch.tv/${broadcaster_user_login}`,
                                             image: {
-                                                url: `https://static-cdn.jtvnw.net/previews-ttv/live_user_${login}-1920x1080.jpg?randCode=${randomIntegerInRange(
+                                                url: `https://static-cdn.jtvnw.net/previews-ttv/live_user_${broadcaster_user_login}-1920x1080.jpg?randCode=${randomIntegerInRange(
                                                     0,
                                                     10000
                                                 )}`,
                                             },
                                             fields: [
                                                 { name: 'Game', value: `${game_name || 'LIVE'}`, inline: true },
-                                                { name: 'Stream', value: `https://twitch.tv/${login}` },
+                                                {
+                                                    name: 'Stream',
+                                                    value: `https://twitch.tv/${broadcaster_user_login}`,
+                                                },
                                             ],
                                         },
                                     ],
@@ -149,7 +152,10 @@ export default async (fastify: FastifyInstance, opts: any) => {
                                 })
                                 .catch(e => {
                                     // 채널을 찾을 수 없음
-                                    console.log('프로세서 [ONLINE] 알림 채널 메세지 전송 실패', `${name} - ${login}(${id})`);
+                                    console.log(
+                                        '프로세서 [ONLINE] 알림 채널 메세지 전송 실패',
+                                        `${broadcaster_user_name} - ${broadcaster_user_login}(${broadcaster_user_id})`
+                                    );
                                     // stateChangeEventChannel(channel_id, { delete_yn: 'Y' }).catch(e => {});
                                 });
                         }
