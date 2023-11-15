@@ -1,30 +1,32 @@
-import {
-    APIApplicationCommandInteractionDataBasicOption,
-    APIApplicationCommandSubcommandOption,
-    ApplicationCommandOptionType,
-} from 'discord-api-types/v10';
+import { APIApplicationCommandSubcommandOption, ApplicationCommandOptionType } from 'discord-api-types/v10';
 import { basename } from 'path';
 
-import { AppChatInputInteraction } from 'interactions/app';
+import { channels } from 'components/guild';
+import { AppChatInputInteraction, SelectOptionType } from 'interactions/app';
 
 const choices = ['방송알림', '트수알림'];
 
-export const exec = async (
-    interaction: AppChatInputInteraction,
-    selectOption: APIApplicationCommandInteractionDataBasicOption[]
-) => {
+export const exec = async (interaction: AppChatInputInteraction, selectOption: SelectOptionType) => {
     const { member, guild_id, channel } = interaction;
     if (!guild_id) return await interaction.reply({ content: '서버에서만 사용할 수 있습니다.', ephemeral: true });
 
     await interaction.differ({ ephemeral: true });
 
-    const type = selectOption.find(({ name }) => name === '타입')?.value;
+    const type = selectOption.get('타입');
 
     console.log('타입', type);
 
     // [ { name: '타입', type: 4, value: 3 } ]
     switch (type) {
         case choices.indexOf('방송알림'): {
+            /**
+             * 1. 채널 리스트
+             * 2. 알림 이벤트 등록 채널 리스트
+             */
+            channels(guild_id).then(async channels => {
+                const channel_ids = channels.map(({ id }) => id);
+                //
+            });
             break;
         }
         case choices.indexOf('트수알림'): {
