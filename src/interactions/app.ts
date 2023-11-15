@@ -70,6 +70,25 @@ export const api = {
     chat: apiChat,
 };
 
+/**
+ * 컴포넌트의 옵션값을 가져 옵니다.
+ * @param options
+ * @returns
+ */
+const getComponentOption =
+    (options: APIApplicationCommandInteractionDataBasicOption[]) =>
+    <T extends string | number | boolean | undefined>(targetName: string, defaultValue?: T): T =>
+        (options.find(({ name }) => name == targetName)?.value as T | undefined) ?? (defaultValue as T);
+
+export interface SelectOptionType {
+    option: APIApplicationCommandInteractionDataBasicOption[];
+    get: <T extends string | number | boolean | undefined>(targetName: string, defaultValue?: T) => T;
+}
+
+/**
+ * 앱 컴포넌트를 탐색 합니다.
+ * @param interaction
+ */
 export default async (interaction: appInteraction) => {
     const { type } = interaction;
     console.log('appComponent', interaction.name, type);
@@ -87,7 +106,10 @@ export default async (interaction: appInteraction) => {
             const { chatCommandTarget, selectOption } = getChatCommandNames(interaction);
             if (chatCommandTarget) {
                 const { file } = chatCommandTarget;
-                await require(file).exec(interaction, selectOption);
+                await require(file).exec(interaction, {
+                    option: selectOption,
+                    get: getComponentOption(selectOption),
+                });
             } else sendErrorNotFoundComponent(interaction);
             break;
         }
