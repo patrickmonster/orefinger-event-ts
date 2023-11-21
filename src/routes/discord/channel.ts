@@ -52,9 +52,9 @@ export default async (fastify: FastifyInstance, opts: any) => {
     }>(
         '/channel/:channel_id/messages',
         {
-            // onRequest: [fastify.authenticate],
+            onRequest: [fastify.authenticate],
             schema: {
-                // security: [{ Bearer: [] }],
+                security: [{ Bearer: [] }],
                 description: '채널 메세지 리스트 조회',
                 tags: ['Discord'],
                 deprecated: false,
@@ -74,9 +74,9 @@ export default async (fastify: FastifyInstance, opts: any) => {
     }>(
         '/channel/:channel_id/public',
         {
-            // onRequest: [fastify.authenticate],
+            onRequest: [fastify.authenticate],
             schema: {
-                // security: [{ Bearer: [] }],
+                security: [{ Bearer: [] }],
                 description: '채널 스레드 리스트 조회',
                 tags: ['Discord'],
                 deprecated: false,
@@ -96,9 +96,9 @@ export default async (fastify: FastifyInstance, opts: any) => {
     }>(
         '/channel/:channel_id/private',
         {
-            // onRequest: [fastify.authenticate],
+            onRequest: [fastify.authenticate],
             schema: {
-                // security: [{ Bearer: [] }],
+                security: [{ Bearer: [] }],
                 description: '채널 비공개 스레드 리스트 조회',
                 tags: ['Discord'],
                 deprecated: false,
