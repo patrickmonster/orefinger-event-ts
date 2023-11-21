@@ -189,8 +189,10 @@ GROUP BY A.id
         ).then(rows => rows[0]);
     });
 
-export const postPost = async (auth_id: string, data: Pick<Post, 'title' | 'description' | 'type' | 'use_yn' | 'public_yn' | 'commant_yn'>) =>
-    await query<SqlInsertUpdate>(`INSERT INTO post set ?, create_user = ?`, data, auth_id);
+export const postPost = async (
+    auth_id: string,
+    data: Pick<Post, 'title' | 'description' | 'type' | 'use_yn' | 'public_yn' | 'commant_yn'>
+) => await query<SqlInsertUpdate>(`INSERT INTO post set ?, create_user = ?`, data, auth_id);
 
 export const commantPost = async (auth_id: string, data: Commant) =>
     await query<SqlInsertUpdate>(`INSERT INTO commant set ?, create_user = ?`, data, auth_id);
