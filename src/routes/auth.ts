@@ -8,15 +8,12 @@ import {
     deleteAuthConnection,
     deleteAuthConnectionAuthTypes,
     discord,
-    selectDiscordUserByJWTToken,
-    upsertDiscordUserAndJWTToken,
     userIds,
 } from 'controllers/auth';
-import discordApi, { openApi } from 'utils/discordApiInstance';
+import { openApi } from 'utils/discordApiInstance';
 import toss from 'utils/tossApiInstance';
 import twitch, { twitchAPI } from 'utils/twitchApiInstance';
 
-import { APIUser } from 'discord-api-types/v10';
 import qs from 'querystring';
 
 export default async (fastify: FastifyInstance, opts: any) => {
@@ -29,13 +26,6 @@ export default async (fastify: FastifyInstance, opts: any) => {
                 token_type: string;
             }>(target, data, { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } })
             .then(res => res.data);
-
-    fastify.addSchema({
-        $id: 'userId',
-        type: 'string',
-        description: '사용자 아이디',
-        enum: ['466950273928134666', '338368635103870977', '206100523621941248'],
-    });
 
     fastify.addSchema({
         $id: 'discordUser',
@@ -67,6 +57,8 @@ export default async (fastify: FastifyInstance, opts: any) => {
         }>(
             '/auth/:user_id',
             {
+                // onRequest: [fastify.authenticate],
+                // security: [{ bearerAuth: [] }],
                 schema: {
                     description: '디스코드 사용자 인증 - 로컬 테스트용',
                     tags: ['Auth'],
@@ -75,33 +67,27 @@ export default async (fastify: FastifyInstance, opts: any) => {
                         type: 'object',
                         required: ['user_id'],
                         additionalProperties: false,
-                        properties: { user_id: { $ref: 'userId' } },
+                        properties: {
+                            user_id: {
+                                type: 'string',
+                                description: '사용자 아이디',
+                                enum: ['466950273928134666', '338368635103870977', '206100523621941248'],
+                            },
+                        },
+                    },
+                    response: {
+                        200: { type: 'object', properties: { token: { type: 'string', description: 'access token' } } },
+                        400: {
+                            type: 'object',
+                            properties: { message: { type: 'string', description: '에러 메세지' } },
+                        },
                     },
                 },
             },
-            async req => fastify.jwt.sign({ access_token: '?', id: req.params.user_id })
-        );
-
-        fastify.get<{
-            Params: { user_id: string };
-        }>(
-            '/auth/:user_id/jwt',
-            {
-                schema: {
-                    description: '디스코드 사용자 인증 - 로컬 테스트용 / 페이지 인증용 토큰',
-                    tags: ['Auth'],
-                    deprecated: false, // 비활성화
-                    params: {
-                        type: 'object',
-                        required: ['user_id'],
-                        additionalProperties: false,
-                        properties: { user_id: { $ref: 'userId' } },
-                    },
-                },
-            },
-            async req => {
-                const user = await discordApi.get<APIUser>(`/users/${req.params.user_id}`);
-                return await upsertDiscordUserAndJWTToken(user);
+            async (req, res) => {
+                const { user_id } = req.params;
+                const token = fastify.jwt.sign({ access_token: '?', id: user_id });
+                return { token };
             }
         );
     }
@@ -115,7 +101,7 @@ export default async (fastify: FastifyInstance, opts: any) => {
                 deprecated: false, // 비활성화
             },
         },
-        async () => {
+        async req => {
             const scopes = [
                 'identify',
                 'email',
@@ -125,7 +111,12 @@ export default async (fastify: FastifyInstance, opts: any) => {
                 'guilds.members.read',
             ];
             const types = await authTypes();
-            return { client_id: process.env.DISCORD_CLIENT_ID, scopes, types, permissions: 1249768893497 };
+            return {
+                client_id: process.env.DISCORD_CLIENT_ID,
+                scopes,
+                types,
+                permissions: 1249768893497,
+            };
         }
     );
 
@@ -198,6 +189,8 @@ export default async (fastify: FastifyInstance, opts: any) => {
     }>(
         '/auth',
         {
+            // onRequest: [fastify.authenticate],
+            // security: [{ Bearer: [] }],
             schema: {
                 description: '디스코드 사용자 인증',
                 tags: ['Auth'],
@@ -307,42 +300,6 @@ export default async (fastify: FastifyInstance, opts: any) => {
                 });
         }
     );
-
-    fastify.post<{
-        Body: { code: string };
-    }>(
-        '/auth/jwt',
-        {
-            schema: {
-                description: '디스코드에서 바로 연결된 사용자',
-                tags: ['Auth'],
-                deprecated: false, // 비활성화
-                body: {
-                    type: 'object',
-                    required: ['code'],
-                    additionalProperties: false,
-                    properties: {
-                        code: { type: 'string', description: 'jwt 인증 code 값' },
-                    },
-                },
-            },
-        },
-        async req => {
-            const { code } = req.body;
-            const userTokenData = await selectDiscordUserByJWTToken(code);
-
-            if (!userTokenData) {
-                return { message: '사용자 정보가 없습니다.' };
-            } else {
-                const { auth_id } = userTokenData;
-
-                const user = await discordApi.get(`/users/${auth_id}`);
-                const jwt = fastify.jwt.sign({ access_token: '?', id: auth_id }, { expiresIn: 60 * 60 * 24 });
-                return { user, jwt };
-            }
-        }
-    );
-
     // 인증 모듈 - 토스
     fastify.patch<{
         Body: {
