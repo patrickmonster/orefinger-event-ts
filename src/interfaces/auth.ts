@@ -1,3 +1,5 @@
+export type Auth_id = string;
+
 export interface AuthUser {
     id: string;
     username?: string;

@@ -2,7 +2,14 @@
 import { FastifyInstance } from 'fastify';
 
 import axios from 'axios';
-import { auth, authTypes, deleteAuthConnection, deleteAuthConnectionAuthTypes, discord, userIds } from 'controllers/auth';
+import {
+    auth,
+    authTypes,
+    deleteAuthConnection,
+    deleteAuthConnectionAuthTypes,
+    discord,
+    userIds,
+} from 'controllers/auth';
 import { openApi } from 'utils/discordApiInstance';
 import toss from 'utils/tossApiInstance';
 import twitch, { twitchAPI } from 'utils/twitchApiInstance';
@@ -70,7 +77,10 @@ export default async (fastify: FastifyInstance, opts: any) => {
                     },
                     response: {
                         200: { type: 'object', properties: { token: { type: 'string', description: 'access token' } } },
-                        400: { type: 'object', properties: { message: { type: 'string', description: '에러 메세지' } } },
+                        400: {
+                            type: 'object',
+                            properties: { message: { type: 'string', description: '에러 메세지' } },
+                        },
                     },
                 },
             },
@@ -92,7 +102,14 @@ export default async (fastify: FastifyInstance, opts: any) => {
             },
         },
         async req => {
-            const scopes = ['identify', 'email', 'connections', 'guilds', 'role_connections.write', 'guilds.members.read'];
+            const scopes = [
+                'identify',
+                'email',
+                'connections',
+                'guilds',
+                'role_connections.write',
+                'guilds.members.read',
+            ];
             const types = await authTypes();
             return {
                 client_id: process.env.DISCORD_CLIENT_ID,
@@ -139,7 +156,17 @@ export default async (fastify: FastifyInstance, opts: any) => {
                         type: {
                             type: 'string',
                             description: '인증 타입',
-                            enum: ['discord', 'twitch.stream', 'twitch', 'tiktok', 'afreecatv', 'kakao', 'youtube', 'toss', 'toss.test'],
+                            enum: [
+                                'discord',
+                                'twitch.stream',
+                                'twitch',
+                                'tiktok',
+                                'afreecatv',
+                                'kakao',
+                                'youtube',
+                                'toss',
+                                'toss.test',
+                            ],
                         },
                         target: { type: 'string', description: '인증 대상' },
                     },
@@ -294,7 +321,14 @@ export default async (fastify: FastifyInstance, opts: any) => {
                 deprecated: false, // 비활성화
                 body: {
                     type: 'object',
-                    required: ['cardNumber', 'cardExpirationYear', 'cardExpirationMonth', 'cardPassword', 'customerIdentityNumber', 'cardName'],
+                    required: [
+                        'cardNumber',
+                        'cardExpirationYear',
+                        'cardExpirationMonth',
+                        'cardPassword',
+                        'customerIdentityNumber',
+                        'cardName',
+                    ],
                     additionalProperties: false,
                     properties: {
                         cardNumber: { type: 'string', description: '카드번호' },
@@ -310,7 +344,14 @@ export default async (fastify: FastifyInstance, opts: any) => {
         },
         async req => {
             const { id } = req.user;
-            const { cardNumber, cardExpirationYear, cardExpirationMonth, cardPassword, customerIdentityNumber, cardName } = req.body;
+            const {
+                cardNumber,
+                cardExpirationYear,
+                cardExpirationMonth,
+                cardPassword,
+                customerIdentityNumber,
+                cardName,
+            } = req.body;
 
             try {
                 const { data: user } = await toss.post<{
@@ -358,21 +399,6 @@ export default async (fastify: FastifyInstance, opts: any) => {
         }
     );
 
-    type twitchUser = {
-        data: {
-            id: string;
-            login: string;
-            display_name: string;
-            type: string;
-            broadcaster_type: string;
-            description: string;
-            profile_image_url: string;
-            offline_image_url: string;
-            view_count: number;
-            email: string;
-            created_at: string;
-        }[];
-    };
     // 인증 모듈
     fastify.post<{
         Params: { target: string };
@@ -394,7 +420,11 @@ export default async (fastify: FastifyInstance, opts: any) => {
                     required: ['target'],
                     additionalProperties: false,
                     properties: {
-                        target: { type: 'string', description: '인증 대상', enum: ['twitch', 'twitch.stream', 'kakao'] },
+                        target: {
+                            type: 'string',
+                            description: '인증 대상',
+                            enum: ['twitch', 'twitch.stream', 'kakao'],
+                        },
                     },
                 },
                 body: {
@@ -424,7 +454,13 @@ export default async (fastify: FastifyInstance, opts: any) => {
             const client_id = `${types.client_id}`;
             const client_secret = `${types.client_sc}`;
 
-            const params = qs.stringify({ client_id, client_secret, grant_type: 'authorization_code', code, redirect_uri });
+            const params = qs.stringify({
+                client_id,
+                client_secret,
+                grant_type: 'authorization_code',
+                code,
+                redirect_uri,
+            });
 
             console.log('로그인 인증 요청', params);
 
