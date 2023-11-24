@@ -5,9 +5,8 @@ import {
 } from 'discord-api-types/v10';
 import { basename } from 'path';
 
+import { upsertDiscordUserAndJWTToken } from 'controllers/auth';
 import { AppChatInputInteraction } from 'interactions/app';
-
-// import api from "utils/discordApiInstance"
 
 const name = basename(__filename, __filename.endsWith('js') ? '.js' : '.ts');
 const type = ApplicationCommandOptionType.Subcommand;
@@ -16,11 +15,14 @@ export const exec = async (
     interaction: AppChatInputInteraction,
     selectOption: APIApplicationCommandInteractionDataBasicOption[]
 ) => {
-    const { member, guild_id, channel } = interaction;
-    // if (!guild_id) return await interaction.reply({ content: '서버에서만 사용할 수 있습니다.', ephemeral: true });
+    const { member, user, guild_id, channel } = interaction;
 
     const reply = await interaction.differ({ ephemeral: true });
     const type = selectOption.find(({ name }) => name === '타입')?.value;
+
+    const apiUser = member?.user || user;
+
+    if (apiUser) await upsertDiscordUserAndJWTToken(apiUser);
 };
 
 const api: APIApplicationCommandSubcommandOption = {

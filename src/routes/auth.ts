@@ -57,8 +57,6 @@ export default async (fastify: FastifyInstance, opts: any) => {
         }>(
             '/auth/:user_id',
             {
-                // onRequest: [fastify.authenticate],
-                // security: [{ bearerAuth: [] }],
                 schema: {
                     description: '디스코드 사용자 인증 - 로컬 테스트용',
                     tags: ['Auth'],
@@ -75,20 +73,9 @@ export default async (fastify: FastifyInstance, opts: any) => {
                             },
                         },
                     },
-                    response: {
-                        200: { type: 'object', properties: { token: { type: 'string', description: 'access token' } } },
-                        400: {
-                            type: 'object',
-                            properties: { message: { type: 'string', description: '에러 메세지' } },
-                        },
-                    },
                 },
             },
-            async (req, res) => {
-                const { user_id } = req.params;
-                const token = fastify.jwt.sign({ access_token: '?', id: user_id });
-                return { token };
-            }
+            async req => fastify.jwt.sign({ access_token: '?', id: req.params.user_id })
         );
     }
 
