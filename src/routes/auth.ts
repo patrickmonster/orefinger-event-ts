@@ -8,9 +8,10 @@ import {
     deleteAuthConnection,
     deleteAuthConnectionAuthTypes,
     discord,
+    selectDiscordUserByJWTToken,
     userIds,
 } from 'controllers/auth';
-import { openApi } from 'utils/discordApiInstance';
+import discordApi, { openApi } from 'utils/discordApiInstance';
 import toss from 'utils/tossApiInstance';
 import twitch, { twitchAPI } from 'utils/twitchApiInstance';
 
@@ -104,6 +105,38 @@ export default async (fastify: FastifyInstance, opts: any) => {
                 types,
                 permissions: 1249768893497,
             };
+        }
+    );
+
+    fastify.get<{
+        Params: { jwtToken: string };
+    }>(
+        '/auth/discord/:jwtToken',
+        {
+            schema: {
+                description: '디스코드 사용자 토큰 발급 - 가인증 데이터',
+                tags: ['Auth'],
+                deprecated: false, // 비활성화
+                params: {
+                    properties: {
+                        jwtToken: { type: 'string', description: 'jwt 토큰' },
+                    },
+                },
+            },
+        },
+        async req => {
+            const { jwtToken } = req.params;
+            const userTokenData = await selectDiscordUserByJWTToken(jwtToken);
+
+            if (!userTokenData) {
+                return { message: '사용자 정보가 없습니다.' };
+            } else {
+                const { auth_id } = userTokenData;
+
+                const user = await discordApi.get(`/users/${auth_id}`);
+                const jwt = fastify.jwt.sign({ access_token: '?', id: auth_id }, { expiresIn: 60 * 60 * 24 });
+                return { user, jwt };
+            }
         }
     );
 
