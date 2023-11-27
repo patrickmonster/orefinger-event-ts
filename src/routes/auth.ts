@@ -9,12 +9,14 @@ import {
     deleteAuthConnectionAuthTypes,
     discord,
     selectDiscordUserByJWTToken,
+    upsertDiscordUserAndJWTToken,
     userIds,
 } from 'controllers/auth';
 import discordApi, { openApi } from 'utils/discordApiInstance';
 import toss from 'utils/tossApiInstance';
 import twitch, { twitchAPI } from 'utils/twitchApiInstance';
 
+import { APIUser } from 'discord-api-types/v10';
 import qs from 'querystring';
 
 export default async (fastify: FastifyInstance, opts: any) => {
@@ -78,6 +80,34 @@ export default async (fastify: FastifyInstance, opts: any) => {
             },
             async req => fastify.jwt.sign({ access_token: '?', id: req.params.user_id })
         );
+
+        fastify.get<{
+            Params: { user_id: string };
+        }>(
+            '/auth/:user_id/jwt',
+            {
+                schema: {
+                    description: '디스코드 사용자 인증 - 로컬 테스트용 / 페이지 인증용 토큰',
+                    tags: ['Auth'],
+                    deprecated: false, // 비활성화
+                    params: {
+                        type: 'object',
+                        required: ['user_id'],
+                        additionalProperties: false,
+                        properties: {
+                            user_id: {
+                                type: 'string',
+                                description: '사용자 아이디',
+                            },
+                        },
+                    },
+                },
+            },
+            async req => {
+                const user = await discordApi.get<APIUser>(`/users/${req.params.user_id}`);
+                return await upsertDiscordUserAndJWTToken(user);
+            }
+        );
     }
 
     fastify.get(
@@ -89,7 +119,7 @@ export default async (fastify: FastifyInstance, opts: any) => {
                 deprecated: false, // 비활성화
             },
         },
-        async req => {
+        async () => {
             const scopes = [
                 'identify',
                 'email',
@@ -108,25 +138,28 @@ export default async (fastify: FastifyInstance, opts: any) => {
         }
     );
 
-    fastify.get<{
-        Params: { jwtToken: string };
+    fastify.post<{
+        Body: { code: string };
     }>(
-        '/auth/discord/:jwtToken',
+        '/auth/jwt',
         {
             schema: {
                 description: '디스코드 사용자 토큰 발급 - 가인증 데이터',
                 tags: ['Auth'],
                 deprecated: false, // 비활성화
-                params: {
+                body: {
+                    type: 'object',
+                    required: ['code'],
+                    additionalProperties: false,
                     properties: {
-                        jwtToken: { type: 'string', description: 'jwt 토큰' },
+                        code: { type: 'string', description: 'jwt 인증 code 값' },
                     },
                 },
             },
         },
         async req => {
-            const { jwtToken } = req.params;
-            const userTokenData = await selectDiscordUserByJWTToken(jwtToken);
+            const { code } = req.body;
+            const userTokenData = await selectDiscordUserByJWTToken(code);
 
             if (!userTokenData) {
                 return { message: '사용자 정보가 없습니다.' };
@@ -209,8 +242,6 @@ export default async (fastify: FastifyInstance, opts: any) => {
     }>(
         '/auth',
         {
-            // onRequest: [fastify.authenticate],
-            // security: [{ Bearer: [] }],
             schema: {
                 description: '디스코드 사용자 인증',
                 tags: ['Auth'],

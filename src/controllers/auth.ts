@@ -273,7 +273,7 @@ export const upsertDiscordUserAndJWTToken = async (user: APIUser) => {
 
         return await query<{
             token: string;
-        }>('SELECT func_auth_jwt(?) AS token').then(([{ token }]) => token);
+        }>('SELECT func_auth_jwt(?) AS token', id).then(([{ token }]) => token);
     });
 };
 
@@ -287,7 +287,7 @@ export const selectDiscordUserByJWTToken = async (token: string) =>
 SELECT auth_id, hash, create_at 
 FROM auth_jwt aj 
 WHERE hash = ?
-AND CREATE_AT > DATE_ADD(CURRENT_TIMESTAMP, INTERVAL -1 DAY);
+AND CREATE_AT > DATE_ADD(CURRENT_TIMESTAMP, INTERVAL -1 DAY)
 LIMIT 1;
 `,
         token
