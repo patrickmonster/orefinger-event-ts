@@ -5,8 +5,9 @@ import {
 } from 'discord-api-types/v10';
 import { basename } from 'path';
 
-import { upsertDiscordUserAndJWTToken } from 'controllers/auth';
+import { upsertDiscordUserAndJWTToken, userIds } from 'controllers/auth';
 import { AppChatInputInteraction } from 'interactions/app';
+import { createButtonArrays, createUrlButton } from 'utils/discord/component';
 
 const name = basename(__filename, __filename.endsWith('js') ? '.js' : '.ts');
 const type = ApplicationCommandOptionType.Subcommand;
@@ -15,14 +16,39 @@ export const exec = async (
     interaction: AppChatInputInteraction,
     selectOption: APIApplicationCommandInteractionDataBasicOption[]
 ) => {
-    const { member, user, guild_id, channel } = interaction;
+    const { member, user } = interaction;
 
-    const reply = await interaction.differ({ ephemeral: true });
-    const type = selectOption.find(({ name }) => name === '타입')?.value;
+    await interaction.differ({ ephemeral: true });
 
     const apiUser = member?.user || user;
 
-    if (apiUser) await upsertDiscordUserAndJWTToken(apiUser);
+    if (!apiUser)
+        return await interaction.reply({
+            content: `잘못된 접근 방식 입니다.`,
+            ephemeral: true,
+        });
+
+    const auths = await userIds(apiUser.id);
+
+    console.log(auths);
+
+    if (!auths.length)
+        return await interaction.reply({
+            content: `인증을 불러오지 못하였습니다.`,
+            ephemeral: true,
+        });
+
+    const jwt = await upsertDiscordUserAndJWTToken(apiUser);
+
+    await interaction.reply({
+        components: createButtonArrays(
+            ...auths.map(auth =>
+                createUrlButton(`https://orefinger.click/auth/discord?code=${jwt}&target=${auth.auth_type}`, {
+                    label: `${auth.tag_kr}]${auth.user_id ? `${auth.name}(${auth.login})` : '계정 연결하기'}`,
+                })
+            )
+        ),
+    });
 };
 
 const api: APIApplicationCommandSubcommandOption = {
