@@ -1,7 +1,9 @@
-import { APIApplicationCommandSubcommandOption, ApplicationCommandOptionType } from 'discord-api-types/v10';
+import { APIApplicationCommandSubcommandOption, APIUser, ApplicationCommandOptionType } from 'discord-api-types/v10';
 import { basename } from 'path';
 
+import { userIds } from 'controllers/auth';
 import { AppChatInputInteraction, SelectOptionType } from 'interactions/app';
+import { createUrlButton } from 'utils/discord/component';
 
 // import api from "utils/discordApiInstance"
 
@@ -9,11 +11,41 @@ const name = basename(__filename, __filename.endsWith('js') ? '.js' : '.ts');
 const type = ApplicationCommandOptionType.Subcommand;
 
 export const exec = async (interaction: AppChatInputInteraction, selectOption: SelectOptionType) => {
-    const { member, guild_id, channel } = interaction;
+    const { member, guild_id, channel, user } = interaction;
     // if (!guild_id) return await interaction.reply({ content: '서버에서만 사용할 수 있습니다.', ephemeral: true });
 
-    const reply = await interaction.differ({ ephemeral: true });
-    const type = selectOption.get('타입');
+    await interaction.differ({ ephemeral: true });
+
+    const apiUser = member?.user || user;
+
+    if (!apiUser)
+        return await interaction.reply({
+            content: `잘못된 접근 방식 입니다.`,
+            ephemeral: true,
+        });
+
+    const auths = await userIds(apiUser.id);
+
+    console.log(auths);
+
+    if (!auths.length)
+        return await interaction.reply({
+            content: `인증을 불러오지 못하였습니다.`,
+            ephemeral: true,
+        });
+
+    const jwt = await upsertDiscordUserAndJWTToken(apiUser);
+
+    await interaction.reply({
+        components: createButtonArrays(
+            ...auths.map(auth =>
+                // createUrlButton(`https://orefinger.click/discord/jwt?code=${jwt}&target=${auth.auth_type}`, {
+                createUrlButton(`http://localhost:5173/discord/jwt?code=${jwt}&target=${auth.auth_type}`, {
+                    label: `${auth.tag_kr}]${auth.user_id ? `${auth.name}(${auth.login})` : '계정 연결하기'}`,
+                })
+            )
+        ),
+    });
 };
 
 const api: APIApplicationCommandSubcommandOption = {
@@ -24,3 +56,15 @@ const api: APIApplicationCommandSubcommandOption = {
 
 // 인터렉션 이벤트
 export default api;
+function createButtonArrays(
+    arg0: any
+):
+    | import('discord-api-types/v10').APIActionRowComponent<
+          import('discord-api-types/v10').APIMessageActionRowComponent
+      >[]
+    | undefined {
+    throw new Error('Function not implemented.');
+}
+function upsertDiscordUserAndJWTToken(apiUser: APIUser) {
+    throw new Error('Function not implemented.');
+}
