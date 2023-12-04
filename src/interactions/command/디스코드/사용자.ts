@@ -1,21 +1,14 @@
-import {
-    APIApplicationCommandInteractionDataBasicOption,
-    APIApplicationCommandSubcommandOption,
-    ApplicationCommandOptionType,
-} from 'discord-api-types/v10';
+import { APIApplicationCommandSubcommandOption, ApplicationCommandOptionType } from 'discord-api-types/v10';
 import { basename } from 'path';
 
 import { selectAuthUsers } from 'controllers/auth';
-import { AppChatInputInteraction } from 'interactions/app';
+import { AppChatInputInteraction, SelectOptionType } from 'interactions/app';
 
 const name = basename(__filename, __filename.endsWith('js') ? '.js' : '.ts');
 const type = ApplicationCommandOptionType.Subcommand;
 
-export const exec = async (
-    interaction: AppChatInputInteraction,
-    selectOption: APIApplicationCommandInteractionDataBasicOption[]
-) => {
-    const user = selectOption.find(({ name }) => ['사용자'].includes(name))?.value;
+export const exec = async (interaction: AppChatInputInteraction, selectOption: SelectOptionType) => {
+    const user = selectOption.get('사용자');
 
     if (!user) {
         return await interaction.reply({ content: '필수값 : 사용자', ephemeral: true });
