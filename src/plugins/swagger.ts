@@ -1,6 +1,6 @@
 'use strict';
-import fp from 'fastify-plugin';
 import { FastifyRequest } from 'fastify';
+import fp from 'fastify-plugin';
 
 import { fastifySwagger } from '@fastify/swagger';
 import swagger_ui from '@fastify/swagger-ui';
@@ -33,6 +33,8 @@ export default fp(async function (fastify, opts) {
                 { name: 'System', description: '시스템 관리용 API' },
                 { name: 'Notification', description: '알림' },
                 { name: 'Discord', description: '디스코드 관련 API' },
+
+                { name: 'Util', description: '유틸리티 관련 API' },
             ],
             // schemes: [process.env.MASTER_KEY ? 'https' : 'http'],
             components: {

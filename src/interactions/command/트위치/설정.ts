@@ -14,9 +14,6 @@ export const exec = async (interaction: AppChatInputInteraction, selectOption: S
 
     const type = selectOption.get('타입');
 
-    console.log('타입', type);
-
-    // [ { name: '타입', type: 4, value: 3 } ]
     switch (type) {
         case choices.indexOf('방송알림'): {
             /**
