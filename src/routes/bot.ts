@@ -20,14 +20,14 @@ export default async (fastify: FastifyInstance, opts: any) => {
     fastify.post<{
         Body: APIInteraction;
     }>(
-        '',
+        '/bot',
         {
             preHandler: [fastify.verifyDiscordKey],
             schema: {
                 // hide: true,
                 description: '봇 인터렉션 이벤트 수신부 - 연결 및 사용 X',
                 summary: '인터렉션 이벤트',
-                tags: ['Admin'],
+                tags: ['Util'],
                 deprecated: false,
             },
         },
@@ -50,7 +50,14 @@ export default async (fastify: FastifyInstance, opts: any) => {
             const interaction = fastify.interaction(req, res);
             const msg: any = { ...body, ...body.data, ...interaction };
 
-            fastify.log.info('interactionEvent', body.type, body.guild_id, body?.channel_id || 'DM', body.member?.user?.id, body.id);
+            fastify.log.info(
+                'interactionEvent',
+                body.type,
+                body.guild_id,
+                body?.channel_id || 'DM',
+                body.member?.user?.id,
+                body.id
+            );
 
             switch (body.type) {
                 case InteractionType.ApplicationCommand:
@@ -68,5 +75,3 @@ export default async (fastify: FastifyInstance, opts: any) => {
         }
     );
 };
-
-export const autoPrefix = '/bot';

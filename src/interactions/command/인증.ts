@@ -1,9 +1,9 @@
-import { APIApplicationCommandSubcommandOption, APIUser, ApplicationCommandOptionType } from 'discord-api-types/v10';
+import { APIApplicationCommandSubcommandOption, ApplicationCommandOptionType } from 'discord-api-types/v10';
 import { basename } from 'path';
 
-import { userIds } from 'controllers/auth';
+import { upsertDiscordUserAndJWTToken, userIds } from 'controllers/auth';
 import { AppChatInputInteraction, SelectOptionType } from 'interactions/app';
-import { createUrlButton } from 'utils/discord/component';
+import { createButtonArrays, createUrlButton } from 'utils/discord/component';
 
 // import api from "utils/discordApiInstance"
 
@@ -56,15 +56,3 @@ const api: APIApplicationCommandSubcommandOption = {
 
 // 인터렉션 이벤트
 export default api;
-function createButtonArrays(
-    arg0: any
-):
-    | import('discord-api-types/v10').APIActionRowComponent<
-          import('discord-api-types/v10').APIMessageActionRowComponent
-      >[]
-    | undefined {
-    throw new Error('Function not implemented.');
-}
-function upsertDiscordUserAndJWTToken(apiUser: APIUser) {
-    throw new Error('Function not implemented.');
-}

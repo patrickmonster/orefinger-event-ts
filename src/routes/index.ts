@@ -2,11 +2,15 @@ import { FastifyInstance } from 'fastify';
 import { createSubscribe } from 'utils/token';
 
 import auth from './auth';
+import bot from './bot';
 import twitch from './twitch';
+import user from './user';
 
 export default async (fastify: FastifyInstance, opts: any) => {
     fastify.register(auth);
     fastify.register(twitch);
+    fastify.register(user);
+    fastify.register(bot);
 
     fastify.get('/ping', { schema: { hide: true } }, async (req, res) => 'pong');
     fastify.get('/', { schema: { hide: true } }, (q, r) => r.redirect('https://orefinger.click'));

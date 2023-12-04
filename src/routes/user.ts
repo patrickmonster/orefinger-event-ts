@@ -12,14 +12,14 @@ export default async (fastify: FastifyInstance, opts: any) => {
             name?: string;
         };
     }>(
-        '/',
+        '/user',
         {
             onRequest: [fastify.masterkey],
             schema: {
                 security: [{ Master: [] }],
                 description: '사용자 리스트 조회',
                 summary: '사용자 조회',
-                tags: ['Admin'],
+                tags: ['Util'],
                 querystring: {
                     allOf: [
                         { $ref: 'paging#' },
@@ -39,5 +39,3 @@ export default async (fastify: FastifyInstance, opts: any) => {
         async req => await selectAuthUsers(req.query)
     );
 };
-
-export const autoPrefix = '/user';

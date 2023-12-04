@@ -11,6 +11,7 @@ import {
     ComponentType,
     TextInputStyle,
 } from 'discord-api-types/v10';
+import division from 'utils/division';
 
 export const createButton = (
     custom_id: string,
@@ -52,6 +53,15 @@ export const createUrlButton = (
         ...props,
     };
 };
+
+// 버튼을 배열로 만들어주는 함수
+export const createButtonArrays = (
+    ...buttons: APIButtonComponentWithURL[]
+): APIActionRowComponent<APIButtonComponentWithCustomId | APIButtonComponentWithURL>[] =>
+    division(buttons, 5).map(buttons => ({
+        type: ComponentType.ActionRow,
+        components: buttons,
+    }));
 
 export const createStringSelectMenu = (
     custom_id: string,
