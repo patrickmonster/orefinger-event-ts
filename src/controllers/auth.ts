@@ -4,9 +4,16 @@ import { SqlInsertUpdate, YN, calTo, query, queryFunctionType } from 'utils/data
 
 import { Event } from 'interfaces/eventsub';
 
-export const discord = async (profile: AuthUser, refreshToken: string) => auth('discord', profile.id, profile, refreshToken);
+export const discord = async (profile: AuthUser, refreshToken: string) =>
+    auth('discord', profile.id, profile, refreshToken);
 
-export const auth = async (type: string, auth_id: string, profile: AuthUser, refreshToken: string, user_type?: string) => {
+export const auth = async (
+    type: string,
+    auth_id: string,
+    profile: AuthUser,
+    refreshToken: string,
+    user_type?: string
+) => {
     const { id, username, discriminator, email, avatar } = profile;
     return query(`select func_auth_token(?) as user_type`, [
         type,
@@ -22,14 +29,17 @@ export const auth = async (type: string, auth_id: string, profile: AuthUser, ref
 };
 
 export const userUpdate = async (event: Event) => {
-    const { user_id, user_login, user_name, email } = event;
+    const { user_id, user_login, user_name } = event;
+    const obj: Event = { login: user_login, name: user_name };
+    if (event.avatar) obj.avatar = event.avatar;
+    if (event.email) obj.email = event.email;
     await query<SqlInsertUpdate>(
         `
 UPDATE auth_token SET 
 ?, update_at = CURRENT_TIMESTAMP 
 WHERE \`type\` in (2,3) and user_id=?
         `,
-        { login: user_login, name: user_name, email },
+        obj,
         user_id + ''
     );
 };
@@ -209,4 +219,33 @@ ${calTo('AND user_id = ?', user_id)}
 ${calTo('AND login = ?', login)}
 ${calTo('AND name = ?', name)}
     `
+    );
+
+// 옵션에 대한 사용자 정보를 불러옴
+export const getAuthBadge = (user_id: string) =>
+    query<{
+        user_id: string;
+        auth_id: string;
+        login: string;
+        name: string;
+        kr_name: string;
+        user_type: string;
+        avatar: string;
+    }>(
+        `
+SELECT 
+    vat.user_id
+    , vat.auth_id
+    , vat.login
+    , vat.name
+    , vat.kr_name
+    , vat.user_type
+    , vat.avatar
+FROM auth_option ao
+LEFT JOIN v_auth_token vat ON ao.auth_id = vat.auth_id  
+WHERE badge = ?
+AND vat.type = 2
+AND vat.user_id = badge 
+    `,
+        user_id
     );

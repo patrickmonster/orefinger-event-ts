@@ -10,7 +10,7 @@ import errorEmbed from './errorEmbed';
  */
 export default async (interaction: IReply, guild_id: string, user_id: string, twitch_id: string, role_id: string) => {
     getUser(twitch_id)
-        .then(async ([user]) => {
+        .then(async ({ data: [user] }) => {
             if (!user) {
                 return await interaction.reply({
                     content: '트수 정보를 찾을 수 없습니다.',

@@ -1,17 +1,26 @@
 #Dockerfile
 
-FROM node:alpine
+FROM node:18-alpine
 
 WORKDIR /usr/src/app
 
 # curl 모듈 설치
 RUN apk --no-cache add curl
-
+RUN apk --update --no-cache add \
+    make \
+    g++ \
+    jpeg-dev \
+    cairo-dev \
+    giflib-dev \
+    pango-dev \
+    libtool \
+    autoconf \
+    automake
 
 # 패키지 설치
 COPY *.json ./
 RUN npm i --force -g tsc tsc-alias typescript yarn 
-RUN yarn
+RUN npm install --force 
 
 
 COPY . .

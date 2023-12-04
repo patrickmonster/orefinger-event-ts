@@ -1347,13 +1347,6 @@
   dependencies:
     undici-types "~5.25.1"
 
-"@types/sha256@^0.2.1":
-  version "0.2.1"
-  resolved "https://registry.yarnpkg.com/@types/sha256/-/sha256-0.2.1.tgz#7b6e347e0882fccb9f4ad6acb4a2c80ae847e399"
-  integrity sha512-ValOc4t7kVBoKo7FcySlX57AAJjr9bJDwqSziAcVXeTw6G8co0oOTKa3NtvixKnMDaDYV+8txMJ8sJ79gg+FTg==
-  dependencies:
-    "@types/node" "*"
-
 "@types/tmi.js@^1.8.3":
   version "1.8.4"
   resolved "https://registry.yarnpkg.com/@types/tmi.js/-/tmi.js-1.8.4.tgz#42119b8e62797ea9b66758588f46b88b243af30f"
@@ -1607,6 +1600,11 @@ dateformat@^4.6.3:
   version "4.6.3"
   resolved "https://registry.yarnpkg.com/dateformat/-/dateformat-4.6.3.tgz#556fa6497e5217fedb78821424f8a1c22fa3f4b5"
   integrity sha512-2P0p0pFGzHS5EMnhdxQi7aJN+iMheud0UhG4dlE1DLAlvL8JHjJJTX/CSm4JXwV0Ka5nGk3zC5mcb5bUQUxxMA==
+
+dayjs@^1.11.10:
+  version "1.11.10"
+  resolved "https://registry.yarnpkg.com/dayjs/-/dayjs-1.11.10.tgz#68acea85317a6e164457d6d6947564029a6a16a0"
+  integrity sha512-vjAczensTgRcqDERK0SR2XMwsF/tSvnvlv6VcF2GIhg6Sx4yOIt/irsr1RDJsKiIyBzJDpCoXiWWq28MqH2cnQ==
 
 debug@^4.0.0, debug@^4.1.1, debug@^4.3.4:
   version "4.3.4"

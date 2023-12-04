@@ -9,6 +9,7 @@ import { userUpdate } from 'controllers/auth';
 import discord, { openApi } from 'utils/discordApiInstance';
 
 import irc from 'utils/twitchIrc';
+import { usersUpdate } from 'components/twitch';
 
 const randomIntegerInRange = (min: number, max: number) => Math.floor(Math.random() * (max - min + 1)) + min;
 
@@ -44,7 +45,7 @@ export default async (fastify: FastifyInstance, opts: any) => {
                 // 내부적으로 처리함
                 break;
             case 'user.update':
-                userUpdate(event).catch(e => {});
+                usersUpdate(`${event.user_id}`).catch(e => {});
                 break;
             case 'user.authorization.grant':
                 {

@@ -264,12 +264,7 @@ export default async (fastify: FastifyInstance, opts: any) => {
                     }
 
                     // discord.
-                    const jwt = fastify.jwt.sign(
-                        { access_token, id: user.id },
-                        {
-                            expiresIn: Math.floor(Date.now() / 1000) + 60 * 60,
-                        }
-                    );
+                    const jwt = fastify.jwt.sign({ access_token, id: user.id }, { expiresIn: expires_in });
                     return { user, jwt };
                 })
                 .catch(e => {
