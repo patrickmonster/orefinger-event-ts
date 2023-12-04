@@ -1,5 +1,4 @@
 import {
-    APIApplicationCommandInteractionDataBasicOption,
     APIApplicationCommandSubcommandOption,
     APIButtonComponent,
     ApplicationCommandOptionType,
@@ -7,7 +6,7 @@ import {
 import { basename } from 'path';
 
 import { selectComponentPagingMenuByKey } from 'components/systemComponent';
-import { AppChatInputInteraction } from 'interactions/app';
+import { AppChatInputInteraction, SelectOptionType } from 'interactions/app';
 
 import QUERY from 'controllers/component/embedListQuerys';
 import { createPrimaryButton } from 'utils/discord/component';
@@ -45,13 +44,10 @@ const createConponentSelectMenuByComponentPagingMenuByKey = async (
     );
 };
 
-export const exec = async (
-    interaction: AppChatInputInteraction,
-    selectOption: APIApplicationCommandInteractionDataBasicOption[]
-) => {
+export const exec = async (interaction: AppChatInputInteraction, selectOption: SelectOptionType) => {
     console.log('컴포넌트 수신', selectOption);
 
-    const type = selectOption.find(({ name }) => ['타입'].includes(name))?.value;
+    const type = selectOption.get('타입');
 
     await interaction.differ({ ephemeral: true });
     switch (type) {

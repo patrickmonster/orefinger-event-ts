@@ -1,25 +1,18 @@
-import {
-    APIApplicationCommandInteractionDataBasicOption,
-    APIApplicationCommandSubcommandOption,
-    ApplicationCommandOptionType,
-} from 'discord-api-types/v10';
+import { APIApplicationCommandSubcommandOption, ApplicationCommandOptionType } from 'discord-api-types/v10';
 import { basename } from 'path';
 
 import { selectComponentPagingMenuByKey } from 'components/systemComponent';
-import { AppChatInputInteraction } from 'interactions/app';
+import { AppChatInputInteraction, SelectOptionType } from 'interactions/app';
 
 import QUERY from 'controllers/component/embedListQuerys';
 import { createPrimaryButton } from 'utils/discord/component';
 
 const choices = ['텍스트', 'auth_type'];
 
-export const exec = async (
-    interaction: AppChatInputInteraction,
-    selectOption: APIApplicationCommandInteractionDataBasicOption[]
-) => {
+export const exec = async (interaction: AppChatInputInteraction, selectOption: SelectOptionType) => {
     console.log('컴포넌트 수신', selectOption);
 
-    const type = selectOption.find(({ name }) => ['타입'].includes(name))?.value;
+    const type = selectOption.get('타입');
 
     await interaction.differ({ ephemeral: true });
     switch (type) {
