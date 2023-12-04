@@ -1,7 +1,8 @@
 'use strict';
 import { AuthUser } from 'interfaces/auth';
-import { SqlInsertUpdate, YN, calTo, query, queryFunctionType } from 'utils/database';
+import getConnection, { SqlInsertUpdate, YN, calTo, query, queryFunctionType } from 'utils/database';
 
+import { APIUser } from 'discord-api-types/v10';
 import { Event } from 'interfaces/eventsub';
 
 export const discord = async (profile: AuthUser, refreshToken: string) =>
@@ -249,3 +250,45 @@ AND vat.user_id = badge
     `,
         user_id
     );
+
+export const upsertDiscordUserAndJWTToken = async (user: APIUser) => {
+    const { avatar, global_name, id, username } = user;
+
+    const param = {
+        name: global_name,
+        username: username,
+        tag: '0000',
+        avatar,
+    };
+
+    return await getConnection(async query => {
+        await query<SqlInsertUpdate>(
+            'INSERT INTO auth SET ? ON DUPLICATE KEY UPDATE ?, update_at=CURRENT_TIMESTAMP',
+            {
+                ...param,
+                auth_id: id,
+            },
+            param
+        );
+
+        return await query<{
+            token: string;
+        }>('SELECT func_auth_jwt(?) AS token', id).then(([{ token }]) => token);
+    });
+};
+
+export const selectDiscordUserByJWTToken = async (token: string) =>
+    query<{
+        auth_id: string;
+        hash: string;
+        create_at: string;
+    }>(
+        `
+SELECT auth_id, hash, create_at 
+FROM auth_jwt aj 
+WHERE hash = ?
+AND CREATE_AT > DATE_ADD(CURRENT_TIMESTAMP, INTERVAL -1 DAY)
+LIMIT 1;
+`,
+        token
+    ).then(([user]) => user);

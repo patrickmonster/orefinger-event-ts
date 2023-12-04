@@ -9,16 +9,16 @@ import { AppChatInputInteraction } from 'interactions/app';
 
 const choices = ['알림', '채팅', '디자인'];
 
-export const exec = async (interaction: AppChatInputInteraction, selectOption: APIApplicationCommandInteractionDataBasicOption[]) => {
+export const exec = async (
+    interaction: AppChatInputInteraction,
+    selectOption: APIApplicationCommandInteractionDataBasicOption[]
+) => {
     const { member, guild_id, channel } = interaction;
     if (!guild_id) return await interaction.reply({ content: '서버에서만 사용할 수 있습니다.', ephemeral: true });
 
-    const reply = await interaction.differ({ ephemeral: true });
+    await interaction.differ({ ephemeral: true });
     const type = selectOption.find(({ name }) => name === '타입')?.value;
 
-    console.log('타입', type);
-
-    // [ { name: '타입', type: 4, value: 3 } ]
     switch (type) {
         case choices.indexOf('알림'): {
             break;
