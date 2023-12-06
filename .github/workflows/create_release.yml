@@ -1,0 +1,153 @@
+name: 🚀 Create pull request
+
+on:
+  workflow_dispatch : 
+    inputs :
+      branch :
+        type : choice
+        description :  'Branch to create pull request' 
+        options:
+          [ 'major', 'release', 'hotfix' ]
+        required :  true 
+
+jobs:
+
+  # 버전 변경 요청인 경우에만, 버전을 변경함.
+  change-version:
+    name : 🚀 Change release version
+    runs-on: ubuntu-latest
+
+    if: contains(fromJson('["release", "hotfix", "major"]'), github.event.inputs.branch)
+
+    outputs:
+      version: ${{ steps.update-version.outputs.version }} 
+      branch: ${{ github.event.inputs.branch }}/${{ steps.update-version.outputs.version }}
+    steps : 
+      - name : 🚀 깃 정보 로딩
+        uses: actions/checkout@v3
+        with : 
+          ref : develop
+    
+      - name: ✅ Check And Set Node Version
+        id : update-version
+        run: |
+          version=$(node -p 'require("./package.json").version')
+
+          major=$(echo $version | cut -d. -f1)
+          release=$(echo $version | cut -d. -f2)
+          hotfix=$(echo $version | cut -d. -f3)
+          
+          ${{ github.event.inputs.branch }}=$((${{github.event.inputs.branch}}+1))
+
+          
+          if [[ ${{ github.event.inputs.branch }} == 'major' ]]; then
+          # 주요 업데이트
+          major=$((major+1))
+          release=0
+          hotfix=0
+          elif [[ ${{ github.event.inputs.branch }} == 'release' ]]; then
+          # 기능업데이트
+          release=$((release+1))
+          hotfix=0
+          elif [[ ${{ github.event.inputs.branch }} == 'hotfix' ]]; then
+          # hotFix
+          hotfix=$((hotfix+1))
+          fi
+
+          version="$major.$release.$hotfix"
+
+          echo "version=${version}" >> $GITHUB_OUTPUT
+        shell: bash
+
+  change-version-commit:
+    name : 🚀 Create release branch
+    needs: [ change-version ]
+    runs-on: ubuntu-latest
+
+    # continue-on-error: true
+
+    strategy:
+      matrix:
+        node-version: [18.16.1]
+    steps :
+      - uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+          
+      - uses: actions/checkout@v4
+        with:
+          ref : develop
+
+      - name : 🚀 릴리즈 버전 커밋
+        run: |
+          git checkout -b ${{ needs.change-version.outputs.branch }}
+
+          git config --global user.email "github-actions@github.com"
+          git config --global user.name "github-actions"
+          
+          npm pkg set version="${{ needs.change-version.outputs.version }}"
+          git add package.json
+
+          git commit -m "🚀 Release version ${{ needs.change-version.outputs.version }}"
+          git push --set-upstream origin ${{ needs.change-version.outputs.branch }}
+        shell: bash
+
+      - name : ❗ 브런치 생성 실패
+        if: failure()
+        run: |
+          echo "브런치 생성 실패 - 이미 존재하는 브런치 ${{ needs.change-version.outputs.branch }} 입니다."
+
+          git config pull.rebase false
+
+          git pull origin develop
+          git checkout ${{ needs.change-version.outputs.branch }}
+          echo "브런치 변경 완료 ${{ needs.change-version.outputs.branch }}"
+
+          git pull origin ${{ needs.change-version.outputs.branch }}  --allow-unrelated-histories
+          echo "브런치 pull 완료"
+
+          
+          git merge develop
+          echo "브런치 병합"
+
+          git push --set-upstream origin ${{ needs.change-version.outputs.branch }}
+        shell: bash
+
+    
+  create-pr:
+    name : 🚀 Create pull request
+    needs: [change-version, change-version-commit]
+    runs-on: ubuntu-latest
+
+
+    steps :
+      - uses: actions/checkout@v4
+        with:
+          ref : ${{ needs.change-version.outputs.branch }}
+
+      - name : 🚀 깃 정보 로딩
+        run : |
+          git checkout ${{ needs.change-version.outputs.branch }}
+
+      - name : 🚀 Create pull request
+
+        uses : actions/github-script@v6
+        with:
+          script: |
+            await github.rest.pulls.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: 'Release. ${{ needs.change-version.outputs.version }}',
+              head: '${{ needs.change-version.outputs.branch }}',
+              base: 'master',
+              body: `# Release version ${{ needs.change-version.outputs.version }}
+
+              ## Release branch
+              ${{github.ref}}
+              
+              ## CheckList
+              - [ ] 빌드 환경 확인
+              - [ ] 코드 리뷰
+              - [ ] 테스트 빌드
+              - [ ] 테스트 배포`
+            })
