@@ -6,10 +6,20 @@ import { AppChatInputInteraction, SelectOptionType } from 'interactions/app';
 const name = basename(__filename, __filename.endsWith('js') ? '.js' : '.ts');
 const type = ApplicationCommandOptionType.Subcommand;
 
-const choices = ['텍스트', 'auth_type'];
+const choices = ['치지직', '네이버', '카카오'];
 
 export const exec = async (interaction: AppChatInputInteraction, selectOption: SelectOptionType) => {
-    //
+    await interaction.differ();
+    const type = selectOption.get('타입');
+
+    switch (type) {
+        case choices.indexOf('치지직'):
+            break;
+        case choices.indexOf('네이버'):
+            break;
+        case choices.indexOf('카카오'):
+            break;
+    }
 };
 
 const api: APIApplicationCommandSubcommandOption = {
