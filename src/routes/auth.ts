@@ -13,6 +13,7 @@ import {
     userIds,
 } from 'controllers/auth';
 import discordApi, { openApi } from 'utils/discordApiInstance';
+import { naverAPI } from 'utils/naverApiInstance';
 import toss from 'utils/tossApiInstance';
 import twitch, { twitchAPI } from 'utils/twitchApiInstance';
 
@@ -466,7 +467,7 @@ export default async (fastify: FastifyInstance, opts: any) => {
                         target: {
                             type: 'string',
                             description: '인증 대상',
-                            enum: ['twitch', 'twitch.stream', 'kakao'],
+                            enum: ['twitch', 'kakao', 'naver'],
                         },
                     },
                 },
@@ -485,7 +486,7 @@ export default async (fastify: FastifyInstance, opts: any) => {
                 },
             },
         },
-        async (req, res) => {
+        async req => {
             const { target } = req.params;
             const { id } = req.user;
             const { code, redirect_uri } = req.body;
@@ -552,7 +553,40 @@ export default async (fastify: FastifyInstance, opts: any) => {
                     });
                     break;
                 case 'kakao':
+                    // https://kauth.kakao.com/oauth/authorize?client_id=3acd5b4a1b25cbc0e6604a123faaf73d&scope=profile%2Cfriends%2Caccount_email%2Cgender%2Cage_range%2Cstory_read%2Cstory_publish%2Cbirthday%2Ctalk_chats%2Ctalk_message%2Ctalk_calendar&redirect_uri=JS-SDK&response_type=code&auth_tran_id=rxnkzf20wz3acd5b4a1b25cbc0e6604a123faaf73dlqbxaa2r&ka=sdk%2F1.43.1%20os%2Fjavascript%20sdk_type%2Fjavascript%20lang%2Fko-KR%20device%2FWin32%20origin%2Fhttps%253A%252F%252Fdevelopers.kakao.com&is_popup=true
                     token = getToken(`https://kauth.kakao.com/oauth/token`, params).then(async token => {});
+                    break;
+                case 'naver':
+                    token = getToken(`https://nid.naver.com/oauth2.0/token`, params).then(async token => {
+                        const { resultcode, response: user } = await naverAPI.get<{
+                            resultcode: string;
+                            message: string;
+                            response: {
+                                id: string;
+                                nickname: string;
+                                profile_image: string;
+                                email: string;
+                            };
+                        }>('/nid/me', {
+                            headers: { Authorization: `Bearer ${token.access_token}`, 'Client-Id': client_id },
+                        });
+
+                        const { email, nickname, profile_image } = user;
+
+                        await auth(
+                            target,
+                            id,
+                            {
+                                id: user.id,
+                                username: nickname,
+                                discriminator: nickname,
+                                email: email,
+                                avatar: profile_image,
+                            },
+                            token.refresh_token
+                        );
+                        return { message: 'success', id: user.id };
+                    });
                     break;
                 default:
                     return { message: '잘못된 인증 대상입니다.' };
