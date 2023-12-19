@@ -1,26 +1,21 @@
-import {
-    APIApplicationCommandInteractionDataBasicOption,
-    APIApplicationCommandSubcommandOption,
-    ApplicationCommandOptionType,
-} from 'discord-api-types/v10';
+import { APIApplicationCommandSubcommandOption, ApplicationCommandOptionType } from 'discord-api-types/v10';
 import { basename } from 'path';
 
-import { AppChatInputInteraction } from 'interactions/app';
+import { AppChatInputInteraction, SelectOptionType } from 'interactions/app';
 
 const name = basename(__filename, __filename.endsWith('js') ? '.js' : '.ts');
 const type = ApplicationCommandOptionType.Subcommand;
 
 const choices = ['텍스트', 'auth_type'];
 
-export const exec = async (
-    interaction: AppChatInputInteraction,
-    selectOption: APIApplicationCommandInteractionDataBasicOption[]
-) => {};
+export const exec = async (interaction: AppChatInputInteraction, selectOption: SelectOptionType) => {
+    //
+};
 
 const api: APIApplicationCommandSubcommandOption = {
     name,
     type,
-    description: '디스코드 내부 인증기를 제작 합니다.',
+    description: '소셜 인증을 설정합니다.',
     options: [
         {
             name: '타입',
