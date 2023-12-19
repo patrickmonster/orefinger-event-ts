@@ -13,6 +13,7 @@ import {
     userIds,
 } from 'controllers/auth';
 import discordApi, { openApi } from 'utils/discordApiInstance';
+import { kakaoAPI } from 'utils/kakaoApiInstance';
 import { naverAPI } from 'utils/naverApiInstance';
 import toss from 'utils/tossApiInstance';
 import twitch, { twitchAPI } from 'utils/twitchApiInstance';
@@ -553,8 +554,42 @@ export default async (fastify: FastifyInstance, opts: any) => {
                     });
                     break;
                 case 'kakao':
-                    // https://kauth.kakao.com/oauth/authorize?client_id=3acd5b4a1b25cbc0e6604a123faaf73d&scope=profile%2Cfriends%2Caccount_email%2Cgender%2Cage_range%2Cstory_read%2Cstory_publish%2Cbirthday%2Ctalk_chats%2Ctalk_message%2Ctalk_calendar&redirect_uri=JS-SDK&response_type=code&auth_tran_id=rxnkzf20wz3acd5b4a1b25cbc0e6604a123faaf73dlqbxaa2r&ka=sdk%2F1.43.1%20os%2Fjavascript%20sdk_type%2Fjavascript%20lang%2Fko-KR%20device%2FWin32%20origin%2Fhttps%253A%252F%252Fdevelopers.kakao.com&is_popup=true
-                    token = getToken(`https://kauth.kakao.com/oauth/token`, params).then(async token => {});
+                    token = getToken(`https://kauth.kakao.com/oauth/token`, params).then(async token => {
+                        const {
+                            id: kakaoId,
+                            connected_at,
+                            kakao_account,
+                            properties,
+                        } = await kakaoAPI.get<{
+                            id: number;
+                            connected_at: string;
+                            properties: { nickname: string };
+                            kakao_account: {
+                                profile_nickname_needs_agreement: boolean;
+                                profile: { nickname: string };
+                                // has_email: boolean;
+                                email_needs_agreement: boolean;
+                                // is_email_valid: boolean;
+                                // is_email_verified: boolean;
+                                // email: string;
+                            };
+                        }>('/user/me', {
+                            headers: { Authorization: `Bearer ${token.access_token}` },
+                        });
+
+                        const { profile } = kakao_account;
+
+                        await auth(
+                            target,
+                            id,
+                            {
+                                id: `${kakaoId}`,
+                                username: profile.nickname,
+                                discriminator: profile.nickname,
+                            },
+                            token.refresh_token
+                        );
+                    });
                     break;
                 case 'naver':
                     token = getToken(`https://nid.naver.com/oauth2.0/token`, params).then(async token => {
