@@ -9,7 +9,7 @@ import { ButtonStyle, ComponentType } from 'discord-api-types/v10';
  * 가이드 호출 - 디비처리용
  * @param interaction
  */
-export const exec = async (interaction: MessageMenuInteraction) => {
+export const exec = async (interaction: MessageMenuInteraction, noCopy: string) => {
     const {
         values: [embed_id],
     } = interaction;
@@ -29,20 +29,24 @@ export const exec = async (interaction: MessageMenuInteraction) => {
         embeds: [embed],
         ephemeral: true,
         components: [
-            editerComponent('embed edit', [
-                {
-                    type: ComponentType.Button,
-                    style: ButtonStyle.Success,
-                    label: '필드 수정',
-                    custom_id: `${id} option`,
-                },
-                {
-                    type: ComponentType.Button,
-                    label: '새로고침',
-                    style: ButtonStyle.Danger,
-                    custom_id: `${id} reload`,
-                },
-            ]),
+            editerComponent(
+                'embed edit',
+                [
+                    {
+                        type: ComponentType.Button,
+                        style: ButtonStyle.Success,
+                        label: '필드 수정',
+                        custom_id: `${id} option`,
+                    },
+                    {
+                        type: ComponentType.Button,
+                        label: '새로고침',
+                        style: ButtonStyle.Danger,
+                        custom_id: `${id} reload`,
+                    },
+                ],
+                noCopy == '1'
+            ),
         ],
     });
 };
