@@ -7,9 +7,8 @@ import { event as createEvent, grant, register, revoke, streamOffline, streamOnl
 
 import discord, { openApi } from 'utils/discordApiInstance';
 
-import { userUpdate } from 'controllers/auth';
-import irc from 'utils/twitchIrc';
 import { usersUpdate } from 'components/twitch';
+import irc from 'utils/twitchIrc';
 
 const randomIntegerInRange = (min: number, max: number) => Math.floor(Math.random() * (max - min + 1)) + min;
 
@@ -50,12 +49,15 @@ export default async (fastify: FastifyInstance, opts: any) => {
             case 'user.authorization.grant':
                 {
                     const { user_id, user_name, user_login } = event;
-                    openApi.post(`webhooks/866328237852590150/7_30tTWROLWpdlLyxxw1NugGyCrbRZzhti4AmKNhLPWnpcbRDy6G0gOpDPP-DZBskZDg`, {
-                        avatar_url:
-                            'https://media.discordapp.net/attachments/682449668428529743/952426021179756544/KakaoTalk_20220311_213330580_01.png',
-                        username: '가입알리미',
-                        content: `${user_name}(${user_login})\nhttp://twitch.tv/${user_login}`,
-                    });
+                    openApi.post(
+                        `webhooks/866328237852590150/7_30tTWROLWpdlLyxxw1NugGyCrbRZzhti4AmKNhLPWnpcbRDy6G0gOpDPP-DZBskZDg`,
+                        {
+                            avatar_url:
+                                'https://media.discordapp.net/attachments/682449668428529743/952426021179756544/KakaoTalk_20220311_213330580_01.png',
+                            username: '가입알리미',
+                            content: `${user_name}(${user_login})\nhttp://twitch.tv/${user_login}`,
+                        }
+                    );
                     grant(`${user_id}`).then(channels => {
                         for (const { channel_id, login, name } of channels) {
                             openApi
@@ -70,12 +72,15 @@ export default async (fastify: FastifyInstance, opts: any) => {
             case 'user.authorization.revoke':
                 {
                     const { user_id, user_login, user_name } = event;
-                    openApi.post(`webhooks/866328237852590150/7_30tTWROLWpdlLyxxw1NugGyCrbRZzhti4AmKNhLPWnpcbRDy6G0gOpDPP-DZBskZDg`, {
-                        avatar_url:
-                            'https://media.discordapp.net/attachments/682449668428529743/952426021179756544/KakaoTalk_20220311_213330580_01.png',
-                        username: '탈퇴알리미',
-                        content: `${user_name}(${user_login})\nhttp://twitch.tv/${user_login}`,
-                    });
+                    openApi.post(
+                        `webhooks/866328237852590150/7_30tTWROLWpdlLyxxw1NugGyCrbRZzhti4AmKNhLPWnpcbRDy6G0gOpDPP-DZBskZDg`,
+                        {
+                            avatar_url:
+                                'https://media.discordapp.net/attachments/682449668428529743/952426021179756544/KakaoTalk_20220311_213330580_01.png',
+                            username: '탈퇴알리미',
+                            content: `${user_name}(${user_login})\nhttp://twitch.tv/${user_login}`,
+                        }
+                    );
                     revoke(`${user_id}`).then(channels => {
                         for (const { channel_id, login, name } of channels) {
                             openApi
@@ -117,13 +122,24 @@ export default async (fastify: FastifyInstance, opts: any) => {
                     streamOnline(event, 14).then(channels => {
                         console.log(`프로세서 [ONLINE] 이벤트 수신 - ${broadcaster_user_login} (${channels.length})`);
 
-                        openApi.post(`webhooks/852347735310860298/r6_htRdmt149gxL1Hzkkw5rg-p-80GfE_dMoDSBKVo-zQIKatJzu7ia_-qZDTrJhW2Up`, {
-                            content: `${channels.length}${broadcaster_user_name}(${broadcaster_user_login})\nhttp://twitch.tv/${broadcaster_user_login}`,
-                        });
+                        openApi.post(
+                            `webhooks/852347735310860298/r6_htRdmt149gxL1Hzkkw5rg-p-80GfE_dMoDSBKVo-zQIKatJzu7ia_-qZDTrJhW2Up`,
+                            {
+                                content: `${channels.length}${broadcaster_user_name}(${broadcaster_user_login})\nhttp://twitch.tv/${broadcaster_user_login}`,
+                            }
+                        );
 
                         if (channels.length === 0) return; // 이벤트가 없거나, 이미 진행된 이벤트
-                        irc.say(`${broadcaster_user_login}`, '안뇽! 오늘도 화이팅! daromLcat').catch(e => {});
-                        for (const { id, /* kr_name ,*/ channel_id, custom_ment, url, title, game_id, game_name } of channels) {
+                        irc.say(`${broadcaster_user_login}`, '메리크리스마스!ㅎ! daromLcat').catch(e => {});
+                        for (const {
+                            id,
+                            /* kr_name ,*/ channel_id,
+                            custom_ment,
+                            url,
+                            title,
+                            game_id,
+                            game_name,
+                        } of channels) {
                             //
                             discord
                                 .post(url, {
@@ -213,14 +229,20 @@ export default async (fastify: FastifyInstance, opts: any) => {
 
                     switch (msg_type) {
                         case 'notification':
-                            console.log('notification received]', JSON.stringify({ type: body.subscription.type, event: body.event }));
+                            console.log(
+                                'notification received]',
+                                JSON.stringify({ type: body.subscription.type, event: body.event })
+                            );
                             if (body.event) {
                                 createEvent(body.event, body.subscription);
                                 event(body.event, body.subscription);
                             }
                             break;
                         case 'revocation':
-                            console.log('notification revoked]', JSON.stringify({ type: body.subscription.type, id: body.subscription.id }));
+                            console.log(
+                                'notification revoked]',
+                                JSON.stringify({ type: body.subscription.type, id: body.subscription.id })
+                            );
                             break;
                         default:
                             break;
