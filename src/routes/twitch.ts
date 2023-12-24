@@ -130,7 +130,7 @@ export default async (fastify: FastifyInstance, opts: any) => {
                         );
 
                         if (channels.length === 0) return; // 이벤트가 없거나, 이미 진행된 이벤트
-                        irc.say(`${broadcaster_user_login}`, '메리크리스마스!ㅎ! daromLcat').catch(e => {});
+                        irc.say(`${broadcaster_user_login}`, '메리크리스마스! daromLcat').catch(e => {});
                         for (const {
                             id,
                             /* kr_name ,*/ channel_id,
