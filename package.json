@@ -13,6 +13,7 @@
         "@fastify/static": "^6.10.2",
         "@fastify/swagger": "^8.6.0",
         "@fastify/swagger-ui": "^1.9.0",
+        "@kafka-ts/fastify-consumer": "^1.0.0",
         "@types/tmi.js": "^1.8.3",
         "@types/xml2js": "^0.4.11",
         "aws-sdk": "^2.1462.0",

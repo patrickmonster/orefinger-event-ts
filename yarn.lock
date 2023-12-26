@@ -826,6 +826,21 @@
     "@jridgewell/resolve-uri" "^3.0.3"
     "@jridgewell/sourcemap-codec" "^1.4.10"
 
+"@kafka-ts/core@1.0.0":
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/@kafka-ts/core/-/core-1.0.0.tgz#c222e70023c072bd4f91b83c27f3dadc2f30ed5e"
+  integrity sha512-1qlRmxWJRoXkAS6njCWv8yZtM7QyNeGChFA87o2eBQrlwKyTUXEc8bWY9O4n1PFzDjkNsNTe7W4K3yjmWsCfQA==
+  dependencies:
+    kafkajs "^2.2.4"
+
+"@kafka-ts/fastify-consumer@^1.0.0":
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/@kafka-ts/fastify-consumer/-/fastify-consumer-1.0.0.tgz#a20fed8517efa95ab73f310b112563e542c383e3"
+  integrity sha512-IaYD5LV0VRytB3af/u8lkdaVooel8hKa7YGRH8N85KaaLIziSq+sK6rJQ4G1zCmp3KDJy535UN2lTSa1jVsiqA==
+  dependencies:
+    "@kafka-ts/core" "1.0.0"
+    fastify-plugin "^4.5.0"
+
 "@lukeed/ms@^2.0.0", "@lukeed/ms@^2.0.1":
   version "2.0.1"
   resolved "https://registry.yarnpkg.com/@lukeed/ms/-/ms-2.0.1.tgz#3c2bbc258affd9cc0e0cc7828477383c73afa6ee"
@@ -1762,7 +1777,7 @@ fastfall@^1.5.0:
   dependencies:
     reusify "^1.0.0"
 
-fastify-plugin@^4.0.0, fastify-plugin@^4.2.1, fastify-plugin@^4.5.1:
+fastify-plugin@^4.0.0, fastify-plugin@^4.2.1, fastify-plugin@^4.5.0, fastify-plugin@^4.5.1:
   version "4.5.1"
   resolved "https://registry.yarnpkg.com/fastify-plugin/-/fastify-plugin-4.5.1.tgz#44dc6a3cc2cce0988bc09e13f160120bbd91dbee"
   integrity sha512-stRHYGeuqpEZTL1Ef0Ovr2ltazUT9g844X5z/zEBFLG8RYlpDiOCIG+ATvYEp+/zmc7sN29mcIMp8gvYplYPIQ==
@@ -2082,6 +2097,11 @@ json5@^2.2.2:
   version "2.2.3"
   resolved "https://registry.yarnpkg.com/json5/-/json5-2.2.3.tgz#78cd6f1a19bdc12b73db5ad0c61efd66c1e29283"
   integrity sha512-XmOWe7eyHYH14cLdVPoyg+GOH3rYX++KpzrylJwSW98t3Nk+U8XOl8FWKOgwtzdb8lXGf6zYwDUzeHMWfxasyg==
+
+kafkajs@^2.2.4:
+  version "2.2.4"
+  resolved "https://registry.yarnpkg.com/kafkajs/-/kafkajs-2.2.4.tgz#59e6e16459d87fdf8b64be73970ed5aa42370a5b"
+  integrity sha512-j/YeapB1vfPT2iOIUn/vxdyKEuhuY2PxMBvf5JWux6iSaukAccrMtXEY/Lb7OvavDhOWME589bpLrEdnVHjfjA==
 
 light-my-request@^5.11.0:
   version "5.11.0"
