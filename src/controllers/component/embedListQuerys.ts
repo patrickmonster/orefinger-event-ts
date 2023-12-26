@@ -99,17 +99,9 @@ FROM auth_type at2
 
 const SelectAuthDashbord = `
 SELECT
-    at2.auth_type
-    , at2.tag
-    , at2.tag_kr
-    , at2.use_yn
-    , ab.guild_id
-    , ab.\`type\`
-    , ab.role_id
-    , ab.embed_id
-    , ab.use_yn
-    , ab.create_at
-    , ab.update_at
+    json_object( 'name', IF( ab.use_yn = 'Y', '🔴','⚫')) AS emoji
+    ,  CAST(auth_type AS CHAR) AS value
+    , CONCAT(tag, '] ',tag_kr) AS label
 FROM auth_type at2
 left JOIN ( select * from auth_bord ab WHERE ab.guild_id = ? ) ab ON at2.auth_type = ab.type
 WHERE 1=1

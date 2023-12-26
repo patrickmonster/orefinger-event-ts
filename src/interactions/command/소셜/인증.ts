@@ -107,30 +107,17 @@ ${data.map(({ type, role_id }, index) => `${index + 1}] ${type} - <@&${role_id}>
             });
             break;
         case choices.indexOf('인증설정'):
-            // interaction.reply({
-            //     content: `설정하거나, 수정하실 인증을 선택해주세요!`,
-            //     components: await createConponentSelectMenuByComponentPagingMenuByKey(
-            //         {
-            //             custom_id: 'embed list',
-            //             placeholder: '수정하시거나, 제작하실 인증을 선택해주세요!',
-            //         },
-            //         QUERY.SelectAuthDashbord,
-            //         guild_id
-            //     ),
-            // });
-            // getAuthbordeList(guild_id || '').then(async data => {
-            //     interaction.reply({
-            //         content: '수정하시거나, 제작하실 인증을 선택해주세요!',
-            //         components: [
-            //             createStringSelectMenu(`select upsert auth ${guild_id}`, {
-            //                 options: data.map(({ auth_type, tag_kr, type, role_id }) => ({
-            //                     label: `${tag_kr} - ${role_id || '생성하기'}`,
-            //                     value: `${auth_type}`,
-            //                 })),
-            //             }),
-            //         ],
-            //     });
-            // });
+            interaction.reply({
+                content: `설정하거나, 수정하실 인증을 선택해주세요!`,
+                components: await createConponentSelectMenuByComponentPagingMenuByKey(
+                    {
+                        custom_id: 'rule list',
+                        placeholder: '수정하시거나, 제작하실 인증을 선택해주세요!',
+                    },
+                    QUERY.SelectAuthDashbord,
+                    guild_id
+                ),
+            });
             break;
     }
 };

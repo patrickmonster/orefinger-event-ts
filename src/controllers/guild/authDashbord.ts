@@ -4,6 +4,7 @@ import getConnection, { SqlInsertUpdate, YN, calTo, query, queryFunctionType } f
 
 import { APIUser } from 'discord-api-types/v10';
 import { Event } from 'interfaces/eventsub';
+import { AuthBord, AuthBordPK } from 'interfaces/authBord';
 
 // 인증 데시보드를 불러 옵니다.
 export const getDashboard = async (guild: string, type?: number | string) =>
@@ -36,7 +37,7 @@ ${calTo('and ab.type = ?', type)}
         type
     );
 
-export const getAuthbordeList = async (guild: string) =>
+export const getAuthbordeList = async (guild: string, auth_type?: number) =>
     query<{
         auth_type: number;
         tag: string;
@@ -66,6 +67,10 @@ FROM auth_type at2
 left JOIN ( select * from auth_bord ab WHERE ab.guild_id = ? ) ab ON at2.auth_type = ab.type
 WHERE 1=1
 AND at2.use_yn = 'Y'    
+${calTo('and at2.auth_type = ?', auth_type)}
     `,
         guild
     );
+
+export const upsertAuthBorde = async (bord: Partial<Omit<AuthBord, 'guild_id' | 'type'>>, pk: AuthBordPK) =>
+    query<SqlInsertUpdate>(`INSERT INTO auth_bord SET ? ON DUPLICATE KEY UPDATE ?`, { ...bord, ...pk }, bord);

@@ -30,7 +30,7 @@ export const exec = async (interaction: MessageMenuInteraction, noCopy: string) 
         ephemeral: true,
         components: [
             editerComponent(
-                'embed edit',
+                id,
                 [
                     {
                         type: ComponentType.Button,
