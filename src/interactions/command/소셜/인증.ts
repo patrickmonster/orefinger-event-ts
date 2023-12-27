@@ -1,7 +1,7 @@
 import { getAuthbordeList, getDashboard } from 'controllers/guild/authDashbord';
 
 import discord from 'utils/discordApiInstance';
-import { createPrimaryButton, createStringSelectMenu } from 'utils/discord/component';
+import { createActionRow, createPrimaryButton, createStringSelectMenu } from 'utils/discord/component';
 
 import {
     APIApplicationCommandSubcommandOption,
@@ -59,21 +59,18 @@ export const exec = async (interaction: AppChatInputInteraction, selectOption: S
                         await interaction.reply({ content: '생성된 데시보드가 없습니다!' });
                         break;
                     case data.length === 1:
-                        const { embed, role_id, type } = data[0];
+                        const { embed, role_id, type, type_id } = data[0];
                         await interaction.reply({ content: '데시보드 출력중...' });
                         discord
                             .post(`/channels/${channel.id}/messages`, {
                                 embeds: embed ? [embed] : null,
-                                comments: [
-                                    {
-                                        type: ComponentType.ActionRow,
-                                        components: [
-                                            createPrimaryButton(`rule ${type} ${role_id}`, {
-                                                label: '인증',
-                                                emoji: { name: '🔐' },
-                                            }),
-                                        ],
-                                    },
+                                components: [
+                                    createActionRow(
+                                        createPrimaryButton(`rule oauth ${type_id}`, {
+                                            label: `인증 - ${type}`,
+                                            emoji: { name: '🔐' },
+                                        })
+                                    ),
                                 ],
                             })
                             .catch(e => {
@@ -94,7 +91,7 @@ I] 인증 - 지급역할
 ${data.map(({ type, role_id }, index) => `${index + 1}] ${type} - <@&${role_id}>`).join('\n')}
                             `,
                             components: [
-                                createStringSelectMenu(`select rule ${guild_id}`, {
+                                createStringSelectMenu(`select oauth ${guild_id}`, {
                                     options: data.map(({ type_id, type }) => ({
                                         label: `${type}`,
                                         value: `${type_id}`,

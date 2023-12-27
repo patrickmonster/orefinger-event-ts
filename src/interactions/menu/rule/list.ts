@@ -15,6 +15,7 @@ import {
     createDangerButton,
     createPrimaryButton,
     createRoleSelectMenu,
+    createSuccessButton,
 } from 'utils/discord/component';
 import { getAuthbordeList } from 'controllers/guild/authDashbord';
 
@@ -46,14 +47,14 @@ export const exec = async (interaction: MessageMenuInteraction) => {
                 editerComponent(
                     id,
                     [
-                        {
-                            type: ComponentType.Button,
-                            style: ButtonStyle.Success,
-                            label: '필드 수정',
-                            custom_id: `${id} option`,
-                        },
-                        createDangerButton(`${id} reload`, {
+                        createPrimaryButton(`${id} option`, {
+                            label: '보조옵션 수정',
+                        }),
+                        createSuccessButton(`${id} reload`, {
                             label: '새로고침',
+                        }),
+                        createDangerButton(`${id} delete`, {
+                            label: '삭제',
                         }),
                     ],
                     true

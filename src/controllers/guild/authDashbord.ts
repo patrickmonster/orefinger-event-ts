@@ -19,25 +19,25 @@ export const getDashboard = async (guild: string, type?: number | string) =>
         update_at: Date;
     }>(
         `
-select
-    guild_id
+SELECT
+    ab.guild_id
     , ab.type as type_id
     , ( SELECT tag_kr from auth_type at2 WHERE ab.type = at2.auth_type) as \`type\`
-    , role_id
-    , func_get_embed(embed_id) as embed
-    , use_yn
-    , create_at
-    , update_at
-from
-    auth_bord ab
-WHERE ab.guild_id = ?
+    , ab.role_id
+    , veu.embed 
+    , ab.use_yn
+    , ab.create_at
+    , ab.update_at
+FROM auth_bord ab
+LEFT JOIN v_embed_user veu ON ab.embed_id  = veu.embed_id
+WHERE 1=1
 ${calTo('and ab.type = ?', type)}
     `,
         guild,
         type
     );
 
-export const getAuthbordeList = async (guild: string, auth_type?: number) =>
+export const getAuthbordeList = async (guild: string, auth_type?: number | string) =>
     query<{
         auth_type: number;
         tag: string;
@@ -55,7 +55,6 @@ SELECT
     at2.auth_type
     , at2.tag
     , at2.tag_kr
-    , at2.use_yn
     , ab.guild_id
     , ab.\`type\`
     , ab.role_id

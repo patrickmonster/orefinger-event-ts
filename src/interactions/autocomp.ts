@@ -2,7 +2,8 @@ import { FastifyReply } from 'fastify';
 import { APIApplicationCommandInteraction, APIChatInputApplicationCommandInteractionData } from 'plugins/discord';
 
 const autoComponent = async (
-    interaction: Omit<APIApplicationCommandInteraction, 'data' | 'type'> & APIChatInputApplicationCommandInteractionData,
+    interaction: Omit<APIApplicationCommandInteraction, 'data' | 'type'> &
+        APIChatInputApplicationCommandInteractionData,
     res: FastifyReply
 ) => {
     // 자동완성
