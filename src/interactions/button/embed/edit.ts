@@ -2,7 +2,7 @@ import { MessageInteraction } from 'interactions/message';
 
 import { selectComponentPagingMenuByKey } from 'components/systemComponent';
 import { copyComponent, selectComponentBaseEditByModel } from 'controllers/component';
-import { selectEmbedDtilByEmbed } from 'controllers/embed';
+import { selectEmbedBaseEditByModel, selectEmbedDtilByEmbed } from 'controllers/embed';
 
 import QUERY from 'controllers/component/embedListQuerys';
 /**
@@ -38,7 +38,7 @@ export const exec = async (interaction: MessageInteraction, embed_id: string, ta
             });
             break;
         case 'edit': {
-            const model = await selectComponentBaseEditByModel(embed_id);
+            const model = await selectEmbedBaseEditByModel(embed_id);
 
             // 모달처리
             interaction.model({

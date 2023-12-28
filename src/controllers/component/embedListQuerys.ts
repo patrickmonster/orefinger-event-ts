@@ -97,6 +97,17 @@ SELECT json_object( 'name', IF( use_yn = 'Y', '🔴','⚫')) AS emoji
 FROM auth_type at2 
     `;
 
+const SelectAuthDashbord = `
+SELECT
+    json_object( 'name', IF( ab.use_yn = 'Y', '🔴','⚫')) AS emoji
+    ,  CAST(auth_type AS CHAR) AS value
+    , CONCAT(tag, '] ',tag_kr) AS label
+FROM auth_type at2
+left JOIN ( select * from auth_bord ab WHERE ab.guild_id = ? ) ab ON at2.auth_type = ab.type
+WHERE 1=1
+AND at2.use_yn = 'Y' 
+`;
+
 /**
  * 라벨을 선택하는 쿼리를 작성합니다.
  *  -
@@ -130,4 +141,6 @@ export default {
 
     TextMessageByMenuListQuery,
     TextMessageDefaultByMenuListQuery,
+
+    SelectAuthDashbord,
 };

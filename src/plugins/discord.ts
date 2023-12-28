@@ -331,8 +331,6 @@ export default fp(async function (fastify, opts) {
         ): IReply => {
             const reply = new Reply(req, res);
 
-            console.log('응답생성');
-
             return {
                 reply: reply.reply.bind(reply),
                 differ: reply.differ.bind(reply),

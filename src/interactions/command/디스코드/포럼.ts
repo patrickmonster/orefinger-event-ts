@@ -92,7 +92,7 @@ const api: APIApplicationCommandSubcommandOption = {
             type: ApplicationCommandOptionType.Channel,
             description: '설정하실 채널',
             channel_types: [ChannelType.GuildForum],
-            // required: true,
+            required: true,
         },
     ],
 };
