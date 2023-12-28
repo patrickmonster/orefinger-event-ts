@@ -468,7 +468,7 @@ export default async (fastify: FastifyInstance, opts: any) => {
                         target: {
                             type: 'string',
                             description: '인증 대상',
-                            enum: ['twitch', 'kakao', 'naver'],
+                            enum: ['twitch', 'kakao', 'naver', 'chzzk'],
                         },
                     },
                 },
