@@ -593,6 +593,7 @@ export default async (fastify: FastifyInstance, opts: any) => {
                     break;
                 case 'naver':
                     token = getToken(`https://nid.naver.com/oauth2.0/token`, params).then(async token => {
+                        console.log(params, token);
                         const { resultcode, response: user } = await naverAPI.get<{
                             resultcode: string;
                             message: string;
@@ -613,9 +614,9 @@ export default async (fastify: FastifyInstance, opts: any) => {
                             id,
                             {
                                 id: user.id,
-                                username: nickname,
-                                discriminator: nickname,
-                                email: email,
+                                username: '-',
+                                discriminator: '-',
+                                email: email || '-',
                                 avatar: profile_image,
                             },
                             token.refresh_token
