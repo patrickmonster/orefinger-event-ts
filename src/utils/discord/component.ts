@@ -6,12 +6,21 @@ import {
     APIModalActionRowComponent,
     APISelectMenuComponent,
     APIStringSelectComponent,
+    APIRoleSelectComponent,
     APITextInputComponent,
     ButtonStyle,
     ComponentType,
     TextInputStyle,
+    APIMessageActionRowComponent,
 } from 'discord-api-types/v10';
 import division from 'utils/division';
+
+export const createActionRow = (
+    ...components: APIMessageActionRowComponent[]
+): APIActionRowComponent<APIMessageActionRowComponent> => ({
+    type: ComponentType.ActionRow,
+    components,
+});
 
 export const createButton = (
     custom_id: string,
@@ -71,6 +80,20 @@ export const createStringSelectMenu = (
     components: [
         {
             type: ComponentType.StringSelect,
+            custom_id,
+            ...props,
+        },
+    ],
+});
+
+export const createRoleSelectMenu = (
+    custom_id: string,
+    props: Omit<APIRoleSelectComponent, 'type' | 'custom_id'>
+): APIActionRowComponent<APISelectMenuComponent> => ({
+    type: ComponentType.ActionRow,
+    components: [
+        {
+            type: ComponentType.RoleSelect,
             custom_id,
             ...props,
         },

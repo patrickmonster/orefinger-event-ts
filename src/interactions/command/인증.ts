@@ -51,7 +51,7 @@ export const exec = async (interaction: AppChatInputInteraction, selectOption: S
 const api: APIApplicationCommandSubcommandOption = {
     name,
     type,
-    description: '알리미 인증 설정을 변경합니다.',
+    description: '연결된 계정을 관리 합니다.',
 };
 
 // 인터렉션 이벤트

@@ -13,6 +13,8 @@ import {
     userIds,
 } from 'controllers/auth';
 import discordApi, { openApi } from 'utils/discordApiInstance';
+import { kakaoAPI } from 'utils/kakaoApiInstance';
+import { naverAPI } from 'utils/naverApiInstance';
 import toss from 'utils/tossApiInstance';
 import twitch, { twitchAPI } from 'utils/twitchApiInstance';
 
@@ -466,7 +468,7 @@ export default async (fastify: FastifyInstance, opts: any) => {
                         target: {
                             type: 'string',
                             description: '인증 대상',
-                            enum: ['twitch', 'twitch.stream', 'kakao'],
+                            enum: ['twitch', 'kakao', 'naver'],
                         },
                     },
                 },
@@ -485,7 +487,7 @@ export default async (fastify: FastifyInstance, opts: any) => {
                 },
             },
         },
-        async (req, res) => {
+        async req => {
             const { target } = req.params;
             const { id } = req.user;
             const { code, redirect_uri } = req.body;
@@ -552,7 +554,75 @@ export default async (fastify: FastifyInstance, opts: any) => {
                     });
                     break;
                 case 'kakao':
-                    token = getToken(`https://kauth.kakao.com/oauth/token`, params).then(async token => {});
+                    token = getToken(`https://kauth.kakao.com/oauth/token`, params).then(async token => {
+                        const {
+                            id: kakaoId,
+                            connected_at,
+                            kakao_account,
+                            properties,
+                        } = await kakaoAPI.get<{
+                            id: number;
+                            connected_at: string;
+                            properties: { nickname: string };
+                            kakao_account: {
+                                profile_nickname_needs_agreement: boolean;
+                                profile: { nickname: string };
+                                // has_email: boolean;
+                                email_needs_agreement: boolean;
+                                // is_email_valid: boolean;
+                                // is_email_verified: boolean;
+                                // email: string;
+                            };
+                        }>('/user/me', {
+                            headers: { Authorization: `Bearer ${token.access_token}` },
+                        });
+
+                        const { profile } = kakao_account;
+
+                        await auth(
+                            target,
+                            id,
+                            {
+                                id: `${kakaoId}`,
+                                username: profile.nickname,
+                                discriminator: profile.nickname,
+                            },
+                            token.refresh_token
+                        );
+                    });
+                    break;
+                case 'naver':
+                    token = getToken(`https://nid.naver.com/oauth2.0/token`, params).then(async token => {
+                        console.log(params, token);
+                        const { resultcode, response: user } = await naverAPI.get<{
+                            resultcode: string;
+                            message: string;
+                            response: {
+                                id: string;
+                                nickname: string;
+                                profile_image: string;
+                                email: string;
+                            };
+                        }>('/nid/me', {
+                            headers: { Authorization: `Bearer ${token.access_token}`, 'Client-Id': client_id },
+                        });
+
+                        const { email, nickname, profile_image } = user;
+
+                        await auth(
+                            target,
+                            id,
+                            {
+                                id: user.id,
+                                username: '-',
+                                discriminator: '-',
+                                email: email || '-',
+                                avatar: profile_image,
+                            },
+                            token.refresh_token
+                        );
+                        return { message: 'success', id: user.id };
+                    });
                     break;
                 default:
                     return { message: '잘못된 인증 대상입니다.' };

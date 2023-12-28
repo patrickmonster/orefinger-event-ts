@@ -78,14 +78,6 @@ export const getToken = async (refresh_token: string) =>
             },
         }
     );
-// .then(({ data }) => {
-//     // data
-//     // {
-//     //     token_type: 'Bearer',
-//     //     access_token: 'GsWzzu9j13DJCVtQCeNSLnFLVyUudY',
-//     //     expires_in: 604800,
-//     //     refresh_token: 'HStDwH0sSxgEgBcwHEv4MosVlhtEcG',
-//     //     scope: 'identify email'
-//     //   }
 
-// });
+export const changeNickname = async (guild_id: string, user_id: string, nick: string) =>
+    discord.patch(`/guilds/${guild_id}/members/${user_id}`, { nick });

@@ -7,7 +7,7 @@ import { MessageInteraction } from 'interactions/message';
  * TODO: 임베드생성 항목 추가
  * @param interaction
  */
-export const exec = async (interaction: MessageInteraction) => {
+export const exec = async (interaction: MessageInteraction, target: string) => {
     // createEmbed
     // const { insertId } = await createComponent({ name: '임시항목' });
     // const model = await selectComponentBaseEditByModel(insertId);

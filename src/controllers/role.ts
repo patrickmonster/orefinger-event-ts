@@ -32,3 +32,52 @@ on duplicate key update token = null`,
         guild_id,
         JSON.stringify({ ment })
     );
+
+export const insertAuthRule = async (auth_id: string, guild_id: string, type: number | string) =>
+    getConnection(async (query: queryFunctionType) => {
+        const [target] = await query<{
+            auth_type: string;
+            tag: string;
+            tag_kr: string;
+            guild_id: string;
+            type: string;
+            role_id: string;
+            embed_id: string;
+            use_yn: string;
+            create_at: string;
+            update_at: string;
+        }>(
+            `
+SELECT
+    at2.auth_type
+    , at2.tag
+    , at2.tag_kr
+    , at2.use_yn
+    , ab.guild_id
+    , ab.type
+    , ab.role_id
+    , ab.embed_id
+    , ab.use_yn
+    , ab.create_at
+    , ab.update_at
+FROM auth_type at2
+left JOIN ( select * from auth_bord ab WHERE ab.guild_id = ? ) ab ON at2.auth_type = ab.type
+WHERE 1=1
+AND at2.auth_type = ?
+AND at2.use_yn = 'Y'
+AND ab.use_yn = 'Y'
+        `,
+            guild_id,
+            type
+        );
+
+        console.log('target', target);
+
+        if (target && target.use_yn) {
+            await query<SqlInsertUpdate>('INSERT IGNORE INTO auth_rule set ?', { auth_id, guild_id, type });
+
+            return target;
+        } else {
+            throw new Error('NOT_FOUND');
+        }
+    });
