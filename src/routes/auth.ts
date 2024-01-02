@@ -66,6 +66,7 @@ export default async (fastify: FastifyInstance, opts: any) => {
     if (!process.env.MASTER_KEY) {
         fastify.get<{
             Params: { user_id: string };
+            Querystring: { jwt?: boolean };
         }>(
             '/auth/:user_id',
             {
@@ -79,31 +80,19 @@ export default async (fastify: FastifyInstance, opts: any) => {
                         additionalProperties: false,
                         properties: { user_id: { $ref: 'userId' } },
                     },
-                },
-            },
-            async req => fastify.jwt.sign({ access_token: '?', id: req.params.user_id })
-        );
-
-        fastify.get<{
-            Params: { user_id: string };
-        }>(
-            '/auth/:user_id/jwt',
-            {
-                schema: {
-                    description: '디스코드 사용자 인증 - 로컬 테스트용 / 페이지 인증용 토큰',
-                    tags: ['Auth'],
-                    deprecated: false, // 비활성화
-                    params: {
+                    querystring: {
                         type: 'object',
-                        required: ['user_id'],
                         additionalProperties: false,
-                        properties: { user_id: { $ref: 'userId' } },
+                        properties: { jwt: { type: 'boolean', description: 'jwt 토큰 발급 여부' } },
                     },
                 },
             },
             async req => {
-                const user = await discordApi.get<APIUser>(`/users/${req.params.user_id}`);
-                return await upsertDiscordUserAndJWTToken(user);
+                const { user_id } = req.params;
+                if (req.query.jwt) {
+                    const user = await discordApi.get<APIUser>(`/users/${user_id}`);
+                    return await upsertDiscordUserAndJWTToken(user);
+                } else return fastify.jwt.sign({ access_token: '', id: user_id });
             }
         );
     }
