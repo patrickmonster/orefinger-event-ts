@@ -37,9 +37,6 @@ jobs:
           release=$(echo $version | cut -d. -f2)
           hotfix=$(echo $version | cut -d. -f3)
           
-          ${{ github.event.inputs.branch }}=$((${{github.event.inputs.branch}}+1))
-
-          
           if [[ ${{ github.event.inputs.branch }} == 'major' ]]; then
           # 주요 업데이트
           major=$((major+1))
