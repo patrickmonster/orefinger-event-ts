@@ -68,50 +68,6 @@ export default async (fastify: FastifyInstance, opts: any) => {
                     });
                 }
                 break;
-            //             case 'user.authorization.revoke':
-            //                 {
-            //                     const { user_id, user_login, user_name } = event;
-            //                     openApi.post(
-            //                         `webhooks/866328237852590150/7_30tTWROLWpdlLyxxw1NugGyCrbRZzhti4AmKNhLPWnpcbRDy6G0gOpDPP-DZBskZDg`,
-            //                         {
-            //                             avatar_url:
-            //                                 'https://media.discordapp.net/attachments/682449668428529743/952426021179756544/KakaoTalk_20220311_213330580_01.png',
-            //                             username: '탈퇴알리미',
-            //                             content: `${user_name}(${user_login})\nhttp://twitch.tv/${user_login}`,
-            //                         }
-            //                     );
-            //                     revoke(`${user_id}`).then(channels => {
-            //                         for (const { channel_id, login, name } of channels) {
-            //                             openApi
-            //                                 .post(`channels/${channel_id}/messages`, {
-            //                                     content: `
-            // # 계정 연결이 해지되었어요! - ${name}(${login})
-            // 방송알리미는, 개인정보 보호 및 수신 이벤트 권한을 위하여 계정 연동을 지향하고 있습니다!
-            // 재연동을 원하신다면 하단의 버튼을 눌러 로그인을 진행 해 주세요!
-
-            // - 계정 연동을 하지 않으셔도, 방송알리미는 계속 사용 가능합니다!
-            // - 다만, 속도 제한이 걸리며, 이벤트 수신이 불안정 할 수 있습니다!
-            //                                     `,
-            //                                     components: [
-            //                                         {
-            //                                             type: 1,
-            //                                             components: [
-            //                                                 {
-            //                                                     url: 'https://orefinger.click/auth',
-            //                                                     emoji: { name: '🔑' },
-            //                                                     label: '로그인',
-            //                                                     style: 5,
-            //                                                     type: 2,
-            //                                                 },
-            //                                             ],
-            //                                         },
-            //                                     ],
-            //                                 })
-            //                                 .catch(e => {});
-            //                         }
-            //                     });
-            //                 }
-            //                 break;
             case 'stream.online':
                 {
                     const { broadcaster_user_login, broadcaster_user_name, broadcaster_user_id, type } = event;
