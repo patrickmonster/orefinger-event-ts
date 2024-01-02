@@ -1,10 +1,9 @@
-import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
-import { createYutubeUser, createYutubeChannel, createYutubeEvent, insertYoutubeVideo } from 'controllers/youtube';
+import { FastifyInstance } from 'fastify';
 
-import redis from 'utils/redis';
 import { getUser } from 'components/twitch';
+import redis from 'utils/redis';
 
-import { liveList, total, stream } from 'controllers/notification';
+import { liveList, stream, total } from 'controllers/notification';
 
 export default async (fastify: FastifyInstance, opts: any) => {
     fastify.addSchema({
@@ -109,24 +108,6 @@ export default async (fastify: FastifyInstance, opts: any) => {
                 tags: ['Notification'],
                 deprecated: false, // 비활성화
                 response: {
-                    200: {
-                        type: 'array',
-                        items: {
-                            type: 'object',
-                            properties: {
-                                id: { type: 'string' },
-                                login: { type: 'string' },
-                                display_name: { type: 'string' },
-                                type: { type: 'string' },
-                                broadcaster_type: { type: 'string' },
-                                description: { type: 'string' },
-                                profile_image_url: { type: 'string' },
-                                offline_image_url: { type: 'string' },
-                                view_count: { type: 'number' },
-                                created_at: { type: 'string' },
-                            },
-                        },
-                    },
                     400: {
                         type: 'object',
                         properties: {

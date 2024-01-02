@@ -18,7 +18,7 @@ export const exec = async (interaction: AppChatInputInteraction, selectOption: S
 
     interaction.reply({
         content: `<@${user}>님의 권한 목록
-${list
+${list.list
     .map(({ type, user_id, login, name, create_at }) => `${type}]${name}(${login}) - ${user_id} - ${create_at}`)
     .join('\n')}`,
     });

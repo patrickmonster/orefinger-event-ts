@@ -1,6 +1,7 @@
 import { FastifyInstance } from 'fastify';
 
 import { selectAuthUsers } from 'controllers/auth';
+import { Paging } from 'interfaces/swagger';
 
 export default async (fastify: FastifyInstance, opts: any) => {
     //
@@ -10,7 +11,7 @@ export default async (fastify: FastifyInstance, opts: any) => {
             user_id?: string;
             login?: string;
             name?: string;
-        };
+        } & Paging;
     }>(
         '/user',
         {

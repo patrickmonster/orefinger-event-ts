@@ -1,6 +1,6 @@
 'use strict';
 import { AuthUser } from 'interfaces/auth';
-import getConnection, { SqlInsertUpdate, YN, calTo, query, queryFunctionType } from 'utils/database';
+import getConnection, { SqlInsertUpdate, YN, calTo, query, queryFunctionType, selectPaging } from 'utils/database';
 
 import { APIUser } from 'discord-api-types/v10';
 import { Event } from 'interfaces/eventsub';
@@ -194,8 +194,8 @@ export type GetAuthUsersSearchOption = {
     login?: string;
     name?: string;
 };
-export const selectAuthUsers = ({ user_id, auth_id, login, name }: GetAuthUsersSearchOption) =>
-    query<{
+export const selectAuthUsers = ({ user_id, auth_id, login, name }: GetAuthUsersSearchOption, page = 0) =>
+    selectPaging<{
         type: number;
         user_id: string;
         auth_id: string;
@@ -219,7 +219,8 @@ ${calTo('AND auth_id = ?', auth_id)}
 ${calTo('AND user_id = ?', user_id)}
 ${calTo('AND login = ?', login)}
 ${calTo('AND name = ?', name)}
-    `
+    `,
+        page
     );
 
 // 옵션에 대한 사용자 정보를 불러옴

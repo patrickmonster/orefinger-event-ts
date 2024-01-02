@@ -24,7 +24,7 @@ export default async (fastify: FastifyInstance, opts: any) => {
         {
             preHandler: [fastify.verifyDiscordKey],
             schema: {
-                // hide: true,
+                hide: true,
                 description: '봇 인터렉션 이벤트 수신부 - 연결 및 사용 X',
                 summary: '인터렉션 이벤트',
                 tags: ['Util'],
@@ -54,7 +54,7 @@ export default async (fastify: FastifyInstance, opts: any) => {
                 'interactionEvent',
                 body.type,
                 body.guild_id,
-                body?.channel_id || 'DM',
+                body?.channel?.id || 'DM',
                 body.member?.user?.id,
                 body.id
             );
