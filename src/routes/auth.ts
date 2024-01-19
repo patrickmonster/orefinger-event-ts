@@ -16,7 +16,7 @@ import discordApi, { openApi } from 'utils/discordApiInstance';
 import { kakaoAPI } from 'utils/kakaoApiInstance';
 import { naverAPI } from 'utils/naverApiInstance';
 import toss from 'utils/tossApiInstance';
-import twitch, { twitchAPI } from 'utils/twitchApiInstance';
+import { twitchAPI } from 'utils/twitchApiInstance';
 
 import { APIUser } from 'discord-api-types/v10';
 import qs from 'querystring';
@@ -490,6 +490,28 @@ export default async (fastify: FastifyInstance, opts: any) => {
 
             let token;
             switch (target) {
+                case 'discord':
+                    token = await getToken('https://discord.com/api/oauth2/token', params).then(async token => {
+                        const { data: user } = await openApi.get('/users/@me', {
+                            headers: { Authorization: `Bearer ${token.access_token}` },
+                        });
+
+                        await auth(
+                            target,
+                            id,
+                            {
+                                id: user.id,
+                                username: user.login,
+                                discriminator: user.display_name,
+                                email: user.email,
+                                avatar: user.profile_image_url,
+                            },
+                            token.refresh_token,
+                            user.type
+                        );
+                        return { message: 'success', id: user.id };
+                    });
+                    break;
                 case 'twitch':
                     token = await getToken(`https://id.twitch.tv/oauth2/token`, params).then(async token => {
                         const {
