@@ -8,7 +8,6 @@ import {
     deleteAuthConnection,
     deleteAuthConnectionAuthTypes,
     discord,
-    selectDiscordUserByJWTToken,
     upsertDiscordUserAndJWTToken,
     userIds,
 } from 'controllers/auth';
@@ -197,7 +196,7 @@ export default async (fastify: FastifyInstance, opts: any) => {
     fastify.post<{
         Body: {
             code: string;
-            redirect_uri?: string;
+            redirect_uri: string;
         };
     }>(
         '/auth',
@@ -230,98 +229,85 @@ export default async (fastify: FastifyInstance, opts: any) => {
         },
         async req => {
             const { code, redirect_uri } = req.body;
-            if (!redirect_uri) {
-                // jwt 인증
-                const userTokenData = await selectDiscordUserByJWTToken(code);
 
-                if (!userTokenData) {
-                    return { message: '사용자 정보가 없습니다.' };
-                } else {
-                    const { auth_id } = userTokenData;
+            return await getToken(
+                'https://discord.com/api/oauth2/token',
+                qs.stringify({
+                    client_id: process.env.DISCORD_CLIENT_ID,
+                    client_secret: process.env.DISCORD_CLIENT_SECRET,
+                    grant_type: 'authorization_code',
+                    code,
+                    redirect_uri,
+                })
+            )
+                .then(async ({ access_token, refresh_token, expires_in, token_type }) => {
+                    const { data: user } = await openApi.get('/users/@me', {
+                        headers: { Authorization: `${token_type} ${access_token}` },
+                    });
+                    await discord(user, refresh_token);
 
-                    const user = await discordApi.get(`/users/${auth_id}`);
-                    const jwt = fastify.jwt.sign({ access_token: '?', id: auth_id }, { expiresIn: 60 * 60 * 24 });
-                    return { user, jwt };
-                }
-            } else
-                return await getToken(
-                    'https://discord.com/api/oauth2/token',
-                    qs.stringify({
-                        client_id: process.env.DISCORD_CLIENT_ID,
-                        client_secret: process.env.DISCORD_CLIENT_SECRET,
-                        grant_type: 'authorization_code',
-                        code,
-                        redirect_uri,
-                    })
-                )
-                    .then(async ({ access_token, refresh_token, expires_in, token_type }) => {
-                        const { data: user } = await openApi.get('/users/@me', {
+                    try {
+                        const { data: connections } = await openApi.get<
+                            {
+                                id: string; // 고유 아이디
+                                name: string; // 이름
+                                type: string; // 타입
+                                friend_sync: boolean; // 친구 동기화 여부 ?
+                                metadata_visibility: number; // 메타데이터 가시성
+                                show_activity: boolean; // 활동 표시 여부
+                                two_way_link: boolean; // 양방향 링크 여부
+                                verified: boolean; // 인증 여부
+                                visibility: number; // 가시성
+                            }[]
+                        >('/users/@me/connections', {
                             headers: { Authorization: `${token_type} ${access_token}` },
                         });
-                        await discord(user, refresh_token);
-
-                        try {
-                            const { data: connections } = await openApi.get<
-                                {
-                                    id: string; // 고유 아이디
-                                    name: string; // 이름
-                                    type: string; // 타입
-                                    friend_sync: boolean; // 친구 동기화 여부 ?
-                                    metadata_visibility: number; // 메타데이터 가시성
-                                    show_activity: boolean; // 활동 표시 여부
-                                    two_way_link: boolean; // 양방향 링크 여부
-                                    verified: boolean; // 인증 여부
-                                    visibility: number; // 가시성
-                                }[]
-                            >('/users/@me/connections', {
-                                headers: { Authorization: `${token_type} ${access_token}` },
-                            });
-                            const list = connections.filter(({ type }) => type === 'twitch').map(({ id }) => id);
-                            if (list.length > 0) {
-                                const { data } = await twitch.get<{
-                                    data: {
-                                        id: string;
-                                        login: string;
-                                        display_name: string;
-                                        type: string;
-                                        broadcaster_type: string;
-                                        description: string;
-                                        profile_image_url: string;
-                                        offline_image_url: string;
-                                        view_count: number;
-                                        email: string;
-                                        created_at: string;
-                                    }[];
-                                }>(`/users?${list.map(id => `id=${id}`).join('&')}`);
-                                for (const twitch_user of data) {
-                                    await auth(
-                                        'twitch',
-                                        user.id,
-                                        {
-                                            id: twitch_user.id,
-                                            username: twitch_user.login,
-                                            discriminator: twitch_user.display_name,
-                                            email: twitch_user.email,
-                                            avatar: twitch_user.profile_image_url,
-                                        },
-                                        'CONNECTED_USER',
-                                        twitch_user.type
-                                    );
-                                }
+                        const list = connections.filter(({ type }) => type === 'twitch').map(({ id }) => id);
+                        if (list.length > 0) {
+                            const { data } = await twitch.get<{
+                                data: {
+                                    id: string;
+                                    login: string;
+                                    display_name: string;
+                                    type: string;
+                                    broadcaster_type: string;
+                                    description: string;
+                                    profile_image_url: string;
+                                    offline_image_url: string;
+                                    view_count: number;
+                                    email: string;
+                                    created_at: string;
+                                }[];
+                            }>(`/users?${list.map(id => `id=${id}`).join('&')}`);
+                            for (const twitch_user of data) {
+                                await auth(
+                                    'twitch',
+                                    user.id,
+                                    {
+                                        id: twitch_user.id,
+                                        username: twitch_user.login,
+                                        discriminator: twitch_user.display_name,
+                                        email: twitch_user.email,
+                                        avatar: twitch_user.profile_image_url,
+                                    },
+                                    'CONNECTED_USER',
+                                    twitch_user.type
+                                );
                             }
-                        } catch (e) {
-                            // 권한없음
-                            console.error(e);
                         }
-
-                        // discord.
-                        const jwt = fastify.jwt.sign({ access_token, id: user.id }, { expiresIn: expires_in });
-                        return { user, jwt };
-                    })
-                    .catch(e => {
+                    } catch (e) {
+                        // 권한없음
                         console.error(e);
-                        throw { message: e.message };
-                    });
+                    }
+
+                    // discord.
+                    const jwt = fastify.jwt.sign({ access_token, id: user.id }, { expiresIn: expires_in });
+                    return { user, jwt };
+                })
+                .catch(e => {
+                    console.error(e);
+                    throw { message: e.message };
+                });
         }
     );
 
