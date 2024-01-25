@@ -485,9 +485,6 @@ export default async (fastify: FastifyInstance, opts: any) => {
                 code,
                 redirect_uri,
             });
-
-            console.log('로그인 인증 요청', params);
-
             let token;
             switch (target) {
                 case 'discord':
@@ -628,7 +625,6 @@ export default async (fastify: FastifyInstance, opts: any) => {
                 default:
                     return { message: '잘못된 인증 대상입니다.' };
             }
-            console.log(token);
             return token;
         }
     );
