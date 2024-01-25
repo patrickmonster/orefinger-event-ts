@@ -19,7 +19,11 @@ if (existsSync(envDir)) {
     });
 }
 
-import { ApplicationCommandOptionType, ApplicationCommandType, RESTPutAPIApplicationCommandsJSONBody } from 'discord-api-types/v10';
+import {
+    ApplicationCommandOptionType,
+    ApplicationCommandType,
+    RESTPutAPIApplicationCommandsJSONBody,
+} from 'discord-api-types/v10';
 import discord from 'utils/discordApiInstance';
 import { api } from './interactions/app';
 
@@ -83,12 +87,13 @@ for (const module of api.chat) {
             .filter(v => v);
 
         // 서브커맨드 그룹
-        commands.push({
-            name: module.name,
-            description: `${module.name} 명령어`, // 왜 필수?
-            type: ApplicationCommandType.ChatInput,
-            options,
-        });
+        if (options.length)
+            commands.push({
+                name: module.name,
+                description: `${module.name} 명령어`, // 왜 필수?
+                type: ApplicationCommandType.ChatInput,
+                options,
+            });
     } else {
         // 단일파일
         commands.push(loadFile(module.file));

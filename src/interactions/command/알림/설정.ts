@@ -1,42 +1,15 @@
-import {
-    APIApplicationCommandSubcommandOption,
-    APIButtonComponent,
-    ApplicationCommandOptionType,
-} from 'discord-api-types/v10';
+import { APIApplicationCommandSubcommandOption, ApplicationCommandOptionType } from 'discord-api-types/v10';
 import { basename } from 'path';
 
-import { selectComponentPagingMenuByKey } from 'components/systemComponent';
-import { AppChatInputInteraction, SelectOptionType } from 'interactions/app';
-
-const createConponentSelectMenuByComponentPagingMenuByKey = async (
-    options: {
-        custom_id: string;
-        placeholder: string;
-        button?: APIButtonComponent;
-    },
-    query: string,
-    ...params: any[]
-) => {
-    return await selectComponentPagingMenuByKey(
-        {
-            custom_id: options.custom_id,
-            placeholder: options.placeholder,
-            button: options.button,
-            disabled: false,
-            max_values: 1,
-            min_values: 1,
-        },
-        query,
-        ...params
-    );
-};
+import { list } from 'controllers/notice';
+import { AppChatInputInteraction } from 'interactions/app';
 
 const name = basename(__filename, __filename.endsWith('js') ? '.js' : '.ts');
 const type = ApplicationCommandOptionType.Subcommand;
 
-const choices = ['인증', '방송'];
+const choices = ['인증', '방송', '영상'];
 
-export const exec = async (interaction: AppChatInputInteraction, selectOption: SelectOptionType) => {
+export const exec = async (interaction: AppChatInputInteraction, selectOption: SelectㅎOptionType) => {
     const { guild_id, channel } = interaction;
 
     await interaction.differ({ ephemeral: true });
@@ -44,12 +17,22 @@ export const exec = async (interaction: AppChatInputInteraction, selectOption: S
     const type = selectOption.get('타입');
 
     switch (type) {
-        case choices.indexOf('인증'):
+        case choices.indexOf('인증'): {
             break;
-        case choices.indexOf('방송'):
+        }
+        case choices.indexOf('방송'): {
+            const noticeList = await list(guild_id);
+
+            interaction.reply({
+                content: `
+${noticeList.map(notice => `**<#${notice.channel_id}>** - ${notice.notice_type_tag}`).join('\n')}
+                `,
+            });
             break;
-        case choices.indexOf('유튜브'):
+        }
+        case choices.indexOf('영상'): {
             break;
+        }
     }
 };
 
