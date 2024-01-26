@@ -1,54 +1,73 @@
-import { APIApplicationCommandSubcommandOption, ApplicationCommandOptionType } from 'discord-api-types/v10';
+import {
+    APIApplicationCommandSubcommandOption,
+    APIButtonComponent,
+    ApplicationCommandOptionType,
+} from 'discord-api-types/v10';
 import { basename } from 'path';
 
 import { list } from 'controllers/notice';
-import { AppChatInputInteraction } from 'interactions/app';
+import { AppChatInputInteraction, SelectOptionType } from 'interactions/app';
+
+import { selectComponentPagingMenuByKey } from 'components/systemComponent';
+import QUERY from 'controllers/component/noticeListQuerys';
 
 const name = basename(__filename, __filename.endsWith('js') ? '.js' : '.ts');
 const type = ApplicationCommandOptionType.Subcommand;
 
-const choices = ['인증', '방송', '영상'];
+const createConponentSelectMenuByComponentPagingMenuByKey = async (
+    options: {
+        custom_id: string;
+        placeholder: string;
+        button?: APIButtonComponent;
+    },
+    query: string,
+    ...params: any[]
+) => {
+    return await selectComponentPagingMenuByKey(
+        {
+            custom_id: options.custom_id,
+            placeholder: options.placeholder,
+            button: options.button,
+            disabled: false,
+            max_values: 1,
+            min_values: 1,
+        },
+        query,
+        ...params
+    );
+};
 
-export const exec = async (interaction: AppChatInputInteraction, selectOption: SelectㅎOptionType) => {
+export const exec = async (interaction: AppChatInputInteraction, selectOption: SelectOptionType) => {
     const { guild_id, channel } = interaction;
 
     await interaction.differ({ ephemeral: true });
     if (!guild_id) return;
-    const type = selectOption.get('타입');
+    // TODO: 알림 설정 - 개인 메세지도 추후....
 
-    switch (type) {
-        case choices.indexOf('인증'): {
-            break;
-        }
-        case choices.indexOf('방송'): {
-            const noticeList = await list(guild_id);
+    const noticeList = await list();
 
-            interaction.reply({
-                content: `
-${noticeList.map(notice => `**<#${notice.channel_id}>** - ${notice.notice_type_tag}`).join('\n')}
-                `,
-            });
-            break;
-        }
-        case choices.indexOf('영상'): {
-            break;
-        }
-    }
+    if (!noticeList.length)
+        return interaction.reply({
+            content: '현재 설정 가능한 알림이 없습니다!',
+        });
+
+    interaction.reply({
+        // content: `${choices[type]}`,
+        components: await createConponentSelectMenuByComponentPagingMenuByKey(
+            {
+                custom_id: 'component_action_row list',
+                placeholder: '설정하실 알림을 선택해주세요.',
+            },
+            QUERY.SelectNoticeDashbord,
+            guild_id
+        ),
+    });
 };
 
 const api: APIApplicationCommandSubcommandOption = {
     name,
     type,
     description: '소셜 알림을 설정합니다.',
-    options: [
-        {
-            name: '타입',
-            type: ApplicationCommandOptionType.Number,
-            description: '설정 옵션',
-            required: true,
-            choices: choices.map((choice, index) => ({ name: choice, value: index })),
-        },
-    ],
 };
 
 // 인터렉션 이벤트
