@@ -25,7 +25,6 @@ export const exec = async (interaction: AppChatInputInteraction, selectOption: S
         });
 
     interaction.reply({
-        // content: `${choices[type]}`,
         components: await createConponentSelectMenuByComponentPagingMenuByKey(
             {
                 custom_id: 'component_action_row list',
