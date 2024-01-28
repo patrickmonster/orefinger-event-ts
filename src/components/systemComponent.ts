@@ -35,6 +35,29 @@ export const selectComponentPagingMenuByKey = async (
     return await selectComponentPagingMenuKey(queryKey);
 };
 
+export const createConponentSelectMenuByComponentPagingMenuByKey = async (
+    options: {
+        custom_id: string;
+        placeholder: string;
+        button?: APIButtonComponent;
+    },
+    query: string,
+    ...params: any[]
+) => {
+    return await selectComponentPagingMenuByKey(
+        {
+            custom_id: options.custom_id,
+            placeholder: options.placeholder,
+            button: options.button,
+            disabled: false,
+            max_values: 1,
+            min_values: 1,
+        },
+        query,
+        ...params
+    );
+};
+
 /**
  * 쿼리키로 메뉴 컴포넌트 생성
  *  - 키를 기반으로 검색 매뉴를 생성합니다.

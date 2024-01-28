@@ -1,13 +1,9 @@
-import {
-    APIApplicationCommandSubcommandOption,
-    APIButtonComponent,
-    ApplicationCommandOptionType,
-} from 'discord-api-types/v10';
+import { APIApplicationCommandSubcommandOption, ApplicationCommandOptionType } from 'discord-api-types/v10';
 import { basename } from 'path';
 
-import { selectComponentPagingMenuByKey } from 'components/systemComponent';
 import { AppChatInputInteraction, SelectOptionType } from 'interactions/app';
 
+import { createConponentSelectMenuByComponentPagingMenuByKey } from 'components/systemComponent';
 import QUERY from 'controllers/component/embedListQuerys';
 import { createPrimaryButton } from 'utils/discord/component';
 
@@ -20,29 +16,6 @@ const choices = [
     'embed',
     'embed_user',
 ];
-
-const createConponentSelectMenuByComponentPagingMenuByKey = async (
-    options: {
-        custom_id: string;
-        placeholder: string;
-        button: APIButtonComponent;
-    },
-    query: string,
-    ...params: any[]
-) => {
-    return await selectComponentPagingMenuByKey(
-        {
-            custom_id: options.custom_id,
-            placeholder: options.placeholder,
-            button: options.button,
-            disabled: false,
-            max_values: 1,
-            min_values: 1,
-        },
-        query,
-        ...params
-    );
-};
 
 export const exec = async (interaction: AppChatInputInteraction, selectOption: SelectOptionType) => {
     console.log('컴포넌트 수신', selectOption);

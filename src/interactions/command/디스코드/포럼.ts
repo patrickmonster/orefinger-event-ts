@@ -1,6 +1,5 @@
 import {
     APIApplicationCommandSubcommandOption,
-    APIButtonComponent,
     APIGuildForumChannel,
     APIThreadChannel,
     APIThreadMember,
@@ -9,34 +8,10 @@ import {
 } from 'discord-api-types/v10';
 import { basename } from 'path';
 
-import { selectComponentPagingMenuByKey } from 'components/systemComponent';
 import { AppChatInputInteraction, SelectOptionType } from 'interactions/app';
 import discord from 'utils/discordApiInstance';
 
 const choices = ['게시글복구'];
-
-const createConponentSelectMenuByComponentPagingMenuByKey = async (
-    options: {
-        custom_id: string;
-        placeholder: string;
-        button: APIButtonComponent;
-    },
-    query: string,
-    ...params: any[]
-) => {
-    return await selectComponentPagingMenuByKey(
-        {
-            custom_id: options.custom_id,
-            placeholder: options.placeholder,
-            button: options.button,
-            disabled: false,
-            max_values: 1,
-            min_values: 1,
-        },
-        query,
-        ...params
-    );
-};
 
 export interface APIThreadList {
     /**

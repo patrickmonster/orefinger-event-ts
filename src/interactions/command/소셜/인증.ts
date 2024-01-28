@@ -1,43 +1,15 @@
-import { getAuthbordeList, getDashboard } from 'controllers/guild/authDashbord';
+import { getDashboard } from 'controllers/guild/authDashbord';
 
-import discord from 'utils/discordApiInstance';
 import { createActionRow, createPrimaryButton, createStringSelectMenu } from 'utils/discord/component';
+import discord from 'utils/discordApiInstance';
 
-import {
-    APIApplicationCommandSubcommandOption,
-    APIButtonComponent,
-    ComponentType,
-    ApplicationCommandOptionType,
-} from 'discord-api-types/v10';
+import { APIApplicationCommandSubcommandOption, ApplicationCommandOptionType } from 'discord-api-types/v10';
 import { basename } from 'path';
 
-import { selectComponentPagingMenuByKey } from 'components/systemComponent';
+import { createConponentSelectMenuByComponentPagingMenuByKey } from 'components/systemComponent';
 import { AppChatInputInteraction, SelectOptionType } from 'interactions/app';
 
 import QUERY from 'controllers/component/embedListQuerys';
-
-const createConponentSelectMenuByComponentPagingMenuByKey = async (
-    options: {
-        custom_id: string;
-        placeholder: string;
-        button?: APIButtonComponent;
-    },
-    query: string,
-    ...params: any[]
-) => {
-    return await selectComponentPagingMenuByKey(
-        {
-            custom_id: options.custom_id,
-            placeholder: options.placeholder,
-            button: options.button,
-            disabled: false,
-            max_values: 1,
-            min_values: 1,
-        },
-        query,
-        ...params
-    );
-};
 
 const name = basename(__filename, __filename.endsWith('js') ? '.js' : '.ts');
 const type = ApplicationCommandOptionType.Subcommand;
