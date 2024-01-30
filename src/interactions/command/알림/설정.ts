@@ -27,7 +27,7 @@ export const exec = async (interaction: AppChatInputInteraction, selectOption: S
     interaction.reply({
         components: await createConponentSelectMenuByComponentPagingMenuByKey(
             {
-                custom_id: 'component_action_row list',
+                custom_id: 'notice list',
                 placeholder: '설정하실 알림을 선택해주세요.',
             },
             QUERY.SelectNoticeDashbord,
