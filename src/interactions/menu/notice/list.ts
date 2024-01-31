@@ -35,7 +35,7 @@ export const exec = async (interaction: MessageMenuInteraction) => {
             embeds: [embed],
             ephemeral: true,
             components: [
-                createChannelSelectMenu(`notice edit ${notice_channel_id}`, {
+                createChannelSelectMenu(`notice edit channel ${notice_channel_id}`, {
                     placeholder: '알림 채널을 선택해주세요.',
                     default_values,
                     channel_types: [ChannelType.GuildText],

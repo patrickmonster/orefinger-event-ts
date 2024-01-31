@@ -30,9 +30,12 @@ SELECT
         )
     ) AS embed
     , channel_id
-    , notice_channel_id
+    , notice_id
 FROM v_notice_channel vnc 
 WHERE notice_id = ?
     `,
         ParseInt(notice_id)
     ).then(res => res[0]);
+
+//
+export const upsertNotice = async (notice_id: NoticeId, channel_id: string) => {};
