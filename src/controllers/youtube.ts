@@ -54,6 +54,10 @@ interface YoutubeVideo {
 export const insertYoutubeVideo = (list: YoutubeVideo[]) =>
     getConnection(async QUERY => {
         list.forEach(({ video_id, channel_id, title }) => {
-            QUERY(`INSERT IGNORE INTO discord.event_video (video_id, channel_id, title) VALUES(?)`, [video_id, channel_id, title]);
+            QUERY(`INSERT IGNORE INTO discord.event_video (video_id, channel_id, title) VALUES(?)`, [
+                video_id,
+                channel_id,
+                title,
+            ]);
         });
     });
