@@ -52,7 +52,8 @@ WHERE notice_id = ? AND guild_id = ? AND channel_id NOT IN (?)
 
         query(
             `
-INSERT INTO notice_channel SET ? ON DUPLICATE KEY UPDATE use_yn = 'Y', update_at=CURRENT_TIMESTAMP
+INSERT INTO notice_channel 
+SET ? ON DUPLICATE KEY UPDATE use_yn = 'Y', update_at=CURRENT_TIMESTAMP
         `,
             {
                 notice_id,
