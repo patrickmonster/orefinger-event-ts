@@ -1,5 +1,5 @@
 import { APIEmbed } from 'discord-api-types/v10';
-import { query } from 'utils/database';
+import getConnection, { query } from 'utils/database';
 
 export type NoticeId = number | string;
 
@@ -36,6 +36,31 @@ WHERE notice_id = ?
     `,
         ParseInt(notice_id)
     ).then(res => res[0]);
+
+export const upsertNoticeChannels = async (notice_id: NoticeId, guild_id: string, channel_ids: string[]) =>
+    getConnection(async query => {
+        await query(
+            `
+UPDATE notice_channel 
+SET use_yn = 'N', update_at = CURRENT_TIMESTAMP
+WHERE notice_id = ? AND guild_id = ? AND channel_id NOT IN (?)
+            `,
+            notice_id,
+            guild_id,
+            channel_ids
+        );
+
+        query(
+            `
+INSERT INTO notice_channel SET ? ON DUPLICATE KEY UPDATE use_yn = 'Y', update_at=CURRENT_TIMESTAMP
+        `,
+            {
+                notice_id,
+                guild_id,
+                channel_id: channel_ids,
+            }
+        );
+    }, true);
 
 //
 export const upsertNotice = async (notice_id: NoticeId, channel_id: string) => {};

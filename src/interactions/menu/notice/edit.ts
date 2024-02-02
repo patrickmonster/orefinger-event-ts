@@ -5,7 +5,7 @@ import { MessageMenuInteraction } from 'interactions/message';
  * 가이드 호출 - 디비처리용
  * @param interaction
  */
-export const exec = async (interaction: MessageMenuInteraction, target: string) => {
+export const exec = async (interaction: MessageMenuInteraction, notice_id: string, target: string) => {
     const {
         values: [select_id],
         component,

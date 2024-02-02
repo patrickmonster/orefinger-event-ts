@@ -1,5 +1,6 @@
 import { MessageMenuInteraction } from 'interactions/message';
 
+import { editerComponent } from 'components/systemComponent';
 import { selectNoticeDtilByEmbed } from 'controllers/notice';
 import { APISelectMenuDefaultValue, ChannelType, SelectMenuDefaultValueType } from 'discord-api-types/v10';
 import { createChannelSelectMenu } from 'utils/discord/component';
@@ -21,6 +22,7 @@ export const exec = async (interaction: MessageMenuInteraction) => {
     if (!embed) {
         interaction.reply({ content: '해당 메세지를 찾을 수 없습니다.', ephemeral: true });
     } else {
+        const id = `notice edit ${notice_channel_id}`;
         await interaction.edit({ components });
 
         const default_values: APISelectMenuDefaultValue<SelectMenuDefaultValueType.Channel>[] = [];
@@ -35,13 +37,18 @@ export const exec = async (interaction: MessageMenuInteraction) => {
             embeds: [embed],
             ephemeral: true,
             components: [
-                createChannelSelectMenu(`notice edit channel ${notice_channel_id}`, {
-                    placeholder: '알림 채널을 선택해주세요.',
+                createChannelSelectMenu(`${id} channel`, {
+                    placeholder: '전송할 채널을 선택해주세요.',
                     default_values,
                     channel_types: [ChannelType.GuildText],
-                    max_values: 1,
-                    min_values: 1,
+                    max_values: 25,
+                    min_values: 0,
                 }),
+                editerComponent(
+                    `${id}`,
+                    [], // 버튼들
+                    true // 복사 안함
+                ),
             ],
         });
     }
