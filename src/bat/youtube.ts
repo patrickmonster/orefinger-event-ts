@@ -1,6 +1,8 @@
 import axios from 'axios';
 import { insertEvents, selectEventBats } from 'controllers/bat';
+import { deleteNoticeChannel } from 'controllers/notice';
 import { NoticeChannel } from 'interfaces/notice';
+import discord from 'utils/discordApiInstance';
 import { parseString } from 'xml2js';
 
 /**
@@ -29,6 +31,12 @@ const convertVideoObject = (video_object: any) => {
     };
 };
 
+/**
+ * 채널의 비디오 목록을 가져옵니다
+ * @param notice_id
+ * @param hash_id
+ * @returns
+ */
 const getChannelVideos = async (notice_id: number, hash_id: string) =>
     new Promise<{
         videos: any[];
@@ -37,40 +45,34 @@ const getChannelVideos = async (notice_id: number, hash_id: string) =>
         axios
             .get(`https://www.youtube.com/feeds/videos.xml?channel_id=${hash_id}`)
             .then(({ data }) => {
-                parseString(
-                    data,
-                    async (
-                        err,
-                        {
-                            feed: {
-                                title: [channel_title],
-                                entry,
-                            },
-                        }
-                    ) => {
-                        if (err) return reject(err);
-                        // entry.map(convertVideoObject)
-                        const videos = [];
+                parseString(data, async (err, data) => {
+                    if (err) return reject(err);
+                    const {
+                        feed: {
+                            title: [channel_title],
+                            entry,
+                        },
+                    } = data;
 
-                        for (const video_object of entry) {
-                            const {
-                                id: [id],
-                                'media:group': [
-                                    {
-                                        'media:title': [title],
-                                    },
-                                ],
-                            } = video_object;
-                            try {
-                                await insertEvents(notice_id, id, title);
-                                videos.push(convertVideoObject(video_object));
-                            } catch (e) {
-                                continue;
-                            }
+                    const videos = [];
+                    for (const video_object of entry) {
+                        const {
+                            id: [id],
+                            'media:group': [
+                                {
+                                    'media:title': [title],
+                                },
+                            ],
+                        } = video_object;
+                        try {
+                            await insertEvents(notice_id, id, title);
+                            videos.push(convertVideoObject(video_object));
+                        } catch (e) {
+                            continue;
                         }
-                        resolve({ videos, channel_title });
                     }
-                );
+                    resolve({ videos, channel_title });
+                });
             })
             .catch(reject);
     });
@@ -81,14 +83,21 @@ const getChannelVideos = async (notice_id: number, hash_id: string) =>
  * @param message TODO : message 객체
  */
 const sendChannels = async (channels: NoticeChannel[], message: any) => {
-    for (const { notice_id, guild_id, channel_id, use_yn, update_at } of channels) {
-        //
+    for (const { notice_id, channel_id } of channels) {
+        console.log('sendChannels', notice_id, channel_id);
+        discord.post(`/channels/${channel_id}/messages`, message).catch(() => {
+            deleteNoticeChannel(notice_id, channel_id).catch(e => {
+                console.log('Error: ', e);
+            });
+        });
     }
 };
 
-setInterval(async () => {
+// 5분마다 실행되는 함수
+const interval = async () => {
     let pageIndex = 0;
     do {
+        console.log('탐색 :: Youtube', new Date(), pageIndex);
         const { list, totalPage } = await selectEventBats(2, {
             page: pageIndex,
             limit: 100,
@@ -115,23 +124,6 @@ setInterval(async () => {
                 console.log('Error: ', hash_id);
                 continue;
             }
-
-            // try {
-            //     await QUERY(`INSERT INTO discord.event_video (video_id, channel_id, title) VALUES(?)`, [id, user_id, title]);
-            //     for (const { url, ment } of channels) {
-            //         send(url, {
-            //             content: ment.replace('{TITLE}', title),
-            //             embeds: [embed],
-            //         }).catch(e => {
-            //             if (e.code == 404 && e.response?.data?.code === 10003) {
-            //                 QUERY(`UPDATE event_channel SET delete_yn = 'Y' WHERE channel_id = ?`, channel_id).catch(e => {});
-            //                 return;
-            //             }
-            //         });
-            //     }
-            // } catch (e) {
-            //     continue;
-            // }
         }
 
         if (list.length === 0 || pageIndex >= totalPage) break;
@@ -139,4 +131,7 @@ setInterval(async () => {
     } while (true);
 
     console.log('탐색 :: Youtube', new Date(), pageIndex);
-}, 1000 * 60 * 5); // 5분마다 실행
+};
+
+setInterval(interval, 1000 * 60 * 5); // 5분마다 실행
+// interval();

@@ -37,7 +37,7 @@ WHERE notice_id = ?
         ParseInt(notice_id)
     ).then(res => res[0]);
 
-export const upsertNoticeChannels = async (notice_id: NoticeId, guild_id: string, channel_ids: string[]) =>
+export const deleteOrInsertNoticeChannels = async (notice_id: NoticeId, guild_id: string, channel_ids: string[]) =>
     getConnection(async query => {
         await query(
             `
@@ -63,5 +63,17 @@ SET ? ON DUPLICATE KEY UPDATE use_yn = 'Y', update_at=CURRENT_TIMESTAMP
         );
     }, true);
 
-//
-export const upsertNotice = async (notice_id: NoticeId, channel_id: string) => {};
+export const upsertNoticeChannel = async (notice_id: NoticeId) => {
+    // TODO : upsertNoticeChannel
+};
+
+export const deleteNoticeChannel = async (notice_id: NoticeId, channel_id: string) =>
+    updateNoticeChannelState(notice_id, channel_id, 'N');
+
+export const updateNoticeChannelState = async (notice_id: NoticeId, channel_id: string, use_yn: 'N' | 'Y') =>
+    query(
+        `UPDATE discord.notice_channel SET use_yn=?, update_at=CURRENT_TIMESTAMP WHERE channel_id=? AND notice_id= ?`,
+        use_yn,
+        channel_id,
+        notice_id
+    );

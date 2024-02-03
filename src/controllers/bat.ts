@@ -34,13 +34,5 @@ GROUP BY hash_id
         notice_type
     );
 
-export const insertEvents = async (notice_id: number, video_id: string, title: string) => {
-    query(
-        `
-INSERT INTO notice_video
-(video_id, title, notice_id)
-VALUES(?);
-	`,
-        [video_id, title, notice_id]
-    );
-};
+export const insertEvents = async (notice_id: number, video_id: string, title: string) =>
+    query(`INSERT INTO notice_video (video_id, title, notice_id) VALUES(?)`, [video_id, title, notice_id]);
