@@ -18,23 +18,25 @@ export const list = async () =>
  * @param component_id
  * @returns
  */
-export const selectNoticeDtilByEmbed = async (notice_id: NoticeId) =>
+export const selectNoticeDtilByEmbed = async (notice_type: number | string, guild_id: string) =>
     query<{ embed: APIEmbed; channel_id: string; notice_channel_id: string }>(
         `
 SELECT 
     JSON_OBJECT(
-        'title', CONCAT(notice_type_tag, ' - 알림'),
-        'description', CONCAT(
-            notice_channel_id ,' : ','<#', channel_id ,'>',
-            '\n',  date_format(update_at, '%Y-%m-%d'), '에 마지막으로 업데이트 됨'
+        'title', notice_type_tag
+        , 'description', CONCAT(
+            '설정된 사용자 : ', name, '\n'
+            '설정된 맨트 : ', message, '\n'
         )
-    ) AS embed
-    , channel_id
-    , notice_id
-FROM v_notice_channel vnc 
-WHERE notice_id = ?
+    ) AS embed,
+    JSON_ARRAYAGG(vnc.channel_id) AS channels_id
+FROM v_notice_channel vnc
+WHERE 1=1
+AND notice_type = ?
+AND vnc.guild_id = ?
     `,
-        ParseInt(notice_id)
+        ParseInt(notice_type),
+        guild_id
     ).then(res => res[0]);
 
 export const deleteOrInsertNoticeChannels = async (notice_id: NoticeId, guild_id: string, channel_ids: string[]) =>

@@ -6,13 +6,13 @@
  */
 
 const SelectNoticeDashbord = `
-SELECT json_object( 'name', IF( nc.use_yn = 'Y', '🔴','⚫')) AS emoji
-	, CAST(vn.notice_id AS CHAR) AS value
-	, vn.notice_type_tag  AS label
-	, LEFT(CONCAT( '마지막 변경 : ', vn.update_at ) , 100) AS description 
-FROM v_notice vn 
-LEFT JOIN notice_channel nc using(notice_id) 
-WHERE guild_id = ?
+SELECT 
+	json_object( 'name', '🔔') AS emoji
+	, CAST(notice_type_id AS CHAR) AS value
+	, tag AS label
+FROM notice_type nt 
+WHERE 1=1
+AND use_yn = 'Y'
 `;
 
 export default {

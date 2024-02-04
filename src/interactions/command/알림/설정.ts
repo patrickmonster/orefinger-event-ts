@@ -1,7 +1,6 @@
 import { APIApplicationCommandSubcommandOption, ApplicationCommandOptionType } from 'discord-api-types/v10';
 import { basename } from 'path';
 
-import { list } from 'controllers/notice';
 import { AppChatInputInteraction, SelectOptionType } from 'interactions/app';
 
 import { createConponentSelectMenuByComponentPagingMenuByKey } from 'components/systemComponent';
@@ -17,21 +16,13 @@ export const exec = async (interaction: AppChatInputInteraction, selectOption: S
     if (!guild_id) return;
     // TODO: 알림 설정 - 개인 메세지도 추후....
 
-    const noticeList = await list();
-
-    if (!noticeList.length)
-        return interaction.reply({
-            content: '현재 설정 가능한 알림이 없습니다!',
-        });
-
     interaction.reply({
         components: await createConponentSelectMenuByComponentPagingMenuByKey(
             {
                 custom_id: 'notice list',
                 placeholder: '설정하실 알림을 선택해주세요.',
             },
-            QUERY.SelectNoticeDashbord,
-            guild_id
+            QUERY.SelectNoticeDashbord
         ),
     });
 };
