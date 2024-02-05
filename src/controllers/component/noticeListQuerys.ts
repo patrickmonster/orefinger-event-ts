@@ -15,6 +15,22 @@ WHERE 1=1
 AND use_yn = 'Y'
 `;
 
+// 알림 상세
+const SelectNoticeDashbordByNoticeId = `
+SELECT 
+	json_object( 'name', IF( nc.use_yn = 'Y', '🔴','⚫')) AS emoji
+	, CAST(nc.notice_id AS CHAR) AS value
+    , IFNULL(nd.name, '지정되지 않음')  AS label
+    , CONCAT(nd.message) AS  description
+FROM notice_channel nc 
+INNER JOIN notice n USING(notice_id)
+INNER JOIN notice_detail nd using(notice_id)
+WHERE notice_type = ?
+AND guild_id = ?
+GROUP BY nc.notice_id 
+`;
+
 export default {
     SelectNoticeDashbord,
+    SelectNoticeDashbordByNoticeId,
 };

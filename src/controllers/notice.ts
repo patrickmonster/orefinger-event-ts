@@ -1,4 +1,9 @@
-import { APIEmbed } from 'discord-api-types/v10';
+import {
+    APIEmbed,
+    APIModalInteractionResponseCallbackData,
+    APISelectMenuDefaultValue,
+    SelectMenuDefaultValueType,
+} from 'discord-api-types/v10';
 import getConnection, { query } from 'utils/database';
 
 export type NoticeId = number | string;
@@ -18,24 +23,30 @@ export const list = async () =>
  * @param component_id
  * @returns
  */
-export const selectNoticeDtilByEmbed = async (notice_type: number | string, guild_id: string) =>
-    query<{ embed: APIEmbed; channel_id: string; notice_channel_id: string }>(
+export const selectNoticeDtilByEmbed = async (notice_id: NoticeId, guild_id: string) =>
+    query<{ embed: APIEmbed; channels: APISelectMenuDefaultValue<SelectMenuDefaultValueType.Channel>[] }>(
         `
 SELECT 
     JSON_OBJECT(
-        'title', notice_type_tag
-        , 'description', CONCAT(
-            '설정된 사용자 : ', name, '\n'
-            '설정된 맨트 : ', message, '\n'
-        )
-    ) AS embed,
-    JSON_ARRAYAGG(vnc.channel_id) AS channels_id
-FROM v_notice_channel vnc
+        'title', nd.name, 
+        'description', CONCAT(
+            'message : ', nd.message
+        ) 
+    ) AS embed
+    , JSON_ARRAYAGG(
+        JSON_OBJECT(
+            'id', nc.channel_id,
+            'type', 'channel'
+        ) 
+    ) AS channels  
+FROM notice_channel nc 
+INNER JOIN notice n USING(notice_id)
+INNER JOIN notice_detail nd using(notice_id)
 WHERE 1=1
-AND notice_type = ?
-AND vnc.guild_id = ?
+AND notice_id = ?
+AND guild_id = ?
     `,
-        ParseInt(notice_type),
+        ParseInt(notice_id),
         guild_id
     ).then(res => res[0]);
 
@@ -82,3 +93,26 @@ export const updateNoticeChannelState = async (notice_id: NoticeId, channel_id: 
         channel_id,
         notice_id
     );
+
+export const selectNoticeDetailEditByModel = async (notice_id: NoticeId) =>
+    query<Omit<APIModalInteractionResponseCallbackData, 'custom_id'>>(
+        `
+SELECT 
+    CONCAT(nd.notice_id, '] 알림 맨트 수정') as title
+    , JSON_ARRAY(
+        JSON_OBJECT(
+            'type', 1, 'components', JSON_ARRAY(
+                JSON_OBJECT('type', 4,'custom_id', 'message', 'label', '알림맨트', 'value', message, 'min_length', 1, 'max_length', 1000, 'style', 2, 'required', true )
+            )
+        ),
+        JSON_OBJECT(
+            'type', 1, 'components', JSON_ARRAY(
+                JSON_OBJECT('type', 4,'custom_id', 'name', 'label', '표기이름', 'value', IFNULL(name, ''), 'min_length', 0, 'max_length', 50, 'style', 1, 'required', false)
+            )
+        )
+    ) AS components
+FROM notice_detail nd 
+WHERE notice_id = ?
+        `,
+        ParseInt(notice_id)
+    ).then(res => res[0]);

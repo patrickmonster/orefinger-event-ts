@@ -61,15 +61,12 @@
     "scripts": {
         "build": "npx tsc --project tsconfig.json && tsc-alias -p tsconfig.json",
         "cmdLocal": "cross-env NODE_ENV=local ts-node -r tsconfig-paths/register src/discordCommands.ts",
-        "cmdLocal2": "cross-env NODE_ENV=local2 ts-node -r tsconfig-paths/register src/discordCommands.ts",
         "start": "node dist/app.js",
         "proxy": "ngrok http 3000",
         "bot": "cross-env NODE_ENV=local nodemon --watch src/interactions --exec ts-node -r tsconfig-paths/register src/app.ts",
-        "bot2": "cross-env NODE_ENV=local2 nodemon --watch src/interactions --exec ts-node -r tsconfig-paths/register src/app.ts",
         "dev": "cross-env NODE_ENV=dev nodemon --watch src/routes --exec ts-node -r tsconfig-paths/register src/app.ts",
         "local": "cross-env NODE_ENV=local nodemon --watch src/routes --exec ts-node -r tsconfig-paths/register src/app.ts",
         "var": "release.bat",
-        "local2": "cross-env NODE_ENV=local2 nodemon --watch src/routes --exec ts-node -r tsconfig-paths/register src/app.ts",
         "test:twitch": "twitch event verify-subscription subscribe -F http://localhost:3000/twitch/event -s 12345678901234567890"
     }
 }

@@ -42,11 +42,12 @@ export default async (fastify: FastifyInstance, opts: any) => {
 
             // 자동완성처리
             if (body.type === InteractionType.ApplicationCommandAutocomplete) {
-                console.log('autocomp');
-                return autocomp(body, (data: Array<{ name: string; value: string }>) => {
+                return autocomp(body.data, (choices: Array<{ name: string; value: string }>) => {
+                    console.log('choices', choices);
+
                     res.status(200).send({
                         type: InteractionResponseType.APPLICATION_COMMAND_AUTOCOMPLETE_RESULT,
-                        data,
+                        data: { choices },
                     });
                 });
             }

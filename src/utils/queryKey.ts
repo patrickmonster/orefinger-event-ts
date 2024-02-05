@@ -54,15 +54,32 @@ export const selectQueryKeyPaging = async <E extends {}>(queryKey: string, page:
 
     const { sql: query, params, other, search: searchOrg } = JSON.parse(sql);
 
+    if (search) {
+        const cols = Object.keys(search);
+
+        for (const col of cols)
+            if (!query.includes(col)) {
+                delete search[col];
+                console.log('DEBUG :: selectQueryKeyPaging - 컬럼제거', col);
+            }
+    }
+
     let runningQuery = query;
     if (search) {
-        await redis.set(REDIS_KEY.SQL.SELECT(queryKey), JSON.stringify({ sql: query, params, other, search }), { EX: queryRedisSaveingTime });
+        await redis.set(REDIS_KEY.SQL.SELECT(queryKey), JSON.stringify({ sql: query, params, other, search }), {
+            EX: queryRedisSaveingTime,
+        });
     }
 
     // 서브 검색조건이 있는 경우에만 OR 조건을 추가합니다.
-    if (search || searchOrg) runningQuery = `SELECT  A.* FROM ( ${query}\n) A ${searchLikeOrQuery(search ?? searchOrg)}`;
+    if (search || searchOrg)
+        runningQuery = `SELECT  A.* FROM ( ${query}\n) A ${searchLikeOrQuery(search ?? searchOrg)}`;
 
-    return { result: resultParser(await selectPaging<E>(runningQuery, page, ...params)), other, search: search || searchOrg };
+    return {
+        result: resultParser(await selectPaging<E>(runningQuery, page, ...params)),
+        other,
+        search: search || searchOrg,
+    };
 };
 
 export default createQueryKey;

@@ -13,8 +13,7 @@ export const exec = async (interaction: AppChatInputInteraction, selectOption: S
     if (!guild_id) return;
     // TODO: 알림 설정 - 개인 메세지도 추후....
 
-    // 이벤트 배치에 등록
-    // await interaction.defer();
+    await interaction.differ({ ephemeral: true });
 };
 
 const api: APIApplicationCommandSubcommandOption = {
