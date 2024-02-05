@@ -26,6 +26,7 @@
         "fastify-raw-body": "^4.2.2",
         "moment": "^2.29.4",
         "mysql2": "^3.4.2",
+        "querystring": "^0.2.1",
         "redis": "^4.6.7",
         "sha256": "^0.2.0",
         "tmi.js": "^1.8.5",

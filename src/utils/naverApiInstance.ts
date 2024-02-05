@@ -36,21 +36,28 @@ naverAPI.interceptors.response.use(
         throw error;
     }
 );
-export const chzzkAPI: CustomInstance = axios.create({ baseURL: chzzkURL });
+
+const apis: { [version: string]: CustomInstance } = {};
+
+export const getChzzkAPI = (version: string) => {
+    if (!apis[version]) {
+        apis[version] = axios.create({ baseURL: `https://api.chzzk.naver.com/service/${version}/` });
+        apis[version].interceptors.response.use(
+            ({ data, config }) => {
+                console.log(`CHZZK API(${version}) ::`, data, config);
+                return data;
+            }, // 데이터 변환
+            async error => {
+                errorLog('AXIOS', error);
+                throw error;
+            }
+        );
+    }
+    return apis[version];
+};
 
 export interface ChzzkInterface<T extends object> {
     code: number;
     message: string;
     content: T;
 }
-
-chzzkAPI.interceptors.response.use(
-    ({ data, config }) => {
-        console.log('NAVER API', data, config);
-        return data;
-    }, // 데이터 변환
-    async error => {
-        errorLog('AXIOS', error);
-        throw error;
-    }
-);

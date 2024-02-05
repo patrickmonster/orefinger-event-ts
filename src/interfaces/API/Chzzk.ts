@@ -25,3 +25,10 @@ export interface ProfileData {
     reservationNotiAgree: boolean;
     commentNotiAgree: boolean;
 }
+
+export interface ChannelData {
+    channelId: string;
+    channelName: string;
+    channelImageUrl: string;
+    verifiedMark: boolean;
+}
