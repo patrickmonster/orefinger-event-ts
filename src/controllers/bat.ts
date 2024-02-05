@@ -2,7 +2,7 @@
 
 import { NoticeBat } from 'interfaces/notice';
 import { Paging } from 'interfaces/swagger';
-import { query, selectPaging } from 'utils/database';
+import { SqlInsertUpdate, query, selectPaging } from 'utils/database';
 
 // 배치 조회
 export const selectEventBats = (notice_type: number, paging: Paging) =>
@@ -34,5 +34,18 @@ GROUP BY hash_id
         notice_type
     );
 
-export const insertEvents = async (notice_id: number, video_id: string, title: string) =>
+export const insertVideoEvents = async (notice_id: number, video_id: string, title: string) =>
     query(`INSERT INTO notice_video (video_id, title, notice_id) VALUES(?)`, [video_id, title, notice_id]);
+
+export const insertLiveEvents = async (notice_id: number, id: string) =>
+    query(`INSERT INTO notice_live SET ?`, {
+        notice_id,
+        id,
+    });
+
+export const updateLiveEvents = async (notice_id: number, id: string) =>
+    query<SqlInsertUpdate>(
+        `UPDATE notice_live SET end_at=CURRENT_TIMESTAMP WHERE notice_id=? AND id=? AND end_at IS NOT NULL`,
+        notice_id,
+        id
+    );

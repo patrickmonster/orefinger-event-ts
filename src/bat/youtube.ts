@@ -1,8 +1,9 @@
 import axios from 'axios';
-import { insertEvents, selectEventBats } from 'controllers/bat';
+import { insertVideoEvents, selectEventBats } from 'controllers/bat';
 import { deleteNoticeChannel } from 'controllers/notice';
 import { NoticeChannel } from 'interfaces/notice';
 import discord from 'utils/discordApiInstance';
+import sleep from 'utils/sleep';
 import { parseString } from 'xml2js';
 
 /**
@@ -65,7 +66,7 @@ const getChannelVideos = async (notice_id: number, hash_id: string) =>
                             ],
                         } = video_object;
                         try {
-                            await insertEvents(notice_id, id, title);
+                            await insertVideoEvents(notice_id, id, title);
                             videos.push(convertVideoObject(video_object));
                         } catch (e) {
                             continue;
@@ -95,12 +96,13 @@ const sendChannels = async (channels: NoticeChannel[], message: any) => {
 
 // 5분마다 실행되는 함수
 const interval = async () => {
+    const random = Math.floor(Math.random() * 100); // Random delay
     let pageIndex = 0;
     do {
         console.log('탐색 :: Youtube', new Date(), pageIndex);
         const { list, totalPage } = await selectEventBats(2, {
             page: pageIndex,
-            limit: 100,
+            limit: 10,
         });
 
         for (const { channels, notice_id, hash_id, message, name, img_idx } of list) {
@@ -128,6 +130,7 @@ const interval = async () => {
 
         if (list.length === 0 || pageIndex >= totalPage) break;
         pageIndex++;
+        await sleep(100 * random); // Cull down the request
     } while (true);
 
     console.log('탐색 :: Youtube', new Date(), pageIndex);
