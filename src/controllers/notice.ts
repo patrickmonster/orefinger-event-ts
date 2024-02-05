@@ -68,6 +68,9 @@ SET ? ON DUPLICATE KEY UPDATE use_yn = 'Y', update_at=CURRENT_TIMESTAMP
 export const upsertNoticeChannel = async (notice_id: NoticeId) => {
     // TODO : upsertNoticeChannel
 };
+export const upsertNotice = async (notice_id: NoticeId) => {
+    // TODO : upsertNoticeChannel
+};
 
 export const deleteNoticeChannel = async (notice_id: NoticeId, channel_id: string) =>
     updateNoticeChannelState(notice_id, channel_id, 'N');
