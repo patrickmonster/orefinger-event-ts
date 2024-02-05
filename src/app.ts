@@ -57,6 +57,7 @@ server.listen({ port: 3000, host: '::' }, (err, address) => {
         process.nextTick(() => {
             // 배치 모듈
             import('bat/youtube');
+            import('bat/chzzk');
         });
 });
 
