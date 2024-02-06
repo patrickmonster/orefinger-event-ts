@@ -4,7 +4,8 @@ import {
     APISelectMenuDefaultValue,
     SelectMenuDefaultValueType,
 } from 'discord-api-types/v10';
-import getConnection, { query } from 'utils/database';
+import { NoticeDetail } from 'interfaces/notice';
+import getConnection, { SqlInsertUpdate, query } from 'utils/database';
 
 export type NoticeId = number | string;
 
@@ -33,21 +34,26 @@ SELECT
             'message : ', nd.message
         ) 
     ) AS embed
-    , JSON_ARRAYAGG(
-        JSON_OBJECT(
-            'id', nc.channel_id,
-            'type', 'channel'
-        ) 
-    ) AS channels  
-FROM notice_channel nc 
-INNER JOIN notice n USING(notice_id)
+    , (
+        select json_arrayagg(
+                JSON_OBJECT(
+                    'id', nc.channel_id,
+                    'type', 'channel'
+                ) 
+            )
+        from notice_channel nc 
+        WHERE guild_id = ?
+        AND nc.notice_id = n.notice_id
+        AND nc.use_yn = 'Y'
+    ) as channels
+from notice n
 INNER JOIN notice_detail nd using(notice_id)
 WHERE 1=1
 AND notice_id = ?
-AND guild_id = ?
+    
     `,
-        ParseInt(notice_id),
-        guild_id
+        guild_id,
+        ParseInt(notice_id)
     ).then(res => res[0]);
 
 export const deleteOrInsertNoticeChannels = async (notice_id: NoticeId, guild_id: string, channel_ids: string[]) =>
@@ -79,9 +85,39 @@ SET ? ON DUPLICATE KEY UPDATE use_yn = 'Y', update_at=CURRENT_TIMESTAMP
 export const upsertNoticeChannel = async (notice_id: NoticeId) => {
     // TODO : upsertNoticeChannel
 };
-export const upsertNotice = async (notice_id: NoticeId) => {
-    // TODO : upsertNoticeChannel
-};
+
+export const upsertNotice = async (notiecData: Partial<NoticeDetail>, noChageOrigin?: boolean) =>
+    getConnection(async query => {
+        console.log('notiecData', notiecData);
+        let id = notiecData.notice_id;
+        if (id === undefined) {
+            const notice = await query<SqlInsertUpdate>(
+                `INSERT INTO notice SET ? ON DUPLICATE KEY UPDATE use_yn = 'Y', update_at=CURRENT_TIMESTAMP `,
+                {
+                    hash_id: notiecData.hash_id,
+                    notice_type: notiecData.notice_type,
+                }
+            );
+            id = notice.insertId;
+        }
+
+        await query<SqlInsertUpdate>(
+            `INSERT INTO notice_detail SET ? ON DUPLICATE KEY UPDATE ?`,
+            {
+                notice_id: id,
+                message: notiecData.message,
+                name: notiecData.name,
+            },
+            noChageOrigin
+                ? {}
+                : {
+                      message: notiecData.message,
+                      name: notiecData.name,
+                  }
+        );
+
+        return id;
+    }, true);
 
 export const deleteNoticeChannel = async (notice_id: NoticeId, channel_id: string) =>
     updateNoticeChannelState(notice_id, channel_id, 'N');

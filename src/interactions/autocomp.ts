@@ -56,17 +56,12 @@ const autoComponent = async (
             // https://api.chzzk.naver.com/service/v1/search/lives?keyword=%EB%B0%A9%EC%86%A1&offset=0&size=12
             //  api 호출 or redis
 
-            if (`${item.value}`.length < 2) {
-                console.log('검색어가 너무 짧음', item.value);
-
-                return replay([]);
-            }
+            if (`${item.value}`.length < 2) return replay([]);
 
             const redisKey = REDIS_KEY.API.SEARCH_USER(`${item.value}`);
 
             try {
                 const data = await redis.get(redisKey);
-                console.log('탐색', redisKey, data);
                 if (data) {
                     replay(JSON.parse(data));
                     return;
@@ -110,8 +105,6 @@ const autoComponent = async (
                         value: channelId,
                     })
                 );
-
-                console.log(result);
 
                 replay(result || []);
 

@@ -16,3 +16,13 @@ export interface NoticeChannel {
     use_yn: string;
     update_at: Date;
 }
+
+export interface NoticeDetail {
+    notice_id: number;
+    hash_id: string;
+    notice_type: number;
+
+    name: string;
+    message: string;
+    // img_idx: number; /* 임시보류 */
+}

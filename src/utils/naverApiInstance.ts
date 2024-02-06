@@ -39,9 +39,9 @@ naverAPI.interceptors.response.use(
 
 const apis: { [version: string]: CustomInstance } = {};
 
-export const getChzzkAPI = (version: string) => {
+export const getChzzkAPI = (version: string, target?: 'service' | 'polling') => {
     if (!apis[version]) {
-        apis[version] = axios.create({ baseURL: `https://api.chzzk.naver.com/service/${version}/` });
+        apis[version] = axios.create({ baseURL: `https://api.chzzk.naver.com/${target || 'service'}/${version}/` });
         apis[version].interceptors.response.use(
             ({ data, config }) => {
                 console.log(`CHZZK API(${version}) ::`, data, config);

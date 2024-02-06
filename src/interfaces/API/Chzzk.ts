@@ -31,4 +31,6 @@ export interface ChannelData {
     channelName: string;
     channelImageUrl: string;
     verifiedMark: boolean;
+
+    openLive?: boolean; // 오픈 라이브 여부
 }
