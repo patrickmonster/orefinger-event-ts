@@ -40,7 +40,7 @@ export const exec = async (interaction: AppChatInputInteraction, selectOption: S
         components: createButtonArrays(
             ...auths.map(auth =>
                 // createUrlButton(`https://orefinger.click/discord/jwt?code=${jwt}&target=${auth.auth_type}`, {
-                createUrlButton(`http://localhost:5173/discord/jwt?code=${jwt}&target=${auth.auth_type}`, {
+                createUrlButton(`${process.env.HOST}/discord/jwt?code=${jwt}&target=${auth.auth_type}`, {
                     label: `${auth.tag_kr}]${auth.user_id ? `${auth.name}(${auth.login})` : '계정 연결하기'}`,
                 })
             )

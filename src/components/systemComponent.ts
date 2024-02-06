@@ -35,6 +35,29 @@ export const selectComponentPagingMenuByKey = async (
     return await selectComponentPagingMenuKey(queryKey);
 };
 
+export const createComponentSelectMenuByComponentPagingMenuByKey = async (
+    options: {
+        custom_id: string;
+        placeholder: string;
+        button?: APIButtonComponent;
+    },
+    query: string,
+    ...params: any[]
+) => {
+    return await selectComponentPagingMenuByKey(
+        {
+            custom_id: options.custom_id,
+            placeholder: options.placeholder,
+            button: options.button,
+            disabled: false,
+            max_values: 1,
+            min_values: 1,
+        },
+        query,
+        ...params
+    );
+};
+
 /**
  * 쿼리키로 메뉴 컴포넌트 생성
  *  - 키를 기반으로 검색 매뉴를 생성합니다.
@@ -74,7 +97,7 @@ export const selectComponentPagingMenuKey = async (
                 components: [
                     createPrimaryButton(`key back ${queryKey}`, {
                         label: '검색결과가 없습니다.',
-                        disabled: searchQuery ? false : true,
+                        disabled: searchQuery ? true : false, // 검색결과가 없을때만 비활성화
                     }),
                     menuProps.button ?? null,
                 ].filter(v => v != null) as APIButtonComponent[],

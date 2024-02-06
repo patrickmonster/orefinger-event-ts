@@ -22,6 +22,8 @@ import { APIUser } from 'discord-api-types/v10';
 import qs from 'querystring';
 
 export default async (fastify: FastifyInstance, opts: any) => {
+    const targets = ['twitch', 'twitch.stream', 'kakao', 'discord'];
+
     const getToken = async (target: string, data: string) =>
         axios
             .post<{
@@ -188,41 +190,6 @@ export default async (fastify: FastifyInstance, opts: any) => {
             const { id } = req.user;
             const { target, type } = req.params;
             return await deleteAuthConnection(type, id, target);
-        }
-    );
-
-    fastify.post<{
-        Body: { code: string };
-    }>(
-        '/auth/jwt',
-        {
-            schema: {
-                description: '디스코드에서 바로 연결된 사용자',
-                tags: ['Auth'],
-                deprecated: false, // 비활성화
-                body: {
-                    type: 'object',
-                    required: ['code'],
-                    additionalProperties: false,
-                    properties: {
-                        code: { type: 'string', description: 'jwt 인증 code 값' },
-                    },
-                },
-            },
-        },
-        async req => {
-            const { code } = req.body;
-            const userTokenData = await selectDiscordUserByJWTToken(code);
-
-            if (!userTokenData) {
-                return { message: '사용자 정보가 없습니다.' };
-            } else {
-                const { auth_id } = userTokenData;
-
-                const user = await discordApi.get(`/users/${auth_id}`);
-                const jwt = fastify.jwt.sign({ access_token: '?', id: auth_id }, { expiresIn: 60 * 60 * 24 });
-                return { user, jwt };
-            }
         }
     );
 
@@ -395,7 +362,6 @@ export default async (fastify: FastifyInstance, opts: any) => {
                         cardPassword: { type: 'string', description: '카드 비밀번호 앞 2자리' },
                         customerIdentityNumber: { type: 'string', description: '주민등록번호 또는 사업자등록번호' },
                         cardName: { type: 'string', description: '카드 별칭' },
-                        // customerKey: { type: 'string', description: '가맹점 고유 키' },
                     },
                 },
             },
@@ -481,7 +447,7 @@ export default async (fastify: FastifyInstance, opts: any) => {
                         target: {
                             type: 'string',
                             description: '인증 대상',
-                            enum: ['twitch', 'kakao', 'naver', 'chzzk'],
+                            enum: targets,
                         },
                     },
                 },
@@ -519,13 +485,31 @@ export default async (fastify: FastifyInstance, opts: any) => {
                 code,
                 redirect_uri,
             });
-
-            console.log('로그인 인증 요청', params);
-
             let token;
             switch (target) {
+                case 'discord':
+                    token = await getToken('https://discord.com/api/oauth2/token', params).then(async token => {
+                        const { data: user } = await openApi.get('/users/@me', {
+                            headers: { Authorization: `Bearer ${token.access_token}` },
+                        });
+
+                        await auth(
+                            target,
+                            id,
+                            {
+                                id: user.id,
+                                username: user.login,
+                                discriminator: user.display_name,
+                                email: user.email,
+                                avatar: user.profile_image_url,
+                            },
+                            token.refresh_token,
+                            user.type
+                        );
+                        return { message: 'success', id: user.id };
+                    });
+                    break;
                 case 'twitch':
-                case 'twitch.stream':
                     token = await getToken(`https://id.twitch.tv/oauth2/token`, params).then(async token => {
                         const {
                             data: {
@@ -641,7 +625,6 @@ export default async (fastify: FastifyInstance, opts: any) => {
                 default:
                     return { message: '잘못된 인증 대상입니다.' };
             }
-            console.log(token);
             return token;
         }
     );

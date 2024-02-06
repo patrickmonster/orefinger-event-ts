@@ -25,3 +25,12 @@ export interface ProfileData {
     reservationNotiAgree: boolean;
     commentNotiAgree: boolean;
 }
+
+export interface ChannelData {
+    channelId: string;
+    channelName: string;
+    channelImageUrl: string;
+    verifiedMark: boolean;
+
+    openLive?: boolean; // 오픈 라이브 여부
+}

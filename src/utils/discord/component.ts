@@ -3,15 +3,16 @@ import {
     APIButtonComponentBase,
     APIButtonComponentWithCustomId,
     APIButtonComponentWithURL,
+    APIChannelSelectComponent,
+    APIMessageActionRowComponent,
     APIModalActionRowComponent,
+    APIRoleSelectComponent,
     APISelectMenuComponent,
     APIStringSelectComponent,
-    APIRoleSelectComponent,
     APITextInputComponent,
     ButtonStyle,
     ComponentType,
     TextInputStyle,
-    APIMessageActionRowComponent,
 } from 'discord-api-types/v10';
 import division from 'utils/division';
 
@@ -94,6 +95,20 @@ export const createRoleSelectMenu = (
     components: [
         {
             type: ComponentType.RoleSelect,
+            custom_id,
+            ...props,
+        },
+    ],
+});
+
+export const createChannelSelectMenu = (
+    custom_id: string,
+    props: Omit<APIChannelSelectComponent, 'type' | 'custom_id'>
+): APIActionRowComponent<APISelectMenuComponent> => ({
+    type: ComponentType.ActionRow,
+    components: [
+        {
+            type: ComponentType.ChannelSelect,
             custom_id,
             ...props,
         },

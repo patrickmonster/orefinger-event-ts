@@ -1,7 +1,7 @@
 import { MessageInteraction } from 'interactions/message';
 
 import { selectComponentPagingMenuByKey } from 'components/systemComponent';
-import { copyComponent, selectComponentBaseEditByModel } from 'controllers/component';
+import { copyComponent } from 'controllers/component';
 import { selectEmbedBaseEditByModel, selectEmbedDtilByEmbed } from 'controllers/embed';
 
 import QUERY from 'controllers/component/embedListQuerys';

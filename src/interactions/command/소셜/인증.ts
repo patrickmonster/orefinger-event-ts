@@ -1,43 +1,15 @@
-import { getAuthbordeList, getDashboard } from 'controllers/guild/authDashbord';
+import { getDashboard } from 'controllers/guild/authDashbord';
 
-import discord from 'utils/discordApiInstance';
 import { createActionRow, createPrimaryButton, createStringSelectMenu } from 'utils/discord/component';
+import discord from 'utils/discordApiInstance';
 
-import {
-    APIApplicationCommandSubcommandOption,
-    APIButtonComponent,
-    ComponentType,
-    ApplicationCommandOptionType,
-} from 'discord-api-types/v10';
+import { APIApplicationCommandSubcommandOption, ApplicationCommandOptionType } from 'discord-api-types/v10';
 import { basename } from 'path';
 
-import { selectComponentPagingMenuByKey } from 'components/systemComponent';
+import { createComponentSelectMenuByComponentPagingMenuByKey } from 'components/systemComponent';
 import { AppChatInputInteraction, SelectOptionType } from 'interactions/app';
 
 import QUERY from 'controllers/component/embedListQuerys';
-
-const createConponentSelectMenuByComponentPagingMenuByKey = async (
-    options: {
-        custom_id: string;
-        placeholder: string;
-        button?: APIButtonComponent;
-    },
-    query: string,
-    ...params: any[]
-) => {
-    return await selectComponentPagingMenuByKey(
-        {
-            custom_id: options.custom_id,
-            placeholder: options.placeholder,
-            button: options.button,
-            disabled: false,
-            max_values: 1,
-            min_values: 1,
-        },
-        query,
-        ...params
-    );
-};
 
 const name = basename(__filename, __filename.endsWith('js') ? '.js' : '.ts');
 const type = ApplicationCommandOptionType.Subcommand;
@@ -106,7 +78,7 @@ ${data.map(({ type, role_id }, index) => `${index + 1}] ${type} - <@&${role_id}>
         case choices.indexOf('인증설정'):
             interaction.reply({
                 content: `설정하거나, 수정하실 인증을 선택해주세요!`,
-                components: await createConponentSelectMenuByComponentPagingMenuByKey(
+                components: await createComponentSelectMenuByComponentPagingMenuByKey(
                     {
                         custom_id: 'rule list',
                         placeholder: '수정하시거나, 제작하실 인증을 선택해주세요!',
@@ -134,5 +106,6 @@ const api: APIApplicationCommandSubcommandOption = {
     ],
 };
 
-// 인터렉션 이벤트
+// 일시적으로 막음 (오픈전)
+export const isAdmin = true; // 봇 관리자만 사용 가능
 export default api;

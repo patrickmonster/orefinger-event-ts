@@ -41,6 +41,9 @@ const hashFuction = (key: string) => {
 export type QueryKey = string | number;
 
 export const REDIS_KEY = {
+    API: {
+        SEARCH_USER: (id: string) => `api:search:user:${id}`,
+    },
     DISCORD: {
         GUILD_CHANNELS: (id: string) => `discord:channel:${id}`,
     },

@@ -1,7 +1,5 @@
 import { MessageInteraction } from 'interactions/message';
 
-import { selectComponentPagingMenuByKey } from 'components/systemComponent';
-import { copyComponent } from 'controllers/component';
 import {
     selectEmbedUserBaseEditByModel,
     selectEmbedUserBaseEditByModel2,
@@ -9,7 +7,6 @@ import {
     upsertEmbedUser,
 } from 'controllers/embed';
 
-import QUERY from 'controllers/component/embedListQuerys';
 import { getAuthbordeList } from 'controllers/guild/authDashbord';
 /**
  *

@@ -19,7 +19,12 @@ if (existsSync(envDir)) {
     });
 }
 
-import { ApplicationCommandOptionType, ApplicationCommandType, RESTPutAPIApplicationCommandsJSONBody } from 'discord-api-types/v10';
+import {
+    ApplicationCommandOptionType,
+    ApplicationCommandType,
+    PermissionFlagsBits,
+    RESTPutAPIApplicationCommandsJSONBody,
+} from 'discord-api-types/v10';
 import discord from 'utils/discordApiInstance';
 import { api } from './interactions/app';
 
@@ -42,15 +47,23 @@ function registerCmd(commands: RESTPutAPIApplicationCommandsJSONBody) {
 const bigintConvert = (key: string, value: any) => (typeof value === 'bigint' ? value.toString() : value);
 
 const loadFile = (path: string) => {
-    const file = require(path);
+    const { default: file, isAdmin, default_member_permissions } = require(path);
     if (env.TARGET_GUILD) {
         // 어드민 길드용
-        if (file.isAdmin) return file.default;
+        if (isAdmin) return file;
     } else {
-        if (!file.isAdmin) return file.default;
+        if (!isAdmin) return file;
     }
 };
 const commands: RESTPutAPIApplicationCommandsJSONBody = [];
+
+const permissionList: {
+    [key: string]: number | bigint;
+} = {
+    알림: PermissionFlagsBits.Administrator,
+};
+
+console.log('권한 : ', permissionList);
 
 // 앱커맨드 (1뎁스)
 for (const { file } of api.app) commands.push(loadFile(file));
@@ -83,12 +96,15 @@ for (const module of api.chat) {
             .filter(v => v);
 
         // 서브커맨드 그룹
-        commands.push({
-            name: module.name,
-            description: `${module.name} 명령어`, // 왜 필수?
-            type: ApplicationCommandType.ChatInput,
-            options,
-        });
+        if (options.length)
+            commands.push({
+                name: module.name,
+                description: `${module.name} 명령어`, // 왜 필수?
+                type: ApplicationCommandType.ChatInput,
+                default_member_permissions: `${permissionList[module.name] || 0}`,
+                // default_member_permissions: module?.default_member_permissions || 0,
+                options,
+            });
     } else {
         // 단일파일
         commands.push(loadFile(module.file));

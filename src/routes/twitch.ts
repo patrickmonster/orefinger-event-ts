@@ -8,7 +8,6 @@ import { event as createEvent, grant, register, streamOffline, streamOnline } fr
 import discord, { openApi } from 'utils/discordApiInstance';
 
 import { usersUpdate } from 'components/twitch';
-import irc from 'utils/twitchIrc';
 
 const randomIntegerInRange = (min: number, max: number) => Math.floor(Math.random() * (max - min + 1)) + min;
 
@@ -86,7 +85,6 @@ export default async (fastify: FastifyInstance, opts: any) => {
                         );
 
                         if (channels.length === 0) return; // 이벤트가 없거나, 이미 진행된 이벤트
-                        irc.say(`${broadcaster_user_login}`, '새해 복 많이 받으세요! daromLcat').catch(e => {});
                         for (const {
                             id,
                             /* kr_name ,*/ channel_id,
@@ -142,7 +140,6 @@ export default async (fastify: FastifyInstance, opts: any) => {
                             const [{ event_id }] = e;
                             if (event_id == null) {
                                 console.log(`오프라인 - ${broadcaster_user_name}(${broadcaster_user_login})`);
-                                irc.say(`${broadcaster_user_login}`, `오뱅수~ 오늘 방송도 수고하셨습니다! (´▽｀)ノ`);
                             }
                         })
                         .catch(e => {});
