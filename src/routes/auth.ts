@@ -15,7 +15,7 @@ import discordApi, { openApi } from 'utils/discordApiInstance';
 import { kakaoAPI } from 'utils/kakaoApiInstance';
 import { naverAPI } from 'utils/naverApiInstance';
 import toss from 'utils/tossApiInstance';
-import { twitchAPI } from 'utils/twitchApiInstance';
+import twitch, { twitchAPI } from 'utils/twitchApiInstance';
 
 import { APIUser } from 'discord-api-types/v10';
 import qs from 'querystring';
