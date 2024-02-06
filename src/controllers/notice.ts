@@ -69,17 +69,11 @@ WHERE notice_id = ? AND guild_id = ? AND channel_id NOT IN (?)
             channel_ids
         );
 
-        console.log(
-            '????',
-            channel_ids,
-            channel_ids.map(channel_id => format('(?)', [[notice_id, guild_id, channel_id]])).join(',')
-        );
-
         // 다중 insert
         query(
             `
-INSERT INTO notice_channel (notice_id, guild_id, channel_id)
-VALUES ${channel_ids.map(channel_id => format('(?)', [[notice_id, guild_id, channel_id]])).join(',')}
+INSERT INTO notice_channel (notice_id, guild_id, channel_id, use_yn)
+VALUES ${channel_ids.map(channel_id => format('(?)', [[notice_id, guild_id, channel_id, 'Y']])).join(',')}
 ON DUPLICATE KEY UPDATE use_yn = 'Y', update_at=CURRENT_TIMESTAMP
         `
         );

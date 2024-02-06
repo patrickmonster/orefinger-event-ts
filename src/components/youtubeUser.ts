@@ -1,9 +1,9 @@
 import axios from 'axios';
 import { upsertNotice } from 'controllers/notice';
 import redis, { REDIS_KEY } from 'utils/redis';
-import { parseString } from 'xml2js';
 
 import qs from 'querystring';
+import { parseString } from 'xml2js';
 
 interface ChannelData {
     kind: string;
@@ -38,10 +38,11 @@ interface ChannelData {
 }
 
 export const getYoutubeUser = async (youtubeHash: string): Promise<number> => {
-    const data = await axios.get(`https://www.youtube.com/feeds/videos.xml?channel_id=${youtubeHash}`);
-
+    const { data } = await axios.get(`https://www.youtube.com/feeds/videos.xml?channel_id=${youtubeHash}`);
     return new Promise((resolve, reject) => {
         parseString(data, async (err, { feed }) => {
+            console.log('?', feed, err);
+
             if (err) {
                 return reject(err);
             }
@@ -67,6 +68,8 @@ export const getYoutubeUser = async (youtubeHash: string): Promise<number> => {
 
                 resolve(noticeId);
             } catch (e) {
+                console.log('e', e);
+
                 reject(e);
             }
         });
@@ -78,7 +81,7 @@ export const getYoutubeUser = async (youtubeHash: string): Promise<number> => {
  * @param keyword 검색어
  * @returns Array<{ name: string; value: string }>
  */
-export const searchChzzkUser = async (keyword: string): Promise<Array<{ name: string; value: string }>> => {
+export const searchYoutubeUser = async (keyword: string): Promise<Array<{ name: string; value: string }>> => {
     if (`${keyword}`.length < 2) return [];
 
     const redisKey = REDIS_KEY.API.SEARCH_USER(`youtube:${keyword}`);

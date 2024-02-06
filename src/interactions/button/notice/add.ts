@@ -13,14 +13,14 @@ export const exec = async (interaction: MessageInteraction, noticeType: string) 
                 components: [
                     createTextShortInput(`value`, {
                         label: '채널명을 입력해주세요.',
-                        placeholder: '채널명 or 32자리 영-숫자 조합입니다.',
+                        placeholder: 'youtubeId or 채널명',
                         max_length: 50,
                         min_length: 1,
                         required: true,
                     }),
                 ],
                 custom_id: `notice add ${noticeType}`,
-                title: '치치직 - 알림추가',
+                title: '유튜브 - 알림추가',
             });
             break;
         }

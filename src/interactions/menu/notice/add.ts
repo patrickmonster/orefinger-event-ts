@@ -19,6 +19,9 @@ export const exec = async (interaction: MessageMenuInteraction, noticeType: stri
     if (!guild_id) return;
 
     let noticeId: number | undefined;
+
+    console.log('noticeType', noticeType, hashId);
+
     try {
         switch (noticeType) {
             case '4': {
