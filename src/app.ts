@@ -53,7 +53,7 @@ server.listen({ port: 3000, host: '::' }, (err, address) => {
     console.log(`Server started in  ${Math.floor(time / 1000)} (${time}ms)`);
     console.log(`Server listening at ${address}`);
 
-    if (env.NODE_ENV === 'prod')
+    if (process.env.MASTER_KEY)
         process.nextTick(() => {
             // 배치 모듈
             import('bat/youtube');
