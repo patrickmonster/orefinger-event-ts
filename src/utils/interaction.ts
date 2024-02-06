@@ -173,16 +173,24 @@ export const getCommand = <E extends IReply, F>(
 ) =>
     list
         .reduce<ComponentReturnType<E, F>[]>((prev, { name: fileName, file, path, pathTag }) => {
-            const command: {
-                name: string;
-                default: { alias: string[] | string };
-                exec: EXEC<E, F>;
-            } = require(file);
+            try {
+                const command: {
+                    name: string;
+                    default: { alias: string[] | string };
+                    exec: EXEC<E, F>;
+                } = require(file);
 
-            prev.push([command.name || fileName, command.exec]);
+                prev.push([command.name || fileName, command.exec]);
 
-            const aliasList = command?.default?.alias ? (Array.isArray(command.default.alias) ? command.default.alias : [command.default.alias]) : [];
-            for (const alias of aliasList) prev.push([[...path, alias].join(pathTag), command.exec]);
+                const aliasList = command?.default?.alias
+                    ? Array.isArray(command.default.alias)
+                        ? command.default.alias
+                        : [command.default.alias]
+                    : [];
+                for (const alias of aliasList) prev.push([[...path, alias].join(pathTag), command.exec]);
+            } catch (e) {
+                console.error(e);
+            }
 
             return prev;
         }, [])
