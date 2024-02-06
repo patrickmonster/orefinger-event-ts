@@ -42,7 +42,7 @@ export const getChzzkUser = async (chzzkHash: string) => {
 export const searchChzzkUser = async (keyword: string): Promise<Array<{ name: string; value: string }>> => {
     if (`${keyword}`.length < 2) return [];
 
-    const redisKey = REDIS_KEY.API.SEARCH_USER(`${keyword}`);
+    const redisKey = REDIS_KEY.API.SEARCH_USER(`chzzk:${keyword}`);
 
     try {
         const data = await redis.get(redisKey);
