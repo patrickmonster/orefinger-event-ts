@@ -18,7 +18,7 @@ AND use_yn = 'Y'
 // 알림 상세
 const SelectNoticeDashbordByNoticeId = `
 SELECT 
-	json_object( 'name', IF( nc.use_yn = 'Y', '🔴','⚫')) AS emoji
+	JSON_OBJECT( 'name', IF(  SUM(IF(nc.use_yn = 'Y', 1,0)) >= 1, '🔴','⚫')) AS emoji
 	, CAST(nc.notice_id AS CHAR) AS value
     , IFNULL(nd.name, '지정되지 않음')  AS label
     , CONCAT(nd.message) AS  description

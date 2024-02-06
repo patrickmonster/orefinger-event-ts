@@ -6,14 +6,7 @@ import { MessageMenuInteraction } from 'interactions/message';
  * @param interaction
  */
 export const exec = async (interaction: MessageMenuInteraction, notice_id: string) => {
-    const {
-        values: channels,
-        message: {
-            embeds: [embed],
-            components,
-        },
-        guild_id,
-    } = interaction;
+    const { values: channels, guild_id } = interaction;
     if (!guild_id) return;
 
     await deleteOrInsertNoticeChannels(notice_id, guild_id, channels);

@@ -1,8 +1,13 @@
-import { getChzzkUser } from 'components/chzzkUser';
+import { getChzzkUser, searchChzzkUser } from 'components/chzzkUser';
 import { editerComponent } from 'components/systemComponent';
 import { selectNoticeDtilByEmbed } from 'controllers/notice';
 import { MessageMenuInteraction } from 'interactions/message';
-import { createChannelSelectMenu } from 'utils/discord/component';
+import {
+    createActionRow,
+    createChannelSelectMenu,
+    createStringSelectMenu,
+    createSuccessButton,
+} from 'utils/discord/component';
 import { getChzzkAPI } from 'utils/naverApiInstance';
 
 const chzzk = getChzzkAPI('v1');
@@ -16,8 +21,6 @@ export const exec = async (interaction: MessageMenuInteraction, values: Record<s
     const { value } = values;
     const { guild_id, channel } = interaction;
     if (!guild_id) return;
-
-    console.log('noticeType', noticeType, value);
 
     switch (noticeType) {
         case '4': {
@@ -47,6 +50,27 @@ export const exec = async (interaction: MessageMenuInteraction, values: Record<s
                     });
                 }
             } else {
+                const list = await searchChzzkUser(value);
+
+                console.log('list', list);
+
+                interaction.reply({
+                    content: '검색결과',
+                    components: [
+                        createStringSelectMenu(`notice add ${noticeType}`, {
+                            placeholder: '원하시는 사용자를 선택해주세요.',
+                            options: list.map(({ name, value }) => ({ label: name, value })),
+                            max_values: 1,
+                            min_values: 1,
+                        }),
+                        createActionRow(
+                            createSuccessButton(`notice add ${noticeType} 1`, {
+                                emoji: { name: '🔍' },
+                                label: `재검색`,
+                            })
+                        ),
+                    ],
+                });
             }
 
             break;

@@ -6,12 +6,10 @@ import {
     APIApplicationCommandInteractionDataSubcommandGroupOption,
     APIApplicationCommandInteractionDataSubcommandOption,
 } from 'discord-api-types/v10';
-import { ChannelData } from 'interfaces/API/Chzzk';
 import { APIChatInputApplicationCommandInteractionData } from 'plugins/discord';
-import { ChzzkInterface, getChzzkAPI } from 'utils/naverApiInstance';
-import redis, { REDIS_KEY } from 'utils/redis';
+import { getChzzkAPI } from 'utils/naverApiInstance';
 
-import qs from 'querystring';
+import { searchChzzkUser } from 'components/chzzkUser';
 
 const chzzk = getChzzkAPI('v1');
 
@@ -53,66 +51,7 @@ const autoComponent = async (
 
     switch (item.name) {
         case '치지직': {
-            // https://api.chzzk.naver.com/service/v1/search/lives?keyword=%EB%B0%A9%EC%86%A1&offset=0&size=12
-            //  api 호출 or redis
-
-            if (`${item.value}`.length < 2) return replay([]);
-
-            const redisKey = REDIS_KEY.API.SEARCH_USER(`${item.value}`);
-
-            try {
-                const data = await redis.get(redisKey);
-                if (data) {
-                    replay(JSON.parse(data));
-                    return;
-                } else {
-                    throw new Error('no data');
-                }
-            } catch (e) {
-                const {
-                    content: { data },
-                } = await chzzk.get<
-                    ChzzkInterface<{
-                        size: number;
-                        page?: {
-                            next: {
-                                offset: number;
-                            };
-                        };
-                        data: Array<{
-                            live: any;
-                            channel: ChannelData;
-                        }>;
-                    }>
-                >(
-                    `/search/channels?${qs.stringify({
-                        keyword: `${item.value}`,
-                        offset: 0,
-                        size: 12,
-                    })}`,
-                    {
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'User-Agent':
-                                'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36',
-                        },
-                    }
-                );
-
-                const result = data.map(
-                    ({ channel: { channelId, channelName, verifiedMark } }): { name: string; value: string } => ({
-                        name: `${verifiedMark ? '인증됨]' : ''}${channelName}`,
-                        value: channelId,
-                    })
-                );
-
-                replay(result || []);
-
-                if (result)
-                    await redis.set(redisKey, JSON.stringify(result), {
-                        EX: 60 * 60 * 24,
-                    });
-            }
+            replay(await searchChzzkUser(`${item.value}`));
             break;
         }
     }

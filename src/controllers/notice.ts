@@ -5,7 +5,7 @@ import {
     SelectMenuDefaultValueType,
 } from 'discord-api-types/v10';
 import { NoticeDetail } from 'interfaces/notice';
-import getConnection, { SqlInsertUpdate, query } from 'utils/database';
+import getConnection, { SqlInsertUpdate, format, query } from 'utils/database';
 
 export type NoticeId = number | string;
 
@@ -69,22 +69,21 @@ WHERE notice_id = ? AND guild_id = ? AND channel_id NOT IN (?)
             channel_ids
         );
 
+        console.log(
+            '????',
+            channel_ids,
+            channel_ids.map(channel_id => format('(?)', [[notice_id, guild_id, channel_id]])).join(',')
+        );
+
+        // 다중 insert
         query(
             `
-INSERT INTO notice_channel 
-SET ? ON DUPLICATE KEY UPDATE use_yn = 'Y', update_at=CURRENT_TIMESTAMP
-        `,
-            {
-                notice_id,
-                guild_id,
-                channel_id: channel_ids,
-            }
+INSERT INTO notice_channel (notice_id, guild_id, channel_id)
+VALUES ${channel_ids.map(channel_id => format('(?)', [[notice_id, guild_id, channel_id]])).join(',')}
+ON DUPLICATE KEY UPDATE use_yn = 'Y', update_at=CURRENT_TIMESTAMP
+        `
         );
     }, true);
-
-export const upsertNoticeChannel = async (notice_id: NoticeId) => {
-    // TODO : upsertNoticeChannel
-};
 
 export const upsertNotice = async (notiecData: Partial<NoticeDetail>, noChageOrigin?: boolean) =>
     getConnection(async query => {
@@ -101,19 +100,23 @@ export const upsertNotice = async (notiecData: Partial<NoticeDetail>, noChageOri
             id = notice.insertId;
         }
 
-        await query<SqlInsertUpdate>(
-            `INSERT INTO notice_detail SET ? ON DUPLICATE KEY UPDATE ?`,
+        const props: any = [
             {
                 notice_id: id,
                 message: notiecData.message,
                 name: notiecData.name,
             },
-            noChageOrigin
-                ? {}
-                : {
-                      message: notiecData.message,
-                      name: notiecData.name,
-                  }
+        ];
+
+        if (!noChageOrigin)
+            props.push({
+                message: notiecData.message,
+                name: notiecData.name,
+            });
+
+        await query<SqlInsertUpdate>(
+            `INSERT IGNORE INTO notice_detail SET ? ${!noChageOrigin ? 'ON DUPLICATE KEY UPDATE ?' : ''}`,
+            ...props
         );
 
         return id;
