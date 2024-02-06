@@ -144,4 +144,5 @@ const interval = async () => {
 };
 
 setInterval(interval, 1000 * 60 * 5); // 5분마다 실행
+console.log('Chzzk Batch Start!');
 // interval();

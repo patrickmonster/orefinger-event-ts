@@ -31,7 +31,8 @@ const newLine = /\n/g;
 const sqlLogger = (query: string, params: any[], rows: any[] | any) => {
     // if (env.sql_log != 'true') return rows;
     console.log('=======================================================');
-    if (env.MASTER_KEY) console.log('SQL] ', mysql.format(query, params).replace(newLine, ' '), '||', JSON.stringify(rows));
+    if (env.MASTER_KEY)
+        console.log('SQL] ', mysql.format(query, params).replace(newLine, ' '), '||', JSON.stringify(rows));
     else console.log('SQL] ', mysql.format(query, params), '||', rows);
     console.log('=======================================================');
     return rows;
@@ -78,7 +79,10 @@ export const resultParser = <E>(rows: any[] | any) =>
  * @param isTransaction
  * @returns
  */
-const getConnection = async <T>(connectionPool: (queryFunction: queryFunctionType) => Promise<T>, isTransaction = false) => {
+const getConnection = async <T>(
+    connectionPool: (queryFunction: queryFunctionType) => Promise<T>,
+    isTransaction = false
+) => {
     let connect: PoolConnection | null = null;
     try {
         connect = await pool.getConnection();
@@ -96,8 +100,11 @@ const getConnection = async <T>(connectionPool: (queryFunction: queryFunctionTyp
                       };
             } catch (e) {
                 console.error('SQL]', format(query, params));
-                console.error('SQL]', e);
-                connect!.query('INSERT INTO discord_log.error_sql set `sql` = ?, target = ?', [mysql.format(query, params), env.NODE_ENV || 'dev']);
+                // if (process.env.NODE_ENV != 'prod') console.error('SQL]', e);
+                connect!.query('INSERT INTO discord_log.error_sql set `sql` = ?, target = ?', [
+                    mysql.format(query, params),
+                    env.NODE_ENV || 'dev',
+                ]);
                 throw e;
             }
         }).then(async (result: T) => {
@@ -135,7 +142,11 @@ export const selectPaging = async <E>(query: string, paging: Paging | number, ..
         connect = await pool.getConnection();
         const page = typeof paging == 'number' ? paging : paging.page;
         const size = typeof paging == 'number' ? limit : ((paging.limit || limit) as number);
-        const [rows] = await connect.query<(E & RowDataPacket)[]>(`${query}\nlimit ?, ?`, [...params, page <= 0 ? 0 : page * size, size]);
+        const [rows] = await connect.query<(E & RowDataPacket)[]>(`${query}\nlimit ?, ?`, [
+            ...params,
+            page <= 0 ? 0 : page * size,
+            size,
+        ]);
         sqlLogger(query, params, rows);
         const cnt = await connect
             .query<({ total: number } & RowDataPacket)[]>(`SELECT COUNT(1) AS total FROM (\n${query}\n) A`, params)
