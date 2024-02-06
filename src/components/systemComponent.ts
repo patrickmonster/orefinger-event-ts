@@ -35,7 +35,7 @@ export const selectComponentPagingMenuByKey = async (
     return await selectComponentPagingMenuKey(queryKey);
 };
 
-export const createConponentSelectMenuByComponentPagingMenuByKey = async (
+export const createComponentSelectMenuByComponentPagingMenuByKey = async (
     options: {
         custom_id: string;
         placeholder: string;

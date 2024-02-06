@@ -3,7 +3,7 @@ import { basename } from 'path';
 
 import { AppChatInputInteraction, SelectOptionType } from 'interactions/app';
 
-import { createConponentSelectMenuByComponentPagingMenuByKey } from 'components/systemComponent';
+import { createComponentSelectMenuByComponentPagingMenuByKey } from 'components/systemComponent';
 import QUERY from 'controllers/component/noticeListQuerys';
 
 const name = basename(__filename, __filename.endsWith('js') ? '.js' : '.ts');
@@ -17,7 +17,7 @@ export const exec = async (interaction: AppChatInputInteraction, selectOption: S
     // TODO: 알림 설정 - 개인 메세지도 추후....
 
     interaction.reply({
-        components: await createConponentSelectMenuByComponentPagingMenuByKey(
+        components: await createComponentSelectMenuByComponentPagingMenuByKey(
             {
                 custom_id: 'notice list',
                 placeholder: '설정하실 알림을 선택해주세요.',

@@ -1,6 +1,6 @@
 import { MessageMenuInteraction } from 'interactions/message';
 
-import { createConponentSelectMenuByComponentPagingMenuByKey } from 'components/systemComponent';
+import { createComponentSelectMenuByComponentPagingMenuByKey } from 'components/systemComponent';
 import QUERY from 'controllers/component/noticeListQuerys';
 import { createSecondaryButton } from 'utils/discord/component';
 /**
@@ -17,7 +17,7 @@ export const exec = async (interaction: MessageMenuInteraction) => {
     if (!guild_id) return;
 
     interaction.reply({
-        components: await createConponentSelectMenuByComponentPagingMenuByKey(
+        components: await createComponentSelectMenuByComponentPagingMenuByKey(
             {
                 custom_id: `notice detail ${notice_type}`,
                 placeholder: '설정하실 알림을 선택해주세요.',

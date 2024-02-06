@@ -6,7 +6,7 @@ import discord from 'utils/discordApiInstance';
 import { APIApplicationCommandSubcommandOption, ApplicationCommandOptionType } from 'discord-api-types/v10';
 import { basename } from 'path';
 
-import { createConponentSelectMenuByComponentPagingMenuByKey } from 'components/systemComponent';
+import { createComponentSelectMenuByComponentPagingMenuByKey } from 'components/systemComponent';
 import { AppChatInputInteraction, SelectOptionType } from 'interactions/app';
 
 import QUERY from 'controllers/component/embedListQuerys';
@@ -78,7 +78,7 @@ ${data.map(({ type, role_id }, index) => `${index + 1}] ${type} - <@&${role_id}>
         case choices.indexOf('인증설정'):
             interaction.reply({
                 content: `설정하거나, 수정하실 인증을 선택해주세요!`,
-                components: await createConponentSelectMenuByComponentPagingMenuByKey(
+                components: await createComponentSelectMenuByComponentPagingMenuByKey(
                     {
                         custom_id: 'rule list',
                         placeholder: '수정하시거나, 제작하실 인증을 선택해주세요!',

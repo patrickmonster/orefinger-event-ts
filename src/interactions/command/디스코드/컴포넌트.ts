@@ -3,7 +3,7 @@ import { basename } from 'path';
 
 import { AppChatInputInteraction, SelectOptionType } from 'interactions/app';
 
-import { createConponentSelectMenuByComponentPagingMenuByKey } from 'components/systemComponent';
+import { createComponentSelectMenuByComponentPagingMenuByKey } from 'components/systemComponent';
 import QUERY from 'controllers/component/embedListQuerys';
 import { createPrimaryButton } from 'utils/discord/component';
 
@@ -27,7 +27,7 @@ export const exec = async (interaction: AppChatInputInteraction, selectOption: S
         case choices.indexOf('component'):
             interaction.reply({
                 content: `${choices[type]}`,
-                components: await createConponentSelectMenuByComponentPagingMenuByKey(
+                components: await createComponentSelectMenuByComponentPagingMenuByKey(
                     {
                         custom_id: 'component list',
                         placeholder: '컴포넌트를 선택해주세요!',
@@ -42,7 +42,7 @@ export const exec = async (interaction: AppChatInputInteraction, selectOption: S
         case choices.indexOf('component_action_row'):
             interaction.reply({
                 content: `${choices[type]}`,
-                components: await createConponentSelectMenuByComponentPagingMenuByKey(
+                components: await createComponentSelectMenuByComponentPagingMenuByKey(
                     {
                         custom_id: 'component_action_row list',
                         placeholder: '로우 컴포넌트를 선택해주세요!',
@@ -57,7 +57,7 @@ export const exec = async (interaction: AppChatInputInteraction, selectOption: S
         case choices.indexOf('component_option'):
             interaction.reply({
                 content: `${choices[type]}`,
-                components: await createConponentSelectMenuByComponentPagingMenuByKey(
+                components: await createComponentSelectMenuByComponentPagingMenuByKey(
                     {
                         custom_id: 'component_option list',
                         placeholder: '컴포넌트 옵션을 선택해주세요!',
@@ -72,7 +72,7 @@ export const exec = async (interaction: AppChatInputInteraction, selectOption: S
         case choices.indexOf('component_type'):
             interaction.reply({
                 content: `${choices[type]}`,
-                components: await createConponentSelectMenuByComponentPagingMenuByKey(
+                components: await createComponentSelectMenuByComponentPagingMenuByKey(
                     {
                         custom_id: 'component_type list',
                         placeholder: '컴포넌트 타입을 선택해주세요!',
@@ -87,7 +87,7 @@ export const exec = async (interaction: AppChatInputInteraction, selectOption: S
         case choices.indexOf('component_style'):
             interaction.reply({
                 content: `${choices[type]}`,
-                components: await createConponentSelectMenuByComponentPagingMenuByKey(
+                components: await createComponentSelectMenuByComponentPagingMenuByKey(
                     {
                         custom_id: 'component_style list',
                         placeholder: '컴포넌트 스타일을 선택해주세요!',
@@ -102,7 +102,7 @@ export const exec = async (interaction: AppChatInputInteraction, selectOption: S
         case choices.indexOf('embed'):
             interaction.reply({
                 content: `${choices[type]}`,
-                components: await createConponentSelectMenuByComponentPagingMenuByKey(
+                components: await createComponentSelectMenuByComponentPagingMenuByKey(
                     {
                         custom_id: 'embed list',
                         placeholder: '임베드를 선택해주세요!',
@@ -117,7 +117,7 @@ export const exec = async (interaction: AppChatInputInteraction, selectOption: S
         case choices.indexOf('embed_user'):
             interaction.reply({
                 content: `${choices[type]}`,
-                components: await createConponentSelectMenuByComponentPagingMenuByKey(
+                components: await createComponentSelectMenuByComponentPagingMenuByKey(
                     {
                         custom_id: 'embed_user list',
                         placeholder: '사용자용 임베드를 선택해주세요!',
