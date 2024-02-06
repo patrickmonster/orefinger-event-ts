@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { insertVideoEvents, selectEventBats } from 'controllers/bat';
+import { insertVideoEvents, selectEventBats, selectVideoEvents } from 'controllers/bat';
 import { deleteNoticeChannel } from 'controllers/notice';
 import { NoticeChannel } from 'interfaces/notice';
 import discord from 'utils/discordApiInstance';
@@ -55,6 +55,8 @@ const getChannelVideos = async (notice_id: number, hash_id: string) =>
                         },
                     } = data;
 
+                    const oldVideos = await selectVideoEvents(notice_id);
+
                     const videos = [];
                     for (const video_object of entry) {
                         const {
@@ -65,6 +67,9 @@ const getChannelVideos = async (notice_id: number, hash_id: string) =>
                                 },
                             ],
                         } = video_object;
+                        // 이미 등록된 비디오는 건너뜁니다 (중복 방지)
+                        if (oldVideos.find(v => v.video_id === id)) continue;
+
                         try {
                             await insertVideoEvents(notice_id, id, title);
                             videos.push(convertVideoObject(video_object));

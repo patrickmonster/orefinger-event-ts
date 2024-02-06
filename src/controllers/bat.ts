@@ -37,6 +37,23 @@ GROUP BY hash_id
 export const insertVideoEvents = async (notice_id: number, video_id: string, title: string) =>
     query(`INSERT INTO notice_video (video_id, title, notice_id) VALUES(?)`, [video_id, title, notice_id]);
 
+export const selectVideoEvents = async (notice_id: number) =>
+    query<{
+        video_id: string;
+        title: string;
+        create_at: string;
+    }>(
+        `
+SELECT video_id, title, create_at  
+FROM notice_video
+WHERE 1=1
+AND notice_id = ?
+ORDER BY create_at DESC
+LIMIT 30
+	`,
+        notice_id
+    );
+
 export const insertLiveEvents = async (notice_id: number, id: string) =>
     query(`INSERT INTO notice_live SET ?`, {
         notice_id,
