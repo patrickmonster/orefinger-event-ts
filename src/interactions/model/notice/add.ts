@@ -2,7 +2,7 @@ import { getChzzkUser, searchChzzkUser } from 'components/chzzkUser';
 import { editerComponent } from 'components/systemComponent';
 import { searchYoutubeUser } from 'components/youtubeUser';
 import { selectNoticeDtilByEmbed } from 'controllers/notice';
-import { APIActionRowComponent, APIMessageActionRowComponent } from 'discord-api-types/v10';
+import { APIActionRowComponent, APIMessageActionRowComponent, ChannelType } from 'discord-api-types/v10';
 import { MessageMenuInteraction } from 'interactions/message';
 import {
     createActionRow,
@@ -99,6 +99,7 @@ export const exec = async (interaction: MessageMenuInteraction, values: Record<s
                         components: [
                             createChannelSelectMenu(`notice channel ${noticeId}`, {
                                 placeholder: '알림을 받을 채널을 선택해주세요.',
+                                channel_types: [ChannelType.GuildText],
                                 default_values: channels,
                                 max_values: 25,
                                 min_values: 1,
