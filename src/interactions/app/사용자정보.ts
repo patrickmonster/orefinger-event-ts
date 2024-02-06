@@ -14,6 +14,7 @@ export const exec = async (interaction: appInteraction) => {
 
     try {
         await interaction.reply({
+            ephemeral: true,
             content: `사용자 <@${target_id}>님의 정보를 불러오는중....`,
         });
 

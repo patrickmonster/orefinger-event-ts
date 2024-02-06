@@ -23,6 +23,7 @@ export const exec = async (interaction: MessageMenuInteraction) => {
 
     interaction.reply({
         embeds: [embed],
+        ephemeral: true,
         components: [
             createChannelSelectMenu(`notice channel ${notice_id}`, {
                 placeholder: '알림을 받을 채널을 선택해주세요.',

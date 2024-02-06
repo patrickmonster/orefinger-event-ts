@@ -17,6 +17,7 @@ export const exec = async (interaction: MessageMenuInteraction) => {
     if (!guild_id) return;
 
     interaction.reply({
+        ephemeral: true,
         components: await createComponentSelectMenuByComponentPagingMenuByKey(
             {
                 custom_id: `notice detail ${notice_type}`,

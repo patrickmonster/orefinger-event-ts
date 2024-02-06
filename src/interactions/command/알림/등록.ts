@@ -44,6 +44,7 @@ export const exec = async (interaction: AppChatInputInteraction, selectOption: S
                     }),
                     editerComponent(`notice channel ${noticeId}`, [], true),
                 ],
+                ephemeral: true,
             });
         } else {
             interaction.reply({

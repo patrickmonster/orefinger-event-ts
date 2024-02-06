@@ -17,6 +17,7 @@ export const exec = async (interaction: AppChatInputInteraction, selectOption: S
     // TODO: 알림 설정 - 개인 메세지도 추후....
 
     interaction.reply({
+        ephemeral: true,
         components: await createComponentSelectMenuByComponentPagingMenuByKey(
             {
                 custom_id: 'notice list',

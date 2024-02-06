@@ -95,6 +95,7 @@ export const exec = async (interaction: MessageMenuInteraction, values: Record<s
 
                     interaction.reply({
                         embeds: [embed],
+                        ephemeral: true,
                         components: [
                             createChannelSelectMenu(`notice channel ${noticeId}`, {
                                 placeholder: '알림을 받을 채널을 선택해주세요.',
@@ -113,6 +114,7 @@ export const exec = async (interaction: MessageMenuInteraction, values: Record<s
             } else {
                 interaction.reply({
                     content: '검색결과',
+                    ephemeral: true,
                     components: await searchUser(value, noticeType),
                 });
             }
@@ -121,6 +123,7 @@ export const exec = async (interaction: MessageMenuInteraction, values: Record<s
         default:
             interaction.reply({
                 content: '검색결과',
+                ephemeral: true,
                 components: await searchUser(value, noticeType),
             });
             break;

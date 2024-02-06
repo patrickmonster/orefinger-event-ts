@@ -37,6 +37,7 @@ export const exec = async (interaction: MessageMenuInteraction, noticeType: stri
             default: {
                 interaction.reply({
                     content: '알림 타입을 찾을 수 없습니다.',
+                    ephemeral: true,
                 });
                 return;
             }
@@ -44,6 +45,7 @@ export const exec = async (interaction: MessageMenuInteraction, noticeType: stri
     } catch (e) {
         interaction.reply({
             content: '사용자를 찾을 수 없습니다.',
+            ephemeral: true,
         });
     }
 
@@ -52,6 +54,7 @@ export const exec = async (interaction: MessageMenuInteraction, noticeType: stri
 
         interaction.reply({
             embeds: [embed],
+            ephemeral: true,
             components: [
                 createChannelSelectMenu(`notice channel ${noticeId}`, {
                     placeholder: '알림을 받을 채널을 선택해주세요.',
