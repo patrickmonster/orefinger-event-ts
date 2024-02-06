@@ -174,6 +174,7 @@ export const getCommand = <E extends IReply, F>(
     list
         .reduce<ComponentReturnType<E, F>[]>((prev, { name: fileName, file, path, pathTag }) => {
             try {
+                if (file.endsWith('.map')) return prev;
                 const command: {
                     name: string;
                     default: { alias: string[] | string };
