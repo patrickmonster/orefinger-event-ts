@@ -33,5 +33,4 @@ const api: APIApplicationCommandSubcommandOption = {
     description: '소셜 알림을 설정합니다.',
 };
 
-// 인터렉션 이벤트
 export default api;

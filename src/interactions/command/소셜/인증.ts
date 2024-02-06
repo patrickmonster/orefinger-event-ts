@@ -106,5 +106,6 @@ const api: APIApplicationCommandSubcommandOption = {
     ],
 };
 
-// 인터렉션 이벤트
+// 일시적으로 막음 (오픈전)
+export const isAdmin = true; // 봇 관리자만 사용 가능
 export default api;

@@ -68,5 +68,4 @@ const api: APIApplicationCommandSubcommandOption = {
     ],
 };
 
-// 인터렉션 이벤트
 export default api;
