@@ -1,4 +1,8 @@
-import { APIApplicationCommandSubcommandOption, ApplicationCommandOptionType } from 'discord-api-types/v10';
+import {
+    APIApplicationCommandSubcommandOption,
+    ApplicationCommandOptionType,
+    ChannelType,
+} from 'discord-api-types/v10';
 import { basename } from 'path';
 
 import { getChzzkUser } from 'components/chzzkUser';
@@ -39,6 +43,7 @@ export const exec = async (interaction: AppChatInputInteraction, selectOption: S
                     createChannelSelectMenu(`notice channel ${noticeId}`, {
                         placeholder: '알림을 받을 채널을 선택해주세요.',
                         default_values: channels,
+                        channel_types: [ChannelType.GuildText],
                         max_values: 25,
                         min_values: 1,
                     }),

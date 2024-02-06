@@ -4,6 +4,7 @@ import { getChzzkUser } from 'components/chzzkUser';
 import { editerComponent } from 'components/systemComponent';
 import { getYoutubeUser } from 'components/youtubeUser';
 import { selectNoticeDtilByEmbed } from 'controllers/notice';
+import { ChannelType } from 'discord-api-types/v10';
 import { createChannelSelectMenu } from 'utils/discord/component';
 /**
  *
@@ -59,6 +60,7 @@ export const exec = async (interaction: MessageMenuInteraction, noticeType: stri
                 createChannelSelectMenu(`notice channel ${noticeId}`, {
                     placeholder: '알림을 받을 채널을 선택해주세요.',
                     default_values: channels,
+                    channel_types: [ChannelType.GuildText],
                     max_values: 25,
                     min_values: 1,
                 }),
