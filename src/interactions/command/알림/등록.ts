@@ -4,12 +4,11 @@ import { basename } from 'path';
 import { getChzzkUser } from 'components/chzzkUser';
 import { getNoticeDetailByEmbed } from 'components/notice';
 import { AppChatInputInteraction, SelectOptionType } from 'interactions/app';
-import { getChzzkAPI } from 'utils/naverApiInstance';
 
 const name = basename(__filename, __filename.endsWith('js') ? '.js' : '.ts');
 const type = ApplicationCommandOptionType.Subcommand;
 
-const chzzk = getChzzkAPI('v1');
+const hashIdChzzk = new RegExp('^[a-zA-Z0-9]{32}$');
 
 export const exec = async (interaction: AppChatInputInteraction, selectOption: SelectOptionType) => {
     const { guild_id, channel } = interaction;
@@ -20,11 +19,8 @@ export const exec = async (interaction: AppChatInputInteraction, selectOption: S
 
     await interaction.differ({ ephemeral: true });
 
-    // 사용자 프로필 수신
-    //  https://api.chzzk.naver.com/service/v1/channels/ec857bee6cded06df19dae85cf37f878
-
     const chzzkHash = selectOption.get<string>('치지직');
-    if (chzzkHash) {
+    if (chzzkHash && hashIdChzzk.test(chzzkHash)) {
         const noticeId = await getChzzkUser(chzzkHash);
         if (noticeId) {
             const { embed, components } = await getNoticeDetailByEmbed(noticeId, guild_id);
@@ -39,6 +35,10 @@ export const exec = async (interaction: AppChatInputInteraction, selectOption: S
                 content: '치지직 사용자를 찾을 수 없습니다.',
             });
         }
+    } else {
+        interaction.reply({
+            content: '치지직 사용자를 찾을 수 없습니다.',
+        });
     }
 };
 
