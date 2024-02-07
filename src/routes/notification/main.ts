@@ -1,10 +1,9 @@
-import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
-import { createYutubeUser, createYutubeChannel, createYutubeEvent, insertYoutubeVideo } from 'controllers/youtube';
+import { FastifyInstance } from 'fastify';
 
-import redis from 'utils/redis';
 import { getUser } from 'components/twitch';
+import redis from 'utils/redis';
 
-import { liveList, total, stream } from 'controllers/notification';
+import { liveList, stream, total } from 'controllers/notification';
 
 export default async (fastify: FastifyInstance, opts: any) => {
     fastify.addSchema({
@@ -14,7 +13,7 @@ export default async (fastify: FastifyInstance, opts: any) => {
             user_id: { type: 'string', description: '트위치 유저 아이디' },
             name: { type: 'string', description: '채널에 전송하는 프로필 정보' },
             channel_id: { type: 'string', description: '채널 아이디' },
-            custom_ment: { type: 'string', description: '채널 전용 맨트' },
+            custom_ment: { type: 'string', description: '채널 전용 멘트' },
             url: { type: 'string', description: '전송 url' },
             create_at: { type: 'string', description: '생성일' },
             update_at: { type: 'string', description: '수정일' },

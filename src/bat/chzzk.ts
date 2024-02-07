@@ -77,9 +77,9 @@ const getChannelLive = async (notice_id: number, hash_id: string) =>
             .then(async ({ data }) => {
                 const { content } = data;
                 if (content && content.status === 'OPEN') {
-                    await insertLiveEvents(notice_id, hash_id);
+                    await insertLiveEvents(notice_id, content.liveId);
                 } else {
-                    const result = await updateLiveEvents(notice_id, hash_id);
+                    const result = await updateLiveEvents(notice_id, content.liveId);
                     if (result.changedRows == 0) {
                         // 이미 처리된 알림
                         return reject(null);

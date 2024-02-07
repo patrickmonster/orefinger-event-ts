@@ -1,11 +1,8 @@
 import { MessageMenuInteraction } from 'interactions/message';
 
 import { getChzzkUser } from 'components/chzzkUser';
-import { editerComponent } from 'components/systemComponent';
+import { getNoticeDetailByEmbed } from 'components/notice';
 import { getYoutubeUser } from 'components/youtubeUser';
-import { selectNoticeDtilByEmbed } from 'controllers/notice';
-import { ChannelType } from 'discord-api-types/v10';
-import { createChannelSelectMenu } from 'utils/discord/component';
 /**
  *
  * 가이드 호출 - 디비처리용
@@ -51,21 +48,12 @@ export const exec = async (interaction: MessageMenuInteraction, noticeType: stri
     }
 
     if (noticeId) {
-        const { embed, channels } = await selectNoticeDtilByEmbed(noticeId, guild_id);
+        const { embed, components } = await getNoticeDetailByEmbed(noticeId, guild_id);
 
         interaction.reply({
             embeds: [embed],
             ephemeral: true,
-            components: [
-                createChannelSelectMenu(`notice channel ${noticeId}`, {
-                    placeholder: '알림을 받을 채널을 선택해주세요.',
-                    default_values: channels,
-                    channel_types: [ChannelType.GuildText],
-                    max_values: 25,
-                    min_values: 1,
-                }),
-                editerComponent(`notice channel ${noticeId}`, [], true),
-            ],
+            components,
         });
     } else {
         interaction.reply({

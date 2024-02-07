@@ -71,6 +71,4 @@ const api: APIApplicationCommandSubcommandOption = {
 };
 
 export const isAdmin = true; // 봇 관리자만 사용 가능
-
-// 인터렉션 이벤트
 export default api;
