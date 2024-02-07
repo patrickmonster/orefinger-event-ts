@@ -45,7 +45,7 @@ export const exec = async (interaction: AppChatInputInteraction, selectOption: S
                         default_values: channels,
                         channel_types: [ChannelType.GuildText],
                         max_values: 25,
-                        min_values: 1,
+                        min_values: 0,
                     }),
                     editerComponent(`notice channel ${noticeId}`, [], true),
                 ],

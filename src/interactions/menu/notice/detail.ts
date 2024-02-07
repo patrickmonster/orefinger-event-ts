@@ -31,7 +31,7 @@ export const exec = async (interaction: MessageMenuInteraction) => {
                 default_values: channels,
                 channel_types: [ChannelType.GuildText],
                 max_values: 25,
-                min_values: 1,
+                min_values: 0,
             }),
             editerComponent(`notice channel ${notice_id}`, [], true),
         ],
