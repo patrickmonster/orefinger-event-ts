@@ -19,9 +19,6 @@ export const exec = async (interaction: AppChatInputInteraction, selectOption: S
 
     await interaction.differ({ ephemeral: true });
 
-    // 사용자 프로필 수신
-    //  https://api.chzzk.naver.com/service/v1/channels/ec857bee6cded06df19dae85cf37f878
-
     const chzzkHash = selectOption.get<string>('치지직');
     if (chzzkHash && hashIdChzzk.test(chzzkHash)) {
         const noticeId = await getChzzkUser(chzzkHash);
@@ -38,6 +35,10 @@ export const exec = async (interaction: AppChatInputInteraction, selectOption: S
                 content: '치지직 사용자를 찾을 수 없습니다.',
             });
         }
+    } else {
+        interaction.reply({
+            content: '치지직 사용자를 찾을 수 없습니다.',
+        });
     }
 };
 
