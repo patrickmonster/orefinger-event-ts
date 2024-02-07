@@ -89,6 +89,7 @@ export const upsertNotice = async (notiecData: Partial<NoticeDetail>, noChageOri
                 {
                     hash_id: notiecData.hash_id,
                     notice_type: notiecData.notice_type,
+                    use_yn: 'Y',
                 }
             );
             id = notice.insertId;
