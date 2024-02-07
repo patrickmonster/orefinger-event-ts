@@ -5,8 +5,6 @@ import { editerComponent } from './systemComponent';
 
 export const getNoticeDetailByEmbed = async (noticeId: NoticeId, guildId: string) => {
     const { embed, channels } = await selectNoticeDtilByEmbed(noticeId, guildId);
-
-    console.log('channels', channels, embed);
     return {
         embed,
         components: [
