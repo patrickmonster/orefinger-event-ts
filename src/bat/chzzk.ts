@@ -11,7 +11,7 @@ interface Content {
     liveId: number;
     liveTitle: string;
     status: string;
-    liveImageUrl: string;
+    liveImageUrl: string | null;
     defaultThumbnailImageUrl: null;
     concurrentUserCount: number;
     accumulateCount: number;
@@ -54,7 +54,7 @@ const convertVideoObject = (video_object: Content, name?: string): APIEmbed => {
         title,
         url: `https://chzzk.naver.com/live/${channelId}`,
         image: {
-            url: liveImageUrl,
+            url: liveImageUrl?.replace('{type}', '1080') || '',
         },
         author: {
             name: name ?? channelName,
