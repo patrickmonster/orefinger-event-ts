@@ -1,15 +1,9 @@
-import {
-    APIApplicationCommandSubcommandOption,
-    ApplicationCommandOptionType,
-    ChannelType,
-} from 'discord-api-types/v10';
+import { APIApplicationCommandSubcommandOption, ApplicationCommandOptionType } from 'discord-api-types/v10';
 import { basename } from 'path';
 
 import { getChzzkUser } from 'components/chzzkUser';
-import { editerComponent } from 'components/systemComponent';
-import { selectNoticeDtilByEmbed } from 'controllers/notice';
+import { getNoticeDetailByEmbed } from 'components/notice';
 import { AppChatInputInteraction, SelectOptionType } from 'interactions/app';
-import { createChannelSelectMenu } from 'utils/discord/component';
 import { getChzzkAPI } from 'utils/naverApiInstance';
 
 const name = basename(__filename, __filename.endsWith('js') ? '.js' : '.ts');
@@ -33,23 +27,12 @@ export const exec = async (interaction: AppChatInputInteraction, selectOption: S
     if (chzzkHash) {
         const noticeId = await getChzzkUser(chzzkHash);
         if (noticeId) {
-            const { embed, channels } = await selectNoticeDtilByEmbed(noticeId, guild_id);
-
-            console.log('channels', channels, embed);
+            const { embed, components } = await getNoticeDetailByEmbed(noticeId, guild_id);
 
             interaction.reply({
                 embeds: [embed],
-                components: [
-                    createChannelSelectMenu(`notice channel ${noticeId}`, {
-                        placeholder: '알림을 받을 채널을 선택해주세요.',
-                        default_values: channels,
-                        channel_types: [ChannelType.GuildText],
-                        max_values: 25,
-                        min_values: 0,
-                    }),
-                    editerComponent(`notice channel ${noticeId}`, [], true),
-                ],
                 ephemeral: true,
+                components,
             });
         } else {
             interaction.reply({
