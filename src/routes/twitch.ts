@@ -8,6 +8,7 @@ import { event as createEvent, grant, register, streamOffline, streamOnline } fr
 import discord, { openApi } from 'utils/discordApiInstance';
 
 import { usersUpdate } from 'components/twitch';
+import irc from 'utils/twitchIrc';
 
 const randomIntegerInRange = (min: number, max: number) => Math.floor(Math.random() * (max - min + 1)) + min;
 
@@ -85,6 +86,10 @@ export default async (fastify: FastifyInstance, opts: any) => {
                         );
 
                         if (channels.length === 0) return; // 이벤트가 없거나, 이미 진행된 이벤트
+                        irc.say(
+                            `${broadcaster_user_login}`,
+                            '안뇽! 오래기다렸지? 이제 Chzzk 알림도 지원해! tgd.kr/73093790 daromLcat'
+                        ).catch(e => {});
                         for (const {
                             id,
                             /* kr_name ,*/ channel_id,
