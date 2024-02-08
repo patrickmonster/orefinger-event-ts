@@ -99,8 +99,8 @@ export default async (fastify: FastifyInstance, opts: any) => {
                             game_id,
                             game_name,
                         } of channels) {
-                            //
-                            discord
+                            // 웹훅인경우, 처리
+                            (url.startsWith('webhooks/') ? openApi : discord)
                                 .post(url, {
                                     username: broadcaster_user_name,
                                     content: custom_ment,
