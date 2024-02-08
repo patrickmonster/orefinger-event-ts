@@ -132,7 +132,7 @@ export const selectNoticeDetailEditByModel = async (notice_id: NoticeId) =>
     query<Omit<APIModalInteractionResponseCallbackData, 'custom_id'>>(
         `
 SELECT 
-    CONCAT(nd.notice_id, '] 알림 멘트 수정') as title
+    CONCAT('알림 멘트 수정') as title
     , JSON_ARRAY(
         JSON_OBJECT(
             'type', 1, 'components', JSON_ARRAY(
