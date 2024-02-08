@@ -62,7 +62,7 @@ export const insertLiveEvents = async (notice_id: number, id: string) =>
 
 export const updateLiveEvents = async (notice_id: number, id: string) =>
     query<SqlInsertUpdate>(
-        `UPDATE notice_live SET end_at=CURRENT_TIMESTAMP WHERE notice_id=? AND id=? AND end_at IS NOT NULL`,
+        `UPDATE notice_live SET end_at=CURRENT_TIMESTAMP WHERE notice_id=? AND id=? AND end_at IS NULL`,
         notice_id,
         id
     );
