@@ -10,29 +10,17 @@ import {
 
 // import { RedisJSON } from 'redis';
 import discord from 'utils/discordApiInstance';
-import redis, { REDIS_KEY } from 'utils/redis';
-
-// 멘트 변경에 필요한 형식
-const discordRegex = /<[a]?:([\w|\d]+):(\d{17,20})>/im; // 맨션
-const emojiRegex = /:(\w+)(~\d)?:/gim; // 이모티콘
-const roleRegex = /@([ㄱ-ㅎ가-힣a-zA-Z0-9]+)(~\d)?/gim; // 역할
+import { REDIS_KEY, catchRedis } from 'utils/redis';
+import { getEmojis, getMemtions } from './discord';
 
 export const guild = async (guild_id: string) => await discord.get<RESTGetAPIGuildResult>(`/guilds/${guild_id}`);
 
-export const channels = async (guild: string, isCash = false) => {
-    if (isCash) {
-        const channels = await redis.get(REDIS_KEY.DISCORD.GUILD_CHANNELS(guild));
-        if (channels) return JSON.parse(channels) as RESTGetAPIGuildChannelsResult;
-    }
-
-    const data = await discord.get<RESTGetAPIGuildChannelsResult>(`/guilds/${guild}/channels`);
-    await redis.set(REDIS_KEY.DISCORD.GUILD_CHANNELS(guild), JSON.stringify(data), { EX: 60 * 60 });
-    const update = await channelUpsert(
-        data.map(e => ({ guild_id: guild, channel_id: e.id, name: e.name || '', type: e.type }))
+export const channels = async (guildId: string) =>
+    catchRedis(
+        REDIS_KEY.DISCORD.GUILD_CHANNELS(guildId),
+        async () => await discord.get<RESTGetAPIGuildChannelsResult>(`/guilds/${guildId}/channels`),
+        60 * 60
     );
-    console.log('LOADING CHANNEL', update);
-    return data;
-};
 
 export const channelCreate = async (guild_id: string, data: RESTPostAPIGuildChannelJSONBody) => {
     const channel = await discord.post<RESTPostAPIGuildChannelResult>(`/guilds/${guild_id}/channels`, data);
@@ -60,58 +48,33 @@ export const webhooks = async (channel_id: string) =>
 export const webhookCreate = async (channel_id: string, data: { name: string; avatar?: string }) =>
     await discord.post<RESTPostAPIChannelWebhookResult>(`/channels/${channel_id}/webhooks`, data);
 
-/**
- * 멘트 변경
- * @param guild_id
- * @param message
- * @param is_convert
- */
-export const mentConvert = async (guild_id: string, message: string, is_convert: boolean) => {
-    const { emojis, roles } = await guild(guild_id);
+const discordRegex = /<[a]?:([\w|\d]+):(\d{17,19})>/im; // 맨션
+const emojiRegex = /:(\w+)(~\d)?:/gim; // 이모티콘
+const roleRegex = /@([ㄱ-ㅎ가-힣a-zA-Z0-9]+)(~\d)?/gim; // 역할
 
-    let content = message;
-    if (is_convert) {
-        // 타이핑 멘트 -> 저장용
-        while (true) {
-            // emote
-            const emote = emojiRegex.exec(message);
-            if (!emote) break;
-            const [content_name, v_name, count] = emote;
-            const emoji = emojis
-                .filter(e => e.name === v_name)
-                .find((e, i) => (count ? parseInt(count.substring(1)) == i : true));
-            if (emoji) {
-                content = `${content.slice(0, emote.index)}<${emoji.animated ? 'a' : ''}:${emoji.name}:${
-                    emoji.id
-                }>${content.slice(emote.index + content_name.length)}`;
-            } // 없으면 넘어가
-        }
-        while (true) {
-            // role
-            const role = roleRegex.exec(message);
-            if (!role) break;
-            const [content_name, v_name, count] = role;
-            const role_obj = roles
-                .filter(e => e.name == v_name)
-                .find((e, i) => (count ? parseInt(count.substring(1)) == i : true));
-            if (role_obj) {
-                content = `${content.slice(0, role.index)}<@&${role_obj.id}>${content.slice(
-                    role.index + content_name.length
-                )}`;
-            } // 없으면 넘어가
-        }
+export const castMessage = async (guildId: string, message: string, isSendMessage: boolean) => {
+    const emojis = (await getEmojis(guildId)).map(({ name, id, animated }) => ({ name, id, animated }));
+
+    if (isSendMessage) {
+        const roles = (await getMemtions(guildId)).map(({ name, id }) => ({ name, id }));
+
+        return message
+            .replace(roleRegex, (match, name, id) => {
+                const role = roles
+                    .filter(role => role.name === name)
+                    .find((e, i) => (id ? id.substring(1) === i : true));
+                return role ? `<@&${role.id}>` : match;
+            })
+            .replace(emojiRegex, (match, name, id) => {
+                const emoji = emojis
+                    .filter(emoji => emoji.name === name)
+                    .find((e, i) => (id ? id.substring(1) === i : true));
+                return emoji ? `<${emoji.animated ? 'a' : ''}:${emoji.name}:${emoji.id}>` : match;
+            });
     } else {
-        while (true) {
-            //
-            const emote = discordRegex.exec(message);
-            if (!emote) break;
-            const [content_name, v_name, id] = emote;
-            const idx = emojis.filter(emoji => emoji.name == v_name).findIndex(e => e.id == id);
-            content = `${content.slice(0, emote.index)}:${idx > 0 ? `${v_name}~${idx}` : v_name}:${content.slice(
-                emote.index + content_name.length
-            )}`;
-        }
+        return message.replace(discordRegex, (match, name, id) => {
+            const idx = emojis.filter(emoji => emoji.name === name).findIndex(emoji => emoji.id === id);
+            return `:${name}${idx > 0 ? '~' + idx : ''}:`;
+        });
     }
-
-    return content;
 };

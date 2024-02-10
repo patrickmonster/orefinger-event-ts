@@ -38,6 +38,17 @@ const hashFuction = (key: string) => {
     return hash;
 };
 
+export const catchRedis = async <T>(key: string, callback: () => Promise<T>, expire = 60 * 60 * 1) => {
+    const data = await client.get(key);
+    if (data) return JSON.parse(data) as T;
+
+    const result = await callback();
+    client.set(key, JSON.stringify(result), {
+        EX: expire,
+    });
+    return result;
+};
+
 export type QueryKey = string | number;
 
 export const REDIS_KEY = {
@@ -46,6 +57,8 @@ export const REDIS_KEY = {
     },
     DISCORD: {
         GUILD_CHANNELS: (id: string) => `discord:channel:${id}`,
+        GUILD_EMOJIS: (id: string) => `discord:emojis:${id}`,
+        GUILD_ROLES: (id: string) => `discord:roles:${id}`,
     },
     SQL: {
         SELECT: (queryKey: string | number) => `sql:select:${queryKey}`,

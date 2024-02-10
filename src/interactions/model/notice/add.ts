@@ -9,9 +9,6 @@ import {
     createStringSelectMenu,
     createSuccessButton,
 } from 'utils/discord/component';
-import { getChzzkAPI } from 'utils/naverApiInstance';
-
-const chzzk = getChzzkAPI('v1');
 
 const hashIdChzzk = new RegExp('^[a-zA-Z0-9]{32}$');
 
@@ -99,21 +96,17 @@ export const exec = async (interaction: MessageMenuInteraction, values: Record<s
                         content: '치지직 사용자를 찾을 수 없습니다.',
                     });
                 }
-            } else {
-                interaction.reply({
-                    content: '검색결과',
-                    ephemeral: true,
-                    components: await searchUser(value, noticeType),
-                });
+                return;
             }
             break;
         }
         default:
-            interaction.reply({
-                content: '검색결과',
-                ephemeral: true,
-                components: await searchUser(value, noticeType),
-            });
             break;
     }
+
+    interaction.reply({
+        content: '검색결과',
+        ephemeral: true,
+        components: await searchUser(value, noticeType),
+    });
 };
