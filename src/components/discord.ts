@@ -42,34 +42,3 @@ export const attachmentFile = async (...url: Attachment[]) => {
 
     return form;
 };
-
-const discordRegex = /<[a]?:([\w|\d]+):(\d{17,19})>/im; // 맨션
-const emojiRegex = /:(\w+)(~\d)?:/gim; // 이모티콘
-const roleRegex = /@([ㄱ-ㅎ가-힣a-zA-Z0-9]+)(~\d)?/gim; // 역할
-
-export const castMessage = async (guildId: string, message: string, isSendMessage: boolean) => {
-    const emojis = (await getEmojis(guildId)).map(({ name, id, animated }) => ({ name, id, animated }));
-
-    if (isSendMessage) {
-        const roles = (await getMemtions(guildId)).map(({ name, id }) => ({ name, id }));
-
-        return message
-            .replace(roleRegex, (match, name, id) => {
-                const role = roles
-                    .filter(role => role.name === name)
-                    .find((e, i) => (id ? id.substring(1) === i : true));
-                return role ? `<@&${role.id}>` : match;
-            })
-            .replace(emojiRegex, (match, name, id) => {
-                const emoji = emojis
-                    .filter(emoji => emoji.name === name)
-                    .find((e, i) => (id ? id.substring(1) === i : true));
-                return emoji ? `<${emoji.animated ? 'a' : ''}:${emoji.name}:${emoji.id}>` : match;
-            });
-    } else {
-        return message.replace(discordRegex, (match, name, id) => {
-            const idx = emojis.filter(emoji => emoji.name === name).findIndex(emoji => emoji.id === id);
-            return `:${name}${idx > 0 ? '~' + idx : ''}:`;
-        });
-    }
-};

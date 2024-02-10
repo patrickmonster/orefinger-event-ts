@@ -1,4 +1,4 @@
-import { castMessage } from 'components/discord';
+import { castMessage } from 'components/guild';
 import { ParseInt, upsertNotice } from 'controllers/notice';
 import { MessageMenuInteraction } from 'interactions/message';
 
@@ -13,8 +13,6 @@ export const exec = async (interaction: MessageMenuInteraction, values: Record<s
     if (values.message) {
         values.message = await castMessage(guild_id, values.message, true);
     }
-
-    console.log(values);
 
     await upsertNotice({
         notice_id: ParseInt(noticeId),
