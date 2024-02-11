@@ -41,7 +41,7 @@ const convertVideoObject = (video_object: any) => {
 const getChannelVideos = async (notice_id: number, hash_id: string) =>
     new Promise<{
         videos: any[];
-        channel_title: string;
+        channelTitle: string;
     }>((resolve, reject) => {
         axios
             .get(`https://www.youtube.com/feeds/videos.xml?channel_id=${hash_id}`)
@@ -50,7 +50,7 @@ const getChannelVideos = async (notice_id: number, hash_id: string) =>
                     if (err) return reject(err);
                     const {
                         feed: {
-                            title: [channel_title],
+                            title: [channelTitle],
                             entry,
                         },
                     } = data;
@@ -77,7 +77,7 @@ const getChannelVideos = async (notice_id: number, hash_id: string) =>
                             continue;
                         }
                     }
-                    resolve({ videos, channel_title });
+                    resolve({ videos, channelTitle });
                 });
             })
             .catch(reject);
@@ -112,7 +112,7 @@ const interval = async () => {
 
         for (const { channels, notice_id, hash_id, message, name, img_idx } of list) {
             try {
-                const { videos, channel_title } = await getChannelVideos(notice_id, hash_id);
+                const { videos, channelTitle } = await getChannelVideos(notice_id, hash_id);
                 for (const video of videos) {
                     sendChannels(channels, {
                         content: message,
@@ -120,7 +120,7 @@ const interval = async () => {
                             {
                                 ...video,
                                 author: {
-                                    name: name || channel_title,
+                                    name: name || channelTitle,
                                     url: `https://www.youtube.com/channel/${hash_id}`,
                                 },
                             },

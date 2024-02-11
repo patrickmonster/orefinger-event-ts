@@ -7,11 +7,8 @@ import {
     APIApplicationCommandInteractionDataSubcommandOption,
 } from 'discord-api-types/v10';
 import { APIChatInputApplicationCommandInteractionData } from 'plugins/discord';
-import { getChzzkAPI } from 'utils/naverApiInstance';
 
 import { searchChzzkUser } from 'components/chzzkUser';
-
-const chzzk = getChzzkAPI('v1');
 
 type FocusedType =
     | APIApplicationCommandInteractionDataNumberOption
