@@ -40,5 +40,21 @@ export const exec = async (interaction: MessageInteraction, noticeType: string) 
                 title: '치치직 - 알림추가',
             });
         }
+        case '6': {
+            // 치지직 커뮤니티
+            interaction.model({
+                components: [
+                    createTextShortInput(`value`, {
+                        label: '채널명을 입력해주세요.',
+                        placeholder: '채널명 or 32자리 영-숫자 조합입니다.',
+                        max_length: 50,
+                        min_length: 1,
+                        required: true,
+                    }),
+                ],
+                custom_id: `notice add ${noticeType}`,
+                title: '치치직 - 커뮤니티',
+            });
+        }
     }
 };

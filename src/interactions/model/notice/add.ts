@@ -18,7 +18,8 @@ const searchUser = async (
 ): Promise<APIActionRowComponent<APIMessageActionRowComponent>[]> => {
     let list: Array<{ name: string; value: string }> = [];
     switch (noticeType) {
-        case '4': {
+        case '4':
+        case '6': {
             list = await searchChzzkUser(keyword);
             break;
         }

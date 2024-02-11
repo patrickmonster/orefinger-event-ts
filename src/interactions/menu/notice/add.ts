@@ -22,7 +22,8 @@ export const exec = async (interaction: MessageMenuInteraction, noticeType: stri
 
     try {
         switch (noticeType) {
-            case '4': {
+            case '4':
+            case '6': {
                 // 치지직
                 noticeId = await getChzzkUser(hashId);
                 break;
