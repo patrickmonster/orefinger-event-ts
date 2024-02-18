@@ -1,15 +1,9 @@
 import { MessageMenuInteraction } from 'interactions/message';
 
 import { editerComponent } from 'components/systemComponent';
-import { selectEmbedDtilByEmbed, selectEmbedUserDtilByEmbed } from 'controllers/embed';
-import {
-    APIActionRowComponent,
-    APIMessageActionRowComponent,
-    APISelectMenuDefaultValue,
-    ButtonStyle,
-    ComponentType,
-    SelectMenuDefaultValueType,
-} from 'discord-api-types/v10';
+import { selectEmbedUserDtilByEmbed } from 'controllers/embed';
+import { getAuthbordeList } from 'controllers/guild/authDashbord';
+import { APISelectMenuDefaultValue, SelectMenuDefaultValueType } from 'discord-api-types/v10';
 import {
     createActionRow,
     createDangerButton,
@@ -17,7 +11,6 @@ import {
     createRoleSelectMenu,
     createSuccessButton,
 } from 'utils/discord/component';
-import { getAuthbordeList } from 'controllers/guild/authDashbord';
 
 /**
  *
@@ -35,7 +28,7 @@ export const exec = async (interaction: MessageMenuInteraction) => {
     if (!role) return interaction.reply({ content: '해당 데시보드를 찾을 수 없습니다.', ephemeral: true });
 
     const result = await selectEmbedUserDtilByEmbed(role.embed_id);
-    const id = `rule edit ${auth_type}`;
+    const id = `rules edit ${auth_type}`;
 
     if (result) {
         const { embed, content } = result;
@@ -59,7 +52,7 @@ export const exec = async (interaction: MessageMenuInteraction) => {
                     ],
                     true
                 ),
-                createRoleSelectMenu('rule', {
+                createRoleSelectMenu('rules', {
                     default_values: [
                         {
                             id: role.role_id,
@@ -78,7 +71,7 @@ export const exec = async (interaction: MessageMenuInteraction) => {
             ephemeral: true,
             components: [
                 createActionRow(
-                    createPrimaryButton(`rule create ${auth_type}`, {
+                    createPrimaryButton(`rules create ${auth_type}`, {
                         label: '새로만들기',
                     })
                 ),
