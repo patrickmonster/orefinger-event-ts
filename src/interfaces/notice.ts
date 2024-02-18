@@ -1,6 +1,7 @@
 export interface NoticeBat {
     notice_id: number;
     hash_id: string;
+    id: number;
     notice_type: number;
     notice_type_tag: string;
     message: string;

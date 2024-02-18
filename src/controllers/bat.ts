@@ -15,6 +15,21 @@ SELECT
 	, name
 	, img_idx
 	, JSON_ARRAYAGG(channel) AS channels
+	, if( 
+		video_yn = 'N',
+		(
+			SELECT nl.id FROM notice_live nl 
+			WHERE nl.notice_id = A.notice_id
+			ORDER BY nl.id desc
+			LIMIT 1
+		),
+		(
+			SELECT video_id FROM notice_video nv 
+			WHERE nv.notice_id = A.notice_id
+			ORDER BY nv.create_at DESC
+			LIMIT 1
+		)
+	) AS id
 FROM (
 	SELECT
 		vn.notice_id
@@ -22,6 +37,7 @@ FROM (
 		, vn.message
 		, vn.name
 		, vn.img_idx
+		, vn.video_yn 
 		, json_object( 'channel_id', nc.channel_id, 'notice_id', nc.notice_id, 'guild_id', nc.guild_id, 'create_at', nc.create_at, 'update_at', nc.update_at ) AS channel
 	FROM v_notice vn
 	LEFT JOIN notice_channel nc using(notice_id)
