@@ -27,7 +27,11 @@ const getNickname = async (
         switch (type) {
             case '8': {
                 // 카카오
-
+                resolve({
+                    nickname: `K] ${user_id.slice(0, 27)}}`,
+                    profileImageUrl:
+                        'https://cdn.orefinger.click/post/466950273928134666/b0f65bdf-c229-4a46-9fa9-406e9a16b771.png',
+                });
                 break;
             }
             case '12': // 네이버
