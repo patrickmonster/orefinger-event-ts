@@ -6,6 +6,8 @@ import { NoticeChannel } from 'interfaces/notice';
 import discord from 'utils/discordApiInstance';
 import sleep from 'utils/sleep';
 
+interface Content {}
+
 /**
  * xml 형태의 데이터를 embed 형태로 변환합니다
  * @param video_object
