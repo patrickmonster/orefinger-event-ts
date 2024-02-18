@@ -3,7 +3,14 @@ import redis from 'utils/redis';
 
 import { Event, EventSub, Subscription } from 'interfaces/eventsub';
 
-import { event as createEvent, grant, register, streamOffline, streamOnline } from 'controllers/twitch';
+import {
+    event as createEvent,
+    grant,
+    register,
+    stateChangeEventChannel,
+    streamOffline,
+    streamOnline,
+} from 'controllers/twitch';
 
 import discord, { openApi } from 'utils/discordApiInstance';
 
@@ -132,6 +139,7 @@ export default async (fastify: FastifyInstance, opts: any) => {
                                         '프로세서 [ONLINE] 알림 채널 메세지 전송 실패',
                                         `${broadcaster_user_name} - ${broadcaster_user_login}(${broadcaster_user_id})`
                                     );
+                                    stateChangeEventChannel(channel_id, { delete_yn: 'Y' }).catch(e => {});
                                 });
                         }
                     });
