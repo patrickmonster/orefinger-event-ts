@@ -34,7 +34,7 @@ export const exec = async (interaction: MessageInteraction, auth_id: string, tar
             // 모달처리
             interaction.model({
                 ...model,
-                custom_id: `rule edit ${embed_id}`,
+                custom_id: `rules edit ${embed_id}`,
             });
 
             break;
@@ -45,7 +45,7 @@ export const exec = async (interaction: MessageInteraction, auth_id: string, tar
             // 모달처리
             interaction.model({
                 ...model,
-                custom_id: `rule edit ${embed_id}`,
+                custom_id: `rules edit ${embed_id}`,
             });
             break;
         }

@@ -38,7 +38,7 @@ export const exec = async (interaction: AppChatInputInteraction, selectOption: S
                                 embeds: embed ? [embed] : null,
                                 components: [
                                     createActionRow(
-                                        createPrimaryButton(`rule oauth ${type_id}`, {
+                                        createPrimaryButton(`rules oauth ${type_id}`, {
                                             label: `인증 - ${type}`,
                                             emoji: { name: '🔐' },
                                         })
@@ -80,7 +80,7 @@ ${data.map(({ type, role_id }, index) => `${index + 1}] ${type} - <@&${role_id}>
                 content: `설정하거나, 수정하실 인증을 선택해주세요!`,
                 components: await createComponentSelectMenuByComponentPagingMenuByKey(
                     {
-                        custom_id: 'rule list',
+                        custom_id: 'rules list',
                         placeholder: '수정하시거나, 제작하실 인증을 선택해주세요!',
                     },
                     QUERY.SelectAuthDashbord,

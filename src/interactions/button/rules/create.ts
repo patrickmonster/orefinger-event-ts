@@ -35,6 +35,6 @@ export const exec = async (interaction: MessageInteraction, auth_type: string) =
 
     interaction.model({
         ...model,
-        custom_id: `rule edit ${insertId} edit`,
+        custom_id: `rules edit ${insertId} edit`,
     });
 };

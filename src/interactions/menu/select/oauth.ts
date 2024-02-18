@@ -1,13 +1,7 @@
-import {
-    APIApplicationCommandSubcommandOption,
-    ApplicationCommandOptionType,
-    ComponentType,
-} from 'discord-api-types/v10';
-import { basename } from 'path';
-import { MessageMenuInteraction } from 'interactions/message';
 import { getDashboard } from 'controllers/guild/authDashbord';
+import { MessageMenuInteraction } from 'interactions/message';
 
-import { createActionRow, createPrimaryButton, createStringSelectMenu } from 'utils/discord/component';
+import { createActionRow, createPrimaryButton } from 'utils/discord/component';
 
 import discord from 'utils/discordApiInstance';
 
@@ -36,7 +30,7 @@ export const exec = async (interaction: MessageMenuInteraction, []: string[]) =>
                     embeds: embed ? [embed] : null,
                     components: [
                         createActionRow(
-                            createPrimaryButton(`rule oauth ${type_id}`, {
+                            createPrimaryButton(`rules oauth ${type_id}`, {
                                 label: `인증 - ${type}`,
                                 emoji: { name: '🔐' },
                             })
