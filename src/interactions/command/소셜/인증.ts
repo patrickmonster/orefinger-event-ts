@@ -46,7 +46,6 @@ export const exec = async (interaction: AppChatInputInteraction, selectOption: S
                                 ],
                             })
                             .catch(e => {
-                                console.log(e.response.data);
                                 interaction.reply({
                                     content: '데시보드 출력에 실패 하였습니다 X﹏X - 관리자에게 문의 바랍니다',
                                 });

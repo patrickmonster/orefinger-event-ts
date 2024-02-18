@@ -22,7 +22,7 @@ import { APIUser } from 'discord-api-types/v10';
 import qs from 'querystring';
 
 export default async (fastify: FastifyInstance, opts: any) => {
-    const targets = ['twitch', 'twitch.stream', 'kakao', 'discord'];
+    const targets = ['twitch', 'twitch.stream', 'kakao', 'discord', 'chzzk', 'naver'];
 
     const getToken = async (target: string, data: string) =>
         axios
@@ -612,7 +612,7 @@ export default async (fastify: FastifyInstance, opts: any) => {
                             id,
                             {
                                 id: user.id,
-                                username: '-',
+                                username: nickname,
                                 discriminator: '-',
                                 email: email || '-',
                                 avatar: profile_image,
