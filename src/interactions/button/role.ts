@@ -13,7 +13,7 @@ const name = basename(__filename, __filename.endsWith('js') ? '.js' : '.ts');
  * 구 인증
  * @param interaction
  */
-export const exec = async (interaction: MessageInteraction, [command]: string[]) => {
+export const exec = async (interaction: MessageInteraction, command: string) => {
     const { user, guild_id, member } = interaction;
 
     await interaction.differ({ ephemeral: true });
