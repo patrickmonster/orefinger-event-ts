@@ -125,10 +125,10 @@ const interval = async () => {
             limit: 10,
         });
 
-        for (const { channels, notice_id, hash_id, message, name, img_idx } of list) {
+        for (const { channels, notice_id, hash_id, message, name, id, img_idx } of list) {
             try {
                 const liveStatus = await getChannelLive(notice_id, hash_id);
-                if (liveStatus && liveStatus.status === 'OPEN') {
+                if (liveStatus && liveStatus.status === 'OPEN' && liveStatus.liveId !== id) {
                     // online
                     sendChannels(channels, {
                         content: message,
