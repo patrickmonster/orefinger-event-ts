@@ -17,7 +17,10 @@ export default async (interaction: IReply, guild_id: string, user_id: string, tw
                 });
             }
             const { login, display_name, profile_image_url } = user;
-            const nick = display_name.toLowerCase() == login.toLowerCase() ? display_name : `${display_name}(${login})`.substring(0, 32);
+            const nick =
+                display_name.toLowerCase() == login.toLowerCase()
+                    ? display_name
+                    : `${display_name}(${login})`.substring(0, 32);
             const [data] = await tusu(user_id, nick, role_id);
 
             if (!data) {
@@ -63,7 +66,7 @@ export default async (interaction: IReply, guild_id: string, user_id: string, tw
                         errorEmbed('AUTH_TUSU_SELECT', {
                             target: `${guild_id}/${user_id}`,
                             title: '트수 역할지급 오류',
-                            description: '데이터 무결성 오류 - 역할지급기가 존재하지 않습니다!',
+                            description: '데이터 무결성 오류 - 역할이 존재하지 않습니다!',
                         }),
                     ],
                 });
