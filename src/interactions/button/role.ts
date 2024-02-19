@@ -17,7 +17,7 @@ export const exec = async (interaction: MessageInteraction, [command]: string[])
     const { user, guild_id, member } = interaction;
 
     await interaction.differ({ ephemeral: true });
-    await authTokenSelect(user?.id || '0', `select role ${command || 0}`, 3)
+    await authTokenSelect(user?.id || member?.user.id || '0', `select role ${command || 0}`, 3)
         .then(async user => {
             if (Array.isArray(user)) {
                 interaction.reply({
@@ -29,6 +29,8 @@ export const exec = async (interaction: MessageInteraction, [command]: string[])
             }
         })
         .catch(async e => {
+            console.log('e', e);
+
             const apiUser = member?.user || user;
             if (!apiUser)
                 return await interaction.reply({
