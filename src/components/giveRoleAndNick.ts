@@ -1,6 +1,6 @@
 import { insertAuthRule } from 'controllers/role';
 import { IReply } from 'plugins/discord';
-import discord, { changeNickname } from 'utils/discordApiInstance';
+import discord from 'utils/discordApiInstance';
 import errorEmbed from './errorEmbed';
 
 import { APIGuildMember } from 'discord-api-types/v10';
@@ -118,17 +118,17 @@ export default async (interaction: IReply, { guild_id, auth_id, user_id, type }:
 
         getNickname(interaction, type, user_id)
             .then(async ({ nickname, profileImageUrl }) => {
-                await changeNickname(guild_id, auth_id, nickname).catch(e => {
-                    interaction.reply({
-                        embeds: [
-                            errorEmbed('DISCORDAPI', {
-                                target: `auth-${auth_id}`,
-                                title: `ERROR - ${e.code}`,
-                                description: '디스코드 닉네임 변경에 실패 했습니다.',
-                            }),
-                        ],
-                    });
-                });
+                // await changeNickname(guild_id, auth_id, nickname).catch(e => {
+                //     interaction.reply({
+                //         embeds: [
+                //             errorEmbed('DISCORDAPI', {
+                //                 target: `auth-${auth_id}`,
+                //                 title: `ERROR - ${e.code}`,
+                //                 description: '디스코드 닉네임 변경에 실패 했습니다.',
+                //             }),
+                //         ],
+                //     });
+                // });
 
                 return interaction.reply({
                     embeds: [

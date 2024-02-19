@@ -21,7 +21,7 @@ export default async (interaction: IReply, guild_id: string, user_id: string, tw
                 display_name.toLowerCase() == login.toLowerCase()
                     ? display_name
                     : `${display_name}(${login})`.substring(0, 32);
-            const [data] = await tusu(user_id, nick, role_id);
+            const [data] = await tusu(user_id, nick, guild_id);
 
             if (!data) {
                 return await interaction.reply({
@@ -61,6 +61,8 @@ export default async (interaction: IReply, guild_id: string, user_id: string, tw
                     await discord.patch(`/guilds/${guild_id}/members/${user_id}`, { nick });
                 } catch (e) {}
             } catch (e) {
+                console.log('e', e);
+
                 return await interaction.reply({
                     embeds: [
                         errorEmbed('AUTH_TUSU_SELECT', {
