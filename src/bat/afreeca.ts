@@ -1,9 +1,9 @@
-import { insertLiveEvents, selectEventBats, updateLiveEvents } from 'controllers/bat';
+import { selectEventBats } from 'controllers/bat';
 import { deleteNoticeChannel } from 'controllers/notice';
 import { APIEmbed } from 'discord-api-types/v10';
 import { NoticeChannel } from 'interfaces/notice';
 
-import { Station } from 'interfaces/API/Afreeca';
+import { Content } from 'interfaces/API/Afreeca';
 
 import afreecaAPI from 'utils/afreecaApiInstance';
 import discord from 'utils/discordApiInstance';
@@ -38,26 +38,31 @@ const convertVideoObject = (videoObject: Station, name?: string): APIEmbed => {
 
 /**
  * 채널의 비디오 목록을 가져옵니다
- * @param notice_id
+ * @param noticeId
  * @param hashId
  * @returns
  */
-const getChannelLive = async (notice_id: number, hashId: string) =>
+const getChannelLive = async (noticeId: number, hashId: string) =>
     new Promise<Content | null>((resolve, reject) => {
         afreecaAPI
-            .get(`${hashId}/station`)
-            .then(async ({ data }) => {
-                const { content } = data;
-                if (content && content.status === 'OPEN') {
-                    await insertLiveEvents(notice_id, content.liveId);
-                } else {
-                    const result = await updateLiveEvents(notice_id, content.liveId);
-                    if (result.changedRows == 0) {
-                        // 이미 처리된 알림
-                        return reject(null);
-                    }
-                }
-                resolve(content as Content);
+            .get<Content>(`${hashId}/station`)
+            .then(async content => {
+                const {
+                    broad, // 방송 정보
+                    station, // 채널 정보
+                    profile_image, // 프로필 이미지
+                } = content;
+
+                // if (content && content.status === 'OPEN') {
+                //     await insertLiveEvents(noticeId, content.liveId);
+                // } else {
+                //     const result = await updateLiveEvents(noticeId, content.liveId);
+                //     if (result.changedRows == 0) {
+                //         // 이미 처리된 알림
+                //         return reject(null);
+                //     }
+                // }
+                // resolve(content as Content);
             })
             .catch(reject);
     });
