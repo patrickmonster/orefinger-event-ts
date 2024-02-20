@@ -27,12 +27,6 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
 
-      # - name: ⚙️ 환경변수를 설정합니다.
-      #   working-directory: ./
-      #   run: |
-      #     cp ./src/env/.env.development .env
-      #     cat .env
-
       - name: ✨ 패키지 설치
         working-directory: ./
         run: |
@@ -42,9 +36,6 @@ jobs:
       - name: ✨ 빌드 과정을 시작
         working-directory: ./
         run: yarn run build
-        
-      # - name: 📦 빌드한 코드를 압축
-      #   run: zip -r promise-dev.zip ./dist ./.env ./src ./appspec.yml ./package.json
 
       - name: 🌎 AWS에 접속
         uses: aws-actions/configure-aws-credentials@v1
@@ -62,3 +53,29 @@ jobs:
           docker build -t orefinger.eventsub .
           docker tag orefinger.eventsub:latest 417941206094.dkr.ecr.ap-northeast-2.amazonaws.com/orefinger.eventsub:latest
           docker push 417941206094.dkr.ecr.ap-northeast-2.amazonaws.com/orefinger.eventsub:latest
+
+  merge :
+    needs: build
+    name : Merge to develop
+    runs-on: ubuntu-latest
+    steps:
+      - name: Merge to develop
+        run: |
+          git checkout develop
+          git merge master
+          git push origin develop
+  
+  tag :
+    needs: build
+    name : Create tag
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.update-version.outputs.version }} 
+    steps:
+      - name : Get pakage version and create tag
+        id: update-version
+        run: |
+          version=$(node -p 'require("./package.json").version')
+          git tag -a v${version} -m "Version ${version}"
+          echo "::set-output name=version::v${version}"
+          git push origin v${version}

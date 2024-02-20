@@ -1,5 +1,5 @@
 'use strict';
-import getConnection, { query, SqlInsertUpdate, queryFunctionType } from 'utils/database';
+import getConnection, { SqlInsertUpdate, query, queryFunctionType } from 'utils/database';
 
 const roleType = 52;
 

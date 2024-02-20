@@ -188,7 +188,7 @@ export const getCommand = <E extends IReply, F>(
                         ? command.default.alias
                         : [command.default.alias]
                     : [];
-                for (const alias of aliasList) prev.push([[...path, alias].join(pathTag), command.exec]);
+                for (const alias of aliasList) prev.push([[alias].join(pathTag), command.exec]);
             } catch (e) {
                 console.error(e);
             }

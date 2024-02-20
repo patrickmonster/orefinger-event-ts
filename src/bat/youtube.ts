@@ -141,5 +141,10 @@ const interval = async () => {
     console.log('탐색 :: Youtube', new Date(), pageIndex);
 };
 
-setInterval(interval, 1000 * 60 * 10); // 5분마다 실행
+const intervalIdx = setInterval(interval, 1000 * 60 * 10); // 5분마다 실행
 console.log('Youtube Batch Start!');
+
+process.on('SIGINT', function () {
+    console.log('Youtube Batch STOP!');
+    clearInterval(intervalIdx);
+});
