@@ -24,11 +24,12 @@ export const exec = async (interaction: MessageInteraction, type_id: string) => 
                     components: user,
                 });
             } else {
-                console.log('user', user);
+                console.log('user ::', user);
                 giveRoleAndNick(interaction, {
                     guild_id: guild_id,
                     auth_id: user.auth_id,
                     user_id: user.user_id,
+                    nick: user.name,
                     type: type_id,
                 }).catch(e => {
                     // TODO: 에러 처리
