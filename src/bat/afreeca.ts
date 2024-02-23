@@ -1,4 +1,4 @@
-import { selectEventBats } from 'controllers/bat';
+import { insertLiveEvents, selectEventBats, updateLiveEvents } from 'controllers/bat';
 import { deleteNoticeChannel } from 'controllers/notice';
 import { APIEmbed } from 'discord-api-types/v10';
 import { NoticeChannel } from 'interfaces/notice';
@@ -42,7 +42,7 @@ const convertVideoObject = (videoObject: Station, name?: string): APIEmbed => {
  * @param hashId
  * @returns
  */
-const getChannelLive = async (noticeId: number, hashId: string) =>
+const getChannelLive = async (noticeId: number, hashId: string, lastId: string | number) =>
     new Promise<Content | null>((resolve, reject) => {
         afreecaAPI
             .get<Content>(`${hashId}/station`)
@@ -53,16 +53,23 @@ const getChannelLive = async (noticeId: number, hashId: string) =>
                     profile_image, // 프로필 이미지
                 } = content;
 
-                // if (content && content.status === 'OPEN') {
-                //     await insertLiveEvents(noticeId, content.liveId);
-                // } else {
-                //     const result = await updateLiveEvents(noticeId, content.liveId);
-                //     if (result.changedRows == 0) {
-                //         // 이미 처리된 알림
-                //         return reject(null);
-                //     }
-                // }
-                // resolve(content as Content);
+                if (broad) {
+                    // 온라인
+                    const { broad_no } = broad;
+                    if (lastId === broad_no) {
+                        return reject(null);
+                    } else {
+                        await insertLiveEvents(noticeId, broad_no);
+                    }
+                } else {
+                    // 오프라인
+                    const result = await updateLiveEvents(noticeId);
+                    if (result.changedRows == 0) {
+                        // 이미 처리된 알림
+                        return reject(null);
+                    }
+                }
+                resolve(content);
             })
             .catch(reject);
     });
@@ -94,9 +101,9 @@ const interval = async () => {
             limit: 10,
         });
 
-        for (const { channels, notice_id, hash_id, message, name, img_idx } of list) {
+        for (const { channels, notice_id, hash_id, message, name, img_idx, id } of list) {
             try {
-                const liveStatus = await getChannelLive(notice_id, hash_id);
+                const liveStatus = await getChannelLive(notice_id, hash_id, id);
                 if (liveStatus && liveStatus.status === 'OPEN') {
                     // online
                     sendChannels(channels, {
