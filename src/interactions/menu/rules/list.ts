@@ -40,9 +40,6 @@ export const exec = async (interaction: MessageMenuInteraction) => {
                 editerComponent(
                     id,
                     [
-                        createPrimaryButton(`${id} option`, {
-                            label: '보조옵션 수정',
-                        }),
                         createSuccessButton(`${id} reload`, {
                             label: '새로고침',
                         }),

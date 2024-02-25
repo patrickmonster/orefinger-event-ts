@@ -96,10 +96,18 @@ export default async (interaction: IReply, { guild_id, auth_id, user_id, nick, t
 
     try {
         // 최신 인증 정보를 불러옴
-        const { role_id } = await insertAuthRule(auth_id, guild_id, type);
+        const { role_id, tag_kr } = await insertAuthRule(auth_id, guild_id, type);
 
-        const { roles } = user;
+        const { roles, nick: originNick } = user;
+        if (!role_id) {
+            return interaction.reply({
+                embeds: [
+                    errorEmbed('ROLE_NOT_FOUND', { target: `auth-${auth_id}`, title: '역할이 지정되지 않았습니다!' }),
+                ],
+            });
+        }
         const hasRole = roles.includes(role_id);
+        const changeNick = `${tag_kr}]${nick}`;
 
         if (!hasRole) {
             try {
@@ -117,11 +125,29 @@ export default async (interaction: IReply, { guild_id, auth_id, user_id, nick, t
             }
         }
 
+        if (originNick != changeNick) {
+            try {
+                await discord.patch(`/guilds/${guild_id}/members/${auth_id}`, {
+                    nick: `${tag_kr}]${nick}`,
+                });
+            } catch (e: any) {
+                return interaction.reply({
+                    embeds: [
+                        errorEmbed('DISCORDAPI', {
+                            target: `auth-${auth_id}`,
+                            title: `ERROR - ${e.code}`,
+                            description: '디스코드 닉네임 변경에 실패 했습니다.',
+                        }),
+                    ],
+                });
+            }
+        }
+
         interaction.reply({
             embeds: [
                 {
                     title: '인증 성공',
-                    description: `<@${auth_id}>\n성공적으로 인증이 완료 되었습니다.\n\n${nick}님 환영합니다.`,
+                    description: `<@${auth_id}>\n성공적으로 인증이 완료 되었습니다.\n\n${tag_kr}]${nick}님 환영합니다.`,
                     // thumbnail: {
                     //     url: profileImageUrl,
                     // },
@@ -129,45 +155,6 @@ export default async (interaction: IReply, { guild_id, auth_id, user_id, nick, t
                 },
             ],
         });
-
-        // getNickname(interaction, type, user_id)
-        //     .then(async ({ nickname, profileImageUrl }) => {
-        //         // await changeNickname(guild_id, auth_id, nickname).catch(e => {
-        //         //     interaction.reply({
-        //         //         embeds: [
-        //         //             errorEmbed('DISCORDAPI', {
-        //         //                 target: `auth-${auth_id}`,
-        //         //                 title: `ERROR - ${e.code}`,
-        //         //                 description: '디스코드 닉네임 변경에 실패 했습니다.',
-        //         //             }),
-        //         //         ],
-        //         //     });
-        //         // });
-
-        //         return interaction.reply({
-        //             embeds: [
-        //                 {
-        //                     title: '인증 성공',
-        //                     description: `<@${auth_id}>\n성공적으로 인증이 완료 되었습니다.\n\n${nickname}님 환영합니다.`,
-        //                     thumbnail: {
-        //                         url: profileImageUrl,
-        //                     },
-        //                     color: 0x00ff00,
-        //                 },
-        //             ],
-        //         });
-        //     })
-        //     .catch(e => {
-        //         return interaction.reply({
-        //             embeds: [
-        //                 {
-        //                     title: '인증 실패',
-        //                     description: `닉네임을 정상적으로 불러오지 못하였습니다`,
-        //                     color: 0xff0000,
-        //                 },
-        //             ],
-        //         });
-        //     });
     } catch (e) {
         console.error('ERROR', e);
     }

@@ -22,14 +22,19 @@ export const exec = async (interaction: MessageMenuInteraction, noticeType: stri
 
     try {
         switch (noticeType) {
+            case '2': {
+                // 유튜브
+                noticeId = await getYoutubeUser(hashId);
+                break;
+            }
             case '4': {
                 // 치지직
                 noticeId = await getChzzkUser(hashId);
                 break;
             }
-            case '2': {
-                // 유튜브
-                noticeId = await getYoutubeUser(hashId);
+            case '5': {
+                // 아프리카
+                noticeId = await getChzzkUser(hashId);
                 break;
             }
             default: {

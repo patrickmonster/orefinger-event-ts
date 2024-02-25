@@ -1,11 +1,6 @@
 import { MessageInteraction } from 'interactions/message';
 
-import {
-    selectEmbedUserBaseEditByModel,
-    selectEmbedUserBaseEditByModel2,
-    selectEmbedUserDtilByEmbed,
-    upsertEmbedUser,
-} from 'controllers/embed';
+import { selectEmbedUserBaseEditByModel, selectEmbedUserDtilByEmbed, upsertEmbedUser } from 'controllers/embed';
 
 import { getAuthbordeList } from 'controllers/guild/authDashbord';
 /**
@@ -26,17 +21,6 @@ export const exec = async (interaction: MessageInteraction, auth_id: string, tar
                 content,
                 embeds: [embed],
             });
-            break;
-        }
-        case 'option': {
-            const model = await selectEmbedUserBaseEditByModel2(embed_id);
-
-            // 모달처리
-            interaction.model({
-                ...model,
-                custom_id: `rules edit ${embed_id}`,
-            });
-
             break;
         }
         case 'edit': {
