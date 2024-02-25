@@ -16,7 +16,7 @@ const randomIntegerInRange = (min: number, max: number) => Math.floor(Math.rando
  * @param videoObject
  * @returns
  */
-const convertVideoObject = (videoObject: Station, name?: string): APIEmbed => {
+const convertVideoObject = (videoObject: Content, name?: string): APIEmbed => {
     const {
         broad: { broad_title: title, broad_no, user_id },
         station: { user_nick: channelName },
@@ -104,7 +104,7 @@ const interval = async () => {
         for (const { channels, notice_id, hash_id, message, name, img_idx, id } of list) {
             try {
                 const liveStatus = await getChannelLive(notice_id, hash_id, id);
-                if (liveStatus && liveStatus.status === 'OPEN') {
+                if (liveStatus) {
                     // online
                     sendChannels(channels, {
                         content: message,
@@ -127,6 +127,11 @@ const interval = async () => {
     console.log('탐색 :: Youtube', new Date(), pageIndex);
 };
 
-setInterval(interval, 1000 * 60 * 5); // 5분마다 실행
-console.log('Chzzk Batch Start!');
+const intervalIdx = setInterval(interval, 1000 * 60 * 5); // 5분마다 실행
+console.log('Afreeca Batch Start!');
 // interval();
+
+process.on('SIGINT', function () {
+    console.log('Afreeca Batch STOP!');
+    clearInterval(intervalIdx);
+});
