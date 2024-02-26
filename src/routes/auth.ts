@@ -613,7 +613,7 @@ export default async (fastify: FastifyInstance, opts: any) => {
                             {
                                 id: user.id,
                                 username: nickname,
-                                discriminator: '-',
+                                discriminator: nickname,
                                 email: email || '-',
                                 avatar: profile_image,
                             },

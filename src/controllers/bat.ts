@@ -70,15 +70,14 @@ LIMIT 30
         notice_id
     );
 
-export const insertLiveEvents = async (notice_id: number, id: string) =>
+export const insertLiveEvents = async (notice_id: number, id: string | number) =>
     query(`INSERT INTO notice_live SET ?`, {
         notice_id,
         id,
     });
 
-export const updateLiveEvents = async (notice_id: number, id: string) =>
+export const updateLiveEvents = async (notice_id: number) =>
     query<SqlInsertUpdate>(
-        `UPDATE notice_live SET end_at=CURRENT_TIMESTAMP WHERE notice_id=? AND id=? AND end_at IS NULL`,
-        notice_id,
-        id
+        `UPDATE notice_live SET end_at=CURRENT_TIMESTAMP WHERE notice_id=? AND end_at IS NULL`,
+        notice_id
     );

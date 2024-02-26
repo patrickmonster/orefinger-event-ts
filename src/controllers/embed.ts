@@ -154,7 +154,7 @@ SELECT CONCAT(${calTo('?', embed_id || 0)}, '] 임베드 수정') as title,
         ),
         JSON_OBJECT(
             'type', 1, 'components', JSON_ARRAY(
-                JSON_OBJECT('type', 4,'custom_id', 'thumbnail', 'label', '우측 이미지', 'value', IFNULL(thumbnail, ''), 'min_length', 1, 'max_length', 200, 'style', 1, 'required', false )
+                JSON_OBJECT('type', 4,'custom_id', 'thumbnail', 'label', '우측 이미지', 'value', IFNULL(thumbnail, ''), 'min_length', 0, 'max_length', 200, 'style', 1, 'required', false )
             )
         ),
         JSON_OBJECT(
