@@ -21,7 +21,7 @@ jobs:
 
     outputs:
       version: ${{ steps.update-version.outputs.version }} 
-      branch: ${{ github.event.inputs.branch }}/${{ steps.update-version.outputs.version }}
+      branch: release/${{ steps.update-version.outputs.version }}
     steps : 
       - name : 🚀 깃 정보 로딩
         uses: actions/checkout@v3
