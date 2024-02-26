@@ -1,9 +1,6 @@
 'use strict';
-import { AuthUser } from 'interfaces/auth';
-import getConnection, { SqlInsertUpdate, YN, calTo, query, queryFunctionType } from 'utils/database';
+import { SqlInsertUpdate, YN, calTo, query } from 'utils/database';
 
-import { APIUser } from 'discord-api-types/v10';
-import { Event } from 'interfaces/eventsub';
 import { AuthBord, AuthBordPK } from 'interfaces/authBord';
 
 // 인증 데시보드를 불러 옵니다.
@@ -31,10 +28,10 @@ SELECT
 FROM auth_bord ab
 LEFT JOIN v_embed_user veu ON ab.embed_id  = veu.embed_id
 WHERE 1=1
+AND guild_id = ?
 ${calTo('and ab.type = ?', type)}
     `,
-        guild,
-        type
+        guild
     );
 
 export const getAuthbordeList = async (guild: string, auth_type?: number | string) =>
