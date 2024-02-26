@@ -53,29 +53,24 @@ jobs:
           docker build -t orefinger.eventsub .
           docker tag orefinger.eventsub:latest 417941206094.dkr.ecr.ap-northeast-2.amazonaws.com/orefinger.eventsub:latest
           docker push 417941206094.dkr.ecr.ap-northeast-2.amazonaws.com/orefinger.eventsub:latest
-
+  
   merge :
     needs: build
     name : Merge to develop
     runs-on: ubuntu-latest
     steps:
-      - name: Merge to develop
-        run: |
-          git checkout develop
-          git merge master
-          git push origin develop
-  
-  tag :
-    needs: build
-    name : Create tag
-    runs-on: ubuntu-latest
-    outputs:
-      version: ${{ steps.update-version.outputs.version }} 
-    steps:
-      - name : Get pakage version and create tag
-        id: update-version
+      - name: ✅ 체크아웃 source code.
+        uses: actions/checkout@v3
+        with:
+          ref : master
+      - name: 🛠 Merge to develop
         run: |
           version=$(node -p 'require("./package.json").version')
+          git checkout develop
+          git merge releease/${version}
+          git push origin develop
+          
+          
           git tag -a v${version} -m "Version ${version}"
           echo "::set-output name=version::v${version}"
           git push origin v${version}
