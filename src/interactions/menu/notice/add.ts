@@ -1,5 +1,6 @@
 import { MessageMenuInteraction } from 'interactions/message';
 
+import { getAfreecabeUser } from 'components/afreecaUser';
 import { getChzzkUser } from 'components/chzzkUser';
 import { getNoticeDetailByEmbed } from 'components/notice';
 import { getYoutubeUser } from 'components/youtubeUser';
@@ -34,7 +35,7 @@ export const exec = async (interaction: MessageMenuInteraction, noticeType: stri
             }
             case '5': {
                 // 아프리카
-                noticeId = await getChzzkUser(hashId);
+                noticeId = await getAfreecabeUser(hashId);
                 break;
             }
             default: {

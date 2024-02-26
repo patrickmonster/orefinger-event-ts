@@ -2,78 +2,40 @@ import axios from 'axios';
 import { upsertNotice } from 'controllers/notice';
 import redis, { REDIS_KEY } from 'utils/redis';
 
+import { Content } from 'interfaces/API/Afreeca';
 import qs from 'querystring';
-import { parseString } from 'xml2js';
+import afreecaAPI from 'utils/afreecaApiInstance';
 
 interface ChannelData {
-    kind: string;
-    etag: string;
-    id: {
-        kind: string;
-        channelId: string;
-    };
-    snippet: {
-        channelId: string;
-        title: string;
-        description: string;
-        publishedAt: string;
-        thumbnails: {
-            default: {
-                url: string;
-                width: number;
-                height: number;
-            };
-            medium: {
-                url: string;
-                width: number;
-                height: number;
-            };
-            high: {
-                url: string;
-                width: number;
-                height: number;
-            };
-        };
-    };
+    user_id: string;
+    user_nick: string;
+    station_logo: string;
+    medal: boolean;
+    broad_no: string;
 }
 
-export const getYoutubeUser = async (youtubeHash: string): Promise<number> => {
-    const { data } = await axios.get(`https://www.youtube.com/feeds/videos.xml?channel_id=${youtubeHash}`);
-    return new Promise((resolve, reject) => {
-        parseString(data, async (err, { feed }) => {
-            console.log('?', feed, err);
+export const getAfreecabeUser = async (afreecaId: string) => {
+    try {
+        const { station } = await afreecaAPI.get<Content>(`${afreecaId}/station`);
+        if (!station) {
+            console.log('AFREECA 사용자 정보를 찾을 수 없습니다.', afreecaId);
+            return 0;
+        }
 
-            if (err) {
-                return reject(err);
-            }
-
-            const {
-                author: [
-                    {
-                        name: [name],
-                    },
-                ],
-            } = feed;
-
-            try {
-                const noticeId = await upsertNotice(
-                    {
-                        hash_id: youtubeHash,
-                        notice_type: 2,
-                        message: '|| @everyone || New Video! 🎬',
-                        name: name,
-                    },
-                    true
-                );
-
-                resolve(noticeId);
-            } catch (e) {
-                console.log('e', e);
-
-                reject(e);
-            }
-        });
-    });
+        const noticeId = await upsertNotice(
+            {
+                hash_id: afreecaId,
+                notice_type: 5,
+                message: '|| @everyone || Live ON Air! 📺',
+                name: station.user_nick,
+            },
+            true
+        );
+        return noticeId;
+    } catch (e) {
+        console.log('AFREECA 사용자 정보를 찾을 수 없습니다.', e);
+        return 0;
+    }
 };
 
 /**
@@ -84,7 +46,7 @@ export const getYoutubeUser = async (youtubeHash: string): Promise<number> => {
 export const searchYoutubeUser = async (keyword: string): Promise<Array<{ name: string; value: string }>> => {
     if (`${keyword}`.length < 2) return [];
 
-    const redisKey = REDIS_KEY.API.SEARCH_USER(`youtube:${keyword}`);
+    const redisKey = REDIS_KEY.API.SEARCH_USER(`afreeca:${keyword}`);
 
     try {
         const data = await redis.get(redisKey);
@@ -95,22 +57,22 @@ export const searchYoutubeUser = async (keyword: string): Promise<Array<{ name: 
         }
     } catch (e) {
         const {
-            data: { items },
+            data: { suggest_bj: items },
         } = await axios.get<{
-            items: Array<ChannelData>;
+            suggest_bj: Array<ChannelData>;
         }>(
-            `https://www.googleapis.com/youtube/v3/search?${qs.stringify({
-                part: 'snippet',
-                q: `${keyword}`,
-                type: 'channel',
-                maxResults: 15,
-                key: process.env.YOUTUBE_API_KEY,
+            `https://sch.afreecatv.com/api.php${qs.stringify({
+                m: 'searchHistory',
+                service: 'list',
+                d: `${keyword}`,
+                // _ :'1708908097116',
+                v: '3.0',
             })}`
         );
 
-        const result = items.map(({ snippet: { channelId, title } }): { name: string; value: string } => ({
-            name: title,
-            value: channelId,
+        const result = items.map(({ user_id, user_nick }): { name: string; value: string } => ({
+            name: user_nick,
+            value: user_id,
         }));
 
         if (result)
@@ -119,49 +81,5 @@ export const searchYoutubeUser = async (keyword: string): Promise<Array<{ name: 
             });
 
         return result || [];
-
-        // const {
-        //     content: { data },
-        // } = await chzzk.get<
-        //     ChzzkInterface<{
-        //         size: number;
-        //         page?: {
-        //             next: {
-        //                 offset: number;
-        //             };
-        //         };
-        //         data: Array<{
-        //             live: any;
-        //             channel: ChannelData;
-        //         }>;
-        //     }>
-        // >(
-        //     `/search/channels?${qs.stringify({
-        //         keyword: `${keyword}`,
-        //         offset: 0,
-        //         size: 12,
-        //     })}`,
-        //     {
-        //         headers: {
-        //             'Content-Type': 'application/json',
-        //             'User-Agent':
-        //                 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36',
-        //         },
-        //     }
-        // );
-
-        // const result = data.map(
-        //     ({ channel: { channelId, channelName, verifiedMark } }): { name: string; value: string } => ({
-        //         name: `${verifiedMark ? '인증됨]' : ''}${channelName}`,
-        //         value: channelId,
-        //     })
-        // );
-
-        // if (result)
-        //     await redis.set(redisKey, JSON.stringify(result), {
-        //         EX: 60 * 60 * 24,
-        //     });
-
-        return [];
     }
 };
