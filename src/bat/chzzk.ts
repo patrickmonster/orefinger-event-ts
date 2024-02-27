@@ -140,7 +140,6 @@ const interval = async () => {
                     // offline
                 }
             } catch (e) {
-                console.log('Error: ', hash_id);
                 continue;
             }
         }
