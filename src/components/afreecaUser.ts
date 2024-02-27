@@ -43,7 +43,7 @@ export const getAfreecabeUser = async (afreecaId: string) => {
  * @param keyword 검색어
  * @returns Array<{ name: string; value: string }>
  */
-export const searchYoutubeUser = async (keyword: string): Promise<Array<{ name: string; value: string }>> => {
+export const searchAfreecabeUser = async (keyword: string): Promise<Array<{ name: string; value: string }>> => {
     if (`${keyword}`.length < 2) return [];
 
     const redisKey = REDIS_KEY.API.SEARCH_USER(`afreeca:${keyword}`);
