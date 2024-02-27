@@ -39,6 +39,24 @@ export const exec = async (interaction: MessageInteraction, noticeType: string) 
                 custom_id: `notice add ${noticeType}`,
                 title: '치치직 - 알림추가',
             });
+            break;
+        }
+        case '5': {
+            // 치지직
+            interaction.model({
+                components: [
+                    createTextShortInput(`value`, {
+                        label: '채널명을 입력해주세요.',
+                        placeholder: '채널명 or afreecaId',
+                        max_length: 50,
+                        min_length: 1,
+                        required: true,
+                    }),
+                ],
+                custom_id: `notice add ${noticeType}`,
+                title: '아프리카 - 알림추가',
+            });
+            break;
         }
     }
 };

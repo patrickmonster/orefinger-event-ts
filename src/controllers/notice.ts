@@ -5,7 +5,7 @@ import {
     SelectMenuDefaultValueType,
 } from 'discord-api-types/v10';
 import { NoticeDetail } from 'interfaces/notice';
-import getConnection, { SqlInsertUpdate, format, query } from 'utils/database';
+import getConnection, { SqlInsertUpdate, calTo, format, query } from 'utils/database';
 
 export type NoticeId = number | string;
 
@@ -62,21 +62,22 @@ export const deleteOrInsertNoticeChannels = async (notice_id: NoticeId, guild_id
             `
 UPDATE notice_channel 
 SET use_yn = 'N', update_at = CURRENT_TIMESTAMP
-WHERE notice_id = ? AND guild_id = ? AND channel_id NOT IN (?)
-            `,
+WHERE notice_id = ? AND guild_id = ?
+${calTo(`AND channel_id NOT IN (?)`, channel_ids)}
+                `,
             notice_id,
-            guild_id,
-            channel_ids
+            guild_id
         );
 
         // 다중 insert
-        query(
-            `
+        if (channel_ids && channel_ids.length)
+            query(
+                `
 INSERT INTO notice_channel (notice_id, guild_id, channel_id, use_yn)
 VALUES ${channel_ids.map(channel_id => format('(?)', [[notice_id, guild_id, channel_id, 'Y']])).join(',')}
 ON DUPLICATE KEY UPDATE use_yn = 'Y', update_at=CURRENT_TIMESTAMP
-        `
-        );
+            `
+            );
     }, true);
 
 export const upsertNotice = async (notiecData: Partial<NoticeDetail>, noChageOrigin?: boolean) =>
