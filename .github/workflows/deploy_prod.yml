@@ -67,10 +67,10 @@ jobs:
         run: |
           version=$(node -p 'require("./package.json").version')
           git checkout develop
+          echo "Merge to develop releease/${version}"
           git merge releease/${version}
           git push origin develop
           
           
           git tag -a v${version} -m "Version ${version}"
-          echo "::set-output name=version::v${version}"
           git push origin v${version}

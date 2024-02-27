@@ -2,6 +2,7 @@
     "dependencies": {
         "@aws-sdk/client-s3": "^3.417.0",
         "@aws-sdk/s3-request-presigner": "^3.418.0",
+        "@discordjs/rest": "^2.2.0",
         "@fastify/autoload": "^5.7.1",
         "@fastify/cors": "^8.3.0",
         "@fastify/helmet": "^11.0.0",
@@ -53,7 +54,7 @@
         "tabWidth": 4
     },
     "name": "discord-notification-ts",
-    "version": "3.1.13",
+    "version": "3.1.14",
     "main": "index.js",
     "repository": "https://github.com/patrickmonster/discord-notification-ts.git",
     "author": "Soung jin Ryu <neocat@kakao.com>",

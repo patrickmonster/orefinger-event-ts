@@ -27,15 +27,17 @@ export const exec = async (interaction: MessageMenuInteraction, []: string[]) =>
             await interaction.reply({ content: '데시보드 출력중...' });
             discord
                 .post(`/channels/${channel.id}/messages`, {
-                    embeds: embed ? [embed] : null,
-                    components: [
-                        createActionRow(
-                            createPrimaryButton(`rules oauth ${type_id}`, {
-                                label: `인증 - ${type}`,
-                                emoji: { name: '🔐' },
-                            })
-                        ),
-                    ],
+                    body: {
+                        embeds: embed ? [embed] : null,
+                        components: [
+                            createActionRow(
+                                createPrimaryButton(`rules oauth ${type_id}`, {
+                                    label: `인증 - ${type}`,
+                                    emoji: { name: '🔐' },
+                                })
+                            ),
+                        ],
+                    },
                 })
                 .catch(e => {
                     console.log(e.response.data);
