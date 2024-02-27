@@ -124,7 +124,7 @@ const interval = async () => {
         await sleep(100 * random); // Cull down the request
     } while (true);
 
-    console.log('탐색 :: Youtube', new Date(), pageIndex);
+    console.log('탐색 :: Afreeca', new Date(), pageIndex);
 };
 
 const intervalIdx = setInterval(interval, 1000 * 60 * 5); // 5분마다 실행
