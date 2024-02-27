@@ -61,13 +61,20 @@ export const searchAfreecabeUser = async (keyword: string): Promise<Array<{ name
         } = await axios.get<{
             suggest_bj: Array<ChannelData>;
         }>(
-            `https://sch.afreecatv.com/api.php${qs.stringify({
+            // https://sch.afreecatv.com/api.php?m=searchHistory&service=list&d=9%25ED%2598%25B8&_=1709010129455&v=3.0
+            `https://sch.afreecatv.com/api.php?${qs.stringify({
                 m: 'searchHistory',
                 service: 'list',
                 d: `${keyword}`,
                 // _ :'1708908097116',
                 v: '3.0',
-            })}`
+            })}`,
+            {
+                headers: {
+                    'user-agent':
+                        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.0.0 Safari/537.36',
+                },
+            }
         );
 
         const result = items.map(({ user_id, user_nick }): { name: string; value: string } => ({
