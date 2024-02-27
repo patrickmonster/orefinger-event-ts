@@ -1,4 +1,4 @@
-import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
+import { FastifyInstance } from 'fastify';
 
 import discord from 'utils/discordApiInstance';
 
@@ -73,9 +73,11 @@ export default async (fastify: FastifyInstance, opts: any) => {
 
             return await discord
                 .post(`/channels/${channel_id}/messages`, {
-                    content,
-                    embeds,
-                    components,
+                    body: {
+                        content,
+                        embeds,
+                        components,
+                    },
                 })
                 .catch(e => {
                     console.log(e.response.data);

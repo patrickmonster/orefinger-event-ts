@@ -1,15 +1,4 @@
-import {
-    APIApplicationCommandSubcommandOption,
-    ApplicationCommandOptionType,
-    ComponentType,
-} from 'discord-api-types/v10';
-import { basename } from 'path';
 import { MessageMenuInteraction } from 'interactions/message';
-import { getDashboard } from 'controllers/guild/authDashbord';
-
-import { createActionRow, createPrimaryButton, createStringSelectMenu } from 'utils/discord/component';
-
-import discord from 'utils/discordApiInstance';
 
 /**
  *

@@ -2,7 +2,7 @@ import { getUser } from './twitch';
 
 import { tusu } from 'controllers/role';
 import { IReply } from 'plugins/discord';
-import discord from 'utils/discordApiInstance';
+import discord, { changeNickname } from 'utils/discordApiInstance';
 import errorEmbed from './errorEmbed';
 
 /**
@@ -52,13 +52,15 @@ export default async (interaction: IReply, guild_id: string, user_id: string, tw
                 if (channel_id && channel_id != 'null' && channel_id != 'undefined')
                     await discord
                         .post(`/channels/${channel_id}/messages`, {
-                            content: `<@${user_id}>`,
-                            embeds: [{ title: ment, author: { name: nick, icon_url: profile_image_url } }],
+                            body: {
+                                content: `<@${user_id}>`,
+                                embeds: [{ title: ment, author: { name: nick, icon_url: profile_image_url } }],
+                            },
                         })
                         .catch(e => {});
 
                 try {
-                    await discord.patch(`/guilds/${guild_id}/members/${user_id}`, { nick });
+                    await changeNickname(guild_id, user_id, nick);
                 } catch (e) {}
             } catch (e) {
                 console.log('e', e);

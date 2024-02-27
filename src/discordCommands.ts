@@ -32,7 +32,9 @@ function registerCmd(commands: RESTPutAPIApplicationCommandsJSONBody) {
     discord
         .put(
             `/applications/${env.DISCORD_CLIENT_ID}/${env.TARGET_GUILD ? `guilds/${env.TARGET_GUILD}/` : ''}commands`,
-            JSON.parse(JSON.stringify(commands, bigintConvert))
+            {
+                body: JSON.parse(JSON.stringify(commands, bigintConvert)),
+            }
         )
         .then(res => {
             console.log('명령어 등록]', res);

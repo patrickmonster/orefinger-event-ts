@@ -12,14 +12,14 @@ export type Attachment = {
 export const getEmojis = async (guildId: string): Promise<RESTGetAPIGuildEmojisResult> =>
     catchRedis(
         REDIS_KEY.DISCORD.GUILD_EMOJIS(guildId),
-        async () => await discord.get<RESTGetAPIGuildEmojisResult>(`/guilds/${guildId}/emojis`),
+        async () => (await discord.get(`/guilds/${guildId}/emojis`)) as RESTGetAPIGuildEmojisResult,
         60 * 30 // 30분
     );
 
 export const getMemtions = async (guildId: string): Promise<RESTGetAPIGuildEmojisResult> =>
     catchRedis(
         REDIS_KEY.DISCORD.GUILD_ROLES(guildId),
-        async () => await discord.get<RESTGetAPIGuildEmojisResult>(`/guilds/${guildId}/roles`),
+        async () => (await discord.get(`/guilds/${guildId}/roles`)) as RESTGetAPIGuildEmojisResult,
         60 * 30 // 30분
     );
 

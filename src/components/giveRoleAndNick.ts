@@ -1,6 +1,6 @@
 import { insertAuthRule } from 'controllers/role';
 import { IReply } from 'plugins/discord';
-import discord from 'utils/discordApiInstance';
+import discord, { changeNickname } from 'utils/discordApiInstance';
 import errorEmbed from './errorEmbed';
 
 import { APIGuildMember } from 'discord-api-types/v10';
@@ -89,7 +89,7 @@ const getNickname = async (
  * 역할 및 닉네임을 부여 합니다.
  */
 export default async (interaction: IReply, { guild_id, auth_id, user_id, nick, type }: IAuth) => {
-    const user = await discord.get<APIGuildMember>(`/guilds/${guild_id}/members/${auth_id}`);
+    const user = (await discord.get(`/guilds/${guild_id}/members/${auth_id}`)) as APIGuildMember;
     if (!user) return interaction.reply({ embeds: [errorEmbed('USER_NOT_FOUND', { target: `auth-${auth_id}` })] });
 
     console.log('USER', user);
@@ -127,9 +127,7 @@ export default async (interaction: IReply, { guild_id, auth_id, user_id, nick, t
 
         if (originNick != changeNick) {
             try {
-                await discord.patch(`/guilds/${guild_id}/members/${auth_id}`, {
-                    nick: `${tag_kr}]${nick}`,
-                });
+                await changeNickname(guild_id, auth_id, changeNick);
             } catch (e: any) {
                 return interaction.reply({
                     embeds: [
