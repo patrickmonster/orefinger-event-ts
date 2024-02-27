@@ -35,7 +35,7 @@ export const exec = async (interaction: AppChatInputInteraction, selectOption: S
     await interaction.differ({ ephemeral: true });
     switch (type) {
         case choices.indexOf('게시글복구'): {
-            const result = await discord.get<APIThreadList>(`/channels/${selectChannel}/threads/archived/public`);
+            const result = (await discord.get(`/channels/${selectChannel}/threads/archived/public`)) as APIThreadList;
             const { threads, members } = result;
 
             const list = threads.map(({ id, name }) => `<#${id}> - ${name}`);

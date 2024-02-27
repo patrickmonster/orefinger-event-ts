@@ -104,7 +104,7 @@ export default async (fastify: FastifyInstance, opts: any) => {
                 },
             },
             async req => {
-                const user = await discordApi.get<APIUser>(`/users/${req.params.user_id}`);
+                const user = (await discordApi.get(`/users/${req.params.user_id}`)) as APIUser;
                 return await upsertDiscordUserAndJWTToken(user);
             }
         );

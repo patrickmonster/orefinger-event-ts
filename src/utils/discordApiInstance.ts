@@ -1,4 +1,5 @@
 'use strict';
+import { REST } from '@discordjs/rest';
 import axios, { AxiosInstance, AxiosRequestConfig } from 'axios';
 import { RESTPostAPIChannelMessage } from 'plugins/discord';
 import sleep from 'utils/sleep';
@@ -12,26 +13,36 @@ interface CustomInstance extends AxiosInstance {
     put<T>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T>;
     patch<T>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T>;
 }
-const discord: CustomInstance = axios.create({
-    baseURL: 'https://discord.com/api/', // discordTk
-    headers: { authorization: `Bot ${process.env.DISCORD_TOKEN}` },
+// const discord: CustomInstance = axios.create({
+//     baseURL: 'https://discord.com/api/', // discordTk
+//     headers: { authorization: `Bot ${process.env.DISCORD_TOKEN}` },
+// });
+
+// discord.interceptors.response.use(
+//     ({ data }) => data,
+//     async error => {
+//         if (error.config && error.response && error.response.status === 429) {
+//             console.log('Too Many Requests! Retrying...');
+//             const { message, retry_after } = error.response.data;
+//             await sleep(Math.ceil(retry_after / 1000) + 1);
+//             return discord(error.config);
+//         }
+//         errorLog('AXIOS', error);
+//         throw error;
+//     }
+// );
+
+const rest = new REST({ version: '10' }).setToken(`${process.env.DISCORD_TOKEN}`);
+
+rest.on('rateLimited', rateLimitInfo => {
+    console.log(`Rate limited for ${rateLimitInfo.sublimitTimeout}ms`);
 });
 
-discord.interceptors.response.use(
-    ({ data }) => data,
-    async error => {
-        if (error.config && error.response && error.response.status === 429) {
-            console.log('Too Many Requests! Retrying...');
-            const { message, retry_after } = error.response.data;
-            await sleep(Math.ceil(retry_after / 1000) + 1);
-            return discord(error.config);
-        }
-        errorLog('AXIOS', error);
-        throw error;
-    }
-);
+rest.on('invalidRequestWarning', invalidRequestInfo => {
+    console.log(`Invalid request warning: ${invalidRequestInfo.count} ${invalidRequestInfo.remainingTime}`);
+});
 
-export default discord;
+export default rest;
 export const openApi = axios.create({
     baseURL: 'https://discord.com/api/', // discordTk
 });
@@ -41,7 +52,7 @@ openApi.interceptors.response.use(null, async error => {
         console.log('Too Many Requests! Retrying...');
         const { message, retry_after } = error.response.data;
         await sleep(Math.ceil(retry_after / 1000) + 1);
-        return discord(error.config);
+        return openApi(error.config);
     }
     errorLog('AXIOS', error);
     throw error;
@@ -80,4 +91,6 @@ export const getToken = async (refresh_token: string) =>
     );
 
 export const changeNickname = async (guild_id: string, user_id: string, nick: string) =>
-    discord.patch(`/guilds/${guild_id}/members/${user_id}`, { nick });
+    rest.patch(`/guilds/${guild_id}/members/${user_id}`, {
+        body: { nick },
+    });

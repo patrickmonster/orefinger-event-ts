@@ -13,17 +13,19 @@ import discord from 'utils/discordApiInstance';
 import { REDIS_KEY, catchRedis } from 'utils/redis';
 import { getEmojis, getMemtions } from './discord';
 
-export const guild = async (guild_id: string) => await discord.get<RESTGetAPIGuildResult>(`/guilds/${guild_id}`);
+export const guild = async (guild_id: string) => (await discord.get(`/guilds/${guild_id}`)) as RESTGetAPIGuildResult;
 
 export const channels = async (guildId: string) =>
     catchRedis(
         REDIS_KEY.DISCORD.GUILD_CHANNELS(guildId),
-        async () => await discord.get<RESTGetAPIGuildChannelsResult>(`/guilds/${guildId}/channels`),
+        async () => (await discord.get(`/guilds/${guildId}/channels`)) as RESTGetAPIGuildChannelsResult,
         60 * 60
     );
 
 export const channelCreate = async (guild_id: string, data: RESTPostAPIGuildChannelJSONBody) => {
-    const channel = await discord.post<RESTPostAPIGuildChannelResult>(`/guilds/${guild_id}/channels`, data);
+    const channel = (await discord.post(`/guilds/${guild_id}/channels`, {
+        body: data,
+    })) as RESTPostAPIGuildChannelResult;
     const update = await channelUpsert([
         {
             guild_id,
@@ -40,13 +42,13 @@ export const channelCreate = async (guild_id: string, data: RESTPostAPIGuildChan
 // export const channelDelete = async (channel_id: string) =>
 
 export const channel = async (channel_id: string) =>
-    await discord.get<RESTPostAPIGuildChannelResult>(`/channels/${channel_id}`);
+    (await discord.get(`/channels/${channel_id}`)) as RESTPostAPIGuildChannelResult;
 
 export const webhooks = async (channel_id: string) =>
-    await discord.get<RESTGetAPIChannelWebhooksResult>(`/channels/${channel_id}/webhooks`);
+    (await discord.get(`/channels/${channel_id}/webhooks`)) as RESTGetAPIChannelWebhooksResult;
 
 export const webhookCreate = async (channel_id: string, data: { name: string; avatar?: string }) =>
-    await discord.post<RESTPostAPIChannelWebhookResult>(`/channels/${channel_id}/webhooks`, data);
+    (await discord.post(`/channels/${channel_id}/webhooks`, { body: data })) as RESTPostAPIChannelWebhookResult;
 
 const discordRegex = /<[a]?:([\w|\d]+):(\d{17,19})>/im; // 맨션
 const emojiRegex = /:(\w+)(~\d)?:/gim; // 이모티콘

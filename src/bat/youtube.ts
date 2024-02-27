@@ -91,7 +91,7 @@ const getChannelVideos = async (notice_id: number, hash_id: string) =>
 const sendChannels = async (channels: NoticeChannel[], message: any) => {
     for (const { notice_id, channel_id } of channels) {
         console.log('sendChannels', notice_id, channel_id);
-        discord.post(`/channels/${channel_id}/messages`, message).catch(() => {
+        discord.post(`/channels/${channel_id}/messages`, { body: message }).catch(() => {
             deleteNoticeChannel(notice_id, channel_id).catch(e => {
                 console.log('Error: ', e);
             });
