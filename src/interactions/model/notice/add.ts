@@ -1,5 +1,5 @@
-import { getChzzkUser, searchChzzkUser } from 'components/chzzkUser';
-import { getNoticeDetailByEmbed } from 'components/notice';
+import { searchAfreecabeUser } from 'components/afreecaUser';
+import { searchChzzkUser } from 'components/chzzkUser';
 import { searchYoutubeUser } from 'components/youtubeUser';
 import { APIActionRowComponent, APIMessageActionRowComponent } from 'discord-api-types/v10';
 import { MessageMenuInteraction } from 'interactions/message';
@@ -18,12 +18,16 @@ const searchUser = async (
 ): Promise<APIActionRowComponent<APIMessageActionRowComponent>[]> => {
     let list: Array<{ name: string; value: string }> = [];
     switch (noticeType) {
+        case '2': {
+            list = await searchYoutubeUser(keyword);
+            break;
+        }
         case '4': {
             list = await searchChzzkUser(keyword);
             break;
         }
-        case '2': {
-            list = await searchYoutubeUser(keyword);
+        case '5': {
+            list = await searchAfreecabeUser(keyword);
             break;
         }
         default:
@@ -75,34 +79,6 @@ const searchUser = async (
  */
 export const exec = async (interaction: MessageMenuInteraction, values: Record<string, string>, noticeType: string) => {
     const { value } = values;
-    const { guild_id, channel } = interaction;
-    if (!guild_id) return;
-
-    switch (noticeType) {
-        case '4': {
-            // 치지직 추가
-            if (hashIdChzzk.test(value)) {
-                const noticeId = await getChzzkUser(value);
-                if (noticeId) {
-                    const { embed, components } = await getNoticeDetailByEmbed(noticeId, guild_id);
-
-                    interaction.reply({
-                        embeds: [embed],
-                        ephemeral: true,
-                        components,
-                    });
-                } else {
-                    interaction.reply({
-                        content: '치지직 사용자를 찾을 수 없습니다.',
-                    });
-                }
-                return;
-            }
-            break;
-        }
-        default:
-            break;
-    }
 
     interaction.reply({
         content: '검색결과',
