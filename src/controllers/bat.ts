@@ -15,20 +15,22 @@ SELECT
 	, name
 	, img_idx
 	, JSON_ARRAYAGG(channel) AS channels
-	, if( 
-		video_yn = 'N',
-		(
-			SELECT nl.id FROM notice_live nl 
-			WHERE nl.notice_id = A.notice_id
-			ORDER BY nl.id desc
-			LIMIT 1
-		),
-		(
-			SELECT video_id FROM notice_video nv 
-			WHERE nv.notice_id = A.notice_id
-			ORDER BY nv.create_at DESC
-			LIMIT 1
-		)
+	, IFNULL(
+		IF( 
+			video_yn = 'N',
+			(
+				SELECT if(nl.end_at IS NOT NULL, nl.id, 0) FROM notice_live nl 
+				WHERE nl.notice_id = A.notice_id
+				ORDER BY nl.id desc
+				LIMIT 1
+			),
+			(
+				SELECT video_id FROM notice_video nv 
+				WHERE nv.notice_id = A.notice_id
+				ORDER BY nv.create_at DESC
+				LIMIT 1
+			)
+		), 0
 	) AS id
 FROM (
 	SELECT

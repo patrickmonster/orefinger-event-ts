@@ -89,10 +89,10 @@ const getChannelLive = async (notice_id: number, hash_id: string, liveId: string
                 if (content && content.status === 'OPEN') {
                     await insertLiveEvents(notice_id, content.liveId);
                 } else {
-                    const result = await updateLiveEvents(notice_id);
-                    if (result.changedRows == 0) {
+                    if (liveId) {
+                        const result = await updateLiveEvents(notice_id);
+                        if (result.changedRows == 0) return reject(null);
                         // 이미 처리된 알림
-                        return reject(null);
                     }
                 }
                 resolve(content as Content);
