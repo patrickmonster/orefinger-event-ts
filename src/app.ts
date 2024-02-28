@@ -58,6 +58,7 @@ server.listen({ port: 3000, host: '::' }, (err, address) => {
             // 배치 모듈
             import('bat/youtube');
             import('bat/chzzk');
+            import('bat/afreeca');
         });
 });
 
