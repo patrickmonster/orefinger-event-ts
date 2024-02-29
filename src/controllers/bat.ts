@@ -19,7 +19,7 @@ SELECT
 		IF( 
 			video_yn = 'N',
 			(
-				SELECT if(nl.end_at IS NOT NULL, nl.id, 0) FROM notice_live nl 
+				SELECT if(nl.end_at IS NOT NULL, 0, nl.id) FROM notice_live nl 
 				WHERE nl.notice_id = A.notice_id
 				ORDER BY nl.id desc
 				LIMIT 1
