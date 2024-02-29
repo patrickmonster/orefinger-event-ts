@@ -9,6 +9,7 @@ import { env } from 'process';
 
 import { ajvFilePlugin } from '@fastify/multipart';
 
+import axios from 'axios';
 import { error as errorLog } from './utils/logger';
 
 const envDir = join(env.PWD || __dirname, `/.env`);
@@ -53,6 +54,20 @@ server.listen({ port: 3000, host: '::' }, (err, address) => {
     console.log(`Server started in  ${Math.floor(time / 1000)} (${time}ms)`);
     console.log(`Server listening at ${address}`);
 
+    // GET ecs state
+    if (process.env.ECS_CONTAINER_METADATA_URI) {
+        const { ECS_CONTAINER_METADATA_URI } = process.env;
+        console.log(`ECS: ${ECS_CONTAINER_METADATA_URI}`);
+        axios
+            .get<{}>(`${ECS_CONTAINER_METADATA_URI}/task`)
+            .then(({ data }) => {
+                console.log(`ECS STATE ::`, data);
+            })
+            .catch(e => {
+                console.error(`ECS STATE ERROR ::`, e);
+            });
+    }
+
     if (process.env.MASTER_KEY)
         process.nextTick(() => {
             // 배치 모듈
@@ -62,6 +77,13 @@ server.listen({ port: 3000, host: '::' }, (err, address) => {
         });
 });
 
+const ecsState = setInterval(() => {
+    const ecs = process.env.ECS_CONTAINER_METADATA_URI;
+    if (ecs) {
+        console.log(`ECS: ${ecs}`);
+        clearInterval(ecsState);
+    }
+}, 1000 * 60); // 1분마다 실행
 //////////////////////////////////////////////////////////////////////
 // 프로세서 모듈
 
@@ -76,5 +98,6 @@ process.on('uncaughtException', (error, promise) => {
 
 process.on('SIGINT', function () {
     console.error(`=============================${process.pid}번 프로세서가 종료됨=============================`);
+    clearInterval(ecsState);
     process.exit();
 });
