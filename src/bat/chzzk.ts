@@ -38,6 +38,9 @@ interface Content {
     userAdultStatus: null;
 }
 
+const ERROR = (...e: any) => {
+    console.error(__filename, ' Error: ', ...e);
+};
 /**
  * xml 형태의 데이터를 embed 형태로 변환합니다
  * @param video_object
@@ -108,9 +111,10 @@ const getChannelLive = async (notice_id: number, hash_id: string, liveId: string
 const sendChannels = async (channels: NoticeChannel[], message: any) => {
     for (const { notice_id, channel_id } of channels) {
         console.log('sendChannels', notice_id, channel_id);
-        discord.post(`/channels/${channel_id}/messages`, { body: message }).catch(() => {
+        discord.post(`/channels/${channel_id}/messages`, { body: message }).catch(e => {
+            ERROR(e);
             deleteNoticeChannel(notice_id, channel_id).catch(e => {
-                console.log('Error: ', e);
+                ERROR('DeleteChannel', e);
             });
         });
     }
@@ -140,6 +144,7 @@ const interval = async () => {
                     // offline
                 }
             } catch (e) {
+                ERROR(hash_id);
                 continue;
             }
         }
