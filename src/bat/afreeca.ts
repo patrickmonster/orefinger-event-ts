@@ -11,6 +11,10 @@ import sleep from 'utils/sleep';
 
 const randomIntegerInRange = (min: number, max: number) => Math.floor(Math.random() * (max - min + 1)) + min;
 
+const ERROR = (...e: any) => {
+    console.error(__filename, ' Error: ', ...e);
+};
+
 /**
  * xml 형태의 데이터를 embed 형태로 변환합니다
  * @param videoObject
@@ -24,7 +28,7 @@ const convertVideoObject = (videoObject: Content, name?: string): APIEmbed => {
     } = videoObject;
 
     return {
-        title,
+        title: title || 'LIVE ON',
         url: `https://play.afreecatv.com/${user_id}/${broad_no}`,
         image: {
             url: `//liveimg.afreecatv.com/m/${broad_no}?${randomIntegerInRange(100, 999)}`,
@@ -33,6 +37,13 @@ const convertVideoObject = (videoObject: Content, name?: string): APIEmbed => {
             name: name ?? channelName,
             icon_url: channelImageUrl,
         },
+        fields: [
+            // { name: 'Game', value: `${game_name || 'LIVE'}`, inline: true },
+            {
+                name: 'Stream',
+                value: `https://play.afreecatv.com/${user_id}/${broad_no}`,
+            },
+        ],
     };
 };
 
@@ -82,9 +93,10 @@ const getChannelLive = async (noticeId: number, hashId: string, lastId: string |
 const sendChannels = async (channels: NoticeChannel[], message: any) => {
     for (const { notice_id, channel_id } of channels) {
         console.log('sendChannels', notice_id, channel_id);
-        discord.post(`/channels/${channel_id}/messages`, { body: message }).catch(() => {
+        discord.post(`/channels/${channel_id}/messages`, { body: message }).catch(e => {
+            ERROR(e);
             deleteNoticeChannel(notice_id, channel_id).catch(e => {
-                console.log('Error: ', e);
+                ERROR('DeleteChannel', e);
             });
         });
     }
@@ -95,7 +107,7 @@ const interval = async () => {
     const random = Math.floor(Math.random() * 100); // Random delay
     let pageIndex = 0;
     do {
-        console.log('탐색 :: Chzzk', new Date(), pageIndex);
+        console.log('탐색 :: Afreeca', new Date(), pageIndex);
         const { list, totalPage } = await selectEventBats(5, {
             page: pageIndex,
             limit: 10,
@@ -114,7 +126,7 @@ const interval = async () => {
                     // offline
                 }
             } catch (e) {
-                console.log('Error: ', hash_id);
+                ERROR(hash_id);
                 continue;
             }
         }

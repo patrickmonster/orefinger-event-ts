@@ -10,6 +10,8 @@ import { env } from 'process';
 import { ajvFilePlugin } from '@fastify/multipart';
 
 import axios from 'axios';
+import { ecsPing, ecsSet } from 'controllers/log';
+import { ECStask } from 'interfaces/ecs';
 import { error as errorLog } from './utils/logger';
 
 const envDir = join(env.PWD || __dirname, `/.env`);
@@ -59,9 +61,20 @@ server.listen({ port: 3000, host: '::' }, (err, address) => {
         const { ECS_CONTAINER_METADATA_URI } = process.env;
         console.log(`ECS: ${ECS_CONTAINER_METADATA_URI}`);
         axios
-            .get<{}>(`${ECS_CONTAINER_METADATA_URI}/task`)
-            .then(({ data }) => {
-                console.log(`ECS STATE ::`, data);
+            .get<ECStask>(`${ECS_CONTAINER_METADATA_URI}/task`)
+            .then(async ({ data }) => {
+                const { Family, Revision, TaskARN } = data;
+                const [, name, id] = TaskARN.split('/');
+                console.log(`ECS STATE ::`, data.Containers);
+                process.env.ECS_ID = id;
+                process.env.ECS_REVISION = Revision;
+                process.env.ECS_FAMILY = Family;
+
+                ecsSet(id, Revision, Family)
+                    .then(({ insertId }) => {
+                        process.env.ECS_IDX = insertId.toString();
+                    })
+                    .catch(e => {});
             })
             .catch(e => {
                 console.error(`ECS STATE ERROR ::`, e);
@@ -76,6 +89,11 @@ server.listen({ port: 3000, host: '::' }, (err, address) => {
             import('bat/afreeca');
         });
 });
+const ping = setInterval(() => {
+    if (process.env.ECS_IDX) {
+        ecsPing(process.env.ECS_IDX);
+    }
+}, 1000 * 60 * 5); // 5분마다 실행
 
 const ecsState = setInterval(() => {
     const ecs = process.env.ECS_CONTAINER_METADATA_URI;
