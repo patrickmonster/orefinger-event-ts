@@ -17,7 +17,7 @@
         "@types/tmi.js": "^1.8.3",
         "@types/xml2js": "^0.4.11",
         "aws-sdk": "^2.1462.0",
-        "axios": "^1.4.0",
+        "axios": "^1.6.0",
         "date-fns": "^2.30.0",
         "dayjs": "^1.11.10",
         "discord-api-types": "^0.37.50",
