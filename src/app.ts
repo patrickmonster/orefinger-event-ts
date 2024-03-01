@@ -96,11 +96,8 @@ const ping = setInterval(() => {
 }, 1000 * 60 * 5); // 5분마다 실행
 
 const ecsState = setInterval(() => {
-    const ecs = process.env.ECS_CONTAINER_METADATA_URI;
-    if (ecs) {
-        console.log(`ECS: ${ecs}`);
-        clearInterval(ecsState);
-    }
+    const ecs = process.env.ECS_IDX;
+    if (ecs) ecsPing(ecs);
 }, 1000 * 60); // 1분마다 실행
 //////////////////////////////////////////////////////////////////////
 // 프로세서 모듈
