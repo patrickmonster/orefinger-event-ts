@@ -19,10 +19,7 @@ const afreecaAPI: CustomInstance = axios.create({
 });
 
 afreecaAPI.interceptors.response.use(
-    ({ data }) => {
-        console.log('AFREECA API', data);
-        return data;
-    }, // 데이터 변환
+    ({ data }) => data, // 데이터 변환
     async error => {
         errorLog('AXIOS', error);
         throw error;
