@@ -142,7 +142,7 @@ const interval = async () => {
 };
 
 const intervalIdx = setInterval(interval, 1000 * 60 * 5); // 5분마다 실행
-// console.log('Afreeca Batch Start!');
+console.log('Afreeca Batch Start!');
 // interval();
 
 process.on('SIGINT', function () {
