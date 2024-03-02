@@ -61,7 +61,7 @@ export default async (fastify: FastifyInstance, opts: any) => {
                     properties: {
                         content: { type: 'string', nullable: true },
                         tts: { type: 'boolean', nullable: true },
-                        embed: { type: 'object', nullable: true },
+                        embeds: { type: 'array', nullable: true },
                         components: { type: 'array', nullable: true },
                     },
                 },
@@ -70,6 +70,14 @@ export default async (fastify: FastifyInstance, opts: any) => {
         async req => {
             const { channel_id } = req.params;
             const { content, embeds, components } = req.body;
+
+            const message: any = {};
+
+            if (content) message.content = content;
+            if (embeds) message.embeds = embeds;
+            if (components) message.components = components;
+
+            console.log('Message', message);
 
             return await discord
                 .post(`/channels/${channel_id}/messages`, {
