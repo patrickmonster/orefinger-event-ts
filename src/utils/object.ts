@@ -5,3 +5,20 @@ export const deleteObjectByKey = (obj: any, ...key: string[]) => {
     }
     return out;
 };
+
+const regEx = /\{([0-9A-Za-z_]+)\}/i;
+export const convertMessage = <T>(object: T, message: { [key: string]: string }) =>
+    JSON.parse(
+        JSON.stringify(object, (k: string, v: any) => {
+            if (typeof v !== 'string') return v;
+            if (v == 'Y') return true; // TODO: yn 인경우
+
+            // 정규 변환식
+            let tag;
+            while ((tag = v.match(regEx)) !== null) {
+                const [org, name] = tag;
+                v = `${v.slice(0, tag.index)}${name in message ? message[name] : ''}${v.slice(tag.index + org.length)}`;
+            }
+            return v;
+        })
+    );

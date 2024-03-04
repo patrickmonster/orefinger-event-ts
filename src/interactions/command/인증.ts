@@ -11,8 +11,7 @@ const name = basename(__filename, __filename.endsWith('js') ? '.js' : '.ts');
 const type = ApplicationCommandOptionType.Subcommand;
 
 export const exec = async (interaction: AppChatInputInteraction, selectOption: SelectOptionType) => {
-    const { member, guild_id, channel, user } = interaction;
-    // if (!guild_id) return await interaction.reply({ content: '서버에서만 사용할 수 있습니다.', ephemeral: true });
+    const { member, user } = interaction;
 
     await interaction.differ({ ephemeral: true });
 

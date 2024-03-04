@@ -10,8 +10,12 @@ import {
     createSuccessButton,
 } from 'utils/discord/component';
 
-const hashIdChzzk = new RegExp('^[a-zA-Z0-9]{32}$');
-
+/**
+ * 사용자를 검색합니다
+ * @param keyword
+ * @param noticeType
+ * @returns
+ */
 const searchUser = async (
     keyword: string,
     noticeType: string
@@ -30,6 +34,7 @@ const searchUser = async (
             list = await searchAfreecabeUser(keyword);
             break;
         }
+        // '8' - 인증알림은 검색 대상이 아님.
         default:
             return [
                 createActionRow(
@@ -79,7 +84,6 @@ const searchUser = async (
  */
 export const exec = async (interaction: MessageMenuInteraction, values: Record<string, string>, noticeType: string) => {
     const { value } = values;
-    console.log('?');
 
     interaction.reply({
         content: '검색결과',

@@ -54,7 +54,7 @@
         "tabWidth": 4
     },
     "name": "discord-notification-ts",
-    "version": "3.1.23",
+    "version": "3.1.25",
     "main": "index.js",
     "repository": "https://github.com/patrickmonster/discord-notification-ts.git",
     "author": "Soung jin Ryu <neocat@kakao.com>",
@@ -63,11 +63,9 @@
         "build": "npx tsc --project tsconfig.json && tsc-alias -p tsconfig.json",
         "cmdLocal": "cross-env NODE_ENV=local ts-node -r tsconfig-paths/register src/discordCommands.ts",
         "start": "node dist/app.js",
-        "proxy": "ngrok http 3000",
         "bot": "cross-env NODE_ENV=local nodemon --watch src/interactions --exec ts-node -r tsconfig-paths/register src/app.ts",
         "dev": "cross-env NODE_ENV=dev nodemon --watch src/routes --exec ts-node -r tsconfig-paths/register src/app.ts",
         "local": "cross-env NODE_ENV=local nodemon --watch src/routes --exec ts-node -r tsconfig-paths/register src/app.ts",
-        "var": "release.bat",
         "test:twitch": "twitch event verify-subscription subscribe -F http://localhost:3000/twitch/event -s 12345678901234567890"
     }
 }
