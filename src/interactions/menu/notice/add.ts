@@ -30,7 +30,7 @@ export const exec = async (interaction: MessageMenuInteraction, noticeType: stri
             }
             case '3': {
                 // 인증 알림
-                noticeId = await getNoticeByType(guild_id || '0', noticeType, {
+                noticeId = await getNoticeByType(guild_id || '0', `${noticeType}_${hashId}`, {
                     message: `{user}\n New user! 📌`,
                     name: '인증알리미',
                 });

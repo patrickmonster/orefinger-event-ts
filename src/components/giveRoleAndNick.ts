@@ -147,9 +147,6 @@ export default async (interaction: IReply, { guild_id, auth_id, user_id, nick, t
                 {
                     title: '인증 성공',
                     description: `<@${auth_id}>\n성공적으로 인증이 완료 되었습니다.\n\n${tag_kr}]${nick}님 환영합니다.`,
-                    // thumbnail: {
-                    //     url: profileImageUrl,
-                    // },
                     color: 0x00ff00,
                 },
             ],
@@ -159,7 +156,7 @@ export default async (interaction: IReply, { guild_id, auth_id, user_id, nick, t
 
         // 알림을 전송합니다 - 알림타입  3
         if (affectedRows && affectedRows != 0) {
-            sendNoticeByBord(guild_id || '0', 3, {
+            sendNoticeByBord(guild_id || '0', `3_${type}`, {
                 user: `${nick} - <@${auth_id}> 님이 인증하셨습니다!`,
             });
         }
