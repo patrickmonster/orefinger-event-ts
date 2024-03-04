@@ -4,6 +4,7 @@ import discord, { changeNickname } from 'utils/discordApiInstance';
 import errorEmbed from './errorEmbed';
 
 import { APIGuildMember } from 'discord-api-types/v10';
+import { sendNoticeByBord } from './notice';
 
 /**
  * 인증 인터페이스
@@ -96,7 +97,7 @@ export default async (interaction: IReply, { guild_id, auth_id, user_id, nick, t
 
     try {
         // 최신 인증 정보를 불러옴
-        const { role_id, tag_kr } = await insertAuthRule(auth_id, guild_id, type);
+        const { role_id, tag_kr, affectedRows } = await insertAuthRule(auth_id, guild_id, type);
 
         const { roles, nick: originNick } = user;
         if (!role_id) {
@@ -153,6 +154,15 @@ export default async (interaction: IReply, { guild_id, auth_id, user_id, nick, t
                 },
             ],
         });
+
+        console.log('SEND NOTICE ::', affectedRows);
+
+        // 알림을 전송합니다 - 알림타입  3
+        if (affectedRows && affectedRows != 0) {
+            sendNoticeByBord(guild_id || '0', 3, {
+                user: `${nick} - <@${auth_id}> 님이 인증하셨습니다!`,
+            });
+        }
     } catch (e) {
         console.error('ERROR', e);
     }

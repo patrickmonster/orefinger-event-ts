@@ -74,9 +74,16 @@ AND ab.use_yn = 'Y'
         console.log('target', target);
 
         if (target && target.use_yn) {
-            await query<SqlInsertUpdate>('INSERT IGNORE INTO auth_rule set ?', { auth_id, guild_id, type });
+            const { affectedRows } = await query<SqlInsertUpdate>('INSERT IGNORE INTO auth_rule set ?', {
+                auth_id,
+                guild_id,
+                type,
+            });
 
-            return target;
+            return {
+                ...target,
+                affectedRows,
+            };
         } else {
             throw new Error('NOT_FOUND');
         }
