@@ -1,4 +1,4 @@
-import { NoticeId, selectNoticeDtilByEmbed } from 'controllers/notice';
+import { NoticeId, ParseInt, selectNoticeDtilByEmbed, upsertNotice } from 'controllers/notice';
 import { ChannelType } from 'discord-api-types/v10';
 import { createChannelSelectMenu } from 'utils/discord/component';
 import { editerComponent } from './systemComponent';
@@ -18,4 +18,30 @@ export const getNoticeDetailByEmbed = async (noticeId: NoticeId, guildId: string
             editerComponent(`notice channel ${noticeId}`, [], true),
         ],
     };
+};
+
+/**
+ * 알림타입 (시스템 내부 알림인 경우)
+ * @param guildId
+ * @param noticeType
+ */
+export const getNoticeByType = async (guildId: string, noticeType: string | number) => {
+    try {
+        const hashId = `${guildId || 0}_${noticeType}`;
+        const noticeId = await upsertNotice(
+            {
+                hash_id: hashId,
+                notice_type: ParseInt(noticeType),
+                message: '|| {user} || New user! 📌',
+                name: '인증알리미',
+            },
+            true
+        );
+
+        return noticeId;
+    } catch (e) {
+        console.log(`${noticeType} 생성에 실패하였습니다.`, e);
+
+        return 0;
+    }
 };

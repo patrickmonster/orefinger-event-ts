@@ -151,3 +151,37 @@ WHERE notice_id = ?
         `,
         ParseInt(notice_id)
     ).then(res => res[0]);
+
+export const selectGetOAuth = async (guildId: string, typeId?: string | number) =>
+    query<{
+        guild_id: string;
+        type: number;
+        tag: string;
+        tag_kr: string;
+        role_id: string;
+        embed_id: number;
+        use_yn: 'Y' | 'N';
+        create_at: string;
+        update_at: string;
+    }>(
+        `
+SELECT
+    ab.guild_id
+    , ab.\`type\`
+    , at2.tag
+    , at2.tag_kr
+    , ab.role_id
+    , ab.embed_id
+    , ab.use_yn
+    , ab.create_at
+    , ab.update_at
+	, IFNULL(vnc.use_yn, 'N') AS use_yn 
+FROM auth_bord ab
+LEFT JOIN auth_type at2 ON ab.\`type\` = at2.auth_type 
+LEFT JOIN v_notice_channel vnc ON vnc.notice_id = ab.\`type\` AND vnc.guild_id = ab.guild_id 
+WHERE ab.guild_id  = ?
+${calTo('AND ab.type = ?', typeId)}
+AND ab.use_yn = 'Y'
+        `,
+        guildId
+    );

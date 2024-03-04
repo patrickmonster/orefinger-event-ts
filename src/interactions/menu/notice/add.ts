@@ -2,7 +2,7 @@ import { MessageMenuInteraction } from 'interactions/message';
 
 import { getAfreecabeUser } from 'components/afreecaUser';
 import { getChzzkUser } from 'components/chzzkUser';
-import { getNoticeDetailByEmbed } from 'components/notice';
+import { getNoticeByType, getNoticeDetailByEmbed } from 'components/notice';
 import { getYoutubeUser } from 'components/youtubeUser';
 /**
  *
@@ -28,6 +28,11 @@ export const exec = async (interaction: MessageMenuInteraction, noticeType: stri
                 noticeId = await getYoutubeUser(hashId);
                 break;
             }
+            case '3': {
+                // 인증 알림
+                noticeId = await getNoticeByType(guild_id || '0', noticeType);
+                break;
+            }
             case '4': {
                 // 치지직
                 noticeId = await getChzzkUser(hashId);
@@ -38,6 +43,7 @@ export const exec = async (interaction: MessageMenuInteraction, noticeType: stri
                 noticeId = await getAfreecabeUser(hashId);
                 break;
             }
+            // 8 인증알림은 바로 리스트 출력
             default: {
                 interaction.reply({
                     content: '알림 타입을 찾을 수 없습니다.',

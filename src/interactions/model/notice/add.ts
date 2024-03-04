@@ -84,7 +84,6 @@ const searchUser = async (
  */
 export const exec = async (interaction: MessageMenuInteraction, values: Record<string, string>, noticeType: string) => {
     const { value } = values;
-    console.log('?');
 
     interaction.reply({
         content: '검색결과',
