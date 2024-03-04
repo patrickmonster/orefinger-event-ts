@@ -10,7 +10,6 @@ import { env } from 'process';
 import { ajvFilePlugin } from '@fastify/multipart';
 
 import axios from 'axios';
-import { ecsPing, ecsSet } from 'controllers/log';
 import { ECStask } from 'interfaces/ecs';
 import { error as errorLog } from './utils/logger';
 
@@ -23,6 +22,8 @@ if (existsSync(envDir)) {
         path: join(env.PWD || __dirname, `/src/env/.env.${env.NODE_ENV}`),
     });
 }
+
+import { ecsPing, ecsSet } from 'controllers/log';
 
 //////////////////////////////////////////////////////////////////////
 // 환경변수

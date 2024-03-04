@@ -108,6 +108,19 @@ WHERE 1=1
 AND at2.use_yn = 'Y' 
 `;
 
+const SelectAuthDashbordNotice = `
+SELECT
+    json_object( 'name', IF( IFNULL(vnc.use_yn, 'N') = 'Y', '🔴','⚫')) AS emoji
+    ,  CAST(ab.\`type\` AS CHAR) AS value
+    , tag_kr AS label
+    , tag AS description
+FROM auth_bord ab
+LEFT JOIN auth_type at2 ON ab.\`type\` = at2.auth_type 
+LEFT JOIN v_notice_channel vnc ON vnc.notice_id = ab.\`type\` AND vnc.guild_id = ab.guild_id
+WHERE ab.guild_id  = ?
+AND ab.use_yn = 'Y'
+    `;
+
 /**
  * 라벨을 선택하는 쿼리를 작성합니다.
  *  -
@@ -143,4 +156,5 @@ export default {
     TextMessageDefaultByMenuListQuery,
 
     SelectAuthDashbord,
+    SelectAuthDashbordNotice,
 };

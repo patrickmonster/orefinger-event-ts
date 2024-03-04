@@ -292,3 +292,28 @@ LIMIT 1;
 `,
         token
     ).then(([user]) => user);
+
+export const selectAuthbordList = async (guildId: string) =>
+    query<{
+        guild_id: string;
+        type: number;
+        role_id: string;
+        embed_id: number;
+        use_yn: 'Y' | 'N';
+        create_at: string;
+        update_at: string;
+    }>(
+        `
+SELECT
+	guild_id
+	, type
+	, role_id
+	, embed_id
+	, use_yn
+	, create_at
+	, update_at
+FROM auth_bord ab
+WHERE ab.guild_id = ?
+    `,
+        guildId
+    );

@@ -1,3 +1,5 @@
+import { selectComponentPagingMenuByKey } from 'components/systemComponent';
+import QUERY from 'controllers/component/embedListQuerys';
 import { MessageInteraction } from 'interactions/message';
 import { createTextShortInput } from 'utils/discord/component';
 
@@ -6,6 +8,7 @@ import { createTextShortInput } from 'utils/discord/component';
  * @param interaction
  */
 export const exec = async (interaction: MessageInteraction, noticeType: string) => {
+    const { guild_id } = interaction;
     switch (noticeType) {
         case '2': {
             // 유튜브
@@ -23,6 +26,22 @@ export const exec = async (interaction: MessageInteraction, noticeType: string) 
                 title: '유튜브 - 알림추가',
             });
             break;
+        }
+        case '3': {
+            // 인증알림 (내부적인 검색을 하지 않기 때문에 필요없음)
+            interaction.reply({
+                components: await selectComponentPagingMenuByKey(
+                    {
+                        custom_id: `notice add ${noticeType}`,
+                        placeholder: '인증 타입을 선택해 주세요!',
+                        max_values: 1,
+                        min_values: 1,
+                    },
+                    QUERY.SelectAuthDashbordNotice,
+                    guild_id
+                ),
+                ephemeral: true,
+            });
         }
         case '4': {
             // 치지직

@@ -1,9 +1,7 @@
 import axios from 'axios';
+import { sendChannels } from 'components/notice';
 import { insertLiveEvents, selectEventBats, updateLiveEvents } from 'controllers/bat';
-import { deleteNoticeChannel } from 'controllers/notice';
 import { APIEmbed } from 'discord-api-types/v10';
-import { NoticeChannel } from 'interfaces/notice';
-import discord from 'utils/discordApiInstance';
 import sleep from 'utils/sleep';
 
 // 주석 : 안씀
@@ -101,23 +99,6 @@ const getChannelLive = async (notice_id: number, hash_id: string, liveId: string
             })
             .catch(reject);
     });
-
-/**
- * 각 채널 별로 메세지를 전송합니다
- * @param channels
- * @param message TODO : message 객체
- */
-const sendChannels = async (channels: NoticeChannel[], message: any) => {
-    for (const { notice_id, channel_id } of channels) {
-        console.log('sendChannels', notice_id, channel_id);
-        discord.post(`/channels/${channel_id}/messages`, { body: message }).catch(e => {
-            ERROR(e);
-            deleteNoticeChannel(notice_id, channel_id).catch(e => {
-                ERROR('DeleteChannel', e);
-            });
-        });
-    }
-};
 
 // 5분마다 실행되는 함수
 const interval = async () => {

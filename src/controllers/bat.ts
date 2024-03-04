@@ -47,10 +47,60 @@ FROM (
 	AND use_yn = 'Y'
 ) A
 GROUP BY hash_id
-    `,
+		`,
         paging,
         notice_type
     );
+
+/**
+ * 	단일 항목 조회
+ * @param noticeType
+ * @param guildId
+ */
+export const selectEventBat = (hashId: string) =>
+    query<NoticeBat>(
+        `
+SELECT
+	notice_id
+	, hash_id
+	, message
+	, name
+	, img_idx
+	, JSON_ARRAYAGG(channel) AS channels
+	, IFNULL(
+		IF( 
+			video_yn = 'N',
+			(
+				SELECT if(nl.end_at IS NOT NULL, 0, nl.id) FROM notice_live nl 
+				WHERE nl.notice_id = A.notice_id
+				ORDER BY nl.id desc
+				LIMIT 1
+			),
+			(
+				SELECT video_id FROM notice_video nv 
+				WHERE nv.notice_id = A.notice_id
+				ORDER BY nv.create_at DESC
+				LIMIT 1
+			)
+		), 0
+	) AS id
+FROM (
+	SELECT
+		vn.notice_id
+		, vn.hash_id
+		, vn.message
+		, vn.name
+		, vn.img_idx
+		, vn.video_yn 
+		, json_object( 'channel_id', nc.channel_id, 'notice_id', nc.notice_id, 'guild_id', nc.guild_id, 'create_at', nc.create_at, 'update_at', nc.update_at ) AS channel
+	FROM v_notice vn
+	LEFT JOIN notice_channel nc using(notice_id)
+	WHERE vn.hash_id = ?
+	AND use_yn = 'Y'
+) A
+	`,
+        hashId
+    ).then(([item]) => item);
 
 export const insertVideoEvents = async (notice_id: number, video_id: string, title: string) =>
     query(`INSERT INTO notice_video (video_id, title, notice_id) VALUES(?)`, [video_id, title, notice_id]);

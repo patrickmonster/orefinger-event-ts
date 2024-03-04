@@ -61,7 +61,6 @@ export const searchAfreecabeUser = async (keyword: string): Promise<Array<{ name
         } = await axios.get<{
             suggest_bj: Array<ChannelData>;
         }>(
-            // https://sch.afreecatv.com/api.php?m=searchHistory&service=list&d=9%25ED%2598%25B8&_=1709010129455&v=3.0
             `https://sch.afreecatv.com/api.php?${qs.stringify({
                 m: 'searchHistory',
                 service: 'list',
