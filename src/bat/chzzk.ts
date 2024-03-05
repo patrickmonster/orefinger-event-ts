@@ -81,13 +81,12 @@ const convertVideoObject = (video_object: Content, name?: string): APIEmbed => {
 const getChannelLive = async (notice_id: number, hash_id: string, liveId: string | number) =>
     new Promise<Content | null>((resolve, reject) => {
         axios
-            .get(`https://api.chzzk.naver.com/polling/v2/channels/${hash_id}/live-status`, {
+            .get(`https://api.chzzk.naver.com/service/v2/channels/${hash_id}/live-detail`, {
                 headers: {
                     'User-Agent':
                         'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
                 },
             })
-            // .get(`https://api.chzzk.naver.com/polling/v2/channels/${hash_id}/live-status`)
             .then(async ({ data }) => {
                 const { content } = data;
                 console.log('CHZZK :: HASH ::', hash_id, content.liveId, data);
