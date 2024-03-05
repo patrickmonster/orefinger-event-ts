@@ -81,7 +81,7 @@ const convertVideoObject = (video_object: Content, name?: string): APIEmbed => {
 const getChannelLive = async (notice_id: number, hash_id: string, liveId: string | number) =>
     new Promise<Content | null>((resolve, reject) => {
         axios
-            .get(`https://api.chzzk.naver.com/polling/v2/channels/${hash_id}/live-detail`)
+            .get(`https://api.chzzk.naver.com/polling/v2/channels/${hash_id}/live-status`)
             // .get(`https://api.chzzk.naver.com/polling/v2/channels/${hash_id}/live-status`)
             .then(async ({ data }) => {
                 const { content } = data;
