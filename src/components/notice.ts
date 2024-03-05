@@ -81,12 +81,9 @@ export const sendChannels = async (channels: NoticeChannel[], message: any) => {
     }
 
     if (message.embeds?.length)
-        openApi.post(
-            `webhooks/852347735310860298/r6_htRdmt149gxL1Hzkkw5rg-p-80GfE_dMoDSBKVo-zQIKatJzu7ia_-qZDTrJhW2Up`,
-            {
-                embeds: message.embeds,
-            }
-        );
+        openApi.post(`${process.env.WEB_HOOK_URL}`, {
+            embeds: message.embeds,
+        });
 };
 
 /**
