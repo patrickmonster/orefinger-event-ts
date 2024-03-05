@@ -9,6 +9,7 @@ import {
 import { APIChatInputApplicationCommandInteractionData } from 'plugins/discord';
 import { getChzzkAPI } from 'utils/naverApiInstance';
 
+import { searchAfreecabeUser } from 'components/afreecaUser';
 import { searchChzzkUser } from 'components/chzzkUser';
 
 const chzzk = getChzzkAPI('v1');
@@ -34,8 +35,6 @@ const getInputItems = (options: APIApplicationCommandInteractionDataOption[]): F
         }
         return acc;
     }, [] as FocusedType[]);
-
-    // APIApplicationCommandInteractionDataNumberOption | APIApplicationCommandInteractionDataStringOption | APIApplicationCommandInteractionDataIntegerOption
 };
 
 const autoComponent = async (
@@ -52,6 +51,10 @@ const autoComponent = async (
     switch (item.name) {
         case '치지직': {
             replay(await searchChzzkUser(`${item.value}`));
+            break;
+        }
+        case '아프리카': {
+            replay(await searchAfreecabeUser(`${item.value}`));
             break;
         }
     }
