@@ -122,7 +122,7 @@ const interval = async () => {
     console.log('탐색 :: Afreeca', new Date(), pageIndex);
 };
 
-const intervalIdx = setInterval(interval, 1000 * 60 * 5); // 5분마다 실행
+const intervalIdx = setInterval(interval, 1000 * 60 * 7); // 5분마다 실행
 console.log('Afreeca Batch Start!');
 // interval();
 
