@@ -103,13 +103,13 @@ const ecsState = setInterval(() => {
 //////////////////////////////////////////////////////////////////////
 // 프로세서 모듈
 
-process.on('unhandledRejection', (error, promise) => {
-    errorLog('unhandledRejection', error);
-    console.error('unhandledRejection', error);
+process.on('unhandledRejection', (err, promise) => {
+    errorLog('unhandledRejection', JSON.stringify(err, Object.getOwnPropertyNames(err)));
+    console.error('unhandledRejection', err);
 });
-process.on('uncaughtException', (error, promise) => {
-    errorLog('uncaughtException', error);
-    console.error('uncaughtException', error);
+process.on('uncaughtException', (err, promise) => {
+    errorLog('uncaughtException', JSON.stringify(err, Object.getOwnPropertyNames(err)));
+    console.error('uncaughtException', err);
 });
 
 process.on('SIGINT', function () {
