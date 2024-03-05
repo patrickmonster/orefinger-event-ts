@@ -74,18 +74,23 @@ const convertVideoObject = (video_object: Content, name?: string): APIEmbed => {
 
 /**
  * 채널의 비디오 목록을 가져옵니다
- * @param notice_id
+ * @param notice_ida
  * @param hash_id
  * @returns
  */
 const getChannelLive = async (notice_id: number, hash_id: string, liveId: string | number) =>
     new Promise<Content | null>((resolve, reject) => {
         axios
-            .get(`https://api.chzzk.naver.com/polling/v2/channels/${hash_id}/live-status`)
+            .get(`https://api.chzzk.naver.com/polling/v2/channels/${hash_id}/live-status`, {
+                headers: {
+                    'User-Agent':
+                        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+                },
+            })
             // .get(`https://api.chzzk.naver.com/polling/v2/channels/${hash_id}/live-status`)
             .then(async ({ data }) => {
                 const { content } = data;
-                console.log('CHZZK :: HASH ::', hash_id, content.liveId, liveId);
+                console.log('CHZZK :: HASH ::', hash_id, content.liveId, data);
                 if (content.liveId === liveId) return reject(null);
                 if (content && content.status === 'OPEN') {
                     await insertLiveEvents(notice_id, content.liveId);
