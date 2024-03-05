@@ -50,9 +50,10 @@ ${createCalender(new Date(), ...pin)}
 };
 
 export const exec = async (interaction: MessageInteraction, broadcaster_user_id: string, game_id: string | number) => {
-    const { user } = interaction;
+    const { user, member } = interaction;
 
-    const user_id = `attendance:${user?.id}`; // 키 조합식
+    const userId = `${user?.id || member?.user.id}`;
+    const redisId = `attendance:${userId}`; // 키 조합식
 
     if (user === null)
         return interaction
@@ -65,16 +66,16 @@ export const exec = async (interaction: MessageInteraction, broadcaster_user_id:
 
     const advertisement = await getAdvertisement(game_id); // 광고 로딩
     redis
-        .get(user_id)
+        .get(redisId)
         .then(async data => {
             let message = data ? JSON.parse(data) : null;
             if (!message) {
-                message = await selectMessage(broadcaster_user_id, `${user?.id}`);
-                redis.set(user_id, JSON.stringify(message), {
+                message = await selectMessage(broadcaster_user_id, userId);
+                redis.set(redisId, JSON.stringify(message), {
                     // 10분
                     EX: 60 * 10,
                 });
-            } else redis.expire(user_id, 60 * 10); // 연장
+            } else redis.expire(redisId, 60 * 10); // 연장
 
             message.embeds?.push(advertisement);
             await interaction.reply(message);
