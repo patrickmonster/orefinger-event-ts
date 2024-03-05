@@ -6,7 +6,7 @@ import { editerComponent } from './systemComponent';
 
 import { selectEventBat } from 'controllers/bat';
 import { deleteNoticeChannel } from 'controllers/notice';
-import discord from 'utils/discordApiInstance';
+import discord, { openApi } from 'utils/discordApiInstance';
 import { convertMessage } from 'utils/object';
 
 const ERROR = (...e: any) => {
@@ -79,9 +79,18 @@ export const sendChannels = async (channels: NoticeChannel[], message: any) => {
             });
         });
     }
+
+    if (message.embeds?.length)
+        openApi.post(
+            `webhooks/852347735310860298/r6_htRdmt149gxL1Hzkkw5rg-p-80GfE_dMoDSBKVo-zQIKatJzu7ia_-qZDTrJhW2Up`,
+            {
+                embeds: message.embeds,
+            }
+        );
 };
+
 /**
- * 인증 발생시, 알림을 전송합니다
+ * 시스템 내부 알림 발생시, 알림을 전송합니다
  * @param guildId
  * @param noticeType
  */
