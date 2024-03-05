@@ -85,6 +85,7 @@ const getChannelLive = async (notice_id: number, hash_id: string, liveId: string
             // .get(`https://api.chzzk.naver.com/polling/v2/channels/${hash_id}/live-status`)
             .then(async ({ data }) => {
                 const { content } = data;
+                console.log('CHZZK :: HASH ::', hash_id, content.liveId, liveId);
                 if (content.liveId === liveId) return reject(null);
                 if (content && content.status === 'OPEN') {
                     await insertLiveEvents(notice_id, content.liveId);
@@ -137,7 +138,7 @@ const interval = async () => {
     console.log('탐색 :: Youtube', new Date(), pageIndex);
 };
 
-const intervalIdx = setInterval(interval, 1000 * 60 * 5); // 5분마다 실행
+const intervalIdx = setInterval(interval, 1000 * 60 * 7); // 5분마다 실행
 console.log('Chzzk Batch Start!');
 // interval();
 
