@@ -33,7 +33,7 @@ const convertVideoObject = (videoObject: Content, name?: string): APIEmbed => {
         },
         author: {
             name: name ?? channelName,
-            icon_url: channelImageUrl,
+            icon_url: channelImageUrl.startsWith('http') ? channelImageUrl : `https:${channelImageUrl}`,
         },
         fields: [
             {
