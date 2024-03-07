@@ -115,5 +115,6 @@ process.on('uncaughtException', (err, promise) => {
 process.on('SIGINT', function () {
     console.error(`=============================${process.pid}번 프로세서가 종료됨=============================`);
     clearInterval(ecsState);
+    clearInterval(ping);
     process.exit();
 });
