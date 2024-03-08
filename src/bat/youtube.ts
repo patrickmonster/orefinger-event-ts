@@ -30,6 +30,9 @@ const convertVideoObject = (video_object: any) => {
         thumbnail: {
             url: 'https://cdn.discordapp.com/attachments/682449668428529743/1125234663045201950/yt_icon_rgb.png',
         },
+        footer: {
+            text: '제공. Youtube',
+        },
     };
 };
 

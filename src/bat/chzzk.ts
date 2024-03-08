@@ -69,6 +69,9 @@ const convertVideoObject = (video_object: Content, name?: string): APIEmbed => {
                 value: `https://chzzk.naver.com/live/${channelId}`,
             },
         ],
+        footer: {
+            text: '제공. Chzzk',
+        },
     };
 };
 
