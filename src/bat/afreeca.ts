@@ -41,6 +41,9 @@ const convertVideoObject = (videoObject: Content, name?: string): APIEmbed => {
                 value: `https://play.afreecatv.com/${user_id}/${broad_no}`,
             },
         ],
+        footer: {
+            text: '제공. AfreecaTV',
+        },
     };
 };
 
