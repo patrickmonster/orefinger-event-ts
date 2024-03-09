@@ -8,45 +8,68 @@ import { SqlInsertUpdate, query, selectPaging } from 'utils/database';
 export const selectEventBats = (notice_type: number, paging: Paging) =>
     selectPaging<NoticeBat>(
         `
-SELECT
+SELECT 
 	notice_id
 	, hash_id
 	, message
 	, name
 	, img_idx
-	, JSON_ARRAYAGG(channel) AS channels
-	, IFNULL(
-		IF( 
-			video_yn = 'N',
-			(
-				SELECT if(nl.end_at IS NOT NULL, 0, nl.id) FROM notice_live nl 
-				WHERE nl.notice_id = A.notice_id
-				ORDER BY nl.id desc
-				LIMIT 1
-			),
-			(
-				SELECT video_id FROM notice_video nv 
-				WHERE nv.notice_id = A.notice_id
-				ORDER BY nv.create_at DESC
-				LIMIT 1
-			)
-		), 0
-	) AS id
+	, channels
+	, id
 FROM (
 	SELECT
-		vn.notice_id
-		, vn.hash_id
-		, vn.message
-		, vn.name
-		, vn.img_idx
-		, vn.video_yn 
-		, json_object( 'channel_id', nc.channel_id, 'notice_id', nc.notice_id, 'guild_id', nc.guild_id, 'create_at', nc.create_at, 'update_at', nc.update_at ) AS channel
-	FROM v_notice vn
-	LEFT JOIN notice_channel nc using(notice_id)
-	WHERE vn.notice_type = ?
-	AND use_yn = 'Y'
+		notice_id
+		, hash_id
+		, message
+		, name
+		, img_idx
+		, JSON_ARRAYAGG(channel) AS channels
+		, IFNULL(
+			IF( 
+				video_yn = 'N',
+				(
+					SELECT 
+						IF (
+							nl.create_at < DATE_ADD(NOW(), INTERVAL -1 HOUR),
+							if(nl.end_at IS NOT NULL, '0', nl.id),
+							'-1'
+						)
+					FROM notice_live nl 
+					WHERE nl.notice_id = A.notice_id
+					ORDER BY nl.id desc
+					LIMIT 1
+				),
+				(
+					SELECT 
+						IF (
+							nv.create_at < DATE_ADD(NOW(), INTERVAL -1 HOUR),
+							video_id,
+							'-1'
+						)
+					FROM notice_video nv 
+					WHERE nv.notice_id = A.notice_id
+					ORDER BY nv.create_at DESC
+					LIMIT 1
+				)
+			), '0'
+		) AS id
+	FROM (
+		SELECT
+			vn.notice_id
+			, vn.hash_id
+			, vn.message
+			, vn.name
+			, vn.img_idx
+			, vn.video_yn 
+			, json_object( 'channel_id', nc.channel_id, 'notice_id', nc.notice_id, 'guild_id', nc.guild_id, 'create_at', nc.create_at, 'update_at', nc.update_at ) AS channel
+		FROM v_notice vn
+		LEFT JOIN notice_channel nc using(notice_id)
+		WHERE vn.notice_type = ?
+		AND use_yn = 'Y'
+	) A
+	GROUP BY hash_id
 ) A
-GROUP BY hash_id
+WHERE id <> '-1'
 		`,
         paging,
         notice_type
