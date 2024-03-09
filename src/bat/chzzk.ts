@@ -92,7 +92,6 @@ const getChannelLive = async (notice_id: number, hash_id: string, liveId: string
             })
             .then(async ({ data }) => {
                 const { content } = data;
-                console.log('CHZZK :: HASH ::', hash_id, content.liveId, data);
                 if (content.liveId === liveId) return reject(null);
                 if (content && content.status === 'OPEN') {
                     await insertLiveEvents(notice_id, content.liveId);
