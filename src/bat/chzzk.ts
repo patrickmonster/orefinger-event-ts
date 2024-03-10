@@ -2,39 +2,8 @@ import axios from 'axios';
 import { sendChannels } from 'components/notice';
 import { insertLiveEvents, selectEventBats, updateLiveEvents } from 'controllers/bat';
 import { APIEmbed } from 'discord-api-types/v10';
+import { Content } from 'interfaces/API/Chzzk';
 import sleep from 'utils/sleep';
-
-// 주석 : 안씀
-interface Content {
-    liveId: number;
-    liveTitle: string;
-    status: string;
-    liveImageUrl: string | null;
-    defaultThumbnailImageUrl: null;
-    concurrentUserCount: number;
-    accumulateCount: number;
-    openDate: string;
-    closeDate: null;
-    adult: boolean;
-    chatChannelId: string;
-    categoryType: null;
-    liveCategory: string;
-    liveCategoryValue: string;
-    chatActive: boolean;
-    chatAvailableGroup: string;
-    paidPromotion: boolean;
-    chatAvailableCondition: string;
-    minFollowerMinute: number;
-    // livePlaybackJson: string;
-    channel: {
-        channelId: string;
-        channelName: string;
-        channelImageUrl: string;
-        verifiedMark: boolean;
-    };
-    // livePollingStatusJson: string;
-    userAdultStatus: null;
-}
 
 const ERROR = (...e: any) => {
     console.error(__filename, ' Error: ', ...e);
