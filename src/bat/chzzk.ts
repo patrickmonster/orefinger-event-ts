@@ -144,7 +144,7 @@ const interval = async () => {
     console.log('탐색 :: Youtube', new Date(), pageIndex);
 };
 
-const intervalIdx = setInterval(interval, 1000 * 60 * 7); // 5분마다 실행
+const intervalIdx = setInterval(interval, 1000 * 60 * 9); // 9분마다 실행
 console.log('Chzzk Batch Start!');
 // interval();
 

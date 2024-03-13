@@ -102,7 +102,6 @@ const interval = async () => {
             try {
                 const liveStatus = await getChannelLive(notice_id, hash_id, id);
                 if (liveStatus) {
-                    console.log('?', convertVideoObject(liveStatus, name));
                     // online
                     sendChannels(channels, {
                         content: message,
@@ -125,7 +124,7 @@ const interval = async () => {
     console.log('탐색 :: Afreeca', new Date(), pageIndex);
 };
 
-const intervalIdx = setInterval(interval, 1000 * 60 * 7); // 5분마다 실행
+const intervalIdx = setInterval(interval, 1000 * 60 * 9); // 5분마다 실행
 console.log('Afreeca Batch Start!');
 // interval();
 
