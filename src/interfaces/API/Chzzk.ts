@@ -34,3 +34,35 @@ export interface ChannelData {
 
     openLive?: boolean; // 오픈 라이브 여부
 }
+
+// 주석 : 안씀
+export interface Content {
+    liveId: number;
+    liveTitle: string;
+    status: string;
+    liveImageUrl: string | null;
+    defaultThumbnailImageUrl: null;
+    concurrentUserCount: number;
+    accumulateCount: number;
+    openDate: string;
+    closeDate: null;
+    adult: boolean;
+    chatChannelId: string;
+    categoryType: null;
+    liveCategory: string;
+    liveCategoryValue: string;
+    chatActive: boolean;
+    chatAvailableGroup: string;
+    paidPromotion: boolean;
+    chatAvailableCondition: string;
+    minFollowerMinute: number;
+    // livePlaybackJson: string;
+    channel: {
+        channelId: string;
+        channelName: string;
+        channelImageUrl: string;
+        verifiedMark: boolean;
+    };
+    // livePollingStatusJson: string;
+    userAdultStatus: null;
+}

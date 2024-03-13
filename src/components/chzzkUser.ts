@@ -9,7 +9,13 @@ const chzzk = getChzzkAPI('v1');
 
 export const getChzzkUser = async (chzzkHash: string) => {
     try {
-        const { code, message, content } = await chzzk.get<ChzzkInterface<ChannelData>>(`channels/${chzzkHash}`);
+        const { code, message, content } = await chzzk.get<ChzzkInterface<ChannelData>>(`channels/${chzzkHash}`, {
+            headers: {
+                'Content-Type': 'application/json',
+                'User-Agent':
+                    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36',
+            },
+        });
         if (code !== 200) {
             console.log('CHZZK 사용자 정보를 찾을 수 없습니다.', message);
             return 0;
