@@ -187,8 +187,8 @@ AND ab.use_yn = 'Y'
     );
 
 //////////////////////////////////////////////////////////////////////////
-
-export const upsertAttach = (noticeId: string | number, authId: string) => {
+// 출석 체크를 하는 모듈
+export const upsertAttach = (noticeId: string | number, authId: string) =>
     getConnection(async query => {
         const isSuccess = await query<SqlInsertUpdate>(
             `
@@ -207,5 +207,60 @@ FROM (
             authId,
             noticeId
         ).then(row => row.insertId || row.affectedRows);
+
+        const list = await query<{
+            attendance_time: string;
+            create_at: string;
+        }>(
+            `
+SELECT 
+    nl.create_at AS create_at
+    , a.attendance_time 
+FROM ( SELECT DATE_FORMAT( now(), '%y%m') AS yymm ) A
+LEFT JOIN notice_live nl 
+    ON DATE_FORMAT(nl.create_at , '%y%m') = A.yymm 
+LEFT JOIN attendance a 
+    ON a.yymm = A.yymm 
+    AND nl.id = a.event_id 
+    AND a.auth_id = ?
+WHERE notice_id = ?
+        `,
+            authId,
+            noticeId
+        );
+
+        return { isSuccess, list };
     }, true);
-};
+
+/**
+ * 3개월 동안 해당 방송의 출석을 조회합니다.
+ * @param authId
+ * @param noticeId
+ * @returns
+ */
+export const selectAttch3Month = (authId: string, noticeId: string | number) =>
+    query(
+        `
+SELECT 
+	a.\`type\`, a.yymm, a.attendance_time, a.auth_id, a.event_id 
+	, nl.notice_id 
+	, count(1) AS total
+FROM (
+	SELECT 
+		DATE_FORMAT( now(), '%y%m') AS toMonth
+		, DATE_FORMAT( now(), '%y%m') -1 AS lastMonth
+		, DATE_FORMAT( now(), '%y%m') -2 AS monthBeforLast
+	FROM dual
+) A
+LEFT JOIN attendance a 
+	ON a.yymm IN ( A.toMonth, A.lastMonth, A.monthBeforLast )
+LEFT JOIN notice_live nl 
+	ON nl.id = a.event_id AND nl.notice_id = a.type
+WHERE a.\`type\` = ?
+AND a.auth_id = ?
+GROUP BY nl.notice_id 
+ORDER BY total DESC
+    `,
+        noticeId,
+        authId
+    );

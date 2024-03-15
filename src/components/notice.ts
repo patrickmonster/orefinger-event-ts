@@ -1,4 +1,4 @@
-import { NoticeId, ParseInt, selectNoticeDtilByEmbed, upsertNotice } from 'controllers/notice';
+import { NoticeId, ParseInt, selectNoticeDtilByEmbed, upsertAttach, upsertNotice } from 'controllers/notice';
 import { ChannelType } from 'discord-api-types/v10';
 import { NoticeChannel } from 'interfaces/notice';
 import { createChannelSelectMenu } from 'utils/discord/component';
@@ -6,6 +6,8 @@ import { editerComponent } from './systemComponent';
 
 import { selectEventBat } from 'controllers/bat';
 import { deleteNoticeChannel } from 'controllers/notice';
+import { RESTPostAPIChannelMessage } from 'plugins/discord';
+import createCalender from 'utils/createCalender';
 import discord, { openApi } from 'utils/discordApiInstance';
 import { convertMessage } from 'utils/object';
 
@@ -105,4 +107,56 @@ export const sendNoticeByBord = async (
     };
 
     await sendChannels(data.channels, message ? convertMessage(messageData, message) : message);
+};
+
+/**
+ * 라이브 모듈에서 출석 체크를 시도함
+ *  - 출석 정보를 저장하고, 캘린터를제작하여 뿌려줌
+ * @param noticeId
+ * @param userId
+ * @returns
+ */
+export const selectAttachMessage = async (
+    noticeId: string | number,
+    userId: string
+): Promise<RESTPostAPIChannelMessage> => {
+    const { isSuccess, list } = await upsertAttach(noticeId, userId);
+
+    let count = 0;
+
+    // 개근일자
+    for (const { attendance_time } of list) {
+        if (attendance_time) count++;
+        else break;
+    }
+
+    const pin = list
+        .filter(({ attendance_time }) => attendance_time)
+        .map(({ attendance_time }) => new Date(attendance_time)); // 출석회수
+    const spin = list.map(({ create_at }) => new Date(create_at)); // 방송횟수
+    return {
+        content: isSuccess ? '출석체크가 완료되었습니다!' : '이미 출석이 완료되었습니다!',
+        ephemeral: true,
+        embeds: [
+            {
+                url: 'https://toss.me/방송알리미',
+                color: 0x9147ff,
+                footer: {
+                    text: 'Create by.뚱이(Patrickmonster)',
+                    icon_url:
+                        'https://media.discordapp.net/attachments/682449668428529743/873590308502372362/79e40d246645eefc.png',
+                },
+                description: `
+출석율 : ${((pin.length / spin.length) * 100).toFixed(2)}% (${pin.length}/${spin.length})
+출석 : ${count - 1 > 0 ? count + '회 연속' : '연속된 데이터가 없네요 8ㅅ8'}
+
+### 출석은 방송 알림이 오면 출석을 눌러주세요!
+ - 방송정보를 통하여 출석을 체크합니다.
+===========================
+\`\`\`ansi
+${createCalender(new Date(), ...pin)}
+\`\`\``,
+            },
+        ],
+    };
 };
