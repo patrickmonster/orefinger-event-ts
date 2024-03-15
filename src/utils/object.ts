@@ -22,3 +22,5 @@ export const convertMessage = <T>(object: T, message: { [key: string]: string })
             return v;
         })
     );
+
+export const randomIntegerInRange = (min: number, max: number) => Math.floor(Math.random() * (max - min + 1)) + min;
