@@ -2,9 +2,14 @@ import axios from 'axios';
 import { upsertNotice } from 'controllers/notice';
 import redis, { REDIS_KEY } from 'utils/redis';
 
+import { sendChannels } from 'components/notice';
+import { insertLiveEvents, updateLiveEvents } from 'controllers/bat';
+import { APIEmbed } from 'discord-api-types/v10';
 import { Content } from 'interfaces/API/Afreeca';
+import { NoticeBat } from 'interfaces/notice';
 import qs from 'querystring';
 import afreecaAPI from 'utils/afreecaApiInstance';
+import { randomIntegerInRange } from 'utils/object';
 
 interface ChannelData {
     user_id: string;
@@ -87,5 +92,91 @@ export const searchAfreecabeUser = async (keyword: string): Promise<Array<{ name
             });
 
         return result || [];
+    }
+};
+
+/**
+ * xml 형태의 데이터를 embed 형태로 변환합니다
+ * @param videoObject
+ * @returns
+ */
+export const convertVideoObject = (videoObject: Content, name?: string): APIEmbed => {
+    const {
+        broad: { broad_title: title, broad_no, user_id },
+        station: { user_nick: channelName },
+        profile_image: channelImageUrl,
+    } = videoObject;
+
+    return {
+        title: title || 'LIVE ON',
+        url: `https://play.afreecatv.com/${user_id}/${broad_no}`,
+        image: {
+            url: `https://liveimg.afreecatv.com/m/${broad_no}?${randomIntegerInRange(100, 999)}`,
+        },
+        author: {
+            name: name ?? channelName,
+            icon_url: channelImageUrl.startsWith('http') ? channelImageUrl : `https:${channelImageUrl}`,
+            url: `https://play.afreecatv.com/${user_id}`,
+        },
+        fields: [
+            {
+                name: 'Stream',
+                value: `https://play.afreecatv.com/${user_id}/${broad_no}`,
+            },
+        ],
+        footer: { text: '제공. AfreecaTV' },
+    };
+};
+
+/**
+ * 채널의 비디오 목록을 가져옵니다
+ * @param noticeId
+ * @param hashId
+ * @returns
+ */
+export const getChannelLive = async (noticeId: number, hashId: string, lastId: string | number) =>
+    new Promise<Content | null>((resolve, reject) => {
+        afreecaAPI
+            .get<Content>(`${hashId}/station`)
+            .then(async content => {
+                const {
+                    broad, // 방송 정보
+                    station, // 채널 정보
+                    profile_image, // 프로필 이미지
+                } = content;
+
+                if (broad) {
+                    // 온라인
+                    const { broad_no } = broad;
+                    if (lastId === broad_no) {
+                        return reject(null);
+                    } else {
+                        await insertLiveEvents(noticeId, broad_no);
+                    }
+                } else {
+                    // 오프라인
+                    if (lastId || lastId != '0') {
+                        const result = await updateLiveEvents(noticeId);
+                        if (result.changedRows == 0) {
+                            // 이미 처리된 알림
+                            return reject(null);
+                        }
+                    }
+                }
+                resolve(content);
+            })
+            .catch(reject);
+    });
+
+export const getLiveMessage = async ({ channels, notice_id, hash_id, message, name, img_idx, id }: NoticeBat) => {
+    const liveStatus = await getChannelLive(notice_id, hash_id, id);
+    if (liveStatus) {
+        // online
+        sendChannels(channels, {
+            content: message,
+            embeds: [convertVideoObject(liveStatus, name)],
+        });
+    } else {
+        // offline
     }
 };

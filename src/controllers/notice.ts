@@ -202,7 +202,8 @@ FROM (
     SELECT notice_id, id, create_at, end_at 
     FROM notice_live nl 
     WHERE nl.notice_id  = ?
-    AND nl.end_at IS NOT NULL
+    ORDER BY id desc
+    LIMIT 1
 ) eo`,
             authId,
             noticeId
