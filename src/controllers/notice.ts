@@ -185,3 +185,27 @@ AND ab.use_yn = 'Y'
         `,
         guildId
     );
+
+//////////////////////////////////////////////////////////////////////////
+
+export const upsertAttach = (noticeId: string | number, authId: string) => {
+    getConnection(async query => {
+        const isSuccess = await query<SqlInsertUpdate>(
+            `
+INSERT ignore INTO discord.attendance (\`type\`, yymm, auth_id, event_id)
+SELECT 
+    notice_id AS \`type\`
+    , DATE_FORMAT( now(), '%y%m') AS yymm
+    , ? AS auth_id
+    , id AS event_id
+FROM (
+    SELECT notice_id, id, create_at, end_at 
+    FROM notice_live nl 
+    WHERE nl.notice_id  = ?
+    AND nl.end_at IS NOT NULL
+) eo`,
+            authId,
+            noticeId
+        ).then(row => row.insertId || row.affectedRows);
+    }, true);
+};

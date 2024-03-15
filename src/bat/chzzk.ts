@@ -30,17 +30,10 @@ const convertVideoObject = (video_object: Content, name?: string): APIEmbed => {
         author: {
             name: name ?? channelName,
             icon_url: channelImageUrl,
+            url: `https://chzzk.naver.com/${channelId}`,
         },
-        fields: [
-            { name: 'Game', value: `${game_name || 'LIVE'}`, inline: true },
-            {
-                name: 'Stream',
-                value: `https://chzzk.naver.com/live/${channelId}`,
-            },
-        ],
-        footer: {
-            text: '제공. Chzzk',
-        },
+        fields: [{ name: 'Game', value: `${game_name || 'LIVE'}`, inline: true }],
+        footer: { text: '제공. Chzzk' },
     };
 };
 
@@ -96,8 +89,6 @@ const interval = async () => {
                         content: message,
                         embeds: [convertVideoObject(liveStatus, name)],
                     });
-                } else {
-                    // offline
                 }
             } catch (e) {
                 ERROR(hash_id);
@@ -113,7 +104,7 @@ const interval = async () => {
     console.log('탐색 :: Youtube', new Date(), pageIndex);
 };
 
-const intervalIdx = setInterval(interval, 1000 * 60 * 9); // 9분마다 실행
+const intervalIdx = setInterval(interval, 1000 * 60 * 13); // 9분마다 실행
 console.log('Chzzk Batch Start!');
 // interval();
 
