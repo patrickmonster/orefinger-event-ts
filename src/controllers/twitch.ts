@@ -153,8 +153,6 @@ from (
     FROM discord.event_live
     where auth_id = ?
     and event_id is not null
-    ORDER BY id desc
-    LIMIT 1
 ) eo`,
             broadcaster_user_id,
             user_id
