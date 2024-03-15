@@ -52,7 +52,10 @@ type revokeType = {
 };
 export const revoke = async (user_id: string) =>
     getConnection<revokeType[]>(async QUERY => {
-        QUERY<SqlInsertUpdate>(`UPDATE auth_token SET is_session='N', update_at=CURRENT_TIMESTAMP WHERE user_id=? AND \`type\`=2`, user_id);
+        QUERY<SqlInsertUpdate>(
+            `UPDATE auth_token SET is_session='N', update_at=CURRENT_TIMESTAMP WHERE user_id=? AND \`type\`=2`,
+            user_id
+        );
         //
         return QUERY<revokeType>(
             `
@@ -150,6 +153,8 @@ from (
     FROM discord.event_live
     where auth_id = ?
     and event_id is not null
+    ORDER BY id desc
+    LIMIT 1
 ) eo`,
             broadcaster_user_id,
             user_id

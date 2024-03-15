@@ -1,21 +1,24 @@
+import { getAttendanceList } from 'controllers/twitch';
 import { FastifyInstance } from 'fastify';
 
 export default async (fastify: FastifyInstance, opts: any) => {
     const ATTACH_RNAK = 'db:ATTACH_RANK';
 
-    // fastify.get(
-    //     '/atttach',
-    //     {
-    //         onRequest: [fastify.authenticate],
-    //         schema: {
-    //             security: [{ Bearer: [] }],
-    //             description: '출석 리스트를 불러옵니다.',
-    //             tags: ['Notification'],
-    //             deprecated: false,
-    //         },
-    //     },
-    //     async req => await getAttendanceList(`${req.user?.id}`)
-    // );
+    fastify.get<{
+        Params: { hashId: string };
+    }>(
+        '/atttach/{hashId}',
+        {
+            // onRequest: [fastify.authenticate],
+            schema: {
+                security: [{ Bearer: [] }],
+                description: '출석 리스트를 불러옵니다.',
+                tags: ['Notification'],
+                deprecated: false,
+            },
+        },
+        async req => await getAttendanceList(`${req.user?.id}`)
+    );
 
     // fastify.get<{
     //     Querystring: { isMyLank: boolean };
