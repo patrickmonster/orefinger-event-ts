@@ -5,8 +5,6 @@ import { FastifyInstance } from 'fastify';
 import { ENCRYPT_KEY, decrypt, sha256 } from 'utils/cryptoPw';
 
 export default async (fastify: FastifyInstance, opts: any) => {
-    // Get all payments
-
     fastify.get(
         '',
         {
