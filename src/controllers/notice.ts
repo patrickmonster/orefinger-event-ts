@@ -204,7 +204,8 @@ FROM (
     WHERE nl.notice_id  = ?
     ORDER BY id desc
     LIMIT 1
-) eo`,
+) eo
+WHERE eo.end_at IS NULL`,
             authId,
             noticeId
         ).then(row => row.insertId || row.affectedRows);
