@@ -20,6 +20,7 @@ import twitch, { twitchAPI } from 'utils/twitchApiInstance';
 
 import { APIUser } from 'discord-api-types/v10';
 import qs from 'querystring';
+import { ENCRYPT_KEY, encrypt, sha256 } from 'utils/cryptoPw';
 
 export default async (fastify: FastifyInstance, opts: any) => {
     const targets = ['twitch', 'twitch.stream', 'kakao', 'discord', 'chzzk', 'naver'];
@@ -327,6 +328,9 @@ export default async (fastify: FastifyInstance, opts: any) => {
 
     // 인증 모듈 - 토스
     fastify.patch<{
+        Querystring: {
+            isTest: boolean;
+        };
         Body: {
             cardNumber: string;
             cardExpirationYear: string;
@@ -344,6 +348,16 @@ export default async (fastify: FastifyInstance, opts: any) => {
                 description: '계정 연결 - 디스코드 계정을 기반으로 토스 페이먼츠 카드 정보를 등록 합니다.',
                 tags: ['Auth'],
                 deprecated: false, // 비활성화
+                querystring: {
+                    type: 'object',
+                    properties: {
+                        isTest: {
+                            type: 'boolean',
+                            description: '테스트 결제 여부',
+                            enum: [true, false],
+                        },
+                    },
+                },
                 body: {
                     type: 'object',
                     required: [
@@ -367,6 +381,7 @@ export default async (fastify: FastifyInstance, opts: any) => {
             },
         },
         async req => {
+            const { isTest } = req.query;
             const { id } = req.user;
             const {
                 cardNumber,
@@ -378,7 +393,7 @@ export default async (fastify: FastifyInstance, opts: any) => {
             } = req.body;
 
             try {
-                const { data: user } = await toss.post<{
+                const user = await toss.post<{
                     mId: string;
                     customerKey: string;
                     authenticatedAt: string;
@@ -402,21 +417,23 @@ export default async (fastify: FastifyInstance, opts: any) => {
                     customerKey: id,
                 });
 
-                console.log(user);
+                const cardKey = sha256(cardNumber, ENCRYPT_KEY);
+                const { iv, content } = encrypt(cardNumber, ENCRYPT_KEY);
+
                 await auth(
-                    'toss.test',
+                    isTest ? 'toss.test' : 'toss',
                     id,
                     {
-                        id,
-                        username: cardName,
-                        discriminator: user.cardNumber,
-                        email: cardNumber,
+                        id: cardKey,
+                        username: iv,
+                        discriminator: cardName,
+                        email: content,
                         avatar: user.mId,
                     },
                     user.billingKey
                 );
                 return { message: 'success' };
-            } catch (e) {
+            } catch (e: any) {
                 console.error(e);
                 return { message: '인증에 실패함' };
             }
