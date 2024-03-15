@@ -83,19 +83,10 @@ export default async (fastify: FastifyInstance, opts: any) => {
                     console.log(`온라인 - ${broadcaster_user_name}(${broadcaster_user_login})`);
 
                     streamOnline(event, 14).then(channels => {
-                        console.log(`프로세서 [ONLINE] 이벤트 수신 - ${broadcaster_user_login} (${channels.length})`);
-
-                        openApi.post(
-                            `webhooks/852347735310860298/r6_htRdmt149gxL1Hzkkw5rg-p-80GfE_dMoDSBKVo-zQIKatJzu7ia_-qZDTrJhW2Up`,
-                            {
-                                content: `${channels.length}${broadcaster_user_name}(${broadcaster_user_login})\nhttp://twitch.tv/${broadcaster_user_login}`,
-                            }
-                        );
-
                         if (channels.length === 0) return; // 이벤트가 없거나, 이미 진행된 이벤트
                         irc.say(
                             `${broadcaster_user_login}`,
-                            '안뇽! 오래기다렸지? 이제 Chzzk 알림도 지원해! tgd.kr/73093790 daromLcat'
+                            '안뇽! 아숩지만, 이제 여길 떠나야 할 시간이야... orefinger.notion.site/b89c8c193e4142b2b16c6b9432fa54e4 daromLcat'
                         ).catch(e => {});
                         for (const {
                             id,

@@ -52,7 +52,10 @@ type revokeType = {
 };
 export const revoke = async (user_id: string) =>
     getConnection<revokeType[]>(async QUERY => {
-        QUERY<SqlInsertUpdate>(`UPDATE auth_token SET is_session='N', update_at=CURRENT_TIMESTAMP WHERE user_id=? AND \`type\`=2`, user_id);
+        QUERY<SqlInsertUpdate>(
+            `UPDATE auth_token SET is_session='N', update_at=CURRENT_TIMESTAMP WHERE user_id=? AND \`type\`=2`,
+            user_id
+        );
         //
         return QUERY<revokeType>(
             `

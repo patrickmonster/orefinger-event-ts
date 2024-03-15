@@ -748,10 +748,10 @@
     http-errors "2.0.0"
     mime "^3.0.0"
 
-"@fastify/sensible@^5.2.0":
-  version "5.3.0"
-  resolved "https://registry.yarnpkg.com/@fastify/sensible/-/sensible-5.3.0.tgz#bd82cc20059f84de893c2a2f4b9438812d63705c"
-  integrity sha512-/7n8kMO6G7up05MOohZ7OX3u2pUGdfOU8ai2XzY3TNSguVYUcQfyu+A0On41ijxSKo9Z9US5OMfEy+KITF4RQQ==
+"@fastify/sensible@^5.5.0":
+  version "5.5.0"
+  resolved "https://registry.yarnpkg.com/@fastify/sensible/-/sensible-5.5.0.tgz#6bbe3741439653f3f955021ffcda3f205bef8aad"
+  integrity sha512-D0zpl+nocsRXLceSbc4gasQaO3ZNQR4dy9Uu8Ym0mh8VUdrjpZ4g8Ca9O3pGXbBVOnPIGHUJNTV7Yf9dg/OYdg==
   dependencies:
     "@lukeed/ms" "^2.0.1"
     fast-deep-equal "^3.1.1"

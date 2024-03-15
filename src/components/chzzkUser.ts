@@ -1,9 +1,16 @@
+import axios from 'axios';
+import { sendChannels } from 'components/notice';
+import { insertLiveEvents, updateLiveEvents } from 'controllers/bat';
 import { upsertNotice } from 'controllers/notice';
-import { ChannelData } from 'interfaces/API/Chzzk';
+import { APIEmbed } from 'discord-api-types/v10';
+import { ChannelData, Content } from 'interfaces/API/Chzzk';
 import { ChzzkInterface, getChzzkAPI } from 'utils/naverApiInstance';
 import redis, { REDIS_KEY } from 'utils/redis';
 
+import dayjs from 'dayjs';
+import { NoticeBat } from 'interfaces/notice';
 import qs from 'querystring';
+import { createActionRow, createSuccessButton } from 'utils/discord/component';
 
 const chzzk = getChzzkAPI('v1');
 
@@ -102,4 +109,91 @@ export const searchChzzkUser = async (keyword: string): Promise<Array<{ name: st
 
         return result || [];
     }
+};
+
+/**
+ * 채널의 비디오 목록을 가져옵니다
+ * @param notice_ida
+ * @param hash_id
+ * @returns
+ */
+export const getChannelLive = async (notice_id: number, hash_id: string, liveId: string | number) =>
+    new Promise<Content | null>((resolve, reject) => {
+        axios
+            .get(`https://api.chzzk.naver.com/service/v2/channels/${hash_id}/live-detail`, {
+                headers: {
+                    'User-Agent':
+                        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+                },
+            })
+            .then(async ({ data }) => {
+                const { content } = data;
+                if (content.liveId === liveId) return reject(null);
+                if (content && content.status === 'OPEN') {
+                    await insertLiveEvents(notice_id, content.liveId);
+                } else {
+                    if (liveId && liveId != '0') {
+                        const result = await updateLiveEvents(notice_id);
+                        if (result.changedRows == 0) return reject(null);
+                        // 이미 처리된 알림
+                    }
+                }
+                resolve(content as Content);
+            })
+            .catch(reject);
+    });
+
+export const getLiveMessage = async ({ channels, notice_id, hash_id, message, name, id, img_idx }: NoticeBat) => {
+    const liveStatus = await getChannelLive(notice_id, hash_id, id);
+    if (liveStatus && liveStatus.status === 'OPEN') {
+        // online
+        const diffTime = dayjs(liveStatus.openDate).diff(dayjs(), 'minute');
+        setTimeout(
+            () =>
+                sendChannels(channels, {
+                    content: message,
+                    embeds: [convertVideoObject(liveStatus, name)],
+                    components: [
+                        createActionRow(
+                            createSuccessButton(`notice attendance ${notice_id}`, {
+                                label: '출석체크',
+                                emoji: { id: '1218118186717937775' },
+                            })
+                        ),
+                    ],
+                }),
+            diffTime > 3 ? 0 : 1000 * 60
+        );
+    }
+};
+
+/**
+ * xml 형태의 데이터를 embed 형태로 변환합니다
+ * @param video_object
+ * @returns
+ */
+const convertVideoObject = (video_object: Content, name?: string): APIEmbed => {
+    const {
+        liveTitle: title,
+        liveImageUrl,
+        // liveCategory: game_name,
+        liveCategoryValue: game_name,
+        categoryType,
+        channel: { channelImageUrl, channelId, channelName },
+    } = video_object;
+
+    return {
+        title,
+        url: `https://chzzk.naver.com/live/${channelId}`,
+        image: {
+            url: liveImageUrl?.replace('{type}', '1080') || '',
+        },
+        author: {
+            name: name ?? channelName,
+            icon_url: channelImageUrl,
+            url: `https://chzzk.naver.com/${channelId}`,
+        },
+        fields: [{ name: categoryType || 'Game', value: `${game_name || 'LIVE'}`, inline: true }],
+        footer: { text: '제공. Chzzk' },
+    };
 };
