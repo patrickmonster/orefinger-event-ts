@@ -3,6 +3,7 @@ import { sendChannels } from 'components/notice';
 import { insertLiveEvents, selectEventBats, updateLiveEvents } from 'controllers/bat';
 import { APIEmbed } from 'discord-api-types/v10';
 import { Content } from 'interfaces/API/Chzzk';
+import { createActionRow, createSuccessButton } from 'utils/discord/component';
 import sleep from 'utils/sleep';
 
 const ERROR = (...e: any) => {
@@ -17,7 +18,9 @@ const convertVideoObject = (video_object: Content, name?: string): APIEmbed => {
     const {
         liveTitle: title,
         liveImageUrl,
-        liveCategory: game_name,
+        // liveCategory: game_name,
+        liveCategoryValue: game_name,
+        categoryType,
         channel: { channelImageUrl, channelId, channelName },
     } = video_object;
 
@@ -30,17 +33,10 @@ const convertVideoObject = (video_object: Content, name?: string): APIEmbed => {
         author: {
             name: name ?? channelName,
             icon_url: channelImageUrl,
+            url: `https://chzzk.naver.com/${channelId}`,
         },
-        fields: [
-            { name: 'Game', value: `${game_name || 'LIVE'}`, inline: true },
-            {
-                name: 'Stream',
-                value: `https://chzzk.naver.com/live/${channelId}`,
-            },
-        ],
-        footer: {
-            text: '제공. Chzzk',
-        },
+        fields: [{ name: categoryType || 'Game', value: `${game_name || 'LIVE'}`, inline: true }],
+        footer: { text: '제공. Chzzk' },
     };
 };
 
@@ -95,9 +91,15 @@ const interval = async () => {
                     sendChannels(channels, {
                         content: message,
                         embeds: [convertVideoObject(liveStatus, name)],
+                        components: [
+                            createActionRow(
+                                createSuccessButton(`notice attendance ${notice_id}`, {
+                                    label: '출석체크',
+                                    emoji: { id: '1218118186717937775' },
+                                })
+                            ),
+                        ],
                     });
-                } else {
-                    // offline
                 }
             } catch (e) {
                 ERROR(hash_id);
@@ -110,10 +112,10 @@ const interval = async () => {
         await sleep(100 * random); // Cull down the request
     } while (true);
 
-    console.log('탐색 :: Youtube', new Date(), pageIndex);
+    console.log('탐색 :: Chzzk', new Date(), pageIndex);
 };
 
-const intervalIdx = setInterval(interval, 1000 * 60 * 9); // 9분마다 실행
+const intervalIdx = setInterval(interval, 1000 * 60 * 13); // 9분마다 실행
 console.log('Chzzk Batch Start!');
 // interval();
 

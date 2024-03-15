@@ -34,6 +34,7 @@ const convertVideoObject = (videoObject: Content, name?: string): APIEmbed => {
         author: {
             name: name ?? channelName,
             icon_url: channelImageUrl.startsWith('http') ? channelImageUrl : `https:${channelImageUrl}`,
+            url: `https://play.afreecatv.com/${user_id}`,
         },
         fields: [
             {
@@ -41,9 +42,7 @@ const convertVideoObject = (videoObject: Content, name?: string): APIEmbed => {
                 value: `https://play.afreecatv.com/${user_id}/${broad_no}`,
             },
         ],
-        footer: {
-            text: '제공. AfreecaTV',
-        },
+        footer: { text: '제공. AfreecaTV' },
     };
 };
 
