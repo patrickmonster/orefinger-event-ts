@@ -17,7 +17,7 @@ export const exec = async (interaction: MessageInteraction, noticeId: string) =>
         interaction.reply(
             await catchRedis(
                 REDIS_KEY.API.ATTACH_LIVE(noticeId, userId),
-                async () => (await selectAttachMessage(noticeId, userId)) || { content: '처리 불가능한 상태.' },
+                async () => await selectAttachMessage(noticeId, userId),
                 60 * 60 // 1시간
             )
         );

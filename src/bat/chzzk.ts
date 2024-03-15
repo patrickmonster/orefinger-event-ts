@@ -3,6 +3,7 @@ import { sendChannels } from 'components/notice';
 import { insertLiveEvents, selectEventBats, updateLiveEvents } from 'controllers/bat';
 import { APIEmbed } from 'discord-api-types/v10';
 import { Content } from 'interfaces/API/Chzzk';
+import { createActionRow, createSuccessButton } from 'utils/discord/component';
 import sleep from 'utils/sleep';
 
 const ERROR = (...e: any) => {
@@ -88,6 +89,14 @@ const interval = async () => {
                     sendChannels(channels, {
                         content: message,
                         embeds: [convertVideoObject(liveStatus, name)],
+                        components: [
+                            createActionRow(
+                                createSuccessButton(`notice attendance ${notice_id}`, {
+                                    label: '출석체크',
+                                    emoji: { id: '1218118186717937775' },
+                                })
+                            ),
+                        ],
                     });
                 }
             } catch (e) {

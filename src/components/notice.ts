@@ -71,7 +71,7 @@ export const getNoticeByType = async (
  * @param channels
  * @param message TODO : message 객체
  */
-export const sendChannels = async (channels: NoticeChannel[], message: any) => {
+export const sendChannels = async (channels: NoticeChannel[], message: RESTPostAPIChannelMessage) => {
     for (const { notice_id, channel_id } of channels) {
         console.log('sendChannels', notice_id, channel_id);
         discord.post(`/channels/${channel_id}/messages`, { body: message }).catch(e => {
