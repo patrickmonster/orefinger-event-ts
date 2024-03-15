@@ -18,7 +18,9 @@ const convertVideoObject = (video_object: Content, name?: string): APIEmbed => {
     const {
         liveTitle: title,
         liveImageUrl,
-        liveCategory: game_name,
+        // liveCategory: game_name,
+        liveCategoryValue: game_name,
+        categoryType,
         channel: { channelImageUrl, channelId, channelName },
     } = video_object;
 
@@ -33,7 +35,7 @@ const convertVideoObject = (video_object: Content, name?: string): APIEmbed => {
             icon_url: channelImageUrl,
             url: `https://chzzk.naver.com/${channelId}`,
         },
-        fields: [{ name: 'Game', value: `${game_name || 'LIVE'}`, inline: true }],
+        fields: [{ name: categoryType || 'Game', value: `${game_name || 'LIVE'}`, inline: true }],
         footer: { text: '제공. Chzzk' },
     };
 };
