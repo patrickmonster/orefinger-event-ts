@@ -139,12 +139,16 @@ export const selectAttachMessage = async (
         ephemeral: true,
         embeds: [
             {
-                url: 'https://toss.me/방송알리미',
-                color: 0x9147ff,
-                footer: {
-                    text: 'Create by.뚱이(Patrickmonster)',
+                color: 0xffca52,
+                author: {
+                    name: '방송알리미',
                     icon_url:
-                        'https://media.discordapp.net/attachments/682449668428529743/873590308502372362/79e40d246645eefc.png',
+                        'https://cdn.orefinger.click/post/466950273928134666/e4a1e3e4-ffe1-45c1-a0f6-0107301babcc.png',
+                    url: 'https://toss.me/방송알리미',
+                },
+                provider: {
+                    name: 'Create by.뚱이(Patrickmonster)',
+                    url: 'https://toss.me/방송알리미',
                 },
                 description: `
 출석율 : ${((pin.length / spin.length) * 100).toFixed(2)}% (${pin.length}/${spin.length})

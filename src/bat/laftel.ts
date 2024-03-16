@@ -60,7 +60,7 @@ const interval = async () => {
     console.log('탐색 :: Laftel', new Date(), pageIndex);
 };
 
-const intervalIdx = setInterval(interval, 1000 * 60 * 13); // 13분마다 실행
+const intervalIdx = setInterval(interval, 1000 * 60 * 13); // 9분마다 실행
 console.log('Laftel Batch Start!');
 // interval();
 
