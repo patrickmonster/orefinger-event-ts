@@ -2,6 +2,7 @@ import { MessageMenuInteraction } from 'interactions/message';
 
 import { getAfreecabeUser } from 'components/afreecaUser';
 import { getChzzkUser } from 'components/chzzkUser';
+import { getLaftelVod } from 'components/laftelUser';
 import { getNoticeByType, getNoticeDetailByEmbed } from 'components/notice';
 import { getYoutubeUser } from 'components/youtubeUser';
 /**
@@ -44,6 +45,11 @@ export const exec = async (interaction: MessageMenuInteraction, noticeType: stri
             case '5': {
                 // 아프리카
                 noticeId = await getAfreecabeUser(hashId);
+                break;
+            }
+            case '7': {
+                // 라프텔
+                noticeId = await getLaftelVod(hashId);
                 break;
             }
             // 8 인증알림은 바로 리스트 출력

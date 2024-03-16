@@ -1,5 +1,6 @@
 'use strict';
-import axios, { AxiosInstance, AxiosRequestConfig } from 'axios';
+import axios from 'axios';
+import { CustomInstance } from 'interfaces/API/Axios';
 import redis from './redis';
 import sleep from './sleep';
 
@@ -19,14 +20,6 @@ export type EventSubQuery =
           user_id?: string;
       }
     | string;
-
-interface CustomInstance extends AxiosInstance {
-    get<T>(url: string, config?: AxiosRequestConfig): Promise<T>;
-    delete<T>(url: string, config?: AxiosRequestConfig): Promise<T>;
-    post<T>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T>;
-    put<T>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T>;
-    patch<T>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T>;
-}
 
 const twitch: CustomInstance = axios.create({
     baseURL: `https://api.twitch.tv/${API_VERSION}`,
@@ -64,7 +57,9 @@ export const GetToken = async (id: string, sc: string, scope: string[]) => {
     console.log('TOKEN] ', id, sc);
 
     const { data } = await axios.post(
-        `https://id.twitch.tv/oauth2/token?client_id=${id}&client_secret=${sc}&grant_type=client_credentials&${scope.join('%20')}`
+        `https://id.twitch.tv/oauth2/token?client_id=${id}&client_secret=${sc}&grant_type=client_credentials&${scope.join(
+            '%20'
+        )}`
     );
     await redis.set(token_id, data.access_token, { EX: data.expires_in - 10 });
 
@@ -72,7 +67,10 @@ export const GetToken = async (id: string, sc: string, scope: string[]) => {
 };
 
 export const GetClientToken = async () =>
-    await GetToken(process.env.TWITCH_CLIENT || '', process.env.TWITCH_SECRET || '', ['channel:read:subscriptions', 'user:read:email']);
+    await GetToken(process.env.TWITCH_CLIENT || '', process.env.TWITCH_SECRET || '', [
+        'channel:read:subscriptions',
+        'user:read:email',
+    ]);
 
 export const GetClientTokenHeader = async () => {
     const { token, id } = await GetClientToken();

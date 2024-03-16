@@ -88,6 +88,7 @@ server.listen({ port: 3000, host: '::' }, (err, address) => {
             import('bat/youtube');
             import('bat/chzzk');
             import('bat/afreeca');
+            import('bat/laftel');
         });
 });
 const ping = setInterval(() => {
