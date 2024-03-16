@@ -1,7 +1,9 @@
+import { searchLaftelVod } from 'components/laftelUser';
 import { selectComponentPagingMenuByKey } from 'components/systemComponent';
 import QUERY from 'controllers/component/embedListQuerys';
 import { MessageInteraction } from 'interactions/message';
 import { createTextShortInput } from 'utils/discord/component';
+import menuComponentBuild from 'utils/menuComponentBuild';
 
 /**
  * 알림 추가 - 검색버튼
@@ -74,6 +76,24 @@ export const exec = async (interaction: MessageInteraction, noticeType: string) 
                 ],
                 custom_id: `notice add ${noticeType}`,
                 title: '아프리카 - 알림추가',
+            });
+            break;
+        }
+        case '7': {
+            // 라프텔
+            await interaction.differ({ ephemeral: true });
+
+            interaction.reply({
+                content: '콘텐츠를 설정할 수 없습니다.',
+                components: menuComponentBuild(
+                    {
+                        custom_id: `notice add ${noticeType}`,
+                        placeholder: '원하시는 VOD를 선택해주세요.',
+                        max_values: 1,
+                        min_values: 1,
+                    },
+                    ...(await searchLaftelVod()).map(({ name, value }) => ({ label: name, value }))
+                ),
             });
             break;
         }
