@@ -162,7 +162,7 @@ export const getLiveMessage = async ({ channels, notice_id, hash_id, message, na
                         ),
                     ],
                 }),
-            diffTime > 3 ? 0 : 1000 * 60
+            diffTime > 2 ? 0 : 1000 * 60 * 2
         );
     }
 };
