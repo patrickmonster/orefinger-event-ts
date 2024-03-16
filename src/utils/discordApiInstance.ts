@@ -1,36 +1,10 @@
 'use strict';
 import { REST } from '@discordjs/rest';
-import axios, { AxiosInstance, AxiosRequestConfig } from 'axios';
+import axios from 'axios';
 import { RESTPostAPIChannelMessage } from 'plugins/discord';
 import sleep from 'utils/sleep';
 import imageBase64 from './imageBase64';
 import { error as errorLog } from './logger';
-
-interface CustomInstance extends AxiosInstance {
-    get<T>(url: string, config?: AxiosRequestConfig): Promise<T>;
-    delete<T>(url: string, config?: AxiosRequestConfig): Promise<T>;
-    post<T>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T>;
-    put<T>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T>;
-    patch<T>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T>;
-}
-// const discord: CustomInstance = axios.create({
-//     baseURL: 'https://discord.com/api/', // discordTk
-//     headers: { authorization: `Bot ${process.env.DISCORD_TOKEN}` },
-// });
-
-// discord.interceptors.response.use(
-//     ({ data }) => data,
-//     async error => {
-//         if (error.config && error.response && error.response.status === 429) {
-//             console.log('Too Many Requests! Retrying...');
-//             const { message, retry_after } = error.response.data;
-//             await sleep(Math.ceil(retry_after / 1000) + 1);
-//             return discord(error.config);
-//         }
-//         errorLog('AXIOS', error);
-//         throw error;
-//     }
-// );
 
 const rest = new REST({ version: '10' }).setToken(`${process.env.DISCORD_TOKEN}`);
 

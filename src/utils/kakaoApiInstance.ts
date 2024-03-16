@@ -1,16 +1,9 @@
 'use strict';
-import axios, { AxiosInstance, AxiosRequestConfig } from 'axios';
+import axios from 'axios';
+import { CustomInstance } from 'interfaces/API/Axios';
 
 const API_VERSION = 'v2';
 const baseURL = `https://kapi.kakao.com/${API_VERSION}`;
-
-interface CustomInstance extends AxiosInstance {
-    get<T>(url: string, config?: AxiosRequestConfig): Promise<T>;
-    delete<T>(url: string, config?: AxiosRequestConfig): Promise<T>;
-    post<T>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T>;
-    put<T>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T>;
-    patch<T>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T>;
-}
 
 const kakao: CustomInstance = axios.create({
     baseURL,

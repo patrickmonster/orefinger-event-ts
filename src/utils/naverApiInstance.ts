@@ -1,18 +1,11 @@
 'use strict';
-import axios, { AxiosInstance, AxiosRequestConfig } from 'axios';
+import axios from 'axios';
+import { CustomInstance } from 'interfaces/API/Axios';
 import { error as errorLog } from './logger';
 
 const API_VERSION = 'v1';
 const baseURL = `https://openapi.naver.com/${API_VERSION}`;
 const chzzkURL = `https://comm-api.game.naver.com/nng_main/${API_VERSION}`;
-
-interface CustomInstance extends AxiosInstance {
-    get<T>(url: string, config?: AxiosRequestConfig): Promise<T>;
-    delete<T>(url: string, config?: AxiosRequestConfig): Promise<T>;
-    post<T>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T>;
-    put<T>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T>;
-    patch<T>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T>;
-}
 
 // const naver: CustomInstance = axios.create({
 //     baseURL,
