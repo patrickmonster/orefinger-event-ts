@@ -37,7 +37,7 @@ export const getLaftelVod = async (vodId: string | number) => {
 
         return noticeId;
     } catch (e) {
-        console.log('CHZZK 사용자 정보를 찾을 수 없습니다.', e);
+        console.log('LAFTEL 사용자 정보를 찾을 수 없습니다.', e);
 
         return 0;
     }
@@ -80,6 +80,17 @@ export const getChannelVideos = async (noticeId: number, hashId: string) =>
             })
             .catch(reject);
     });
+
+/**
+ * vod 리스트를 출력합니다
+ * @returns Array<{ name: string; value: string }>
+ */
+export const searchLaftelVod = async (): Promise<Array<{ name: string; value: string }>> => {
+    return (await getVod()).map(({ name, id }): { name: string; value: string } => ({
+        name: name,
+        value: `${id}`,
+    }));
+};
 
 /**
  * 데이터를 embed 형태로 변환합니다
