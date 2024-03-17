@@ -266,3 +266,31 @@ ORDER BY total DESC
         noticeId,
         authId
     );
+
+export const selectNoticeByPk = async (noticeId: NoticeId) =>
+    query<
+        NoticeDetail & {
+            video_yn: 'Y' | 'N';
+            notice_type_tag: string;
+            img_idx: number;
+            create_at: string;
+            update_at: string;
+        }
+    >(
+        `
+SELECT
+    notice_id
+    , hash_id
+    , notice_type
+    , notice_type_tag
+    , video_yn
+    , message
+    , name
+    , img_idx
+    , create_at
+    , update_at
+FROM v_notice vn
+WHERE notice_id = ?
+    `,
+        ParseInt(noticeId)
+    ).then(res => res[0]);

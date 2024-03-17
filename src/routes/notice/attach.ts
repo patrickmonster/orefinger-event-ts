@@ -1,4 +1,5 @@
 import { selectAttachList } from 'components/notice';
+import { selectNoticeByPk } from 'controllers/notice';
 import { FastifyInstance } from 'fastify';
 
 export default async (fastify: FastifyInstance, opts: any) => {
@@ -19,6 +20,20 @@ export default async (fastify: FastifyInstance, opts: any) => {
                 },
             },
         },
-        async req => await selectAttachList(req.params.live_id)
+        async req => {
+            const detail = await selectNoticeByPk(req.params.live_id);
+
+            if (!detail) {
+                return fastify.httpErrors.notFound('사용자 정보를 찾을 수 없습니다');
+            }
+            const list = await selectAttachList(req.params.live_id);
+
+            return {
+                ...detail,
+                list,
+            };
+        }
     );
+
+    // selectNoticeByPk(req.params.id)
 };
