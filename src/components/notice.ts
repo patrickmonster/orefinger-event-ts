@@ -6,10 +6,13 @@ import { editerComponent } from './systemComponent';
 
 import { selectEventBat } from 'controllers/bat';
 import { deleteNoticeChannel } from 'controllers/notice';
+import { getAttendanceAtLive } from 'controllers/notification';
 import { RESTPostAPIChannelMessage } from 'plugins/discord';
 import createCalender from 'utils/createCalender';
 import discord, { openApi } from 'utils/discordApiInstance';
 import { convertMessage } from 'utils/object';
+import { catchRedis } from 'utils/redis';
+import { getUser } from './discord';
 
 const ERROR = (...e: any) => {
     console.error(__filename, ' Error: ', ...e);
@@ -109,6 +112,21 @@ export const sendNoticeByBord = async (
     await sendChannels(data.channels, message ? convertMessage(messageData, message) : message);
 };
 
+export const selectAttachList = async (noticeId: string | number) =>
+    await catchRedis(
+        `notice:attach:${noticeId}`,
+        async () => {
+            const list = await getAttendanceAtLive(noticeId);
+            for (const attach of list) {
+                if (attach.name == null) {
+                    const { username } = await getUser(attach.auth_id);
+                    attach.name = username;
+                }
+            }
+            return list;
+        },
+        60 * 10
+    );
 /**
  * 라이브 모듈에서 출석 체크를 시도함
  *  - 출석 정보를 저장하고, 캘린터를제작하여 뿌려줌

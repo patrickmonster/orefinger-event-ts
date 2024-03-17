@@ -60,6 +60,7 @@ export const REDIS_KEY = {
         GUILD_CHANNELS: (id: string) => `discord:channel:${id}`,
         GUILD_EMOJIS: (id: string) => `discord:emojis:${id}`,
         GUILD_ROLES: (id: string) => `discord:roles:${id}`,
+        USER: (id: string) => `discord:user:${id}`,
     },
     SQL: {
         SELECT: (queryKey: string | number) => `sql:select:${queryKey}`,

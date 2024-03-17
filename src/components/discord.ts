@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { RESTGetAPIGuildEmojisResult } from 'discord-api-types/v10';
+import { RESTGetAPIGuildEmojisResult, RESTGetAPIUserResult } from 'discord-api-types/v10';
 import discord from 'utils/discordApiInstance';
 import { REDIS_KEY, catchRedis } from 'utils/redis';
 
@@ -20,6 +20,13 @@ export const getMemtions = async (guildId: string): Promise<RESTGetAPIGuildEmoji
     catchRedis(
         REDIS_KEY.DISCORD.GUILD_ROLES(guildId),
         async () => (await discord.get(`/guilds/${guildId}/roles`)) as RESTGetAPIGuildEmojisResult,
+        60 * 30 // 30분
+    );
+
+export const getUser = async (userId: string) =>
+    catchRedis(
+        REDIS_KEY.DISCORD.USER(userId),
+        async () => (await discord.get(`/users/${userId}`)) as RESTGetAPIUserResult,
         60 * 30 // 30분
     );
 

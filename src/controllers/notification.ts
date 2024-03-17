@@ -1,4 +1,4 @@
-import { query } from 'utils/database';
+import { calTo, query } from 'utils/database';
 
 export const liveList = () =>
     query(
@@ -71,3 +71,56 @@ WHERE at2.type in (2,3)
 and user_type = 37
 GROUP by user_id 
     `);
+
+export const getAttendanceAtLive = async (liveId: string | number) =>
+    query<{
+        type: number;
+        yymm: number;
+        attendance_time: string;
+        auth_id: string;
+        id: string;
+        name: string | null;
+        total: number;
+    }>(
+        `
+SELECT
+    a.type
+    , a.yymm
+    , a.attendance_time
+    , a.auth_id
+    , nl.id
+    , IF ( b.name > '', b.name, NULL) AS name
+    , count(1) as total
+FROM attendance a
+LEFT JOIN notice_live nl ON nl.notice_id = a.type AND nl.id = a.event_id 
+LEFT JOIN auth b ON a.auth_id = b.auth_id
+WHERE a.type = ?
+AND yymm = DATE_FORMAT( now(), '%y%m')
+GROUP BY a.auth_id
+ORDER BY total DESC
+LIMIT 10
+    `,
+        liveId
+    );
+
+export const selectNoticeLiveOnList = async (type?: number) =>
+    query<{
+        notice_id: number;
+        id: string;
+        create_at: string;
+        end_at: string;
+        notice_type_tag: string;
+        name: string;
+    }>(
+        `
+SELECT nl.notice_id, nl.id, nl.create_at, nl.end_at 
+	, vn.notice_type_tag
+	, vn.name
+FROM notice_live nl
+LEFT JOIN v_notice vn ON nl.notice_id = vn.notice_id 
+WHERE nl.end_at IS NULL 
+${calTo('AND vn.notice_type = ?', type)}
+ORDER BY nl.create_at DESC
+LIMIT 30
+    `
+    );
