@@ -7,12 +7,57 @@ import { ChannelData, Content } from 'interfaces/API/Chzzk';
 import { ChzzkInterface, getChzzkAPI } from 'utils/naverApiInstance';
 import redis, { REDIS_KEY } from 'utils/redis';
 
+import { auth } from 'controllers/auth';
 import dayjs from 'dayjs';
 import { NoticeBat } from 'interfaces/notice';
 import qs from 'querystring';
+import { ENCRYPT_KEY, sha256 } from 'utils/cryptoPw';
 import { createActionRow, createSuccessButton } from 'utils/discord/component';
 
 const chzzk = getChzzkAPI('v1');
+
+/**
+ * 치치직 인증 방식(임시)
+ * @param chzzkHash
+ * @param authId
+ * @returns
+ */
+export const getAuthChzzkUser = async (chzzkHash: string, authId: string) => {
+    const { content, message } = await chzzk.get<
+        ChzzkInterface<{
+            channelId: string;
+            channelName: string;
+            channelImageUrl: string;
+            channelDescription: string;
+        }>
+    >(`/channels/${chzzkHash}`);
+
+    if (message) {
+        return -1;
+    }
+
+    const hashKeyId = sha256(`${content.channelId}:${authId}`, ENCRYPT_KEY);
+
+    if (content.channelDescription.includes(hashKeyId)) {
+        // 인증완료
+        await auth(
+            'chzzk',
+            authId,
+            {
+                id: content.channelId,
+                username: content.channelName,
+                discriminator: 'chzzk',
+                avatar: content.channelImageUrl,
+            },
+            hashKeyId
+        );
+
+        return 1;
+    } else {
+        // 인증실패
+        return hashKeyId;
+    }
+};
 
 export const getChzzkUser = async (chzzkHash: string) => {
     try {
