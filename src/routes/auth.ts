@@ -605,7 +605,6 @@ export default async (fastify: FastifyInstance, opts: any) => {
                         );
                     });
                     break;
-                case 'chzzk': // 똑같은 인증인데, 이름이 다름 - key 중복 이슈
                 case 'naver':
                     token = getToken(`https://nid.naver.com/oauth2.0/token`, params).then(async token => {
                         console.log(params, token);
@@ -639,6 +638,12 @@ export default async (fastify: FastifyInstance, opts: any) => {
                         return { message: 'success', id: user.id };
                     });
                     break;
+
+                case 'chzzk': {
+                    const hashKeyId = sha256(`${id}:${Date.now()}`, ENCRYPT_KEY);
+
+                    break;
+                }
                 default:
                     return { message: '잘못된 인증 대상입니다.' };
             }
