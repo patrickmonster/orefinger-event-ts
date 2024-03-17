@@ -9,6 +9,7 @@ import { Content } from 'interfaces/API/Afreeca';
 import { NoticeBat } from 'interfaces/notice';
 import qs from 'querystring';
 import afreecaAPI from 'utils/afreecaApiInstance';
+import { createActionRow, createSuccessButton } from 'utils/discord/component';
 import { randomIntegerInRange } from 'utils/object';
 
 interface ChannelData {
@@ -175,6 +176,14 @@ export const getLiveMessage = async ({ channels, notice_id, hash_id, message, na
         sendChannels(channels, {
             content: message,
             embeds: [convertVideoObject(liveStatus, name)],
+            components: [
+                createActionRow(
+                    createSuccessButton(`notice attendance ${notice_id}`, {
+                        label: '출석체크',
+                        emoji: { id: '1218859390988456027' },
+                    })
+                ),
+            ],
         });
     } else {
         // offline
