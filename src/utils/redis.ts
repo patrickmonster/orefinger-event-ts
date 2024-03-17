@@ -3,8 +3,6 @@ import { createClient } from 'redis';
 const client = createClient({
     url: process.env.REDIS_URL,
     pingInterval: 1000 * 30,
-
-    // url: 'redis://localhost:6379',
 });
 
 client.on('error', err => {});
@@ -30,13 +28,7 @@ client.connect().catch(e => console.error(e));
 
 export default client;
 
-const hashFuction = (key: string) => {
-    let hash = 0;
-    for (var i = 0; i < key.length; i++) {
-        hash += key.charCodeAt(i);
-    }
-    return hash;
-};
+export const subscriber = client.duplicate();
 
 export const catchRedis = async <T>(key: string, callback: () => Promise<T>, expire = 60 * 60 * 1) => {
     const data = await client.get(key);
