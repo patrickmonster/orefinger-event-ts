@@ -6,7 +6,7 @@ export default async (fastify: FastifyInstance, opts: any) => {
         '',
         {
             schema: {
-                description: '채널의 라이브 출석 리스트를 불러옵니다.',
+                description: '진행중인 라이브 리스트를 불러옵니다',
                 tags: ['Notice'],
                 deprecated: false,
             },
