@@ -38,14 +38,14 @@ export const exec = async (interaction: MessageInteraction, type_id: string) => 
             }
         })
         .catch(async e => {
-            console.log('e', e);
-
             const apiUser = member?.user || user;
+
             if (!apiUser)
                 return await interaction.reply({
                     content: `잘못된 접근 방식 입니다.`,
                     ephemeral: true,
                 });
+
             const jwt = await upsertDiscordUserAndJWTToken(apiUser);
 
             await interaction.reply({
