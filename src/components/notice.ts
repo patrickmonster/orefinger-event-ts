@@ -4,6 +4,7 @@ import { NoticeChannel } from 'interfaces/notice';
 import { createActionRow, createChannelSelectMenu, createUrlButton } from 'utils/discord/component';
 import { editerComponent } from './systemComponent';
 
+import { upsertDiscordUserAndJWTToken } from 'controllers/auth';
 import { selectEventBat } from 'controllers/bat';
 import { deleteNoticeChannel } from 'controllers/notice';
 import { getAttendanceAtLive } from 'controllers/notification';
@@ -141,11 +142,18 @@ export const selectAttachMessage = async (
     const { isSuccess, list } = await upsertAttach(noticeId, userId);
 
     let count = 0;
-
+    let name: string | undefined = undefined;
     // 개근일자
-    for (const { attendance_time } of list) {
+    for (const { attendance_time, name: orgName } of list) {
         if (attendance_time) count++;
         else break;
+
+        if (orgName) name = orgName;
+    }
+
+    if (!name) {
+        // 사용자 정보를 저장함 (기반 데이터가 없는 경우)
+        upsertDiscordUserAndJWTToken(await getUser(userId)).catch(e => {});
     }
 
     const pin = list

@@ -213,11 +213,13 @@ WHERE eo.end_at IS NULL`,
         const list = await query<{
             attendance_time: string;
             create_at: string;
+            name: string;
         }>(
             `
 SELECT 
     nl.create_at AS create_at
     , a.attendance_time 
+    , b.name 
 FROM ( SELECT DATE_FORMAT( now(), '%y%m') AS yymm ) A
 LEFT JOIN notice_live nl 
     ON DATE_FORMAT(nl.create_at , '%y%m') = A.yymm 
@@ -225,6 +227,7 @@ LEFT JOIN attendance a
     ON a.yymm = A.yymm 
     AND nl.id = a.event_id 
     AND a.auth_id = ?
+LEFT JOIN auth b ON b.auth_id = a.auth_id  
 WHERE notice_id = ?
         `,
             authId,

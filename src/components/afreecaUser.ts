@@ -9,6 +9,7 @@ import { Content } from 'interfaces/API/Afreeca';
 import { NoticeBat } from 'interfaces/notice';
 import qs from 'querystring';
 import afreecaAPI from 'utils/afreecaApiInstance';
+import { createActionRow, createSuccessButton } from 'utils/discord/component';
 import { randomIntegerInRange } from 'utils/object';
 
 interface ChannelData {
@@ -146,6 +147,7 @@ export const getChannelLive = async (noticeId: number, hashId: string, lastId: s
                 } = content;
 
                 if (broad) {
+                    if (broad.is_password) return reject(null); // 비밀번호가 있는 경우 (비공개) 무시
                     // 온라인
                     const { broad_no } = broad;
                     if (lastId === broad_no) {
@@ -175,6 +177,14 @@ export const getLiveMessage = async ({ channels, notice_id, hash_id, message, na
         sendChannels(channels, {
             content: message,
             embeds: [convertVideoObject(liveStatus, name)],
+            components: [
+                createActionRow(
+                    createSuccessButton(`notice attendance ${notice_id}`, {
+                        label: '출석체크',
+                        emoji: { id: '1218859390988456027' },
+                    })
+                ),
+            ],
         });
     } else {
         // offline
