@@ -1,7 +1,7 @@
 import { NoticeId, ParseInt, selectNoticeDtilByEmbed, upsertAttach, upsertNotice } from 'controllers/notice';
 import { ChannelType } from 'discord-api-types/v10';
 import { NoticeChannel } from 'interfaces/notice';
-import { createChannelSelectMenu } from 'utils/discord/component';
+import { createActionRow, createChannelSelectMenu, createUrlButton } from 'utils/discord/component';
 import { editerComponent } from './systemComponent';
 
 import { selectEventBat } from 'controllers/bat';
@@ -179,6 +179,22 @@ export const selectAttachMessage = async (
 ${createCalender(new Date(), ...pin)}
 \`\`\``,
             },
+        ],
+        components: [
+            createActionRow(
+                createUrlButton(`https://orefinger.click/bord/attach/${noticeId}`, {
+                    label: '출석현황',
+                    emoji: {
+                        name: '📅',
+                    },
+                })
+                // createUrlButton(`https://toss.me/방송알리미`, {
+                //     label: '후원',
+                //     emoji: {
+                //         name: '💰',
+                //     },
+                // })
+            ),
         ],
     };
 };
