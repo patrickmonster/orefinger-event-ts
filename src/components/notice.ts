@@ -1,9 +1,10 @@
 import { NoticeId, ParseInt, selectNoticeDtilByEmbed, upsertAttach, upsertNotice } from 'controllers/notice';
 import { ChannelType } from 'discord-api-types/v10';
 import { NoticeChannel } from 'interfaces/notice';
-import { createChannelSelectMenu } from 'utils/discord/component';
+import { createActionRow, createChannelSelectMenu, createUrlButton } from 'utils/discord/component';
 import { editerComponent } from './systemComponent';
 
+import { upsertDiscordUserAndJWTToken } from 'controllers/auth';
 import { selectEventBat } from 'controllers/bat';
 import { deleteNoticeChannel } from 'controllers/notice';
 import { getAttendanceAtLive } from 'controllers/notification';
@@ -141,11 +142,18 @@ export const selectAttachMessage = async (
     const { isSuccess, list } = await upsertAttach(noticeId, userId);
 
     let count = 0;
-
+    let name: string | undefined = undefined;
     // 개근일자
-    for (const { attendance_time } of list) {
+    for (const { attendance_time, name: orgName } of list) {
         if (attendance_time) count++;
         else break;
+
+        if (orgName) name = orgName;
+    }
+
+    if (!name) {
+        // 사용자 정보를 저장함 (기반 데이터가 없는 경우)
+        upsertDiscordUserAndJWTToken(await getUser(userId)).catch(e => {});
     }
 
     const pin = list
@@ -179,6 +187,22 @@ export const selectAttachMessage = async (
 ${createCalender(new Date(), ...pin)}
 \`\`\``,
             },
+        ],
+        components: [
+            createActionRow(
+                createUrlButton(`https://orefinger.click/bord/attach/${noticeId}`, {
+                    label: '출석현황',
+                    emoji: {
+                        name: '📅',
+                    },
+                })
+                // createUrlButton(`https://toss.me/방송알리미`, {
+                //     label: '후원',
+                //     emoji: {
+                //         name: '💰',
+                //     },
+                // })
+            ),
         ],
     };
 };
