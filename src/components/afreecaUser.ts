@@ -147,6 +147,7 @@ export const getChannelLive = async (noticeId: number, hashId: string, lastId: s
                 } = content;
 
                 if (broad) {
+                    if (broad.is_password) return reject(null); // 비밀번호가 있는 경우 (비공개) 무시
                     // 온라인
                     const { broad_no } = broad;
                     if (lastId === broad_no) {
