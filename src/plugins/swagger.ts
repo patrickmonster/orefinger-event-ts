@@ -31,7 +31,10 @@ export default fp(async function (fastify, opts) {
 
                 { name: 'Admin', description: '관리자 관리용 API' },
                 { name: 'System', description: '시스템 관리용 API' },
-                { name: 'Notification', description: '알림' },
+
+                { name: 'Notification', description: '알림 (구)' },
+                { name: 'Notice', description: '알림 (신규)' },
+
                 { name: 'Discord', description: '디스코드 관련 API' },
 
                 { name: 'Util', description: '유틸리티 관련 API' },

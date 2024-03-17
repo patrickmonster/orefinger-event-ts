@@ -1,4 +1,4 @@
-import { getLiveMessage } from 'components/chzzkUser';
+import { getLiveMessage } from 'components/afreecaUser';
 import { selectEventBats } from 'controllers/bat';
 
 import sleep from 'utils/sleep';
