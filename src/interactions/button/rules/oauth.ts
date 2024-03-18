@@ -9,15 +9,15 @@ import { createButtonArrays, createUrlButton } from 'utils/discord/component';
  * 인증 - OAuth2.0
  * @param interaction
  */
-export const exec = async (interaction: MessageInteraction, type_id: string) => {
+export const exec = async (interaction: MessageInteraction, typeId: string) => {
     const { user, member, guild_id } = interaction;
-    const user_id = user?.id || member?.user.id; // 사용자 ID
+    const userId = user?.id || member?.user.id; // 사용자 ID
 
     if (!guild_id) return; // 길드만 가능한 명령어 입니다.
 
     await interaction.differ({ ephemeral: true });
 
-    await authTokenSelect(user_id || '0', `select rules ${type_id}`, Number(type_id))
+    await authTokenSelect(userId || '0', `select rules ${typeId}`, Number(typeId))
         .then(async user => {
             if (Array.isArray(user)) {
                 interaction.reply({
@@ -30,7 +30,7 @@ export const exec = async (interaction: MessageInteraction, type_id: string) => 
                     auth_id: user.auth_id,
                     user_id: user.user_id,
                     nick: user.name,
-                    type: type_id,
+                    type: typeId,
                 }).catch(e => {
                     // TODO: 에러 처리
                     console.log('e', e);
@@ -38,14 +38,14 @@ export const exec = async (interaction: MessageInteraction, type_id: string) => 
             }
         })
         .catch(async e => {
-            console.log('e', e);
-
             const apiUser = member?.user || user;
+
             if (!apiUser)
                 return await interaction.reply({
                     content: `잘못된 접근 방식 입니다.`,
                     ephemeral: true,
                 });
+
             const jwt = await upsertDiscordUserAndJWTToken(apiUser);
 
             await interaction.reply({
@@ -66,7 +66,7 @@ export const exec = async (interaction: MessageInteraction, type_id: string) => 
                     },
                 ],
                 components: createButtonArrays(
-                    createUrlButton(`https://orefinger.click/discord/jwt?code=${jwt}&target=${type_id}`, {
+                    createUrlButton(`https://orefinger.click/discord/jwt?code=${jwt}&target=${typeId}`, {
                         label: `홈페이지에 접속하여 계정 연결하기`,
                     })
                 ),

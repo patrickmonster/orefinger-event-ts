@@ -14,7 +14,7 @@ import {
 } from 'controllers/auth';
 import discordApi, { openApi } from 'utils/discordApiInstance';
 import { kakaoAPI } from 'utils/kakaoApiInstance';
-import { naverAPI } from 'utils/naverApiInstance';
+import { getChzzkPostComment, naverAPI } from 'utils/naverApiInstance';
 import toss from 'utils/tossApiInstance';
 import twitch, { twitchAPI } from 'utils/twitchApiInstance';
 
@@ -23,7 +23,7 @@ import qs from 'querystring';
 import { ENCRYPT_KEY, encrypt, sha256 } from 'utils/cryptoPw';
 
 export default async (fastify: FastifyInstance, opts: any) => {
-    const targets = ['twitch', 'twitch.stream', 'kakao', 'discord', 'chzzk', 'naver'];
+    const targets = ['twitch', 'kakao', 'discord', 'naver'];
 
     const getToken = async (target: string, data: string) =>
         axios
@@ -326,6 +326,84 @@ export default async (fastify: FastifyInstance, opts: any) => {
         }
     );
 
+    fastify.patch(
+        '/auth/hash',
+        {
+            onRequest: [fastify.authenticate],
+            schema: {
+                security: [{ Bearer: [] }],
+                description: '해시키 생성',
+                tags: ['Auth'],
+                deprecated: false, // 비활성화
+            },
+        },
+        async req => sha256(`${req.user.id}:auth:hash`, ENCRYPT_KEY)
+    );
+
+    fastify.post<{
+        Params: { hash: string };
+    }>(
+        '/auth/hash/:hash',
+        {
+            onRequest: [fastify.authenticate],
+            schema: {
+                security: [{ Bearer: [] }],
+                description: '해시키 확인',
+                tags: ['Auth'],
+                deprecated: false, // 비활성화
+                params: {
+                    type: 'object',
+                    required: ['hash'],
+                    additionalProperties: false,
+                    properties: { hash: { type: 'string', description: '해시키' } },
+                },
+            },
+        },
+        async req => {
+            const { id } = req.user;
+            const hashKeyId = sha256(`${req.user.id}:auth:hash`, ENCRYPT_KEY);
+
+            if (req.params.hash !== hashKeyId) {
+                return fastify.httpErrors.forbidden('잘못된 인증 정보 입니다.');
+            }
+
+            const { data } = await getChzzkPostComment('9351394');
+            for (const { comment, user } of data) {
+                // 코맨트 내부에서 사용자 정보를 탐색
+                console.log(comment, user);
+                if (comment.content.includes(hashKeyId)) {
+                    try {
+                        await auth(
+                            'chzzk',
+                            id,
+                            {
+                                id: user.userIdHash,
+                                username: user.userNickname,
+                                discriminator: user.userNickname,
+                                email: '-',
+                                avatar: user.profileImageUrl,
+                            },
+                            hashKeyId
+                        );
+
+                        // https://nng-phinf.pstatic.net/MjAyMzEyMDdfMjg0/MDAxNzAxOTU5NzAxNjAw.p0JFTwsiDcVeXACUCwXMydspn5tnR4H7_fQZI1MeN08g.zJwFXn5HAa3lgpje1oY4QiKa8jJ0sis1FQOltIxHXFwg.PNG/logo.png
+
+                        return {
+                            statusCode: 200,
+                            message: '인증 처리 되었습니다.',
+                            id: user.userIdHash,
+                        };
+                    } catch (e) {
+                        return fastify.httpErrors.forbidden('인증에 실패함');
+                    }
+                    break;
+                }
+            }
+
+            return fastify.httpErrors.forbidden('해시키가 포함된 코맨트를 찾을 수 없습니다.');
+        }
+    );
+
     // 인증 모듈 - 토스
     fastify.patch<{
         Querystring: {
@@ -603,9 +681,9 @@ export default async (fastify: FastifyInstance, opts: any) => {
                             },
                             token.refresh_token
                         );
+                        return { message: 'success', id: kakaoId };
                     });
                     break;
-                case 'chzzk': // 똑같은 인증인데, 이름이 다름 - key 중복 이슈
                 case 'naver':
                     token = getToken(`https://nid.naver.com/oauth2.0/token`, params).then(async token => {
                         console.log(params, token);
@@ -639,6 +717,7 @@ export default async (fastify: FastifyInstance, opts: any) => {
                         return { message: 'success', id: user.id };
                     });
                     break;
+                case 'chzzk':
                 default:
                     return { message: '잘못된 인증 대상입니다.' };
             }
