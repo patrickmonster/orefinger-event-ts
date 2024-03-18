@@ -385,7 +385,6 @@ export default async (fastify: FastifyInstance, opts: any) => {
                             },
                             hashKeyId
                         );
-
                         return {
                             statusCode: 200,
                             message: '인증 처리 되었습니다.',
