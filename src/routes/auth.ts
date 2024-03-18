@@ -341,9 +341,11 @@ export default async (fastify: FastifyInstance, opts: any) => {
     );
 
     fastify.post<{
-        Params: { hash: string };
+        Body: {
+            hash: string;
+        };
     }>(
-        '/auth/hash/:hash',
+        '/auth/hash',
         {
             onRequest: [fastify.authenticate],
             schema: {
@@ -351,7 +353,7 @@ export default async (fastify: FastifyInstance, opts: any) => {
                 description: '해시키 확인',
                 tags: ['Auth'],
                 deprecated: false, // 비활성화
-                params: {
+                body: {
                     type: 'object',
                     required: ['hash'],
                     additionalProperties: false,
@@ -363,7 +365,7 @@ export default async (fastify: FastifyInstance, opts: any) => {
             const { id } = req.user;
             const hashKeyId = sha256(`${req.user.id}:auth:hash`, ENCRYPT_KEY);
 
-            if (req.params.hash !== hashKeyId) {
+            if (req.body.hash !== hashKeyId) {
                 return fastify.httpErrors.forbidden('잘못된 인증 정보 입니다.');
             }
 
