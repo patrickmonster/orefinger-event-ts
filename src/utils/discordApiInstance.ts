@@ -23,7 +23,7 @@ export const openApi = axios.create({
 
 openApi.interceptors.response.use(null, async error => {
     if (error.config && error.response && error.response.status === 429) {
-        console.log('Too Many Requests! Retrying...');
+        console.log('Too Many Requests! Retrying...', error.config.url);
         const { message, retry_after } = error.response.data;
         await sleep(Math.ceil(retry_after / 1000) + 1);
         return openApi(error.config);

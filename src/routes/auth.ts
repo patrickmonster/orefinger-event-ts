@@ -385,9 +385,6 @@ export default async (fastify: FastifyInstance, opts: any) => {
                             },
                             hashKeyId
                         );
-
-                        // https://nng-phinf.pstatic.net/MjAyMzEyMDdfMjg0/MDAxNzAxOTU5NzAxNjAw.p0JFTwsiDcVeXACUCwXMydspn5tnR4H7_fQZI1MeN08g.zJwFXn5HAa3lgpje1oY4QiKa8jJ0sis1FQOltIxHXFwg.PNG/logo.png
-
                         return {
                             statusCode: 200,
                             message: '인증 처리 되었습니다.',

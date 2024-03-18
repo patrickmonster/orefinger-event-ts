@@ -113,7 +113,7 @@ export const getChzzkPostComment = async (id: string | number) => {
                     }
                 )
                 .then(({ data }) => data),
-        60 * 1 // 1분
+        60 // 1분
     );
 
     return data?.content?.comments;
