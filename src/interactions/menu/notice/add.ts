@@ -2,7 +2,7 @@ import { MessageMenuInteraction } from 'interactions/message';
 
 import { getAfreecabeUser } from 'components/afreecaUser';
 import { getChzzkUser } from 'components/chzzkUser';
-import { getLaftelVod } from 'components/laftelUser';
+import { getChannelVideos, getLaftelVod } from 'components/laftelUser';
 import { getNoticeByType, getNoticeDetailByEmbed } from 'components/notice';
 import { getYoutubeUser } from 'components/youtubeUser';
 /**
@@ -70,6 +70,8 @@ export const exec = async (interaction: MessageMenuInteraction, noticeType: stri
 
     if (noticeId) {
         const { embed, components } = await getNoticeDetailByEmbed(noticeId, guild_id);
+
+        getChannelVideos(noticeId, hashId).catch(e => {}); // 채널 비디오 조회 (버림)
 
         interaction.reply({
             embeds: [embed],
