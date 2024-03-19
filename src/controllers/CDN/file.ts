@@ -1,8 +1,11 @@
-import { query, SqlInsertUpdate, queryFunctionType, selectPaging } from 'utils/database';
+import { SqlInsertUpdate, calTo, query, selectPaging } from 'utils/database';
 
 import { Paging } from 'interfaces/swagger';
 
-export const getFileList = async (paging: Paging, auth_id: string) =>
+export const selectFileType = async () =>
+    query<{ idx: number; name: string }>(`SELECT idx, name  FROM file_cdn_type fct WHERE use_yn='Y'`);
+
+export const selectFile = async (paging: Paging, auth_id: string, target?: number) =>
     selectPaging<{
         idx: string;
         name: string;
@@ -12,10 +15,21 @@ export const getFileList = async (paging: Paging, auth_id: string) =>
         content_type: string;
     }>(
         `
-SELECT idx, name, owenr, src, create_at, content_type
-FROM DISCORD.FILE_CDN
-WHERE OWENR=?
-AND USE_YN = 'Y'
+SELECT
+    fc.idx
+    , fc.name
+    , auth_id
+    , src 
+    , create_at
+    , content_type
+    , \`size\`
+    , fct.name as type
+FROM file_cdn fc
+LEFT JOIN file_cdn_type fct ON fc.type = fct.idx
+WHERE auth_id = ? 
+AND fc.use_yn ='Y'
+AND fct.use_yn ='Y'
+${calTo('AND `type` = ?', target)}
     `,
         paging,
         auth_id
@@ -29,3 +43,6 @@ export type InsertFileType = {
     content_type: string;
 };
 export const insertFile = async (file: InsertFileType) => query<SqlInsertUpdate>(`INSERT INTO file_cdn SET ?`, file);
+
+export const deleteFile = async (idx: string, auth_id: string) =>
+    query<SqlInsertUpdate>(`UPDATE file_cdn SET USE_YN='N' WHERE idx=? AND owenr=?`, idx, auth_id);
