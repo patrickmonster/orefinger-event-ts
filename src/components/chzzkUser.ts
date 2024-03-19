@@ -8,7 +8,6 @@ import { ChzzkInterface, getChzzkAPI } from 'utils/naverApiInstance';
 import redis, { REDIS_KEY } from 'utils/redis';
 
 import { auth } from 'controllers/auth';
-import dayjs from 'dayjs';
 import { NoticeBat } from 'interfaces/notice';
 import qs from 'querystring';
 import { ENCRYPT_KEY, sha256 } from 'utils/cryptoPw';
@@ -192,23 +191,18 @@ export const getLiveMessage = async ({ channels, notice_id, hash_id, message, na
     const liveStatus = await getChannelLive(notice_id, hash_id, id);
     if (liveStatus && liveStatus.status === 'OPEN') {
         // online
-        const diffTime = dayjs(liveStatus.openDate).diff(dayjs(), 'minute');
-        setTimeout(
-            () =>
-                sendChannels(channels, {
-                    content: message,
-                    embeds: [convertVideoObject(liveStatus, name)],
-                    components: [
-                        createActionRow(
-                            createSuccessButton(`notice attendance ${notice_id}`, {
-                                label: '출석체크',
-                                emoji: { id: '1218118186717937775' },
-                            })
-                        ),
-                    ],
-                }),
-            diffTime > 2 ? 0 : 1000 * 60 * 2
-        );
+        sendChannels(channels, {
+            content: message,
+            embeds: [convertVideoObject(liveStatus, name)],
+            components: [
+                createActionRow(
+                    createSuccessButton(`notice attendance ${notice_id}`, {
+                        label: '출석체크',
+                        emoji: { id: '1218118186717937775' },
+                    })
+                ),
+            ],
+        });
     }
 };
 
