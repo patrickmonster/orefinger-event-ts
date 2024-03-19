@@ -1,7 +1,7 @@
 import { MultipartFile } from '@fastify/multipart';
 import { FastifyInstance } from 'fastify';
 
-import { insertFile, selectFile, selectFileType } from 'controllers/CDN/file';
+import { deleteFile, insertFile, selectFile, selectFileType } from 'controllers/CDN/file';
 import { Paging } from 'interfaces/swagger';
 import { upload } from 'utils/s3Apiinstance';
 
@@ -65,6 +65,42 @@ export default async (fastify: FastifyInstance, opts: any) => {
                 req.user.id,
                 req.query.target ? types.find(({ name }) => name === req.query.target)?.idx : undefined
             )
+    );
+
+    fastify.delete<{
+        Params: { key: string };
+    }>(
+        '/:key',
+        {
+            onRequest: [fastify.authenticate],
+            schema: {
+                security: [{ Bearer: [] }],
+                tags: ['파일'],
+                summary: '파일 삭제',
+                description: '파일 삭제',
+                params: {
+                    type: 'object',
+                    required: ['key'],
+                    properties: {
+                        key: { type: 'string', description: '파일 키' },
+                    },
+                },
+            },
+        },
+        async req => {
+            const { key } = req.params;
+            const { id } = req.user;
+
+            try {
+                await deleteFile(id, key);
+
+                return {
+                    status: 200,
+                    message: '파일 삭제 성공',
+                };
+            } catch (e) {}
+            return fastify.httpErrors.internalServerError('파일 삭제 실패');
+        }
     );
 
     fastify.post<{

@@ -65,6 +65,7 @@ FROM (
 		FROM v_notice vn
 		LEFT JOIN notice_channel nc using(notice_id)
 		WHERE vn.notice_type = ?
+		AND nc.use_yn = 'Y'
 	) A
 	GROUP BY hash_id
 ) A
