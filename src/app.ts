@@ -8,6 +8,7 @@ import { join } from 'path';
 import { env } from 'process';
 
 import { ajvFilePlugin } from '@fastify/multipart';
+import Multipart from '@fastify/sensible';
 
 import axios from 'axios';
 import { ECStask } from 'interfaces/ecs';
@@ -41,6 +42,7 @@ const server = fastify({
 });
 
 server.register(helmet, { global: true });
+server.register(Multipart);
 
 server.register(AutoLoad, { dir: join(__dirname, 'plugins') });
 server.register(AutoLoad, { dir: join(__dirname, 'routes'), ignorePattern: /.*(test|spec).*/ });
