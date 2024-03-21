@@ -65,3 +65,5 @@ profile*
 
 src/env
 sql/*
+
+.yarn
