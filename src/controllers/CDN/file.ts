@@ -30,6 +30,7 @@ WHERE auth_id = ?
 AND fc.use_yn ='Y'
 AND fct.use_yn ='Y'
 ${calTo('AND `type` = ?', target)}
+ORDER BY create_at DESC
     `,
         paging,
         auth_id
