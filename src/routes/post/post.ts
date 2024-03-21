@@ -2,8 +2,7 @@ import { getPostDil, getPostTypes, postPost, selectPostList } from 'controllers/
 import { FastifyInstance } from 'fastify';
 import { Paging } from 'interfaces/swagger';
 export default async (fastify: FastifyInstance, opts: any) => {
-    //
-    const postTypes = ['null', '0', 'DN', 'NT'];
+    const postTypes = await getPostTypes();
 
     fastify.get<{
         Querystring: Paging & {
@@ -26,7 +25,7 @@ export default async (fastify: FastifyInstance, opts: any) => {
                                 type: {
                                     type: 'string',
                                     nullable: true,
-                                    enum: postTypes,
+                                    enum: postTypes.map(v => v.type_id),
                                 },
                             },
                         },
@@ -50,54 +49,6 @@ export default async (fastify: FastifyInstance, opts: any) => {
             },
         },
         async request => await getPostTypes()
-    );
-
-    fastify.get<{
-        Querystring: {
-            type: '0';
-        };
-        Params: {
-            count: string;
-        };
-    }>(
-        '/top/:count',
-        {
-            onRequest: [fastify.authenticateQuarter],
-            schema: {
-                tags: ['post'],
-                description: '게시글 목록 조회',
-                deprecated: false,
-                querystring: {
-                    type: 'object',
-                    properties: {
-                        type: {
-                            type: 'string',
-                            enum: postTypes,
-                        },
-                    },
-                },
-                params: {
-                    type: 'object',
-                    properties: {
-                        count: {
-                            type: 'string',
-                            enum: ['5', '10', '15', '20'],
-                        },
-                    },
-                },
-            },
-        },
-        async request =>
-            await selectPostList(
-                {
-                    page: 0,
-                    limit: Number(request.params.count),
-                },
-                {
-                    type: request.query?.type,
-                    user_id: request.user?.id,
-                }
-            ).then(res => res.list)
     );
 
     fastify.get<{
@@ -151,7 +102,7 @@ export default async (fastify: FastifyInstance, opts: any) => {
                     properties: {
                         title: { type: 'string', maxLength: 255, minLength: 1 },
                         description: { type: 'string' },
-                        type: { type: 'string', enum: postTypes },
+                        type: { type: 'string' },
                         use_yn: { type: 'string', enum: ['Y', 'N'] },
                         commant_yn: { type: 'string', enum: ['Y', 'N'] },
                         public_yn: { type: 'string', enum: ['Y', 'N'] },
