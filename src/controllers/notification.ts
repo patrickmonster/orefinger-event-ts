@@ -1,4 +1,7 @@
-import { calTo, query } from 'utils/database';
+import { Paging } from 'interfaces/swagger';
+import { calLikeTo, calTo, query, selectPaging } from 'utils/database';
+
+export const selectType = async () => query(`SELECT notice_type_id, tag, use_yn, video_yn  FROM notice_type nt`);
 
 export const liveList = () =>
     query(
@@ -123,4 +126,37 @@ ${calTo('AND vn.notice_type = ?', type)}
 ORDER BY nl.create_at DESC
 LIMIT 30
     `
+    );
+
+export const selectNotice = async (page: Paging, { type, hash }: { type?: number; hash?: string }) =>
+    selectPaging<{
+        notice_id: number;
+        hash_id: string;
+        notice_type: number;
+        notice_type_tag: string;
+        video_yn: 'Y' | 'N';
+        message: string;
+        name: string;
+        img_idx: number;
+        create_at: string;
+        update_at: string;
+    }>(
+        `
+SELECT
+    notice_id
+    , hash_id
+    , notice_type
+    , notice_type_tag
+    , video_yn
+    , message
+    , name
+    , img_idx
+    , create_at
+    , update_at
+FROM v_notice vn
+WHERE 1=1
+${calTo('AND vn.notice_type = ?', type)}
+${calLikeTo('AND vn.hash_id like ?', hash)}
+        `,
+        page
     );
