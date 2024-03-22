@@ -108,7 +108,7 @@ FROM (
 	INNER JOIN notice_type nt ON nt.notice_type_id = n.notice_type
 	INNER JOIN notice_live nl ON n.notice_id = nl.notice_id 
 	INNER JOIN attendance a ON a.type = n.notice_id AND nl.id = a.event_id AND yymm = DATE_FORMAT( now(), '%y%m') 
-	WHERE n.notice_id = 37
+	WHERE n.notice_id = ?
 ) A
 LEFT JOIN v_auth_token vat ON A.auth_type = vat.\`type\` AND A.auth_id = vat.auth_id 
 LEFT JOIN auth b ON A.auth_id = b.auth_id
