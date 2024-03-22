@@ -1,6 +1,7 @@
 import { FastifyInstance } from 'fastify';
 
 import { selectAuthUsers } from 'controllers/auth';
+import { Paging } from 'interfaces/swagger';
 
 export default async (fastify: FastifyInstance, opts: any) => {
     //
@@ -10,7 +11,8 @@ export default async (fastify: FastifyInstance, opts: any) => {
             user_id?: string;
             login?: string;
             name?: string;
-        };
+            type?: string;
+        } & Paging;
     }>(
         '/user',
         {
@@ -30,12 +32,13 @@ export default async (fastify: FastifyInstance, opts: any) => {
                                 user_id: { type: 'string', description: '사용자 아이디', nullable: true },
                                 login: { type: 'string', description: '로그인 아이디', nullable: true },
                                 name: { type: 'string', description: '사용자 이름', nullable: true },
+                                type: { type: 'string', description: '사용자 타입', nullable: true },
                             },
                         },
                     ],
                 },
             },
         },
-        async req => await selectAuthUsers(req.query)
+        async req => await selectAuthUsers(req.query, req.query)
     );
 };

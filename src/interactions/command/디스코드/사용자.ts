@@ -14,11 +14,11 @@ export const exec = async (interaction: AppChatInputInteraction, selectOption: S
         return await interaction.reply({ content: '필수값 : 사용자', ephemeral: true });
     }
 
-    const list = await selectAuthUsers({ user_id: user?.toString() });
+    const list = await selectAuthUsers({ page: 0 }, { user_id: user?.toString() });
 
     interaction.reply({
         content: `<@${user}>님의 권한 목록
-${list
+${list.list
     .map(({ type, user_id, login, name, create_at }) => `${type}]${name}(${login}) - ${user_id} - ${create_at}`)
     .join('\n')}`,
     });

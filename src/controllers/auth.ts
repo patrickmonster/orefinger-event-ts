@@ -1,9 +1,10 @@
 'use strict';
 import { AuthUser } from 'interfaces/auth';
-import getConnection, { SqlInsertUpdate, YN, calTo, query, queryFunctionType } from 'utils/database';
+import getConnection, { SqlInsertUpdate, YN, calTo, query, queryFunctionType, selectPaging } from 'utils/database';
 
 import { APIUser } from 'discord-api-types/v10';
 import { Event } from 'interfaces/eventsub';
+import { Paging } from 'interfaces/swagger';
 
 export const discord = async (profile: AuthUser, refreshToken: string) =>
     auth('discord', profile.id, profile, refreshToken);
@@ -193,10 +194,13 @@ export type GetAuthUsersSearchOption = {
     auth_id?: string;
     login?: string;
     name?: string;
+    type?: string;
 };
-export const selectAuthUsers = ({ user_id, auth_id, login, name }: GetAuthUsersSearchOption) =>
-    query<{
+export const selectAuthUsers = (page: Paging, { user_id, auth_id, login, name, type }: GetAuthUsersSearchOption) =>
+    selectPaging<{
         type: number;
+        tag: string;
+        tag_kr: string;
         user_id: string;
         auth_id: string;
         login: string;
@@ -211,15 +215,34 @@ export const selectAuthUsers = ({ user_id, auth_id, login, name }: GetAuthUsersS
         create_at: string;
         update_at: string;
     }>(
-        `
-select *
-from v_auth_token vat 
+        `    
+SELECT
+    vat.\`type\`
+    , at2.tag 
+    , at2.tag_kr 
+    , vat.user_id
+    , vat.auth_id
+    , vat.login
+    , vat.name
+    , vat.kr_name
+    , vat.user_type
+    , vat.email
+    , vat.avatar
+    , vat.avatar_id
+    , vat.refresh_token
+    , vat.is_session
+    , vat.create_at
+    , vat.update_at
+from v_auth_token vat
+LEFT JOIN auth_type at2 ON vat.\`type\` = at2.auth_type 
 where 1=1
-${calTo('AND auth_id = ?', auth_id)}
-${calTo('AND user_id = ?', user_id)}
-${calTo('AND login = ?', login)}
-${calTo('AND name = ?', name)}
-    `
+${calTo('AND vat.type = ?', type)}
+${calTo('AND vat.auth_id = ?', auth_id)}
+${calTo('AND vat.user_id = ?', user_id)}
+${calTo('AND vat.login = ?', login)}
+${calTo('AND vat.name = ?', name)}
+    `,
+        page
     );
 
 // 옵션에 대한 사용자 정보를 불러옴
