@@ -276,6 +276,7 @@ export const selectNoticeByPk = async (noticeId: NoticeId) =>
             video_yn: 'Y' | 'N';
             notice_type_tag: string;
             img_idx: number;
+            live: number;
             create_at: string;
             update_at: string;
         }
@@ -290,10 +291,14 @@ SELECT
     , message
     , name
     , img_idx
-    , create_at
-    , update_at
+    , vn.create_at
+    , vn.update_at
+    , count( 1 ) AS live
 FROM v_notice vn
+LEFT JOIN notice_live nl USING(notice_id)
 WHERE notice_id = ?
+AND nl.create_at > last_day(now() - interval 1 month)
+GROUP BY notice_id 
     `,
         ParseInt(noticeId)
     ).then(res => res[0]);

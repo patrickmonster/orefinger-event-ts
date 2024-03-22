@@ -1,7 +1,7 @@
 'use strict';
-import fp from 'fastify-plugin';
 import jwt from '@fastify/jwt';
-import { FastifyRequest, FastifyReply } from 'fastify';
+import { FastifyReply, FastifyRequest } from 'fastify';
+import fp from 'fastify-plugin';
 
 declare module 'fastify' {
     interface FastifyInstance {
@@ -51,7 +51,7 @@ export default fp(async function (fastify, opts) {
             .jwtVerify()
             .then(() => done())
             .catch(e => {
-                reply.code(400).send({ error: e.message });
+                reply.unauthorized(e.message);
             });
     });
 
@@ -62,7 +62,7 @@ export default fp(async function (fastify, opts) {
                 .jwtVerify()
                 .then(() => done())
                 .catch(e => {
-                    reply.code(400).send({ error: e.message });
+                    reply.unauthorized(e.message);
                 });
         } else done();
     });
