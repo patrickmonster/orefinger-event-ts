@@ -30,7 +30,6 @@ jobs:
       - name: ✨ 패키지 설치
         working-directory: ./
         run: |
-          yarn set version stable
           yarn
           yarn add -D tsc-alias tsc
         
