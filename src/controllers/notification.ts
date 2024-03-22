@@ -83,25 +83,39 @@ export const getAttendanceAtLive = async (liveId: string | number) =>
         auth_id: string;
         id: string;
         name: string | null;
+        auth_yn: 'Y' | 'N';
         total: number;
     }>(
         `
-SELECT
-    a.type
-    , a.yymm
-    , a.attendance_time
-    , a.auth_id
-    , nl.id
-    , IF ( b.name > '', b.name, NULL) AS name
-    , count(1) as total
-FROM attendance a
-LEFT JOIN notice_live nl ON nl.notice_id = a.type AND nl.id = a.event_id 
-LEFT JOIN auth b ON a.auth_id = b.auth_id
-WHERE a.type = ?
-AND yymm = DATE_FORMAT( now(), '%y%m')
+SELECT 
+    A.type
+    , A.yymm
+    , A.auth_id
+    , IF ( vat.name > '', vat.name, b.name) AS name
+    , IF ( vat.name > '', 'Y', 'N') AS auth_yn
+    , vat.avatar
+    , AVG(A.attendance_time) AS attendance_time
+    , SUM(1) AS total 
+FROM (
+	SELECT 
+	    a.type
+	    , a.yymm
+	    , TIMESTAMPDIFF(SECOND, nl.create_at, a.attendance_time) AS attendance_time
+	    , a.auth_id
+	    , nl.id
+	    , nt.auth_type 
+	FROM notice n 
+	INNER JOIN notice_type nt ON nt.notice_type_id = n.notice_type
+	INNER JOIN notice_live nl ON n.notice_id = nl.notice_id 
+	INNER JOIN attendance a ON a.type = n.notice_id AND nl.id = a.event_id AND yymm = DATE_FORMAT( now(), '%y%m') 
+	WHERE n.notice_id = 37
+) A
+LEFT JOIN v_auth_token vat ON A.auth_type = vat.\`type\` AND A.auth_id = vat.auth_id 
+LEFT JOIN auth b ON A.auth_id = b.auth_id
 GROUP BY a.auth_id
-ORDER BY total DESC
-LIMIT 10
+ORDER BY total DESC, attendance_time
+LIMIT 30
+
     `,
         liveId
     );
