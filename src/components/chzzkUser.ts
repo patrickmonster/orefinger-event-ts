@@ -174,7 +174,11 @@ export const getChannelLive = async (notice_id: number, hash_id: string, liveId:
                 const { content } = data;
                 if (content.liveId === liveId || !content.liveId) return reject(null);
                 if (content && content.status === 'OPEN') {
-                    await insertLiveEvents(notice_id, content.liveId);
+                    await insertLiveEvents(notice_id, content.liveId, {
+                        image: content.liveImageUrl?.replace('{type}', '1080') || '',
+                        title: content.liveTitle,
+                        game: content.liveCategory,
+                    });
                 } else {
                     if (liveId && liveId != '0') {
                         const result = await updateLiveEvents(notice_id);

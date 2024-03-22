@@ -145,10 +145,25 @@ LIMIT 30
         notice_id
     );
 
-export const insertLiveEvents = async (notice_id: number, id: string | number) =>
+export const insertLiveEvents = async (
+    notice_id: number,
+    id: string | number,
+    {
+        image,
+        title,
+        game,
+    }: {
+        image: string;
+        title: string;
+        game: string;
+    }
+) =>
     query(`INSERT INTO notice_live SET ?`, {
         notice_id,
         id,
+        image,
+        title,
+        game,
     });
 
 export const updateLiveEvents = async (notice_id: number) =>

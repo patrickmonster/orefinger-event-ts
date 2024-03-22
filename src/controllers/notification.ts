@@ -133,6 +133,9 @@ export const selectNoticeLiveOnList = async (type?: number) =>
 SELECT nl.notice_id, nl.id, nl.create_at, nl.end_at 
 	, vn.notice_type_tag
 	, vn.name
+    , nl.image
+    , nl.title 
+    , nl.game 
 FROM notice_live nl
 LEFT JOIN v_notice vn ON nl.notice_id = vn.notice_id 
 WHERE nl.end_at IS NULL 

@@ -153,7 +153,11 @@ export const getChannelLive = async (noticeId: number, hashId: string, lastId: s
                     if (lastId === broad_no) {
                         return reject(null);
                     } else {
-                        await insertLiveEvents(noticeId, broad_no);
+                        await insertLiveEvents(noticeId, broad_no, {
+                            image: profile_image,
+                            title: broad.broad_title,
+                            game: 'TALK',
+                        });
                     }
                 } else {
                     // 오프라인
