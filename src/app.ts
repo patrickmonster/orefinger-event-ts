@@ -43,6 +43,8 @@ const server = fastify({
 
 const bootTime = Date.now();
 
+let insertId = 0;
+
 // 플러그인
 server.register(helmet, { global: true });
 server.register(Multipart);
@@ -77,8 +79,8 @@ server.listen({ port: 3000, host: '::' }, (err, address) => {
                 process.env.ECS_FAMILY = Family;
 
                 ecsSet(id, Revision, Family)
-                    .then(({ insertId }) => {
-                        process.env.ECS_IDX = insertId.toString();
+                    .then(({ insertId: id }) => {
+                        insertId = id;
                     })
                     .catch(e => {});
             })
@@ -87,11 +89,14 @@ server.listen({ port: 3000, host: '::' }, (err, address) => {
             });
     }
 
-    if (process.env.MASTER_KEY)
+    if (process.env.MASTER_KEY) {
         process.nextTick(() => {
             // 배치 모듈
             import('bat');
         });
+
+        // discord.get('/gateway/bot');
+    }
 });
 const ping = setInterval(() => {
     if (process.env.ECS_IDX) {

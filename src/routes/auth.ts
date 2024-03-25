@@ -8,6 +8,7 @@ import {
     deleteAuthConnection,
     deleteAuthConnectionAuthTypes,
     discord,
+    selectAuthType,
     selectDiscordUserByJWTToken,
     upsertDiscordUserAndJWTToken,
     userIds,
@@ -22,7 +23,7 @@ import qs from 'querystring';
 import { ENCRYPT_KEY, sha256 } from 'utils/cryptoPw';
 
 export default async (fastify: FastifyInstance, opts: any) => {
-    const targets = ['twitch', 'kakao', 'discord', 'naver'];
+    const types = await selectAuthType();
 
     const getToken = async (target: string, data: string) =>
         axios
@@ -329,6 +330,7 @@ export default async (fastify: FastifyInstance, opts: any) => {
             schema: {
                 security: [{ Bearer: [] }],
                 description: '해시키 생성',
+                summary: '해시키 생성',
                 tags: ['Auth'],
                 deprecated: false, // 비활성화
             },
@@ -347,6 +349,7 @@ export default async (fastify: FastifyInstance, opts: any) => {
             schema: {
                 security: [{ Bearer: [] }],
                 description: '해시키 확인',
+                summary: '해시키 검증',
                 tags: ['Auth'],
                 deprecated: false, // 비활성화
                 body: {
@@ -424,7 +427,7 @@ export default async (fastify: FastifyInstance, opts: any) => {
                         target: {
                             type: 'string',
                             description: '인증 대상',
-                            enum: targets,
+                            enum: types.map(({ tag }) => tag),
                         },
                     },
                 },
@@ -541,11 +544,7 @@ export default async (fastify: FastifyInstance, opts: any) => {
                             kakao_account: {
                                 profile_nickname_needs_agreement: boolean;
                                 profile: { nickname: string };
-                                // has_email: boolean;
                                 email_needs_agreement: boolean;
-                                // is_email_valid: boolean;
-                                // is_email_verified: boolean;
-                                // email: string;
                             };
                         }>('/user/me', {
                             headers: { Authorization: `Bearer ${token.access_token}` },
