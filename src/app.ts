@@ -41,13 +41,15 @@ const server = fastify({
     },
 });
 
+const bootTime = Date.now();
+
+// 플러그인
 server.register(helmet, { global: true });
 server.register(Multipart);
-
 server.register(AutoLoad, { dir: join(__dirname, 'plugins') });
-server.register(AutoLoad, { dir: join(__dirname, 'routes'), ignorePattern: /.*(test|spec).*/ });
 
-const bootTime = Date.now();
+// 라우터
+server.register(AutoLoad, { dir: join(__dirname, 'routes'), ignorePattern: /.*(test|spec).*/ });
 
 server.listen({ port: 3000, host: '::' }, (err, address) => {
     if (err) {
@@ -68,6 +70,7 @@ server.listen({ port: 3000, host: '::' }, (err, address) => {
             .then(async ({ data }) => {
                 const { Family, Revision, TaskARN } = data;
                 const [, name, id] = TaskARN.split('/');
+
                 console.log(`ECS STATE ::`, data.Containers);
                 process.env.ECS_ID = id;
                 process.env.ECS_REVISION = Revision;
@@ -87,10 +90,7 @@ server.listen({ port: 3000, host: '::' }, (err, address) => {
     if (process.env.MASTER_KEY)
         process.nextTick(() => {
             // 배치 모듈
-            import('bat/youtube');
-            import('bat/chzzk');
-            import('bat/afreeca');
-            import('bat/laftel');
+            import('bat');
         });
 });
 const ping = setInterval(() => {
@@ -98,11 +98,6 @@ const ping = setInterval(() => {
         ecsPing(process.env.ECS_IDX);
     }
 }, 1000 * 60 * 5); // 5분마다 실행
-
-const ecsState = setInterval(() => {
-    const ecs = process.env.ECS_IDX;
-    if (ecs) ecsPing(ecs);
-}, 1000 * 60); // 1분마다 실행
 //////////////////////////////////////////////////////////////////////
 // 프로세서 모듈
 
@@ -117,7 +112,6 @@ process.on('uncaughtException', (err, promise) => {
 
 process.on('SIGINT', function () {
     console.error(`=============================${process.pid}번 프로세서가 종료됨=============================`);
-    clearInterval(ecsState);
     clearInterval(ping);
     process.exit();
 });

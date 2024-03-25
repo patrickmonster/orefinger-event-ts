@@ -2,54 +2,9 @@
 import { billing } from 'components/billing';
 import { selectPayments } from 'controllers/paymont';
 import { FastifyInstance } from 'fastify';
-import { ENCRYPT_KEY, decrypt, sha256 } from 'utils/cryptoPw';
+import { ENCRYPT_KEY, sha256 } from 'utils/cryptoPw';
 
 export default async (fastify: FastifyInstance, opts: any) => {
-    fastify.get(
-        '',
-        {
-            onRequest: [fastify.authenticate],
-            schema: {
-                security: [{ Bearer: [] }],
-                description: '등록된 카드 리스트 조회',
-                summary: '카드 리스트',
-                tags: ['Paymont'],
-                deprecated: false,
-                response: {
-                    200: {
-                        type: 'array',
-                        items: {
-                            type: 'object',
-                            properties: {
-                                type: { type: 'number' },
-                                user_id: { type: 'string' },
-                                auth_id: { type: 'string' },
-                                login: { type: 'string' },
-                                name: { type: 'string' },
-                                user_type: { type: 'number' },
-                                avatar: { type: 'string' },
-                                is_session: { type: 'string', enum: ['Y', 'N'] },
-                                create_at: { type: 'string' },
-                                update_at: { type: 'string' },
-                            },
-                        },
-                    },
-                },
-            },
-        },
-        async request =>
-            selectPayments(request.user.id).then(payments =>
-                payments.map(payment => {
-                    return {
-                        ...payment,
-                        user_id: decrypt(payment.email, ENCRYPT_KEY, payment.login),
-                        email: '-',
-                        login: payment.user_id,
-                    };
-                })
-            )
-    );
-
     fastify.post<{
         Body: {
             card_number: string;
