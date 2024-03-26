@@ -2,7 +2,10 @@ import axios from 'axios';
 import { upsertNotice } from 'controllers/notice';
 import redis, { REDIS_KEY } from 'utils/redis';
 
+import https from 'https';
+
 import { insertVideoEvents, selectVideoEvents } from 'controllers/bat';
+import { APIEmbed } from 'discord-api-types/v10';
 import qs from 'querystring';
 import { parseString } from 'xml2js';
 
@@ -120,73 +123,100 @@ export const searchYoutubeUser = async (keyword: string): Promise<Array<{ name: 
             });
 
         return result || [];
-
-        // const {
-        //     content: { data },
-        // } = await chzzk.get<
-        //     ChzzkInterface<{
-        //         size: number;
-        //         page?: {
-        //             next: {
-        //                 offset: number;
-        //             };
-        //         };
-        //         data: Array<{
-        //             live: any;
-        //             channel: ChannelData;
-        //         }>;
-        //     }>
-        // >(
-        //     `/search/channels?${qs.stringify({
-        //         keyword: `${keyword}`,
-        //         offset: 0,
-        //         size: 12,
-        //     })}`,
-        //     {
-        //         headers: {
-        //             'Content-Type': 'application/json',
-        //             'User-Agent':
-        //                 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36',
-        //         },
-        //     }
-        // );
-
-        // const result = data.map(
-        //     ({ channel: { channelId, channelName, verifiedMark } }): { name: string; value: string } => ({
-        //         name: `${verifiedMark ? '인증됨]' : ''}${channelName}`,
-        //         value: channelId,
-        //     })
-        // );
-
-        // if (result)
-        //     await redis.set(redisKey, JSON.stringify(result), {
-        //         EX: 60 * 60 * 24,
-        //     });
-
-        return [];
     }
 };
+
+const fetch = (url: string): Promise<string> =>
+    new Promise((resolve, reject) => {
+        const request = https.request(url, response => {
+            let text = '';
+            response.setEncoding('utf-8');
+            response.on('data', data => (text += data));
+            response.on('end', () => resolve(text));
+        });
+        request.on('error', error => reject(error));
+        request.end();
+    });
+
+interface ChannelObject {
+    title: string;
+    description: string;
+    rssUrl: string;
+    externalId: string;
+    keywords: string;
+    channelUrl: string;
+    isFamilySafe: boolean;
+    androidDeepLink: string;
+    androidAppindexingLink: string;
+    iosAppindexingLink: string;
+    vanityChannelUrl: string;
+}
+/**
+ * https://www.youtube.com/{channelVideosURL}
+ * @param channelVideosURL
+ * @returns
+ */
+export const channelVideos = async (hash_id: string) => {
+    const html = await fetch(`https://www.youtube.com/channel/${hash_id}/videos`);
+    const match = html.match(/var ytInitialData = (.*)]}}};/)?.[1];
+
+    if (!match) return {};
+
+    const { contents, metadata } = JSON.parse(match + ']}}}');
+    const videosTab = contents.twoColumnBrowseResultsRenderer.tabs.find((tab: any) => {
+        console.log(tab?.tabRenderer);
+
+        return tab?.tabRenderer?.title?.match(/vídeos|videos|Video|동영상/i);
+    });
+
+    const channel: ChannelObject = metadata.channelMetadataRenderer;
+
+    if (!videosTab) return {};
+    const videos = videosTab.tabRenderer.content.richGridRenderer.contents;
+    const results = [];
+
+    try {
+        for (const data of videos) {
+            const video = data?.richItemRenderer?.content?.videoRenderer;
+
+            if (!video) continue;
+
+            results.push({
+                title: video.title.runs[0].text,
+                id: video.videoId,
+                publishedAt: video.publishedTimeText?.simpleText || '',
+                views: video.shortViewCountText.simpleText || '',
+                thumbnails: video.thumbnail.thumbnails,
+            });
+        }
+    } catch (err) {
+        console.log(err);
+    }
+
+    return {
+        channel,
+        videos: results,
+    };
+};
+
+interface Thumbnails {
+    url: string;
+    width: number;
+    height: number;
+}
 
 /**
  * xml 형태의 데이터를 embed 형태로 변환합니다
  * @param video_object
  * @returns
  */
-export const convertVideoObject = (video_object: any) => {
-    const {
-        'media:group': [
-            {
-                'media:title': [title],
-                'media:content': [{ $: content }],
-                'media:thumbnail': [{ $: thumbnail }],
-            },
-        ],
-    } = video_object;
+export const convertVideoObject = (video_object: any): APIEmbed => {
+    const { id, title, publishedAt, views, thumbnails } = video_object;
 
     return {
         title,
-        url: content.url,
-        image: { ...thumbnail },
+        url: `https://www.youtube.com/watch?v=${id}`,
+        image: thumbnails.reduce((prev: Thumbnails, curr: Thumbnails) => (prev.width > curr.width ? prev : curr)),
         thumbnail: {
             url: 'https://cdn.discordapp.com/attachments/682449668428529743/1125234663045201950/yt_icon_rgb.png',
         },
@@ -207,42 +237,26 @@ export const getChannelVideos = async (notice_id: number, hash_id: string) =>
         videos: any[];
         channel_title: string;
     }>((resolve, reject) => {
-        axios
-            .get(`https://www.youtube.com/feeds/videos.xml?channel_id=${hash_id}`)
-            .then(({ data }) => {
-                parseString(data, async (err, data) => {
-                    if (err) return reject(err);
-                    const {
-                        feed: {
-                            title: [channel_title],
-                            entry,
-                        },
-                    } = data;
+        channelVideos(hash_id)
+            .then(async ({ channel, videos: entry }) => {
+                if (!entry?.length) return resolve({ videos: [], channel_title: '' });
+                const oldVideos = await selectVideoEvents(notice_id);
 
-                    const oldVideos = await selectVideoEvents(notice_id);
+                const videos = [];
+                for (const video_object of entry) {
+                    // yt:video:Gh_pD1YWNXk
+                    const { id, title } = video_object;
+                    // 이미 등록된 비디오는 건너뜁니다 (중복 방지) / 이전 데이터 rss 용 필터
+                    if (oldVideos.find(v => v.video_id === id || v.video_id == `yt:video:${id}`)) continue;
 
-                    const videos = [];
-                    for (const video_object of entry) {
-                        const {
-                            id: [id],
-                            'media:group': [
-                                {
-                                    'media:title': [title],
-                                },
-                            ],
-                        } = video_object;
-                        // 이미 등록된 비디오는 건너뜁니다 (중복 방지)
-                        if (oldVideos.find(v => v.video_id === id)) continue;
-
-                        try {
-                            await insertVideoEvents(notice_id, id, title);
-                            videos.push(convertVideoObject(video_object));
-                        } catch (e) {
-                            continue;
-                        }
+                    try {
+                        await insertVideoEvents(notice_id, id, title);
+                        videos.push(convertVideoObject(video_object));
+                    } catch (e) {
+                        continue;
                     }
-                    resolve({ videos, channel_title });
-                });
+                }
+                resolve({ videos, channel_title: channel.title });
             })
             .catch(reject);
     });
