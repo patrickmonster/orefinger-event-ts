@@ -126,7 +126,7 @@ FROM (
     ).then(([item]) => item);
 
 export const insertVideoEvents = async (notice_id: number, video_id: string, title: string) =>
-    query(`INSERT INTO notice_video (video_id, title, notice_id) VALUES(?)`, [video_id, title, notice_id]);
+    query(`INSERT INTO notice_video (video_id, title, notice_id) VALUES(?),(?)`, [video_id, title, notice_id]);
 
 export const selectVideoEvents = async (notice_id: number) =>
     query<{
