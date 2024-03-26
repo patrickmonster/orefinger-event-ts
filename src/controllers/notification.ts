@@ -131,6 +131,7 @@ export const selectNoticeLiveOnList = async (type?: number) =>
     }>(
         `
 SELECT nl.notice_id, nl.id, nl.create_at, nl.end_at 
+    , vn.notice_type
 	, vn.notice_type_tag
 	, vn.name
     , nl.image

@@ -30,6 +30,25 @@ export const auth = async (
     ]);
 };
 
+export const selectAuthType = async () =>
+    query<{
+        auth_type: number;
+        tag: string;
+        tag_kr: string;
+        create_at: string;
+        use_yn: string;
+        scope: string;
+        client_id: string;
+        target: string;
+        client_sc: string;
+        logout_url: string;
+    }>(`
+SELECT auth_type, tag, tag_kr, create_at, use_yn, \`scope\`, client_id, target, client_sc, logout_url 
+FROM auth_type at2 
+WHERE 1=1
+AND use_yn = 'Y'
+    `);
+
 export const userUpdate = async (event: Event) => {
     const { user_id, user_login, user_name } = event;
     const obj: Event = { login: user_login, name: user_name };

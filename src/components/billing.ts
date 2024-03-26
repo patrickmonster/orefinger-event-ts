@@ -1,5 +1,7 @@
+import { auth } from 'controllers/auth';
 import { PaymentHidden, insertPayment } from 'controllers/paymont';
-import { ENCRYPT_KEY, sha256 } from 'utils/cryptoPw';
+import { AuthorizationsCard, Card } from 'interfaces/toss';
+import { ENCRYPT_KEY, encrypt, sha256 } from 'utils/cryptoPw';
 import toss from 'utils/tossApiInstance';
 
 type OrderState =
@@ -31,6 +33,37 @@ const getBillingState = (orderState: OrderState) => {
         default:
             return 0;
     }
+};
+
+export const createCard = async (id: string, card: Card, isTest = false) => {
+    const { cardNumber, cardExpirationYear, cardExpirationMonth, cardPassword, customerIdentityNumber, cardName } =
+        card;
+
+    const user = await toss.post<AuthorizationsCard>('/billing/authorizations/card', {
+        cardNumber,
+        cardExpirationYear,
+        cardExpirationMonth,
+        cardPassword,
+        customerIdentityNumber,
+        customerKey: id,
+    });
+
+    // 카드 정보 암호화
+    const cardKey = sha256(cardNumber, ENCRYPT_KEY);
+    const { iv, content } = encrypt(cardNumber, ENCRYPT_KEY);
+
+    await auth(
+        isTest ? 'toss.test' : 'toss',
+        id,
+        {
+            id: cardKey,
+            username: iv,
+            discriminator: cardName,
+            email: content,
+            avatar: user.mId,
+        },
+        user.billingKey
+    );
 };
 
 export const billing = async (amount: number, orderName: string, item: PaymentHidden<true>) => {

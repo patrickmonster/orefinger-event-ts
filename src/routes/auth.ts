@@ -8,6 +8,7 @@ import {
     deleteAuthConnection,
     deleteAuthConnectionAuthTypes,
     discord,
+    selectAuthType,
     selectDiscordUserByJWTToken,
     upsertDiscordUserAndJWTToken,
     userIds,
@@ -15,15 +16,14 @@ import {
 import discordApi, { openApi } from 'utils/discordApiInstance';
 import { kakaoAPI } from 'utils/kakaoApiInstance';
 import { getChzzkPostComment, naverAPI } from 'utils/naverApiInstance';
-import toss from 'utils/tossApiInstance';
 import twitch, { twitchAPI } from 'utils/twitchApiInstance';
 
 import { APIUser } from 'discord-api-types/v10';
 import qs from 'querystring';
-import { ENCRYPT_KEY, encrypt, sha256 } from 'utils/cryptoPw';
+import { ENCRYPT_KEY, sha256 } from 'utils/cryptoPw';
 
 export default async (fastify: FastifyInstance, opts: any) => {
-    const targets = ['twitch', 'kakao', 'discord', 'naver'];
+    const types = await selectAuthType();
 
     const getToken = async (target: string, data: string) =>
         axios
@@ -145,10 +145,7 @@ export default async (fastify: FastifyInstance, opts: any) => {
                 deprecated: false, // 비활성화
             },
         },
-        async req => {
-            const { id } = req.user;
-            return await userIds(id);
-        }
+        async req => await userIds(req.user.id)
     );
 
     fastify.delete<{
@@ -333,6 +330,7 @@ export default async (fastify: FastifyInstance, opts: any) => {
             schema: {
                 security: [{ Bearer: [] }],
                 description: '해시키 생성',
+                summary: '해시키 생성',
                 tags: ['Auth'],
                 deprecated: false, // 비활성화
             },
@@ -351,6 +349,7 @@ export default async (fastify: FastifyInstance, opts: any) => {
             schema: {
                 security: [{ Bearer: [] }],
                 description: '해시키 확인',
+                summary: '해시키 검증',
                 tags: ['Auth'],
                 deprecated: false, // 비활성화
                 body: {
@@ -403,120 +402,6 @@ export default async (fastify: FastifyInstance, opts: any) => {
         }
     );
 
-    // 인증 모듈 - 토스
-    fastify.patch<{
-        Querystring: {
-            isTest: boolean;
-        };
-        Body: {
-            cardNumber: string;
-            cardExpirationYear: string;
-            cardExpirationMonth: string;
-            cardPassword: string;
-            customerIdentityNumber: string;
-            cardName: string;
-        };
-    }>(
-        '/auth/toss',
-        {
-            onRequest: [fastify.authenticate],
-            schema: {
-                security: [{ Bearer: [] }],
-                description: '계정 연결 - 디스코드 계정을 기반으로 토스 페이먼츠 카드 정보를 등록 합니다.',
-                tags: ['Auth'],
-                deprecated: false, // 비활성화
-                querystring: {
-                    type: 'object',
-                    properties: {
-                        isTest: {
-                            type: 'boolean',
-                            description: '테스트 결제 여부',
-                            enum: [true, false],
-                        },
-                    },
-                },
-                body: {
-                    type: 'object',
-                    required: [
-                        'cardNumber',
-                        'cardExpirationYear',
-                        'cardExpirationMonth',
-                        'cardPassword',
-                        'customerIdentityNumber',
-                        'cardName',
-                    ],
-                    additionalProperties: false,
-                    properties: {
-                        cardNumber: { type: 'string', description: '카드번호' },
-                        cardExpirationYear: { type: 'string', description: '카드 유효기간 연도' },
-                        cardExpirationMonth: { type: 'string', description: '카드 유효기간 월' },
-                        cardPassword: { type: 'string', description: '카드 비밀번호 앞 2자리' },
-                        customerIdentityNumber: { type: 'string', description: '주민등록번호 또는 사업자등록번호' },
-                        cardName: { type: 'string', description: '카드 별칭' },
-                    },
-                },
-            },
-        },
-        async req => {
-            const { isTest } = req.query;
-            const { id } = req.user;
-            const {
-                cardNumber,
-                cardExpirationYear,
-                cardExpirationMonth,
-                cardPassword,
-                customerIdentityNumber,
-                cardName,
-            } = req.body;
-
-            try {
-                const user = await toss.post<{
-                    mId: string;
-                    customerKey: string;
-                    authenticatedAt: string;
-                    method: string;
-                    billingKey: string;
-                    cardCompany: string;
-                    cardNumber: string;
-                    card: {
-                        issuerCode: string;
-                        acquirerCode: string;
-                        number: string;
-                        cardType: string;
-                        ownerType: string;
-                    };
-                }>('/billing/authorizations/card', {
-                    cardNumber,
-                    cardExpirationYear,
-                    cardExpirationMonth,
-                    cardPassword,
-                    customerIdentityNumber,
-                    customerKey: id,
-                });
-
-                const cardKey = sha256(cardNumber, ENCRYPT_KEY);
-                const { iv, content } = encrypt(cardNumber, ENCRYPT_KEY);
-
-                await auth(
-                    isTest ? 'toss.test' : 'toss',
-                    id,
-                    {
-                        id: cardKey,
-                        username: iv,
-                        discriminator: cardName,
-                        email: content,
-                        avatar: user.mId,
-                    },
-                    user.billingKey
-                );
-                return { message: 'success' };
-            } catch (e: any) {
-                console.error(e);
-                return { message: '인증에 실패함' };
-            }
-        }
-    );
-
     // 인증 모듈
     fastify.post<{
         Params: { target: string };
@@ -541,7 +426,7 @@ export default async (fastify: FastifyInstance, opts: any) => {
                         target: {
                             type: 'string',
                             description: '인증 대상',
-                            enum: targets,
+                            enum: types.map(({ tag }) => tag),
                         },
                     },
                 },
@@ -658,11 +543,7 @@ export default async (fastify: FastifyInstance, opts: any) => {
                             kakao_account: {
                                 profile_nickname_needs_agreement: boolean;
                                 profile: { nickname: string };
-                                // has_email: boolean;
                                 email_needs_agreement: boolean;
-                                // is_email_valid: boolean;
-                                // is_email_verified: boolean;
-                                // email: string;
                             };
                         }>('/user/me', {
                             headers: { Authorization: `Bearer ${token.access_token}` },
