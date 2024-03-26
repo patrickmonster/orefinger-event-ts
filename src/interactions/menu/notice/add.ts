@@ -2,9 +2,9 @@ import { MessageMenuInteraction } from 'interactions/message';
 
 import { getAfreecabeUser } from 'components/afreecaUser';
 import { getChzzkUser } from 'components/chzzkUser';
-import { getChannelVideos, getLaftelVod } from 'components/laftelUser';
+import { getChannelVideos as getLaftel, getLaftelVod } from 'components/laftelUser';
 import { getNoticeByType, getNoticeDetailByEmbed } from 'components/notice';
-import { getYoutubeUser } from 'components/youtubeUser';
+import { getChannelVideos as getYoutube, getYoutubeUser } from 'components/youtubeUser';
 /**
  *
  * 가이드 호출 - 디비처리용
@@ -27,6 +27,7 @@ export const exec = async (interaction: MessageMenuInteraction, noticeType: stri
             case '2': {
                 // 유튜브
                 noticeId = await getYoutubeUser(hashId);
+                getYoutube(noticeId, hashId).catch(e => {}); // 채널 비디오 조회 (버림)
                 break;
             }
             case '3': {
@@ -50,6 +51,7 @@ export const exec = async (interaction: MessageMenuInteraction, noticeType: stri
             case '7': {
                 // 라프텔
                 noticeId = await getLaftelVod(hashId);
+                getLaftel(noticeId, hashId).catch(e => {}); // 채널 비디오 조회 (버림)
                 break;
             }
             // 8 인증알림은 바로 리스트 출력
@@ -70,8 +72,6 @@ export const exec = async (interaction: MessageMenuInteraction, noticeType: stri
 
     if (noticeId) {
         const { embed, components } = await getNoticeDetailByEmbed(noticeId, guild_id);
-
-        getChannelVideos(noticeId, hashId).catch(e => {}); // 채널 비디오 조회 (버림)
 
         interaction.reply({
             embeds: [embed],
