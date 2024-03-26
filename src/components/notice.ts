@@ -6,7 +6,6 @@ import { editerComponent } from './systemComponent';
 
 import { upsertDiscordUserAndJWTToken } from 'controllers/auth';
 import { selectEventBat } from 'controllers/bat';
-import { deleteNoticeChannel } from 'controllers/notice';
 import { getAttendanceAtLive } from 'controllers/notification';
 import { RESTPostAPIChannelMessage } from 'plugins/discord';
 import createCalender from 'utils/createCalender';
@@ -80,9 +79,9 @@ export const sendChannels = async (channels: NoticeChannel[], message: RESTPostA
         console.log('sendChannels', notice_id, channel_id);
         discord.post(`/channels/${channel_id}/messages`, { body: message }).catch(e => {
             ERROR(e);
-            deleteNoticeChannel(notice_id, channel_id).catch(e => {
-                ERROR('DeleteChannel', e);
-            });
+            // deleteNoticeChannel(notice_id, channel_id).catch(e => {
+            //     ERROR('DeleteChannel', e);
+            // });
         });
     }
 
