@@ -1,15 +1,12 @@
-import { ApplicationCommandType, RESTPatchAPIApplicationCommandJSONBody } from 'discord-api-types/v10';
 import { appInteraction } from 'interactions/app';
-import { basename } from 'path';
 
 import { tokens, userAuthState } from 'controllers/auth';
+import { ApplicationCommandType } from 'discord-api-types/v10';
 import moment from 'moment';
-
-const name = basename(__filename, __filename.endsWith('js') ? '.js' : '.ts');
-const type = ApplicationCommandType.User;
+import { createMenuinputCommand } from 'utils/discord/component';
 
 export const exec = async (interaction: appInteraction) => {
-    if (interaction.type !== type) return; // 유저 커맨드만
+    if (interaction.type !== ApplicationCommandType.User) return; // 유저 커맨드만
     const { target_id } = interaction;
 
     try {
@@ -54,11 +51,12 @@ ${authState
     }
 };
 
-const api: RESTPatchAPIApplicationCommandJSONBody = {
-    name,
-    type,
-    dm_permission: false,
-};
+const api = createMenuinputCommand(
+    {
+        dm_permission: false,
+    },
+    __filename
+);
 
 // 인터렉션 이벤트
 export default api;

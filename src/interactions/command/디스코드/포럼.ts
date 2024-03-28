@@ -1,14 +1,13 @@
 import {
-    APIApplicationCommandSubcommandOption,
     APIGuildForumChannel,
     APIThreadChannel,
     APIThreadMember,
     ApplicationCommandOptionType,
     ChannelType,
 } from 'discord-api-types/v10';
-import { basename } from 'path';
 
 import { AppChatInputInteraction, SelectOptionType } from 'interactions/app';
+import { createChatinputSubCommand } from 'utils/discord/component';
 import discord from 'utils/discordApiInstance';
 
 const choices = ['게시글복구'];
@@ -50,26 +49,27 @@ export const exec = async (interaction: AppChatInputInteraction, selectOption: S
     }
 };
 
-const api: APIApplicationCommandSubcommandOption = {
-    name: basename(__filename, __filename.endsWith('js') ? '.js' : '.ts'),
-    type: ApplicationCommandOptionType.Subcommand,
-    description: '포럼에 관련된 명령어를 처리 합니다.',
-    options: [
-        {
-            name: '타입',
-            type: ApplicationCommandOptionType.Number,
-            description: '설정 옵션',
-            choices: choices.map((v, i) => ({ name: v, value: i })),
-            required: true,
-        },
-        {
-            name: '채널',
-            type: ApplicationCommandOptionType.Channel,
-            description: '설정하실 채널',
-            channel_types: [ChannelType.GuildForum],
-            required: true,
-        },
-    ],
-};
+const api = createChatinputSubCommand(
+    {
+        description: '포럼에 관련된 명령어를 처리 합니다.',
+        options: [
+            {
+                name: '타입',
+                type: ApplicationCommandOptionType.Number,
+                description: '설정 옵션',
+                choices: choices.map((v, i) => ({ name: v, value: i })),
+                required: true,
+            },
+            {
+                name: '채널',
+                type: ApplicationCommandOptionType.Channel,
+                description: '설정하실 채널',
+                channel_types: [ChannelType.GuildForum],
+                required: true,
+            },
+        ],
+    },
+    __filename
+);
 
 export default api;

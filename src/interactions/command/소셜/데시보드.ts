@@ -1,9 +1,14 @@
 import { getDashboard } from 'controllers/guild/authDashbord';
 
-import { createActionRow, createPrimaryButton, createStringSelectMenu } from 'utils/discord/component';
+import {
+    createActionRow,
+    createChatinputSubCommand,
+    createPrimaryButton,
+    createStringSelectMenu,
+} from 'utils/discord/component';
 import discord from 'utils/discordApiInstance';
 
-import { APIApplicationCommandSubcommandOption, ApplicationCommandOptionType } from 'discord-api-types/v10';
+import { ApplicationCommandOptionType } from 'discord-api-types/v10';
 import { basename } from 'path';
 
 import { AppChatInputInteraction } from 'interactions/app';
@@ -71,11 +76,11 @@ ${data.map(({ type, role_id }, index) => `${index + 1}] ${type} - <@&${role_id}>
     });
 };
 
-const api: APIApplicationCommandSubcommandOption = {
-    name,
-    type,
-    description: '소셜 인증 데시보드를 출력합니다.',
-    options: [],
-};
+const api = createChatinputSubCommand(
+    {
+        description: '소셜 인증 데시보드를 출력합니다.',
+    },
+    __filename
+);
 
 export default api;

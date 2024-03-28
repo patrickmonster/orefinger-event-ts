@@ -1,8 +1,15 @@
+import { APIApplicationCommandSubcommandOption, ApplicationCommandOptionType } from 'discord-api-types/v10';
+import { basename } from 'path';
+
 import { createComponentSelectMenuByComponentPagingMenuByKey } from 'components/systemComponent';
 import { AppChatInputInteraction } from 'interactions/app';
 
 import QUERY from 'controllers/component/embedListQuerys';
-import { createChatinputSubCommand } from 'utils/discord/component';
+
+const name = basename(__filename, __filename.endsWith('js') ? '.js' : '.ts');
+const type = ApplicationCommandOptionType.Subcommand;
+
+const choices = ['데시보드', '인증설정'];
 
 export const exec = async (interaction: AppChatInputInteraction) => {
     const { guild_id } = interaction;
@@ -23,11 +30,11 @@ export const exec = async (interaction: AppChatInputInteraction) => {
     });
 };
 
-const api = createChatinputSubCommand(
-    {
-        description: '소셜 인증 설정을 합니다.',
-    },
-    __filename
-);
+const api: APIApplicationCommandSubcommandOption = {
+    name,
+    type,
+    description: '소셜 인증을 설정합니다.',
+    options: [],
+};
 
 export default api;
