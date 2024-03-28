@@ -245,7 +245,7 @@ export const getChannelVideos = async (noticeId: number, hashId: string) =>
             for (const video_object of entry) {
                 const { id, title } = video_object;
                 // 이미 등록된 비디오는 건너뜁니다 (중복 방지) / 이전 데이터 rss 용 필터
-                if (oldVideos.find(v => v.video_id === id || v.video_id == `yt:video:${id}`)) continue;
+                if (oldVideos.find(v => v.video_id === id)) continue;
 
                 try {
                     await insertVideoEvents(noticeId, id, title);

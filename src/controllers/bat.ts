@@ -144,7 +144,6 @@ FROM notice_video
 WHERE 1=1
 AND notice_id = ?
 ORDER BY create_at DESC
-LIMIT 30
 	`,
         getNoticeId(notice_id)
     );
