@@ -39,7 +39,7 @@ export const getNoticeDetailByEmbed = async (noticeId: NoticeId, guildId: string
             editerComponent(`notice channel ${noticeId}`, [], true),
             createActionRow(
                 createSecondaryButton(`notice channel ${noticeId} test`, {
-                    label: '알림 테스트',
+                    label: '알림 권한 테스트',
                     emoji: {
                         name: '🔔',
                     },
