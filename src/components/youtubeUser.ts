@@ -152,27 +152,24 @@ interface ChannelObject {
     vanityChannelUrl: string;
 }
 /**
- * https://www.youtube.com/{channelVideosURL}
- * @param channelVideosURL
- * @returns
+ * https://www.youtube.com/channel/${hashId}/videos
+ * @param hashId
+ * @returns { channel: ChannelObject, videos: any[] }
  */
-export const channelVideos = async (hash_id: string) => {
-    const html = await fetch(`https://www.youtube.com/channel/${hash_id}/videos`);
+export const channelVideos = async (hashId: string) => {
+    const html = await fetch(`https://www.youtube.com/channel/${hashId}/videos`);
     const match = html.match(/var ytInitialData = (.*)]}}};/)?.[1];
 
     if (!match) return {};
 
     const { contents, metadata } = JSON.parse(match + ']}}}');
-    const videosTab = contents.twoColumnBrowseResultsRenderer.tabs.find((tab: any) => {
-        console.log(tab?.tabRenderer);
-
-        return tab?.tabRenderer?.title?.match(/vídeos|videos|Video|동영상/i);
-    });
-
+    const videosTab = contents.twoColumnBrowseResultsRenderer.tabs.find((tab: any) =>
+        tab?.tabRenderer?.title?.match(/vídeos|videos|Video|동영상/i)
+    ); // 해당하는 탭의 데이터를 가져옵니다
     const channel: ChannelObject = metadata.channelMetadataRenderer;
 
     if (!videosTab) return {};
-    const videos = videosTab.tabRenderer.content.richGridRenderer.contents;
+    const videos = videosTab.tabRenderer.content.richGridRenderer.contents.slice(0, 5);
     const results = [];
 
     try {
@@ -228,35 +225,37 @@ export const convertVideoObject = (video_object: any): APIEmbed => {
 
 /**
  * 채널의 비디오 목록을 가져옵니다
- * @param notice_id
- * @param hash_id
+ * @param noticeId
+ * @param hashId
  * @returns
  */
-export const getChannelVideos = async (notice_id: number, hash_id: string) =>
+export const getChannelVideos = async (noticeId: number, hashId: string) =>
     new Promise<{
         videos: any[];
         channel_title: string;
-    }>((resolve, reject) => {
-        channelVideos(hash_id)
-            .then(async ({ channel, videos: entry }) => {
-                if (!entry?.length) return resolve({ videos: [], channel_title: '' });
-                const oldVideos = await selectVideoEvents(notice_id);
+    }>(async (resolve, reject) => {
+        const { channel, videos: entry } = await channelVideos(hashId);
 
-                const videos = [];
-                for (const video_object of entry) {
-                    // yt:video:Gh_pD1YWNXk
-                    const { id, title } = video_object;
-                    // 이미 등록된 비디오는 건너뜁니다 (중복 방지) / 이전 데이터 rss 용 필터
-                    if (oldVideos.find(v => v.video_id === id || v.video_id == `yt:video:${id}`)) continue;
+        if (!entry?.length) return resolve({ videos: [], channel_title: '' });
+        // 기존 비디오 목록을 가져옵니다
+        const oldVideos = await selectVideoEvents(noticeId);
 
-                    try {
-                        await insertVideoEvents(notice_id, id, title);
-                        videos.push(convertVideoObject(video_object));
-                    } catch (e) {
-                        continue;
-                    }
+        const videos = [];
+        try {
+            for (const video_object of entry) {
+                const { id, title } = video_object;
+                // 이미 등록된 비디오는 건너뜁니다 (중복 방지) / 이전 데이터 rss 용 필터
+                if (oldVideos.find(v => v.video_id === id)) continue;
+
+                try {
+                    await insertVideoEvents(noticeId, id, title);
+                    videos.push(convertVideoObject(video_object));
+                } catch (e) {
+                    continue;
                 }
-                resolve({ videos, channel_title: channel.title });
-            })
-            .catch(reject);
+            }
+            resolve({ videos, channel_title: channel.title });
+        } catch (e) {
+            reject(e);
+        }
     });

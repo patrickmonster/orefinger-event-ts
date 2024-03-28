@@ -41,7 +41,7 @@ const interval = async () => {
             }
         }
 
-        if (list.length === 0 || pageIndex >= totalPage) break;
+        if (list.length === 0 || pageIndex > totalPage) break;
         pageIndex++;
         await sleep(100 * random); // Cull down the request
     } while (true);

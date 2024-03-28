@@ -1,11 +1,16 @@
 import { NoticeId, ParseInt, selectNoticeDtilByEmbed, upsertAttach, upsertNotice } from 'controllers/notice';
 import { ChannelType } from 'discord-api-types/v10';
 import { NoticeChannel } from 'interfaces/notice';
-import { createActionRow, createChannelSelectMenu, createUrlButton } from 'utils/discord/component';
+import {
+    createActionRow,
+    createChannelSelectMenu,
+    createSecondaryButton,
+    createUrlButton,
+} from 'utils/discord/component';
 import { editerComponent } from './systemComponent';
 
 import { upsertDiscordUserAndJWTToken } from 'controllers/auth';
-import { selectEventBat } from 'controllers/bat';
+import { selectEventBat, selectNoticeGuildChannel } from 'controllers/bat';
 import { getAttendanceAtLive } from 'controllers/notification';
 import { RESTPostAPIChannelMessage } from 'plugins/discord';
 import createCalender from 'utils/createCalender';
@@ -32,6 +37,14 @@ export const getNoticeDetailByEmbed = async (noticeId: NoticeId, guildId: string
                 min_values: 0,
             }),
             editerComponent(`notice channel ${noticeId}`, [], true),
+            createActionRow(
+                createSecondaryButton(`notice channel ${noticeId} test`, {
+                    label: '알림 권한 테스트',
+                    emoji: {
+                        name: '🔔',
+                    },
+                })
+            ),
         ],
     };
 };
@@ -89,6 +102,41 @@ export const sendChannels = async (channels: NoticeChannel[], message: RESTPostA
         openApi.post(`${process.env.WEB_HOOK_URL}`, {
             embeds: message.embeds,
         });
+};
+
+export const sendTestNotice = async (noticeId: string | number, guildId: string) => {
+    const channels = await selectNoticeGuildChannel(noticeId, guildId);
+
+    if (!channels)
+        return {
+            content: '알림이 존재하지 않습니다.',
+            ephemeral: true,
+        };
+
+    for (const { channel_id, notice_id, hash_id, notice_type, notice_type_tag, message, name, img_idx } of channels) {
+        discord.post(`/channels/${channel_id}/messages`, {
+            body: {
+                content: message,
+                embeds: [
+                    {
+                        color: 0xffca52,
+                        title: notice_type_tag || '알림',
+                        description: '권한 테스트 알림입니다.',
+                        url: 'https://orefinger.click',
+                        author: {
+                            name: name || '방송알리미',
+                            icon_url: `https://cdn.orefinger.click/post/466950273928134666/d2d0cc31-a00e-414a-aee9-60b2227ce42c.png`,
+                        },
+                        image: {
+                            url: 'https://cdn.orefinger.click/post/466950273928134666/3ee49895-2ac5-48ba-a45c-5855a7d45ee1.png',
+                        },
+                        fields: [{ name: 'TEST', value: `테스트`, inline: true }],
+                        footer: { text: '제공. 방송알림' },
+                    },
+                ],
+            },
+        });
+    }
 };
 
 /**

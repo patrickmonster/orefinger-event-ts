@@ -4,6 +4,10 @@ import { NoticeBat } from 'interfaces/notice';
 import { Paging } from 'interfaces/swagger';
 import { SqlInsertUpdate, query, selectPaging } from 'utils/database';
 
+type NoticeId = string | number;
+
+const getNoticeId = (noticeId: NoticeId) => (typeof noticeId === 'string' ? parseInt(noticeId) : noticeId);
+
 // 배치 조회
 export const selectEventBats = (notice_type: number, paging: Paging) =>
     selectPaging<NoticeBat>(
@@ -125,10 +129,10 @@ FROM (
         hashId
     ).then(([item]) => item);
 
-export const insertVideoEvents = async (notice_id: number, video_id: string, title: string) =>
-    query(`INSERT INTO notice_video (video_id, title, notice_id) VALUES(?)`, [video_id, title, notice_id]);
+export const insertVideoEvents = async (notice_id: NoticeId, video_id: string, title: string) =>
+    query(`INSERT INTO notice_video (video_id, title, notice_id) VALUES(?)`, [video_id, title, getNoticeId(notice_id)]);
 
-export const selectVideoEvents = async (notice_id: number) =>
+export const selectVideoEvents = async (notice_id: NoticeId) =>
     query<{
         video_id: string;
         title: string;
@@ -140,13 +144,12 @@ FROM notice_video
 WHERE 1=1
 AND notice_id = ?
 ORDER BY create_at DESC
-LIMIT 30
 	`,
-        notice_id
+        getNoticeId(notice_id)
     );
 
 export const insertLiveEvents = async (
-    notice_id: number,
+    notice_id: NoticeId,
     id: string | number,
     {
         image,
@@ -159,7 +162,7 @@ export const insertLiveEvents = async (
     }
 ) =>
     query(`INSERT INTO notice_live SET ?`, {
-        notice_id,
+        notice_id: getNoticeId(notice_id),
         id,
         image,
         title,
@@ -169,5 +172,37 @@ export const insertLiveEvents = async (
 export const updateLiveEvents = async (notice_id: number) =>
     query<SqlInsertUpdate>(
         `UPDATE notice_live SET end_at=CURRENT_TIMESTAMP WHERE notice_id=? AND end_at IS NULL`,
-        notice_id
+        getNoticeId(notice_id)
+    );
+
+export const selectNoticeGuildChannel = (notice_id: number | string, guild_id: string) =>
+    query<{
+        channel_id: string;
+        notice_id: string;
+        hash_id: string;
+        notice_type: number;
+        notice_type_tag: string;
+        message: string;
+        name: string;
+        img_idx: number | null;
+    }>(
+        `
+SELECT 
+	nc.channel_id 
+	, nc.notice_id
+	, vn.hash_id
+	, vn.notice_type
+	, vn.notice_type_tag
+	, vn.message
+	, vn.name
+	, vn.img_idx 
+FROM notice_channel nc 
+INNER JOIN v_notice vn ON nc.notice_id = vn.notice_id 
+WHERE 1=1
+AND nc.notice_id = ?
+AND nc.guild_id = ?
+AND nc.use_yn = 'Y'
+		`,
+        getNoticeId(notice_id),
+        guild_id
     );
