@@ -8,13 +8,7 @@ import {
 } from 'utils/discord/component';
 import discord from 'utils/discordApiInstance';
 
-import { ApplicationCommandOptionType } from 'discord-api-types/v10';
-import { basename } from 'path';
-
 import { AppChatInputInteraction } from 'interactions/app';
-
-const name = basename(__filename, __filename.endsWith('js') ? '.js' : '.ts');
-const type = ApplicationCommandOptionType.Subcommand;
 
 export const exec = async (interaction: AppChatInputInteraction) => {
     const { guild_id, channel } = interaction;
