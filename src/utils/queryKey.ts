@@ -26,6 +26,8 @@ export const createQueryKey = async (queryKey: QueryKeyProps): Promise<string> =
 
     await redis.set(REDIS_KEY.SQL.SELECT(key), queryObject, { EX: queryRedisSaveingTime });
 
+    console.log(REDIS_KEY.SQL.SELECT(key), queryObject);
+
     return key;
 };
 

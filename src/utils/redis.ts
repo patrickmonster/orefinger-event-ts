@@ -3,7 +3,7 @@ import { createClient } from 'redis';
 const client = createClient({
     url: process.env.REDIS_URL,
     pingInterval: 1000 * 30,
-    legacyMode: true,
+    // legacyMode: true, // 레거시 모드
 });
 
 console.log('REDIS_URL', process.env.REDIS_URL);
@@ -20,6 +20,10 @@ client.on('connect', () => {
     });
 });
 
+client.on('error', e => {
+    console.log('REDIS] Error', e);
+});
+
 process.on('SIGINT', function () {
     client.set(`SERVER:STOP:${process.pid}`, new Date().toISOString(), {
         EX: 60 * 60,
@@ -31,18 +35,26 @@ client.connect().catch(e => console.error(e));
 
 export default client;
 
+const hashFuction = (key: string) => {
+    let hash = 0;
+    for (var i = 0; i < key.length; i++) {
+        hash += key.charCodeAt(i);
+    }
+    return hash;
+};
+
 export const catchRedis = async <T>(key: string, callback: () => Promise<T>, expire = 60 * 60 * 1) => {
     const data = await client.get(key);
-    console.log('????', data);
 
     if (data) return JSON.parse(data) as T;
 
     const result = await callback();
-    client.set(key, JSON.stringify(result), {
+
+    await client.set(key, JSON.stringify(result), {
         EX: expire,
     });
 
-    console.log('REDIS] SET', key, result);
+    console.log('REDIS] catchRedis', key, result);
 
     return result;
 };

@@ -1,6 +1,6 @@
 import { FastifyInstance } from 'fastify';
 
-import { getTotal } from 'controllers/main';
+import { getTotal, getUser } from 'controllers/main';
 import { REDIS_KEY, catchRedis } from 'utils/redis';
 
 export default async (fastify: FastifyInstance, opts: any) => {
@@ -15,6 +15,46 @@ export default async (fastify: FastifyInstance, opts: any) => {
             },
         },
         async req => await catchRedis(REDIS_KEY.API.MAIN_TOTAL, getTotal, 60 * 10)
+    );
+
+    fastify.get<{
+        Params: { userId: string };
+    }>(
+        '/user/:userId',
+        {
+            schema: {
+                description: '사용자 연동 정보를 확인합니다.',
+                summary: '연동 정보 조회',
+                tags: ['Main'],
+                deprecated: false,
+                params: {
+                    type: 'object',
+                    properties: {
+                        userId: {
+                            $ref: 'authId#',
+                        },
+                    },
+                },
+                response: {
+                    200: {
+                        type: 'array',
+                        items: {
+                            type: 'object',
+                            properties: {
+                                user_id: { $ref: 'authId#' },
+                                name: { type: 'string', nullable: true },
+                                kr_name: { type: 'string' },
+                                avatar: { type: 'string', nullable: true },
+                                is_session: { type: 'boolean' },
+                                create_at: { type: 'string', nullable: true },
+                                update_at: { type: 'string', nullable: true },
+                            },
+                        },
+                    },
+                },
+            },
+        },
+        async req => await getUser(req.params.userId)
     );
     //
 };
