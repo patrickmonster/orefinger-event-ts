@@ -1,4 +1,9 @@
-import getConnection from 'utils/database';
+import getConnection, { query } from 'utils/database';
+
+/**
+ * 외부 공개용 api 모음 입니다.
+ * @returns
+ */
 
 export const getTotal = async () =>
     getConnection(async query => {
@@ -33,3 +38,33 @@ ORDER BY create_to desc
             list,
         };
     });
+
+export const getUser = async (authId: string) =>
+    query<{
+        user_id: string;
+        name: string;
+        kr_name: string;
+        avatar: string;
+        is_session: 'Y' | 'N';
+        create_at: string;
+        update_at: string;
+    }>(
+        `
+SELECT vat.user_id
+	, vat.name
+	, vat.kr_name
+	, IF (
+		vat.type IN (1, 3, 12, 13)
+		, vat.avatar
+		, null
+	) AS avatar
+	, vat.is_session
+	, vat.create_at
+	, vat.update_at
+FROM v_auth_token vat 
+WHERE auth_id = ?
+AND vat.use_search_yn = 'Y'
+AND vat.type NOT IN (6, 8, 10, 11, 14)
+    `,
+        authId
+    );
