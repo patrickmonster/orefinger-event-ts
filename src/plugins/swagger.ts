@@ -90,6 +90,14 @@ export default fp(async function (fastify, opts) {
     });
 
     fastify.addSchema({
+        $id: 'authId',
+        type: 'string',
+        description: '디스코드 ID',
+        minLength: 17,
+        maxLength: 20,
+    });
+
+    fastify.addSchema({
         $id: 'paging',
         type: 'object',
         description: '페이징',
