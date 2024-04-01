@@ -3,9 +3,10 @@ import { createClient } from 'redis';
 const client = createClient({
     url: process.env.REDIS_URL,
     pingInterval: 1000 * 30,
-
-    // url: 'redis://localhost:6379',
+    legacyMode: true,
 });
+
+console.log('REDIS_URL', process.env.REDIS_URL);
 
 client.on('error', err => {});
 
@@ -30,22 +31,19 @@ client.connect().catch(e => console.error(e));
 
 export default client;
 
-const hashFuction = (key: string) => {
-    let hash = 0;
-    for (var i = 0; i < key.length; i++) {
-        hash += key.charCodeAt(i);
-    }
-    return hash;
-};
-
 export const catchRedis = async <T>(key: string, callback: () => Promise<T>, expire = 60 * 60 * 1) => {
     const data = await client.get(key);
+    console.log('????', data);
+
     if (data) return JSON.parse(data) as T;
 
     const result = await callback();
     client.set(key, JSON.stringify(result), {
         EX: expire,
     });
+
+    console.log('REDIS] SET', key, result);
+
     return result;
 };
 
@@ -56,6 +54,7 @@ export const REDIS_KEY = {
         SEARCH_USER: (id: string) => `api:search:user:${id}`,
         ATTACH_LIVE: (liveId: string | number, id: string) => `api:attach:live:${liveId}:${id}`,
         CHZZK_POST: (id: string) => `api:chzzk:post:${id}`,
+        MAIN_TOTAL: 'api:main:total',
     },
     DISCORD: {
         GUILD_CHANNELS: (id: string) => `discord:channel:${id}`,
