@@ -19,7 +19,7 @@ const interval = async () => {
 
         for (const item of list) {
             try {
-                getLiveMessage(item);
+                await getLiveMessage(item);
             } catch (e) {
                 ERROR(item.hash_id);
                 continue;

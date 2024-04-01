@@ -34,7 +34,8 @@ FROM (
 				(
 					SELECT 
 						IF (
-							nl.create_at < DATE_ADD(NOW(), INTERVAL -1 HOUR),
+							nl.create_at < DATE_ADD(NOW(), INTERVAL -3 HOUR) and
+							nl.end_at < DATE_ADD(NOW(), INTERVAL -3 HOUR),
 							if(nl.end_at IS NOT NULL, '0', nl.id),
 							'-1'
 						)
