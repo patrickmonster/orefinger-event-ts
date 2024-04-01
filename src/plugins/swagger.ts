@@ -29,6 +29,8 @@ export default fp(async function (fastify, opts) {
                 /// 버전 관련
                 { name: 'Auth', description: '인증' },
 
+                { name: 'Main', description: '매인화면 관련 (캐싱적용) API' },
+
                 { name: 'Admin', description: '관리자 관리용 API' },
                 { name: 'System', description: '시스템 관리용 API' },
 

@@ -28,23 +28,32 @@ import {
 import discord from 'utils/discordApiInstance';
 import { api } from './interactions/app';
 
-function registerCmd(commands: RESTPutAPIApplicationCommandsJSONBody) {
-    discord
-        .put(
-            `/applications/${env.DISCORD_CLIENT_ID}/${env.TARGET_GUILD ? `guilds/${env.TARGET_GUILD}/` : ''}commands`,
-            {
-                body: JSON.parse(JSON.stringify(commands, bigintConvert)),
-            }
-        )
-        .then(res => {
-            console.log('명령어 등록]', res);
-            process.exit(0);
-        })
-        .catch(err => {
-            console.error('명령어 등록 실패]', err.response.data);
-            process.exit(1);
-        });
-}
+const TYPE = {
+    REGISTER_CMD: Symbol('register_cmd'),
+    BIG_CONVERT: Symbol('bigint_convert'),
+};
+
+const COM = {
+    [TYPE.REGISTER_CMD]: (commands: RESTPutAPIApplicationCommandsJSONBody) => {
+        discord
+            .put(
+                `/applications/${env.DISCORD_CLIENT_ID}/${
+                    env.TARGET_GUILD ? `guilds/${env.TARGET_GUILD}/` : ''
+                }commands`,
+                {
+                    body: JSON.parse(JSON.stringify(commands, bigintConvert)),
+                }
+            )
+            .then(res => {
+                console.log('명령어 등록]', res);
+                process.exit(0);
+            })
+            .catch(err => {
+                console.error('명령어 등록 실패]', err.response.data);
+                process.exit(1);
+            });
+    },
+};
 
 const bigintConvert = (key: string, value: any) => (typeof value === 'bigint' ? value.toString() : value);
 
@@ -65,8 +74,6 @@ const permissionList: {
     알림: PermissionFlagsBits.Administrator,
 };
 
-console.log('권한 : ', permissionList);
-
 // 앱커맨드 (1뎁스)
 for (const { file } of api.app) commands.push(loadFile(file));
 for (const module of api.chat) {
@@ -75,6 +82,8 @@ for (const module of api.chat) {
     if ('modules' in module) {
         // 그룹 파일
         const { modules } = module;
+        console.log(modules.map(v => v.name));
+
         const options = modules
             .map(module => {
                 // load subcommand
@@ -112,11 +121,13 @@ for (const module of api.chat) {
         commands.push(loadFile(module.file));
     }
 }
-console.log('명령어 로드 완료]', JSON.stringify(commands));
+// console.log('명령어 로드 완료]', JSON.stringify(commands));
 
-registerCmd(commands.filter(v => v));
+console.log(...commands.filter(v => v));
 
-// process.exit(0);
+// COM[TYPE.REGISTER_CMD](commands.filter(v => v));
+
+process.exit(0);
 
 // discord.get(`/applications/${env.DISCORD_CLIENT_ID}/commands`).then(res => {
 //     console.log('명령어 조회]', res);
