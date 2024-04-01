@@ -1,11 +1,8 @@
-import { APIApplicationCommandSubcommandOption, ApplicationCommandOptionType } from 'discord-api-types/v10';
-import { basename } from 'path';
+import { ApplicationCommandOptionType } from 'discord-api-types/v10';
 
 import { selectAuthUsers } from 'controllers/auth';
 import { AppChatInputInteraction, SelectOptionType } from 'interactions/app';
-
-const name = basename(__filename, __filename.endsWith('js') ? '.js' : '.ts');
-const type = ApplicationCommandOptionType.Subcommand;
+import { createChatinputCommand } from 'utils/discord/component';
 
 export const exec = async (interaction: AppChatInputInteraction, selectOption: SelectOptionType) => {
     const user = selectOption.get('사용자');
@@ -24,21 +21,22 @@ ${list.list
     });
 };
 
-const api: APIApplicationCommandSubcommandOption = {
-    name,
-    type,
-    description: '봇 관리자(운영자) 데시보드',
-    options: [
-        {
-            name: '사용자',
-            type: ApplicationCommandOptionType.String,
-            description: 'ID조회',
-            min_length: 17,
-            max_length: 20,
-            required: true,
-        },
-    ],
-};
+const api = createChatinputCommand(
+    {
+        description: '봇 관리자(운영자) 데시보드',
+        options: [
+            {
+                name: '사용자',
+                type: ApplicationCommandOptionType.String,
+                description: 'ID조회',
+                min_length: 17,
+                max_length: 20,
+                required: true,
+            },
+        ],
+    },
+    __filename
+);
 
 export const isAdmin = true; // 봇 관리자만 사용 가능
 export default api;
