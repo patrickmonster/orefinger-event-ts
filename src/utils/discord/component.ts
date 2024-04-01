@@ -1,5 +1,6 @@
 import {
     APIActionRowComponent,
+    APIApplicationCommandSubcommandOption,
     APIButtonComponentBase,
     APIButtonComponentWithCustomId,
     APIButtonComponentWithURL,
@@ -10,10 +11,16 @@ import {
     APISelectMenuComponent,
     APIStringSelectComponent,
     APITextInputComponent,
+    ApplicationCommandOptionType,
+    ApplicationCommandType,
     ButtonStyle,
     ComponentType,
+    RESTPostAPIApplicationCommandsJSONBody,
+    RESTPostAPIChatInputApplicationCommandsJSONBody,
+    RESTPostAPIContextMenuApplicationCommandsJSONBody,
     TextInputStyle,
 } from 'discord-api-types/v10';
+import { basename } from 'path';
 import division from 'utils/division';
 
 export const createActionRow = (
@@ -142,3 +149,55 @@ export const createTextShortInput = (
     custom_id: string,
     props: Omit<APITextInputComponent, 'type' | 'style' | 'custom_id'>
 ) => createTextInput(custom_id, TextInputStyle.Short, props);
+
+/////////////////////////////////////////////////////////////
+type RESTPostAPIApplicationCommandsJSONBodyNotName = Omit<RESTPostAPIApplicationCommandsJSONBody, 'name'>;
+
+export const createCommand = (options: RESTPostAPIApplicationCommandsJSONBodyNotName, __fileName: string) => {
+    return {
+        ...options,
+        name: basename(__filename, __filename.endsWith('js') ? '.js' : '.ts'),
+    };
+};
+
+export const createChatinputCommand = (
+    options: Omit<RESTPostAPIChatInputApplicationCommandsJSONBody, 'type' | 'name'>,
+    __fileName: string
+) => {
+    return createCommand(
+        {
+            ...options,
+            type: ApplicationCommandType.ChatInput,
+        },
+        __filename
+    );
+};
+
+export const createChatinputSubCommand = (
+    options: Omit<APIApplicationCommandSubcommandOption, 'type' | 'name'>,
+    __fileName: string
+): APIApplicationCommandSubcommandOption => ({
+    ...options,
+    type: ApplicationCommandOptionType.Subcommand,
+    name: basename(__filename, __filename.endsWith('js') ? '.js' : '.ts'),
+});
+
+export type MenuInputType = ApplicationCommandType.Message | ApplicationCommandType.User;
+/**
+ * 유저 / 메뉴 이벤트
+ * @param options
+ * @param __fileName
+ * @returns
+ */
+export const createMenuinputCommand = (
+    options: Omit<RESTPostAPIContextMenuApplicationCommandsJSONBody, 'type' | 'name'>,
+    __fileName: string
+) => {
+    return createCommand(
+        {
+            ...options,
+            type: ApplicationCommandType.User,
+        },
+        __filename
+    );
+};

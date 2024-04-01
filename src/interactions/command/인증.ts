@@ -1,9 +1,9 @@
-import { APIApplicationCommandSubcommandOption, ApplicationCommandOptionType } from 'discord-api-types/v10';
+import { ApplicationCommandOptionType } from 'discord-api-types/v10';
 import { basename } from 'path';
 
 import { upsertDiscordUserAndJWTToken, userIds } from 'controllers/auth';
 import { AppChatInputInteraction, SelectOptionType } from 'interactions/app';
-import { createButtonArrays, createUrlButton } from 'utils/discord/component';
+import { createButtonArrays, createChatinputCommand, createUrlButton } from 'utils/discord/component';
 
 // import api from "utils/discordApiInstance"
 
@@ -46,11 +46,12 @@ export const exec = async (interaction: AppChatInputInteraction, selectOption: S
     });
 };
 
-const api: APIApplicationCommandSubcommandOption = {
-    name,
-    type,
-    description: '연결된 계정을 관리 합니다.',
-};
+const api = createChatinputCommand(
+    {
+        description: '연결된 계정을 관리 합니다.',
+    },
+    __filename
+);
 
 // 인터렉션 이벤트
 export default api;

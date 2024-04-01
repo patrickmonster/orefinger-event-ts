@@ -1,11 +1,10 @@
-import { APIApplicationCommandSubcommandOption, ApplicationCommandOptionType } from 'discord-api-types/v10';
-import { basename } from 'path';
+import { ApplicationCommandOptionType } from 'discord-api-types/v10';
 
 import { selectComponentPagingMenuByKey } from 'components/systemComponent';
 import { AppChatInputInteraction, SelectOptionType } from 'interactions/app';
 
 import QUERY from 'controllers/component/embedListQuerys';
-import { createPrimaryButton } from 'utils/discord/component';
+import { createChatinputCommand, createPrimaryButton } from 'utils/discord/component';
 
 const choices = ['텍스트', 'auth_type'];
 
@@ -55,20 +54,21 @@ export const exec = async (interaction: AppChatInputInteraction, selectOption: S
     }
 };
 
-const api: APIApplicationCommandSubcommandOption = {
-    name: basename(__filename, __filename.endsWith('js') ? '.js' : '.ts'),
-    type: ApplicationCommandOptionType.Subcommand,
-    description: '봇 관리자(운영자) 데시보드 - 시스템운용',
-    options: [
-        {
-            name: '타입',
-            type: ApplicationCommandOptionType.Number,
-            description: '설정할 데이터 그룹',
-            choices: choices.map((v, i) => ({ name: v, value: i })),
-            required: true,
-        },
-    ],
-};
+const api = createChatinputCommand(
+    {
+        description: '봇 관리자(운영자) 데시보드 - 시스템운용',
+        options: [
+            {
+                name: '타입',
+                type: ApplicationCommandOptionType.Number,
+                description: '설정할 데이터 그룹',
+                choices: choices.map((v, i) => ({ name: v, value: i })),
+                required: true,
+            },
+        ],
+    },
+    __filename
+);
 
 export const isAdmin = true; // 봇 관리자만 사용 가능
 export default api;

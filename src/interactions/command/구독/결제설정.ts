@@ -2,7 +2,7 @@ import { createComponentSelectMenuByComponentPagingMenuByKey } from 'components/
 import { AppChatInputInteraction } from 'interactions/app';
 
 import QUERY from 'controllers/component/embedListQuerys';
-import { createChatinputSubCommand } from 'utils/discord/component';
+import { createChatinputCommand } from 'utils/discord/component';
 
 export const exec = async (interaction: AppChatInputInteraction) => {
     const { guild_id } = interaction;
@@ -23,9 +23,9 @@ export const exec = async (interaction: AppChatInputInteraction) => {
     });
 };
 
-const api = createChatinputSubCommand(
+const api = createChatinputCommand(
     {
-        description: '소셜 인증 설정을 합니다.',
+        description: '소셜 인증을 설정합니다',
     },
     __filename
 );
