@@ -1,13 +1,8 @@
-import { APIApplicationCommandSubcommandOption, ApplicationCommandOptionType } from 'discord-api-types/v10';
-import { basename } from 'path';
-
 import { AppChatInputInteraction, SelectOptionType } from 'interactions/app';
 
 import { createComponentSelectMenuByComponentPagingMenuByKey } from 'components/systemComponent';
 import QUERY from 'controllers/component/noticeListQuerys';
-
-const name = basename(__filename, __filename.endsWith('js') ? '.js' : '.ts');
-const type = ApplicationCommandOptionType.Subcommand;
+import { createChatinputCommand } from 'utils/discord/component';
 
 export const exec = async (interaction: AppChatInputInteraction, selectOption: SelectOptionType) => {
     const { guild_id, channel } = interaction;
@@ -28,10 +23,10 @@ export const exec = async (interaction: AppChatInputInteraction, selectOption: S
     });
 };
 
-const api: APIApplicationCommandSubcommandOption = {
-    name,
-    type,
-    description: '소셜 알림을 설정합니다.',
-};
-
+const api = createChatinputCommand(
+    {
+        description: '소셜 알림을 설정합니다.',
+    },
+    __filename
+);
 export default api;
