@@ -8,7 +8,7 @@ const ERROR = (...e: any) => {
 
 // 5분마다 실행되는 함수
 const interval = async () => {
-    const random = Math.floor(Math.random() * 100); // Random delay
+    const random = Math.floor(Math.random() * 100) + 5; // Random delay
     let pageIndex = 0;
     do {
         console.log('탐색 :: Chzzk', new Date(), pageIndex);
