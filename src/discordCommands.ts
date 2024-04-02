@@ -28,20 +28,17 @@ import {
 import discord from 'utils/discordApiInstance';
 import { api } from './interactions/app';
 
-const TYPE = {
-    REGISTER_CMD: Symbol('register_cmd'),
-    BIG_CONVERT: Symbol('bigint_convert'),
-};
-
 const COM = {
-    [TYPE.REGISTER_CMD]: (commands: RESTPutAPIApplicationCommandsJSONBody) => {
+    REGISTER_CMD: (commands: RESTPutAPIApplicationCommandsJSONBody): void => {
+        console.log('명령어 등록]', COM.STRINGIFY(commands));
+
         discord
             .put(
                 `/applications/${env.DISCORD_CLIENT_ID}/${
                     env.TARGET_GUILD ? `guilds/${env.TARGET_GUILD}/` : ''
                 }commands`,
                 {
-                    body: JSON.parse(JSON.stringify(commands, bigintConvert)),
+                    body: JSON.parse(COM.STRINGIFY(commands)),
                 }
             )
             .then(res => {
@@ -49,10 +46,17 @@ const COM = {
                 process.exit(0);
             })
             .catch(err => {
-                console.error('명령어 등록 실패]', err.response.data);
+                console.error(
+                    '명령어 등록 실패]',
+                    Object.keys(err.rawError.errors),
+                    ...Object.values(err.rawError.errors)
+                );
+                console.error('명령어 등록 실패]', err.response?.data);
                 process.exit(1);
             });
     },
+    STRINGIFY: (value: any): string =>
+        JSON.stringify(value, (key: string, value: any) => (typeof value === 'bigint' ? value.toString() : value)),
 };
 
 const bigintConvert = (key: string, value: any) => (typeof value === 'bigint' ? value.toString() : value);
@@ -113,7 +117,6 @@ for (const module of api.chat) {
                 description: `${module.name} 명령어`, // 왜 필수?
                 type: ApplicationCommandType.ChatInput,
                 default_member_permissions: `${permissionList[module.name] || 0}`,
-                // default_member_permissions: module?.default_member_permissions || 0,
                 options,
             });
     } else {
@@ -121,14 +124,36 @@ for (const module of api.chat) {
         commands.push(loadFile(module.file));
     }
 }
-// console.log('명령어 로드 완료]', JSON.stringify(commands));
 
-console.log(...commands.filter(v => v));
+const commandList = commands.reduce((acc, cur) => {
+    if (!cur) return acc;
+    const { name, options } = cur;
+    const oldIdx = acc.findIndex(v => v.name === name);
+    if (oldIdx != -1) {
+        const old = acc[oldIdx];
+        console.log('DUPLICATE', old.name);
 
-// COM[TYPE.REGISTER_CMD](commands.filter(v => v));
+        // 기존에 등록된 커맨드가 있는 경우
+        if (old.options?.length) {
+            // 폴더 구조인 경우
+            acc.splice(oldIdx, 1);
+            console.log('DELETE ] ', oldIdx, acc);
+            acc.push({
+                ...cur,
+                options: old.options,
+            });
+        } else {
+            // 서브커맨드인 경우
+            old.options = options;
+        }
+    } else {
+        console.log('ADD', cur.name);
+        acc.push(cur);
+    }
 
-process.exit(0);
+    return acc;
+}, [] as RESTPutAPIApplicationCommandsJSONBody);
 
-// discord.get(`/applications/${env.DISCORD_CLIENT_ID}/commands`).then(res => {
-//     console.log('명령어 조회]', res);
-// });
+console.log('명령어 목록]', ...commandList);
+
+COM.REGISTER_CMD(commandList);

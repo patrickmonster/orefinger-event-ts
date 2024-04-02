@@ -1,19 +1,17 @@
-import { APIApplicationCommandSubcommandOption, ApplicationCommandOptionType } from 'discord-api-types/v10';
-import { basename } from 'path';
-
+import axios from 'axios';
 import { AppChatInputInteraction, SelectOptionType } from 'interactions/app';
-
-// import api from "utils/discordApiInstance"
-
-const name = basename(__filename, __filename.endsWith('js') ? '.js' : '.ts');
-const type = ApplicationCommandOptionType.Subcommand;
+import { createChatinputCommand } from 'utils/discord/component';
 
 export const exec = async (interaction: AppChatInputInteraction, selectOption: SelectOptionType) => {
+    const {
+        data: { _id },
+    } = await axios.get<{ _id: string }>('https://cataas.com/cat?json=true');
+
     await interaction.reply({
         embeds: [
             {
                 title: '고양이를 불러왔어요!',
-                image: { url: 'https://cataas.com/cat' },
+                image: { url: `https://cataas.com/cat/${_id}` },
                 footer: {
                     text: 'From cataas API',
                 },
@@ -22,11 +20,12 @@ export const exec = async (interaction: AppChatInputInteraction, selectOption: S
     });
 };
 
-const api: APIApplicationCommandSubcommandOption = {
-    name,
-    type,
-    description: '고양이를 불러옵니다',
-};
+const api = createChatinputCommand(
+    {
+        description: '고양이를 불러옵니다',
+    },
+    __filename
+);
 
 // 인터렉션 이벤트
 export default api;
