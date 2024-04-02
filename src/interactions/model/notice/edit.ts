@@ -1,4 +1,4 @@
-import { castMessage } from 'components/guild';
+import { castMessage } from 'components/discord';
 import { ParseInt, upsertNotice } from 'controllers/notice';
 import { MessageMenuInteraction } from 'interactions/message';
 

@@ -10,7 +10,6 @@ export const exec = async (interaction: AppChatInputInteraction, selectOption: S
     await interaction.reply({
         embeds: [
             {
-                title: '고양이를 불러왔어요!',
                 image: { url: `https://cataas.com/cat/${_id}` },
                 footer: {
                     text: 'From cataas API',
