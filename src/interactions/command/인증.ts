@@ -1,14 +1,6 @@
-import { ApplicationCommandOptionType } from 'discord-api-types/v10';
-import { basename } from 'path';
-
 import { upsertDiscordUserAndJWTToken, userIds } from 'controllers/auth';
 import { AppChatInputInteraction, SelectOptionType } from 'interactions/app';
 import { createButtonArrays, createChatinputCommand, createUrlButton } from 'utils/discord/component';
-
-// import api from "utils/discordApiInstance"
-
-const name = basename(__filename, __filename.endsWith('js') ? '.js' : '.ts');
-const type = ApplicationCommandOptionType.Subcommand;
 
 export const exec = async (interaction: AppChatInputInteraction, selectOption: SelectOptionType) => {
     const { member, user } = interaction;
