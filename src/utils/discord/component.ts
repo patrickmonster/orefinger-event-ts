@@ -153,51 +153,51 @@ export const createTextShortInput = (
 /////////////////////////////////////////////////////////////
 type RESTPostAPIApplicationCommandsJSONBodyNotName = Omit<RESTPostAPIApplicationCommandsJSONBody, 'name'>;
 
-export const createCommand = (options: RESTPostAPIApplicationCommandsJSONBodyNotName, __fileName: string) => {
+export const createCommand = (options: RESTPostAPIApplicationCommandsJSONBodyNotName, f_name: string) => {
     return {
         ...options,
-        name: basename(__filename, __filename.endsWith('js') ? '.js' : '.ts'),
+        name: basename(f_name, f_name.endsWith('js') ? '.js' : '.ts'),
     };
 };
 
 export const createChatinputCommand = (
     options: Omit<RESTPostAPIChatInputApplicationCommandsJSONBody, 'type' | 'name'>,
-    __fileName: string
+    f_name: string
 ) => {
     return createCommand(
         {
             ...options,
             type: ApplicationCommandType.ChatInput,
         },
-        __filename
+        f_name
     );
 };
 
 export const createChatinputSubCommand = (
     options: Omit<APIApplicationCommandSubcommandOption, 'type' | 'name'>,
-    __fileName: string
+    f_name: string
 ): APIApplicationCommandSubcommandOption => ({
     ...options,
     type: ApplicationCommandOptionType.Subcommand,
-    name: basename(__filename, __filename.endsWith('js') ? '.js' : '.ts'),
+    name: basename(f_name, f_name.endsWith('js') ? '.js' : '.ts'),
 });
 
 export type MenuInputType = ApplicationCommandType.Message | ApplicationCommandType.User;
 /**
  * 유저 / 메뉴 이벤트
  * @param options
- * @param __fileName
+ * @param f_name
  * @returns
  */
 export const createMenuinputCommand = (
     options: Omit<RESTPostAPIContextMenuApplicationCommandsJSONBody, 'type' | 'name'>,
-    __fileName: string
+    f_name: string
 ) => {
     return createCommand(
         {
             ...options,
             type: ApplicationCommandType.User,
         },
-        __filename
+        f_name
     );
 };

@@ -69,10 +69,12 @@ export const REDIS_KEY = {
         MAIN_TOTAL: 'api:main:total',
     },
     DISCORD: {
-        GUILD_CHANNELS: (id: string) => `discord:channel:${id}`,
+        GUILD_CHANNELS: (id: string) => `discord:channels:${id}`,
+        CHANNELS: (id: string) => `discord:channel:${id}`,
         GUILD_EMOJIS: (id: string) => `discord:emojis:${id}`,
         GUILD_ROLES: (id: string) => `discord:roles:${id}`,
         USER: (id: string) => `discord:user:${id}`,
+        GUILD: (id: string) => `discord:guild:me:${id}`,
     },
     SQL: {
         SELECT: (queryKey: string | number) => `sql:select:${queryKey}`,
