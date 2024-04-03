@@ -75,7 +75,7 @@ export class BaseTask extends EventEmitter {
      */
     async task(idx: number = 0, length: number = 10) {
         if (!this.taskState) return;
-        if (!this.taskRevision || this.taskId) {
+        if (!this.taskRevision || !this.taskId) {
             // Local Task
             const { totalPage, list } = await selectEventBats(this.eventId, {
                 page: idx,
