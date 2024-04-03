@@ -51,6 +51,7 @@ export default async (fastify: FastifyInstance, opts: any) => {
                                 name: { type: 'string', nullable: true },
                                 kr_name: { type: 'string' },
                                 avatar: { type: 'string', nullable: true },
+                                type_name: { type: 'string' },
                                 is_session: { type: 'boolean' },
                                 create_at: { type: 'string', nullable: true },
                                 update_at: { type: 'string', nullable: true },
