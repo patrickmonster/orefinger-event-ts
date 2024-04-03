@@ -244,7 +244,7 @@ export const selectNoticeGuildChannel = (notice_id: number | string, guild_id: s
         `
 SELECT 
 	nc.channel_id 
-	, nc.notice_ids
+	, nc.notice_id
 	, vn.hash_id
 	, vn.notice_type
 	, vn.notice_type_tag
