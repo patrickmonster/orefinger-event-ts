@@ -172,7 +172,7 @@ export const getChannelLive = async (notice_id: number, hash_id: string, liveId:
             })
             .then(async ({ data }) => {
                 const { content } = data;
-                if (!content.liveId || content.liveId === liveId) return reject(null);
+                if (!content?.liveId || content.liveId === liveId) return reject(null);
                 if (content && content.status === 'OPEN') {
                     await insertLiveEvents(notice_id, content.liveId, {
                         image: content.liveImageUrl?.replace('{type}', '1080') || '',

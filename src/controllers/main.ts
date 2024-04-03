@@ -45,6 +45,7 @@ export const getUser = async (authId: string) =>
         name: string;
         kr_name: string;
         avatar: string;
+        type_name: string;
         is_session: 'Y' | 'N';
         create_at: string;
         update_at: string;
@@ -58,10 +59,12 @@ SELECT vat.user_id
 		, vat.avatar
 		, null
 	) AS avatar
+    , at2.tag_kr as type_name
 	, vat.is_session
 	, vat.create_at
-	, vat.update_at
+	, vat.update_at 
 FROM v_auth_token vat 
+LEFT JOIN auth_type at2 ON vat.type = at2.auth_type 
 WHERE auth_id = ?
 AND vat.use_search_yn = 'Y'
 AND vat.type NOT IN (6, 8, 10, 11, 14)
