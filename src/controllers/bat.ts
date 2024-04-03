@@ -10,6 +10,8 @@ const getNoticeId = (noticeId: NoticeId) => (typeof noticeId === 'string' ? pars
 
 /**
  * 	배치 조회 - 최근 알림 조회
+ *  - 1시간 이내에 생성된 알림 중 종료되지 않은 알림을 조회
+ *  - 종료되지 않은 알림이 없을 경우, 종료된 알림 중 3시간 이내에 생성된 알림을 조회
  * @param target
  * @returns
  */
@@ -20,7 +22,7 @@ const scanId = (target: string, defaultId?: string) => `
 			(
 				SELECT 
 					IF (
-						nl.create_at < DATE_ADD(NOW(), INTERVAL -3 HOUR) and
+						nl.create_at < DATE_ADD(NOW(), INTERVAL -1 HOUR) AND
 						( nl.end_at IS NULL OR nl.end_at < DATE_ADD(NOW(), INTERVAL -3 HOUR) ),
 						if(nl.end_at IS NOT NULL, '0', ${defaultId ? defaultId : 'nl.id'}),
 						'-1'
