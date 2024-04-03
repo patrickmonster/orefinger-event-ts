@@ -10,8 +10,6 @@ import { env } from 'process';
 import { ajvFilePlugin } from '@fastify/multipart';
 import Multipart from '@fastify/sensible';
 
-import axios from 'axios';
-import { ECStask } from 'interfaces/ecs';
 import { error as errorLog } from './utils/logger';
 
 const envDir = join(env.PWD || __dirname, `/.env`);
@@ -24,7 +22,7 @@ if (existsSync(envDir)) {
     });
 }
 
-import { ecsPing, ecsSet } from 'controllers/log';
+import { ecsPing } from 'controllers/log';
 
 //////////////////////////////////////////////////////////////////////
 // 환경변수
@@ -62,41 +60,6 @@ server.listen({ port: 3000, host: '::' }, (err, address) => {
     const time = Date.now() - bootTime;
     console.log(`Server started in  ${Math.floor(time / 1000)} (${time}ms)`);
     console.log(`Server listening at ${address}`);
-
-    // GET ecs state
-    if (process.env.ECS_CONTAINER_METADATA_URI) {
-        const { ECS_CONTAINER_METADATA_URI } = process.env;
-        console.log(`ECS: ${ECS_CONTAINER_METADATA_URI}`);
-        axios
-            .get<ECStask>(`${ECS_CONTAINER_METADATA_URI}/task`)
-            .then(async ({ data }) => {
-                const { Family, Revision, TaskARN } = data;
-                const [, name, id] = TaskARN.split('/');
-
-                console.log(`ECS STATE ::`, data.Containers);
-                process.env.ECS_ID = id;
-                process.env.ECS_REVISION = Revision;
-                process.env.ECS_FAMILY = Family;
-
-                ecsSet(id, Revision, Family)
-                    .then(({ insertId: id }) => {
-                        insertId = id;
-                    })
-                    .catch(e => {});
-            })
-            .catch(e => {
-                console.error(`ECS STATE ERROR ::`, e);
-            });
-    }
-
-    if (process.env.MASTER_KEY) {
-        process.nextTick(() => {
-            // 배치 모듈
-            import('bat');
-        });
-
-        // discord.get('/gateway/bot');
-    }
 });
 const ping = setInterval(() => {
     if (process.env.ECS_IDX) {
