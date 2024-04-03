@@ -123,7 +123,8 @@ export class BaseTask extends EventEmitter {
         if (this.taskRevision && this.taskId) {
             const ecs = await ecsSelect(this.taskRevision); // ECS Task
             const task = ecs.find(item => item.idx == this.taskId);
-            this.task(task?.rownum || 0, ecs?.length || 1);
+            if (!task) return;
+            this.task(task.rownum - 1, ecs?.length || 1); // ECS Task ( 1부터 시작 )
         } else this.task(idx);
     }
 }
