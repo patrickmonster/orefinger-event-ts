@@ -50,7 +50,7 @@ const scanId = (target: string, defaultId?: string) => `
 
 export const scanEvent = (notice_type: number) =>
     query<{
-        target: string;
+        id: string;
         total: number;
     }>(
         `

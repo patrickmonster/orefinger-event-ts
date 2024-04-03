@@ -99,7 +99,7 @@ export class BaseTask extends EventEmitter {
         } else {
             // ECS Task (full scan)
             const scan = await scanEvent(this.eventId); // 스캔 데이터
-            const target = scan.find(item => item.target === '1'); // 활성 테스크
+            const target = scan.find(item => item.id === '1'); // 활성 테스크
             this.emit('log', `Scan Event: ${this.eventId}`, scan, target);
             if (target) {
                 const limit = Math.ceil(target.total / length); // 테스크당 데이터 처리에 필요한 개수
