@@ -10,6 +10,8 @@ import { env } from 'process';
 import { ajvFilePlugin } from '@fastify/multipart';
 import Multipart from '@fastify/sensible';
 
+import { fork } from 'child_process';
+
 import { error as errorLog } from './utils/logger';
 
 const envDir = join(env.PWD || __dirname, `/.env`);
@@ -21,8 +23,6 @@ if (existsSync(envDir)) {
         path: join(env.PWD || __dirname, `/src/env/.env.${env.NODE_ENV}`),
     });
 }
-
-import { ecsPing } from 'controllers/log';
 
 //////////////////////////////////////////////////////////////////////
 // 환경변수
@@ -41,8 +41,6 @@ const server = fastify({
 
 const bootTime = Date.now();
 
-let insertId = 0;
-
 // 플러그인
 server.register(helmet, { global: true });
 server.register(Multipart);
@@ -60,12 +58,14 @@ server.listen({ port: 3000, host: '::' }, (err, address) => {
     const time = Date.now() - bootTime;
     console.log(`Server started in  ${Math.floor(time / 1000)} (${time}ms)`);
     console.log(`Server listening at ${address}`);
-});
-const ping = setInterval(() => {
-    if (process.env.ECS_IDX) {
-        ecsPing(process.env.ECS_IDX);
+
+    if (env.MASTER_KEY) {
+        const child = fork(__dirname + '/task.js');
+        process.on('SIGINT', function () {
+            child.kill();
+        });
     }
-}, 1000 * 60 * 5); // 5분마다 실행
+});
 //////////////////////////////////////////////////////////////////////
 // 프로세서 모듈
 
@@ -80,6 +80,5 @@ process.on('uncaughtException', (err, promise) => {
 
 process.on('SIGINT', function () {
     console.error(`=============================${process.pid}번 프로세서가 종료됨=============================`);
-    clearInterval(ping);
     process.exit();
 });
