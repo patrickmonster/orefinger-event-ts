@@ -8,6 +8,10 @@ type NoticeId = string | number;
 
 const getNoticeId = (noticeId: NoticeId) => (typeof noticeId === 'string' ? parseInt(noticeId) : noticeId);
 
+export const scanEvent = (notice_type: number) => {
+    // 배치 조회
+};
+
 // 배치 조회
 export const selectEventBats = (notice_type: number, paging: Paging) =>
     selectPaging<NoticeBat>(
@@ -35,7 +39,7 @@ FROM (
 					SELECT 
 						IF (
 							nl.create_at < DATE_ADD(NOW(), INTERVAL -3 HOUR) and
-							nl.end_at < DATE_ADD(NOW(), INTERVAL -3 HOUR),
+							( nl.end_at IS NULL OR nl.end_at < DATE_ADD(NOW(), INTERVAL -3 HOUR) ),
 							if(nl.end_at IS NOT NULL, '0', nl.id),
 							'-1'
 						)
@@ -190,7 +194,7 @@ export const selectNoticeGuildChannel = (notice_id: number | string, guild_id: s
         `
 SELECT 
 	nc.channel_id 
-	, nc.notice_id
+	, nc.notice_ids
 	, vn.hash_id
 	, vn.notice_type
 	, vn.notice_type_tag
