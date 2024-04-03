@@ -28,6 +28,7 @@ export const ecsSelect = async (revision: string) =>
         family: string;
         last_ping: string;
         create_at: string;
+        rownum: number;
     }>(
         `
 SELECT
@@ -37,7 +38,8 @@ SELECT
     , family
     , last_ping
     , create_at 
-FROM task t 
+	, @rownum := @rownum + 1 AS rownum
+FROM task t, (SELECT @rownum := 0) r
 WHERE revision = ?
         `,
         revision

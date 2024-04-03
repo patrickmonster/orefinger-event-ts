@@ -10,6 +10,7 @@ import { ecsSelect, ecsSet } from 'controllers/log';
 import { ECStask } from 'interfaces/ecs';
 import { NoticeBat } from 'interfaces/notice';
 import { BaseTask } from 'utils/baseTask';
+import { openApi } from 'utils/discordApiInstance';
 
 const tasks = {
     youtube: new BaseTask({ targetEvent: 2, timmer: 10 }).on(
@@ -71,19 +72,32 @@ const tasks = {
     chzzk: new BaseTask({ targetEvent: 4, timmer: 13 }).on('scan', async (item: NoticeBat) => {
         try {
             await chzzk(item);
-        } catch (e) {}
+        } catch (e: any) {
+            if (e) {
+                // 서비스 차단
+                console.error('서비스 차단', e);
+                if (e.response) {
+                    openApi.post(`${process.env.WEB_HOOK_URL}`, {
+                        embeds: [
+                            {
+                                title: '서비스 차단 으로 인한 스캔 거부',
+                                description: `
+task : ${item.notice_id}
+hash : ${item.hash_id}
+message : ${e?.response?.data ? JSON.stringify(e.response.data) : ''}
+                                `,
+                                color: 0xff0000,
+                            },
+                        ],
+                    });
+                }
+            }
+        }
     }),
 };
 
 // GET ecs state
 if (process.env.ECS_CONTAINER_METADATA_URI) {
-    for (const task of Object.values(tasks)) {
-        task.on('log', console.log);
-        task.on('error', console.error);
-
-        task.start();
-    }
-
     const { ECS_CONTAINER_METADATA_URI } = process.env;
     console.log(`ECS: ${ECS_CONTAINER_METADATA_URI}`);
     axios
@@ -103,6 +117,14 @@ if (process.env.ECS_CONTAINER_METADATA_URI) {
 
             const list = ecsSelect(Revision);
             console.log(`ECS SELECT ::`, (await list).length);
+
+            for (const task of Object.values(tasks)) {
+                task.on('log', (...args) => console.log(`[${name}]`, ...args));
+                task.on('error', (...args) => console.error(`[${name}]`, ...args));
+
+                task.changeTaskCount(Revision, insertId);
+                task.start();
+            }
         })
         .catch(e => {
             console.error(`ECS STATE ERROR ::`, e);
