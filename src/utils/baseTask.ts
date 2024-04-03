@@ -101,7 +101,7 @@ export class BaseTask extends EventEmitter {
             } else idx++;
         } else {
             // ECS Task (full scan)
-            const ecs = await ecsSelect(this.taskRevision);
+            const ecs = await ecsSelect(this.taskRevision); // ECS Task
             const scan = await scanEvent(this.eventId); // 스캔 데이터
             const target = scan.find(item => item.target === '1'); // 활성 테스크
             const task = ecs.find(item => item.idx == this.taskId);
