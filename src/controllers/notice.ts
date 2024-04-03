@@ -118,6 +118,9 @@ export const upsertNotice = async (notiecData: Partial<NoticeDetail>, noChageOri
         return id;
     }, true);
 
+export const deleteNotice = async (notice_id: NoticeId) =>
+    query(`UPDATE notice SET use_yn = 'N', update_at=CURRENT_TIMESTAMP WHERE notice_id = ?`, ParseInt(notice_id));
+
 export const deleteNoticeChannel = async (notice_id: NoticeId, channel_id: string) =>
     updateNoticeChannelState(notice_id, channel_id, 'N');
 

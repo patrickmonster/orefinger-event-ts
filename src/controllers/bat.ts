@@ -198,6 +198,7 @@ FROM notice_video
 WHERE 1=1
 AND notice_id = ?
 ORDER BY create_at DESC
+LIMIT 10
 	`,
         getNoticeId(notice_id)
     );
@@ -243,7 +244,7 @@ export const selectNoticeGuildChannel = (notice_id: number | string, guild_id: s
         `
 SELECT 
 	nc.channel_id 
-	, nc.notice_ids
+	, nc.notice_id
 	, vn.hash_id
 	, vn.notice_type
 	, vn.notice_type_tag

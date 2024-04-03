@@ -6,6 +6,7 @@ import { getVod, getChannelVideos as laftel } from 'components/laftelUser';
 import { sendChannels } from 'components/notice';
 import { getChannelVideos as youtube } from 'components/youtubeUser';
 import { ecsSet } from 'controllers/log';
+import { deleteNotice } from 'controllers/notice';
 import { ECStask } from 'interfaces/ecs';
 import { NoticeBat } from 'interfaces/notice';
 import { BaseTask } from 'utils/baseTask';
@@ -42,6 +43,26 @@ const tasks = {
             if (!ids.includes(hash_id)) {
                 // 종료된 알림 (더이상 방송하지 않는 경우)
                 console.log('종료된 알림', hash_id);
+
+                sendChannels(channels, {
+                    embeds: [
+                        {
+                            title: '방송 종료',
+                            description: `
+${name} - 방영이 종료되었습니다
+[방송 다시보기](https://laftel.net/item/${hash_id})
+
+* 해당 알림은 비활성화 됩니다.
+                            `,
+                            author: {
+                                name,
+                                url: `https://laftel.net/item/${hash_id}`,
+                            },
+                        },
+                    ],
+                });
+
+                await deleteNotice(notice_id);
                 return;
             }
             try {
