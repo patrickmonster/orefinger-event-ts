@@ -22,6 +22,12 @@ export default async (fastify: FastifyInstance, opts: any) => {
     }>(
         '/user/:userId',
         {
+            config: {
+                rateLimit: {
+                    max: 10,
+                    timeWindow: '1 minute',
+                },
+            },
             schema: {
                 description: '사용자 연동 정보를 확인합니다.',
                 summary: '연동 정보 조회',
