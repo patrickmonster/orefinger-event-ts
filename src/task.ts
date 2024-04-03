@@ -1,19 +1,18 @@
 import axios from 'axios';
-import './app';
 
 import { getLiveMessage as afreeca } from 'components/afreecaUser';
 import { getLiveMessage as chzzk } from 'components/chzzkUser';
 import { getVod, getChannelVideos as laftel } from 'components/laftelUser';
 import { sendChannels } from 'components/notice';
 import { getChannelVideos as youtube } from 'components/youtubeUser';
-import { ecsSelect, ecsSet } from 'controllers/log';
+import { ecsSet } from 'controllers/log';
 import { ECStask } from 'interfaces/ecs';
 import { NoticeBat } from 'interfaces/notice';
 import { BaseTask } from 'utils/baseTask';
 import { openApi } from 'utils/discordApiInstance';
 
 const tasks = {
-    youtube: new BaseTask({ targetEvent: 2, timmer: 10 }).on(
+    youtube: new BaseTask({ targetEvent: 2, timmer: 1000 * 60 * 3 }).on(
         'scan',
         async ({ channels, notice_id, hash_id, message, name }: NoticeBat) => {
             try {
@@ -35,7 +34,7 @@ const tasks = {
             } catch (e) {}
         }
     ),
-    laftel: new BaseTask({ targetEvent: 7, timmer: 20 }).on(
+    laftel: new BaseTask({ targetEvent: 7, timmer: 1000 * 60 * 20 }).on(
         'scan',
         async ({ channels, notice_id, hash_id, message, name }: NoticeBat) => {
             const vodList = await getVod();
@@ -69,7 +68,7 @@ const tasks = {
             await afreeca(item);
         } catch (e) {}
     }),
-    chzzk: new BaseTask({ targetEvent: 4, timmer: 13 }).on('scan', async (item: NoticeBat) => {
+    chzzk: new BaseTask({ targetEvent: 4, timmer: 100 }).on('scan', async (item: NoticeBat) => {
         try {
             await chzzk(item);
         } catch (e: any) {
@@ -114,9 +113,6 @@ if (process.env.ECS_CONTAINER_METADATA_URI) {
             const { insertId } = await ecsSet(id, Revision, Family);
 
             console.log(`ECS SET ::`, insertId);
-
-            const list = ecsSelect(Revision);
-            console.log(`ECS SELECT ::`, (await list).length);
 
             for (const task of Object.values(tasks)) {
                 task.on('log', (...args) => console.log(`[${name}]`, ...args));
