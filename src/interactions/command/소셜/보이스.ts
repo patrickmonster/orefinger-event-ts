@@ -1,6 +1,6 @@
 import { ChannelType } from 'discord-api-types/v10';
 import { AppChatInputInteraction, SelectOptionType } from 'interactions/app';
-import { createChannelSelectMenu, createChatinputCommand } from 'utils/discord/component';
+import { createChannelSelectMenu, createChatinputSubCommand } from 'utils/discord/component';
 
 export const exec = async (interaction: AppChatInputInteraction, selectOption: SelectOptionType) => {
     const { member } = interaction;
@@ -20,11 +20,9 @@ export const exec = async (interaction: AppChatInputInteraction, selectOption: S
     });
 };
 
-const api = createChatinputCommand(
+const api = createChatinputSubCommand(
     {
         description: '보이스 채널을 이동합니다.',
-        default_member_permissions: '0',
-        dm_permission: false,
     },
     __filename
 );
