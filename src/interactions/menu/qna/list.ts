@@ -12,9 +12,16 @@ import {
     createSuccessButton,
 } from 'utils/discord/component';
 
+/*
+1. 사용 가능한 데시보들를 출력함
+2. 데시보드를 선택하면 해당 데시보드의 정보를 출력함
+3. 해당 데시보드의 정보를 수정할 수 있음
+4. 수정된 정보를 저장할 수 있음
+*/
+
 /**
  *
- * 사용자 소셜 로그인 데시보드 설정
+ * 질의 응답 데시보드 설정
  * @param interaction
  */
 export const exec = async (interaction: MessageMenuInteraction) => {
