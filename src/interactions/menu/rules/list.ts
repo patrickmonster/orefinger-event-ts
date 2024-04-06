@@ -64,7 +64,7 @@ export const exec = async (interaction: MessageMenuInteraction) => {
         });
     } else {
         interaction.reply({
-            content: `임베드가 없습니다! \n임베드를 생성해주세요(생성하지 않는 경우, 버튼만 생성 됩니다.)`,
+            content: `게시판이 없습니다! \n게시판을 생성해주세요(생성하지 않는 경우, 버튼만 생성 됩니다.)`,
             ephemeral: true,
             components: [
                 createActionRow(

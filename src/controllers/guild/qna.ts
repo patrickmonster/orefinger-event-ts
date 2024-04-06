@@ -1,23 +1,7 @@
 'use strict';
 import { SqlInsertUpdate, YN, calTo, query } from 'utils/database';
 
-import { APISelectMenuOption } from 'discord-api-types/v10';
-import { AuthBord, AuthBordPK } from 'interfaces/authBord';
-
-export const getQNAType = async (guildId: string) =>
-    query<APISelectMenuOption>(
-        `
-SELECT
-    json_object( 'name', IF( q.use_yn = 'Y', '🔴','⚫')) AS emoji
-    ,  CAST(qt.qna_type AS CHAR) AS value
-    , qt.name AS label
-    , qt.description 
-FROM qna_type qt 
-left JOIN ( select * FROM qna q WHERE q.guild_id = ? ) q ON qt.qna_type = q.type
-WHERE 1=1
-AND qt.use_yn = 'Y' `,
-        guildId
-    );
+import { QnaBord, QnaBordPK } from 'interfaces/qna';
 
 // 인증 데시보드를 불러 옵니다.
 export const getDashboard = async (guild: string, type?: number | string) =>
@@ -84,5 +68,5 @@ ${calTo('and at2.auth_type = ?', auth_type)}
         guild
     );
 
-export const upsertAuthBorde = async (bord: Partial<Omit<AuthBord, 'guild_id' | 'type'>>, pk: AuthBordPK) =>
-    query<SqlInsertUpdate>(`INSERT INTO auth_bord SET ? ON DUPLICATE KEY UPDATE ?`, { ...bord, ...pk }, bord);
+export const upsertQnaBorde = async (bord: Partial<Omit<QnaBord, 'guild_id' | 'type'>>, pk: QnaBordPK) =>
+    query<SqlInsertUpdate>(`INSERT INTO qna SET ? ON DUPLICATE KEY UPDATE ?`, { ...bord, ...pk }, bord);
