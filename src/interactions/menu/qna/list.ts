@@ -12,23 +12,30 @@ import {
     createSuccessButton,
 } from 'utils/discord/component';
 
+/*
+1. 사용 가능한 데시보들를 출력함
+2. 데시보드를 선택하면 해당 데시보드의 정보를 출력함
+3. 해당 데시보드의 정보를 수정할 수 있음
+4. 수정된 정보를 저장할 수 있음
+*/
+
 /**
  *
- * 사용자 소셜 로그인 데시보드 설정
+ * 질의 응답 데시보드 설정
  * @param interaction
  */
 export const exec = async (interaction: MessageMenuInteraction) => {
     const {
-        values: [auth_type],
+        values: [qna_type],
         guild_id,
     } = interaction;
 
     if (!guild_id) return;
-    const [role] = await getAuthbordeList(guild_id, Number(auth_type));
+    const [role] = await getAuthbordeList(guild_id, Number(qna_type));
     if (!role) return interaction.reply({ content: '해당 데시보드를 찾을 수 없습니다.', ephemeral: true });
 
     const result = await selectEmbedUserDtilByEmbed(role.embed_id);
-    const id = `rules edit ${auth_type}`;
+    const id = `rules edit ${qna_type}`;
 
     if (result) {
         const { embed, content } = result;
@@ -64,11 +71,11 @@ export const exec = async (interaction: MessageMenuInteraction) => {
         });
     } else {
         interaction.reply({
-            content: `게시판이 없습니다! \n게시판을 생성해주세요(생성하지 않는 경우, 버튼만 생성 됩니다.)`,
+            content: `임베드가 없습니다! \n임베드를 생성해주세요(생성하지 않는 경우, 버튼만 생성 됩니다.)`,
             ephemeral: true,
             components: [
                 createActionRow(
-                    createPrimaryButton(`rules create ${auth_type}`, {
+                    createPrimaryButton(`rules create ${qna_type}`, {
                         label: '새로만들기',
                     })
                 ),

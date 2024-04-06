@@ -169,10 +169,10 @@ export const channelVideos = async (hashId: string) => {
     const channel: ChannelObject = metadata.channelMetadataRenderer;
 
     if (!videosTab) return {};
-    const videos = videosTab.tabRenderer.content.richGridRenderer.contents.slice(0, 5);
     const results = [];
 
     try {
+        const videos = videosTab.tabRenderer.content.richGridRenderer?.contents?.slice(0, 5);
         for (const data of videos) {
             const video = data?.richItemRenderer?.content?.videoRenderer;
 

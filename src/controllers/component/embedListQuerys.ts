@@ -120,6 +120,17 @@ LEFT JOIN v_notice_channel vnc ON vnc.notice_id = ab.\`type\` AND vnc.guild_id =
 WHERE ab.guild_id  = ?
 AND ab.use_yn = 'Y'
     `;
+const SelectQnaDashbordNotice = `
+SELECT
+    json_object( 'name', IF( q.use_yn = 'Y', '🔴','⚫')) AS emoji
+    ,  CAST(qt.qna_type AS CHAR) AS value
+    , qt.name AS label
+    , qt.description 
+FROM qna_type qt 
+left JOIN ( select * FROM qna q WHERE q.guild_id = ? ) q ON qt.qna_type = q.type
+WHERE 1=1
+AND qt.use_yn = 'Y'
+    `;
 
 /**
  * 라벨을 선택하는 쿼리를 작성합니다.
@@ -156,5 +167,6 @@ export default {
     TextMessageDefaultByMenuListQuery,
 
     SelectAuthDashbord,
+    SelectQnaDashbordNotice,
     SelectAuthDashbordNotice,
 };
