@@ -46,6 +46,7 @@ export const createPrimaryButton = (
     custom_id: string,
     props: Omit<APIButtonComponentBase<ButtonStyle.Primary>, 'type' | 'style' | 'custom_id'>
 ) => createButton(custom_id, { style: ButtonStyle.Primary, ...props });
+
 export const createSecondaryButton = (
     custom_id: string,
     props: Omit<APIButtonComponentBase<ButtonStyle.Secondary>, 'type' | 'style' | 'custom_id'>
@@ -75,10 +76,12 @@ export const createUrlButton = (
 export const createButtonArrays = (
     ...buttons: APIButtonComponentWithURL[]
 ): APIActionRowComponent<APIButtonComponentWithCustomId | APIButtonComponentWithURL>[] =>
-    division(buttons, 5).map(buttons => ({
-        type: ComponentType.ActionRow,
-        components: buttons,
-    }));
+    division(buttons, 5)
+        .filter(v => v.length)
+        .map(buttons => ({
+            type: ComponentType.ActionRow,
+            components: buttons,
+        }));
 
 export const createStringSelectMenu = (
     custom_id: string,
