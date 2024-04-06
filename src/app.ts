@@ -60,12 +60,27 @@ server.listen({ port: 3000, host: '::' }, (err, address) => {
     console.log(`Server listening at ${address}`);
 
     if (env.MASTER_KEY) {
-        const child = fork(__dirname + '/task.js');
-        process.on('SIGINT', function () {
-            child.kill();
-        });
+        startSubtask();
     }
 });
+
+const startSubtask = () => {
+    const child = fork(__dirname + '/task.js');
+    child.on('close', stopSubtask);
+    process.on('SIGINT', child.kill);
+};
+
+/**
+ * 서비스가 강제 종료되면, 다시 시작합니다.
+ * @param code
+ */
+const stopSubtask = (code: any) => {
+    if (code !== 0) {
+        console.error(`task.js exited with code ${code}`);
+        startSubtask();
+    }
+};
+
 //////////////////////////////////////////////////////////////////////
 // 프로세서 모듈
 
