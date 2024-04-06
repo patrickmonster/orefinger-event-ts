@@ -11,6 +11,7 @@ import { ECStask } from 'interfaces/ecs';
 import { NoticeBat } from 'interfaces/notice';
 import { BaseTask } from 'utils/baseTask';
 import { openApi } from 'utils/discordApiInstance';
+import { error as errorLog } from './utils/logger';
 
 const tasks = {
     youtube: new BaseTask({ targetEvent: 2, timmer: 1000 * 60 * 3 }).on(
@@ -156,3 +157,17 @@ if (process.env.ECS_CONTAINER_METADATA_URI) {
         task.start();
     }
 }
+
+process.on('unhandledRejection', (err, promise) => {
+    errorLog('unhandledRejection', JSON.stringify(err, Object.getOwnPropertyNames(err)));
+    console.error('unhandledRejection', err);
+});
+process.on('uncaughtException', (err, promise) => {
+    errorLog('uncaughtException', JSON.stringify(err, Object.getOwnPropertyNames(err)));
+    console.error('uncaughtException', err);
+});
+
+process.on('SIGINT', function () {
+    console.error(`=============================${process.pid}번 프로세서가 종료됨=============================`);
+    process.exit();
+});
