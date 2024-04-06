@@ -49,9 +49,9 @@ const COM = {
                 console.error(
                     '명령어 등록 실패]',
                     Object.keys(err.rawError.errors),
-                    ...Object.values(err.rawError.errors)
+                    ...Object.values(err.rawError.errors),
+                    JSON.stringify(err.rawError.errors, bigintConvert)
                 );
-                console.error('명령어 등록 실패]', err.response?.data);
                 process.exit(1);
             });
     },
@@ -154,6 +154,10 @@ const commandList = commands.reduce((acc, cur) => {
     return acc;
 }, [] as RESTPutAPIApplicationCommandsJSONBody);
 
-console.log('명령어 목록]', ...commandList);
+console.log('commandList');
+for (const i in commandList) {
+    const command = commandList[i];
+    console.log(i, command);
+}
 
 COM.REGISTER_CMD(commandList);

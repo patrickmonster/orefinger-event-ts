@@ -55,7 +55,7 @@
         "tabWidth": 4
     },
     "name": "discord-notification-ts",
-    "version": "3.2.21",
+    "version": "3.2.22",
     "main": "index.js",
     "repository": "https://github.com/patrickmonster/discord-notification-ts.git",
     "author": "Soung jin Ryu <neocat@kakao.com>",
@@ -67,6 +67,6 @@
         "bot": "cross-env NODE_ENV=local nodemon --watch src/interactions --exec ts-node -r tsconfig-paths/register src/app.ts",
         "dev": "cross-env NODE_ENV=dev nodemon --watch src/routes --exec ts-node -r tsconfig-paths/register src/app.ts",
         "local": "cross-env NODE_ENV=local nodemon --watch src/routes --exec ts-node -r tsconfig-paths/register src/app.ts",
-        "test:twitch": "twitch event verify-subscription subscribe -F http://localhost:3000/twitch/event -s 12345678901234567890"
+        "test": "cross-env NODE_ENV=dev ts-node -r tsconfig-paths/register src/test.ts"
     }
 }
