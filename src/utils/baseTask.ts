@@ -1,6 +1,7 @@
 import { scanEvent, selectEvent, selectEventBats } from 'controllers/bat';
 import { ecsSelect } from 'controllers/log';
 import EventEmitter from 'events';
+import { NoticeBat } from 'interfaces/notice';
 import sleep from 'utils/sleep';
 
 type TaskGetEvent = (noticeId: number, hashId: string) => Promise<any>;
@@ -73,50 +74,9 @@ export class BaseTask extends EventEmitter {
      *  - 추출된 데이터 기반으로 테스크를 가동한다.
      * @param idx - 현재 페이지
      */
-    async task(idx: number = 0, length: number = 10) {
+    async task(idx: number = 0) {
         if (!this.taskState) return;
-        if (!this.taskRevision || !this.taskId) {
-            // Local Task
-            const { totalPage, list } = await selectEventBats(this.eventId, {
-                page: idx,
-                limit: length,
-            });
-
-            for (const task of list) {
-                try {
-                    // console.log('SACAN', task);
-                    this.emit('scan', task);
-                    await sleep(1000); // Cull down the request
-                } catch (e) {
-                    this.emit('error', `Error: ${this.eventId}`, task.notice_id, task.hash_id);
-                }
-            }
-
-            if (totalPage <= idx) {
-                console.log(`탐색 :: ${this.eventId}`, new Date());
-                idx = 0;
-            } else idx++;
-        } else {
-            // ECS Task (full scan)
-            const scan = await scanEvent(this.eventId); // 스캔 데이터
-            const total = scan.filter(({ id }) => id != '-1').reduce((acc, { total }) => (acc += total), 0); // 활성 테스크
-            this.emit('log', `Scan Event: ${this.eventId}`, scan, total);
-            if (total) {
-                const limit = Math.ceil(total / length); // 테스크당 데이터 처리에 필요한 개수
-                const list = await selectEvent(this.eventId, limit, idx);
-                for (const task of list) {
-                    if (!this.taskState) return; // 테스크 중지
-                    try {
-                        this.emit('scan', task);
-                        await sleep(1000); // Cull down the request (1초)
-                    } catch (e) {
-                        this.emit('error', `Error: ${this.eventId}`, task.notice_id, task.hash_id);
-                    }
-                }
-            } else {
-                // 활성 테스크 없음
-            }
-        }
+        await (!this.taskRevision || !this.taskId ? this.taskLocalScan(idx) : this.taskScan(idx));
 
         this.emit('log', `탐색 :: ${this.eventId} :: ${idx}`, new Date());
         await sleep(this.timmer); // next task
@@ -124,7 +84,51 @@ export class BaseTask extends EventEmitter {
             const ecs = await ecsSelect(this.taskRevision); // ECS Task
             const task = ecs.find(item => item.idx == this.taskId);
             if (!task) return;
-            this.task(task.rownum - 1, ecs?.length || 1); // ECS Task ( 1부터 시작 )
+            this.task(task.rownum - 1); // ECS Task ( 1부터 시작 )
         } else this.task(idx);
+    }
+
+    async taskLocalScan(idx: number = 0) {
+        // Local Task
+        const { totalPage, list } = await selectEventBats(this.eventId, {
+            page: idx,
+            limit: length,
+        });
+        this.scanTask(list); // 스캔 데이터
+        if (totalPage <= idx) {
+            console.log(`탐색 :: ${this.eventId}`, new Date());
+            idx = 0;
+        } else idx++;
+    }
+
+    /**
+     * ECS Task
+     * @param idx
+     */
+    async taskScan(idx: number = 0) {
+        // ECS Task (full scan)
+        const scan = await scanEvent(this.eventId); // 스캔 데이터
+        const total = scan.filter(({ id }) => id != '-1').reduce((acc, { total }) => (acc += total), 0); // 활성 테스크
+        this.emit('log', `Scan Event: ${this.eventId}`, scan, total);
+        if (total) {
+            const limit = Math.ceil(total / length); // 테스크당 데이터 처리에 필요한 개수
+            const list = await selectEvent(this.eventId, limit, idx);
+
+            this.scanTask(list); // 스캔 데이터
+        } else {
+            // 활성 테스크 없음
+        }
+    }
+
+    async scanTask(list: NoticeBat[]) {
+        for (const task of list) {
+            if (!this.taskState) return; // 테스크 중지
+            try {
+                this.emit('scan', task);
+                await sleep(1000); // Cull down the request (1초)
+            } catch (e) {
+                this.emit('error', `Error: ${this.eventId}`, task.notice_id, task.hash_id);
+            }
+        }
     }
 }
