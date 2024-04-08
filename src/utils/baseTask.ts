@@ -35,7 +35,6 @@ export class BaseTask extends EventEmitter {
         });
 
         process.on('SIGINT', () => {
-            console.log('');
             this.stop();
         });
     }
@@ -74,25 +73,36 @@ export class BaseTask extends EventEmitter {
      *  - 추출된 데이터 기반으로 테스크를 가동한다.
      * @param idx - 현재 페이지
      */
-    async task(idx: number = 0) {
+    async task(idx: number = 0, length?: number) {
         if (!this.taskState) return;
-        await (!this.taskRevision || !this.taskId ? this.taskLocalScan(idx) : this.taskScan(idx));
+        await (!this.taskRevision || !this.taskId ? this.taskLocalScan(idx) : this.taskScan(idx, length || 100));
 
         this.emit('log', `탐색 :: ${this.eventId} :: ${idx}`, new Date());
         await sleep(this.timmer); // next task
-        if (this.taskRevision && this.taskId) {
-            const ecs = await ecsSelect(this.taskRevision); // ECS Task
-            const task = ecs.find(item => item.idx == this.taskId);
-            if (!task) return;
-            this.task(task.rownum - 1); // ECS Task ( 1부터 시작 )
-        } else this.task(idx);
+        // 다음 작업을 위한 준비과정
+        try {
+            if (this.taskRevision && this.taskId) {
+                const ecs = await ecsSelect(this.taskRevision); // ECS Task
+                const task = ecs.find(item => item.idx == this.taskId);
+                if (!task) return;
+                this.task(task.rownum - 1, ecs.length); // ECS Task ( 1부터 시작ㄷ )
+            } else this.task(idx);
+        } catch (e) {
+            // 테스크의 동작이 중지되었을 경우
+            console.error('Error: ECS Task', e);
+            this.task(idx);
+        }
     }
 
+    /**
+     * 로컬 Task
+     * @param idx
+     */
     async taskLocalScan(idx: number = 0) {
         // Local Task
         const { totalPage, list } = await selectEventBats(this.eventId, {
             page: idx,
-            limit: length,
+            limit: 100,
         });
         this.scanTask(list); // 스캔 데이터
         if (totalPage <= idx) {
@@ -105,7 +115,7 @@ export class BaseTask extends EventEmitter {
      * ECS Task
      * @param idx
      */
-    async taskScan(idx: number = 0) {
+    async taskScan(idx: number = 0, length: number) {
         // ECS Task (full scan)
         const scan = await scanEvent(this.eventId); // 스캔 데이터
         const total = scan.filter(({ id }) => id != '-1').reduce((acc, { total }) => (acc += total), 0); // 활성 테스크
@@ -120,6 +130,11 @@ export class BaseTask extends EventEmitter {
         }
     }
 
+    /**
+     * Run Task
+     * @param list
+     * @returns
+     */
     async scanTask(list: NoticeBat[]) {
         for (const task of list) {
             if (!this.taskState) return; // 테스크 중지
