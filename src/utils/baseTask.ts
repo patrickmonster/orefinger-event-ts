@@ -30,10 +30,6 @@ export class BaseTask extends EventEmitter {
         this.eventId = targetEvent;
         if (timmer) this.timmer = timmer;
 
-        this.on('error', async () => {
-            console.error('Error: ', this.eventId);
-        });
-
         process.on('SIGINT', () => {
             this.stop();
         });
