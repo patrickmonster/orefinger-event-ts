@@ -1,16 +1,8 @@
-import { MessageMenuInteraction } from 'interactions/message';
-
 import { editerComponent } from 'components/systemComponent';
 import { selectEmbedUserDtilByEmbed } from 'controllers/embed';
-import { getAuthbordeList } from 'controllers/guild/authDashbord';
-import { APISelectMenuDefaultValue, SelectMenuDefaultValueType } from 'discord-api-types/v10';
-import {
-    createActionRow,
-    createDangerButton,
-    createPrimaryButton,
-    createRoleSelectMenu,
-    createSuccessButton,
-} from 'utils/discord/component';
+import { selectQnaTypesByMenu } from 'controllers/guild/qna';
+import { MessageMenuInteraction } from 'interactions/message';
+import { createStringSelectMenu, createSuccessButton } from 'utils/discord/component';
 
 /*
 1. 사용 가능한 데시보들를 출력함
@@ -21,76 +13,41 @@ import {
 
 /**
  *
- * 질의 응답 데시보드 설정
+ * 질문 응답 데시보드 설정
  * @param interaction
  */
 export const exec = async (interaction: MessageMenuInteraction) => {
     const {
-        values: [qna_type],
+        values: [embed_id],
         guild_id,
     } = interaction;
 
     if (!guild_id) return;
-    const [role] = await getAuthbordeList(guild_id, Number(qna_type));
-    if (!role) return interaction.reply({ content: '해당 데시보드를 찾을 수 없습니다.', ephemeral: true });
+    const { embed } = await selectEmbedUserDtilByEmbed(embed_id);
+    const list = await selectQnaTypesByMenu(); // 옵션 리스트
 
-    const result = await selectEmbedUserDtilByEmbed(role.embed_id);
-    const id = `rules edit ${qna_type}`;
-
-    if (result) {
-        const { embed, content } = result;
-        interaction.reply({
-            content,
-            embeds: [embed],
-            ephemeral: true,
-            components: [
-                editerComponent(
-                    id,
-                    [
-                        createSuccessButton(`${id} reload`, {
-                            label: '새로고침',
-                        }),
-                        createDangerButton(`${id} delete`, {
-                            label: '삭제',
-                        }),
-                    ],
-                    true
-                ),
-                createRoleSelectMenu('rules', {
-                    default_values: [
-                        {
-                            id: role.role_id,
-                            type: SelectMenuDefaultValueType.Role,
-                        },
-                    ].filter(v => v.id) as APISelectMenuDefaultValue<SelectMenuDefaultValueType.Role>[],
-                    placeholder: '역할 선택',
-                    max_values: 1,
-                    min_values: 1,
-                }),
-            ],
-        });
-    } else {
-        interaction.reply({
-            content: `임베드가 없습니다! \n임베드를 생성해주세요(생성하지 않는 경우, 버튼만 생성 됩니다.)`,
-            ephemeral: true,
-            components: [
-                createActionRow(
-                    createPrimaryButton(`rules create ${qna_type}`, {
-                        label: '새로만들기',
-                    })
-                ),
-                createRoleSelectMenu(id, {
-                    default_values: [
-                        {
-                            id: role.role_id,
-                            type: SelectMenuDefaultValueType.Role,
-                        },
-                    ].filter(v => v.id) as APISelectMenuDefaultValue<SelectMenuDefaultValueType.Role>[],
-                    placeholder: '역할 선택',
-                    max_values: 1,
-                    min_values: 1,
-                }),
-            ],
-        });
-    }
+    const id = `qna edit ${embed_id}`;
+    interaction.reply({
+        ephemeral: true,
+        content: `
+질문 응답 보드를 수정합니다
+        `,
+        embeds: embed ? [embed] : undefined,
+        components: [
+            editerComponent(
+                id,
+                [
+                    createSuccessButton(`${id} reload`, {
+                        label: '새로고침',
+                    }),
+                ],
+                true
+            ),
+            createStringSelectMenu(`${id} print`, {
+                max_values: 5,
+                placeholder: '출력할 버튼 타입을 선택해 주세요',
+                options: list,
+            }),
+        ],
+    });
 };

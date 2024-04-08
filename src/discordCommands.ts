@@ -46,6 +46,8 @@ const COM = {
                 process.exit(0);
             })
             .catch(err => {
+                console.log(err);
+
                 console.error(
                     '명령어 등록 실패]',
                     Object.keys(err.rawError.errors),

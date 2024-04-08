@@ -82,11 +82,13 @@ SELECT CAST(embed_id  AS CHAR) AS value
 FROM embed e
     `;
 
-const EmbedUserByMenuListQuery = `
+const EmbedUserByMenuListQuery = (user_id?: string) => `
 SELECT json_object( 'name', IF( use_yn = 'Y', '🔴','⚫')) AS emoji
-    , CAST(user_idx  AS CHAR) AS value
-    , tag AS label
+    , CAST(embed_id  AS CHAR) AS value
+    , title  AS label
 FROM embed_user eu
+WHERE 1=1
+${calTo('AND create_user = ?', user_id)}
     `;
 
 // auth_type
@@ -119,17 +121,6 @@ LEFT JOIN auth_type at2 ON ab.\`type\` = at2.auth_type
 LEFT JOIN v_notice_channel vnc ON vnc.notice_id = ab.\`type\` AND vnc.guild_id = ab.guild_id
 WHERE ab.guild_id  = ?
 AND ab.use_yn = 'Y'
-    `;
-const SelectQnaDashbordNotice = `
-SELECT
-    json_object( 'name', IF( q.use_yn = 'Y', '🔴','⚫')) AS emoji
-    ,  CAST(qt.qna_type AS CHAR) AS value
-    , qt.name AS label
-    , qt.description 
-FROM qna_type qt 
-left JOIN ( select * FROM qna q WHERE q.guild_id = ? ) q ON qt.qna_type = q.type
-WHERE 1=1
-AND qt.use_yn = 'Y'
     `;
 
 /**
@@ -167,6 +158,5 @@ export default {
     TextMessageDefaultByMenuListQuery,
 
     SelectAuthDashbord,
-    SelectQnaDashbordNotice,
     SelectAuthDashbordNotice,
 };

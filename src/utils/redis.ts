@@ -75,6 +75,8 @@ export const REDIS_KEY = {
         GUILD_ROLES: (id: string) => `discord:roles:${id}`,
         USER: (id: string) => `discord:user:${id}`,
         GUILD: (id: string) => `discord:guild:me:${id}`,
+        LAST_MESSAGE: (id: string) => `discord:last:message:${id}`,
+        ANSWER_MESSAGE: (channlId: string, messageId: string) => `discord:answer:message:${channlId}:${messageId}`,
     },
     SQL: {
         SELECT: (queryKey: string | number) => `sql:select:${queryKey}`,

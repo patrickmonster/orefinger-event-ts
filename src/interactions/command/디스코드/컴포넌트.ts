@@ -124,7 +124,7 @@ export const exec = async (interaction: AppChatInputInteraction, selectOption: S
                             label: '새로만들기',
                         }),
                     },
-                    QUERY.EmbedUserByMenuListQuery
+                    QUERY.EmbedUserByMenuListQuery()
                 ),
             });
             break;

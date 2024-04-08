@@ -113,7 +113,7 @@ WHERE a.embed_id = ?
 export const selectEmbedUserBaseEditByModel = async (embed_id?: string) =>
     query<Omit<APIModalInteractionResponseCallbackData, 'custom_id'>>(
         `
-SELECT CONCAT(${calTo('?', embed_id || 0)}, '] 임베드 수정') as title,
+SELECT CONCAT(${calTo('?', embed_id || 0)}, '] 데시보드 수정') as title,
     JSON_ARRAY(
         JSON_OBJECT(
             'type', 1, 'components', JSON_ARRAY(
