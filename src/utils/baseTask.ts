@@ -100,7 +100,7 @@ export class BaseTask extends EventEmitter {
             page: idx,
             limit: 100,
         });
-        this.scanTask(list); // 스캔 데이터
+        await this.scanTask(list); // 스캔 데이터
         if (totalPage <= idx) {
             console.log(`탐색 :: ${this.eventId}`, new Date());
             idx = 0;
@@ -120,7 +120,7 @@ export class BaseTask extends EventEmitter {
             const limit = Math.ceil(total / length); // 테스크당 데이터 처리에 필요한 개수
             const list = await selectEvent(this.eventId, limit, idx);
 
-            this.scanTask(list); // 스캔 데이터
+            await this.scanTask(list); // 스캔 데이터
         } else {
             // 활성 테스크 없음
         }
