@@ -40,6 +40,9 @@ export const exec = async (interaction: MessageMenuInteraction) => {
                 editerComponent(
                     id,
                     [
+                        createSuccessButton(`${id} print`, {
+                            label: '출력하기',
+                        }),
                         createSuccessButton(`${id} reload`, {
                             label: '새로고침',
                         }),

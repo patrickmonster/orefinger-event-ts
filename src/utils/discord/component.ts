@@ -1,6 +1,7 @@
 import {
     APIActionRowComponent,
     APIApplicationCommandSubcommandOption,
+    APIButtonComponent,
     APIButtonComponentBase,
     APIButtonComponentWithCustomId,
     APIButtonComponentWithURL,
@@ -73,9 +74,7 @@ export const createUrlButton = (
 };
 
 // 버튼을 배열로 만들어주는 함수
-export const createButtonArrays = (
-    ...buttons: APIButtonComponentWithURL[]
-): APIActionRowComponent<APIButtonComponentWithCustomId | APIButtonComponentWithURL>[] =>
+export const createButtonArrays = (...buttons: APIButtonComponent[]): APIActionRowComponent<APIButtonComponent>[] =>
     division(buttons, 5)
         .filter(v => v.length)
         .map(buttons => ({
@@ -93,6 +92,7 @@ export const createStringSelectMenu = (
             type: ComponentType.StringSelect,
             custom_id,
             ...props,
+            max_values: props.max_values == 0 ? props.options.length : props.max_values,
         },
     ],
 });

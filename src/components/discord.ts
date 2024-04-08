@@ -7,6 +7,7 @@ import {
     RESTGetAPIGuildEmojisResult,
     RESTGetAPIGuildResult,
     RESTGetAPIUserResult,
+    RESTPostAPIChannelMessageJSONBody,
     RESTPostAPIChannelWebhookResult,
     RESTPostAPIGuildChannelJSONBody,
     RESTPostAPIGuildChannelResult,
@@ -103,6 +104,12 @@ export const channelCreate = async (guild_id: string, data: RESTPostAPIGuildChan
     console.log('CREATE CHANNEL', update);
     return channel;
 };
+
+export const messageCreate = async (channel_id: string, body: RESTPostAPIChannelMessageJSONBody) =>
+    discord.post(`/channels/${channel_id}/messages`, { body });
+
+export const messageDelete = async (channelId: string, messageId: string) =>
+    discord.delete(`/channels/${channelId}/messages/${messageId}`);
 
 const discordRegex = /<[a]?:([\w|\d]+):(\d{17,19})>/im; // 맨션
 const emojiRegex = /:(\w+)(~\d)?:/gim; // 이모티콘
