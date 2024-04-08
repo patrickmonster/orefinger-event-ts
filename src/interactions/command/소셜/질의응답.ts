@@ -28,7 +28,7 @@ export const exec = async (interaction: AppChatInputInteraction, selectOption: S
 
 const api = createChatinputSubCommand(
     {
-        description: '질의/ 응답을 생성 및 관리합니다',
+        description: '질문/ 응답을 생성 및 관리합니다',
     },
     __filename
 );

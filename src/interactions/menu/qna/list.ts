@@ -13,7 +13,7 @@ import { createStringSelectMenu, createSuccessButton } from 'utils/discord/compo
 
 /**
  *
- * 질의 응답 데시보드 설정
+ * 질문 응답 데시보드 설정
  * @param interaction
  */
 export const exec = async (interaction: MessageMenuInteraction) => {
@@ -30,7 +30,7 @@ export const exec = async (interaction: MessageMenuInteraction) => {
     interaction.reply({
         ephemeral: true,
         content: `
-질의 응답 보드를 수정합니다
+질문 응답 보드를 수정합니다
         `,
         embeds: embed ? [embed] : undefined,
         components: [
@@ -45,7 +45,7 @@ export const exec = async (interaction: MessageMenuInteraction) => {
             ),
             createStringSelectMenu(`${id} print`, {
                 max_values: 5,
-                placeholder: '추가할 옵션을 선택해 주세요',
+                placeholder: '출력할 버튼 타입을 선택해 주세요',
                 options: list,
             }),
         ],

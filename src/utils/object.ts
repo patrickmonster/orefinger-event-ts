@@ -24,3 +24,5 @@ export const convertMessage = <T>(object: T, message: { [key: string]: string })
     );
 
 export const randomIntegerInRange = (min: number, max: number) => Math.floor(Math.random() * (max - min + 1)) + min;
+
+export const ParseInt = (id: string | number) => (typeof id == 'string' ? parseInt(id) : id);

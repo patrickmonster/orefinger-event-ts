@@ -1,7 +1,7 @@
 import { messageCreate } from 'components/discord';
 import { selectEmbedUserDtilByEmbed } from 'controllers/embed';
 import { MessageMenuInteraction } from 'interactions/message';
-import { createButtonArrays, createPrimaryButton, createSuccessButton } from 'utils/discord/component';
+import { createButtonArrays, createPrimaryButton, createUrlButton } from 'utils/discord/component';
 
 /**
  * 알림을 수정합니다.
@@ -20,11 +20,11 @@ export const exec = async (interaction: MessageMenuInteraction, values: Record<s
         embeds: embed ? [embed] : embed,
         components: createButtonArrays(
             ...types.map(type =>
-                createPrimaryButton(`qna write ${type} `, {
+                createPrimaryButton(`qna question ${type} ${embedId}`, {
                     label: `${values[type]}`,
                 })
             ),
-            createSuccessButton('qna help', {
+            createUrlButton('https://orefinger.notion.site/Q-A-16956293b1de4aed84e25042d622da34', {
                 emoji: { name: '❓' },
             })
         ),
@@ -35,7 +35,7 @@ export const exec = async (interaction: MessageMenuInteraction, values: Record<s
         })
         .catch(() =>
             interaction.reply({
-                content: '데시보드를 전송하는데에 문제가 발생 하였습니다...! 권한을 확인 해 주세요!',
+                content: '데시보드를 전송하는데에 문제가 발생 하였습니다...! (특수문자가 안될 수 있어요...!)',
                 ephemeral: true,
             })
         );

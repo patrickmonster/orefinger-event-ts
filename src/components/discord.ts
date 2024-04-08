@@ -111,6 +111,9 @@ export const messageCreate = async (channel_id: string, body: RESTPostAPIChannel
 export const messageDelete = async (channelId: string, messageId: string) =>
     discord.delete(`/channels/${channelId}/messages/${messageId}`);
 
+export const messageEdit = async (channelId: string, messageId: string, body: RESTPostAPIChannelMessageJSONBody) =>
+    discord.patch(`/channels/${channelId}/messages/${messageId}`, { body });
+
 const discordRegex = /<[a]?:([\w|\d]+):(\d{17,19})>/im; // 맨션
 const emojiRegex = /:(\w+)(~\d)?:/gim; // 이모티콘
 const roleRegex = /@([ㄱ-ㅎ가-힣a-zA-Z0-9]+)(~\d)?/gim; // 역할

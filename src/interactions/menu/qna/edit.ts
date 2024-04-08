@@ -4,7 +4,7 @@ import { MessageMenuInteraction } from 'interactions/message';
 import { createTextShortInput } from 'utils/discord/component';
 
 /**
- * 질의 응답
+ * 질문 응답
  *   - 최종 출력 전, 버튼을 수정 합니다.
  * @param interaction
  */
@@ -21,7 +21,7 @@ export const exec = async (interaction: MessageMenuInteraction, embedId: string)
 
     interaction.model({
         custom_id: `qna print ${embedId}`,
-        title: '질의 응답 제작',
+        title: '질문 응답 제작',
         components: values
             .map((value, index) => {
                 const item = list.find(item => item.value === value);
