@@ -1,8 +1,10 @@
 import { selectQnaQuestion } from 'controllers/component/qna';
 import { ParseInt } from 'controllers/notice';
+import { PermissionFlagsBits } from 'discord-api-types/v10';
 import { MessageInteraction } from 'interactions/message';
 import { createTextParagraphInput } from 'utils/discord/component';
 
+import { hasNot } from 'utils/discord/permission';
 import redis, { REDIS_KEY } from 'utils/redis';
 
 /**
@@ -10,9 +12,20 @@ import redis, { REDIS_KEY } from 'utils/redis';
  * @param interaction
  */
 export const exec = async (interaction: MessageInteraction, questionId: string, typeId: string) => {
-    const { guild_id, message, channel } = interaction;
+    const { guild_id, message, channel, member } = interaction;
 
-    if (!guild_id) return; // 길드만 가능한 명령어 입니다.
+    if (!guild_id || !member) return; // 길드만 가능한 명령어 입니다.
+
+    const { permissions } = member;
+
+    console.log(permissions, PermissionFlagsBits.ManageChannels);
+
+    if (hasNot(permissions, PermissionFlagsBits.ManageChannels)) {
+        return interaction.reply({
+            content: '권한이 없습니다.',
+            ephemeral: true,
+        });
+    }
 
     await redis.set(
         REDIS_KEY.DISCORD.ANSWER_MESSAGE(channel.id, message.id),
