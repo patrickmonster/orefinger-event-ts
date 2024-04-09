@@ -3,12 +3,10 @@ import { createSubscribe } from 'utils/token';
 
 import auth from './auth';
 import bot from './bot';
-import twitch from './twitch';
 import user from './user';
 
 export default async (fastify: FastifyInstance, opts: any) => {
     fastify.register(auth);
-    fastify.register(twitch);
     fastify.register(user);
     fastify.register(bot);
 
