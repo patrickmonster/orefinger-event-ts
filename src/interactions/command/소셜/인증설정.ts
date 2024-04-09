@@ -25,7 +25,7 @@ export const exec = async (interaction: AppChatInputInteraction) => {
 
 const api = createChatinputSubCommand(
     {
-        description: '소셜 인증 설정을 합니다.',
+        description: '이중 인증을 설정합니다 (계정연동/ 권한 설정)',
     },
     __filename
 );

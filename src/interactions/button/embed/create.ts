@@ -1,19 +1,25 @@
-import { createEmbed } from 'controllers/embed';
+import { selectEmbedUserBaseEditByModel, upsertEmbedUser } from 'controllers/embed';
 import { MessageInteraction } from 'interactions/message';
 
 /**
  *
  * 컴포넌트 action row 수정
- * TODO: 임베드생성 항목 추가
  * @param interaction
  */
 export const exec = async (interaction: MessageInteraction, target: string) => {
-    // createEmbed
-    // const { insertId } = await createComponent({ name: '임시항목' });
-    // const model = await selectComponentBaseEditByModel(insertId);
-    // // 모달처리
-    // interaction.model({
-    //     ...model,
-    //     custom_id: `component edit ${insertId}`,
-    // });
+    const { user, member } = interaction;
+
+    const user_id = user?.id || member?.user.id;
+    const { insertId } = await upsertEmbedUser({
+        use_yn: 'N',
+        title: '제목',
+        create_user: user_id,
+    });
+
+    const model = await selectEmbedUserBaseEditByModel(`${insertId}`);
+
+    interaction.model({
+        ...model,
+        custom_id: `embed edit ${insertId}`,
+    });
 };
