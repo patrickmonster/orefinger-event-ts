@@ -1,9 +1,10 @@
+import { selectComponentDtilByEmbed, upsertComponent } from 'controllers/component';
 import { selectEmbedUserDtilByEmbed, upsertEmbedUser } from 'controllers/embed';
 import { MessageMenuInteraction } from 'interactions/message';
 
 /**
  *
- * 데시보드 수정
+ * 컴포넌트 수정
  * @param interaction
  */
 export const exec = async (interaction: MessageMenuInteraction, values: Record<string, string>, target: string) => {
