@@ -58,8 +58,8 @@ export const exec = async (
                     embeds: [embed],
                     components: [
                         createActionRow(
-                            createSuccessButton(`qna show ${questionId}`, {
-                                label: '질문 / 답변 보기',
+                            createSuccessButton(`qna show ${questionId} ${item.user_yn ? 'Y' : 'N'}`, {
+                                label: `${item.user_yn ? '' : '익명)'}질문 / 답변 보기`,
                                 emoji: { name: '👀' },
                             })
                         ),

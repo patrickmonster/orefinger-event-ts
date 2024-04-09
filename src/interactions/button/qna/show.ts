@@ -7,7 +7,7 @@ import { ParseInt } from 'utils/object';
  * 답변을 봅니다.
  * @param interaction
  */
-export const exec = async (interaction: MessageInteraction, embedId: string) => {
+export const exec = async (interaction: MessageInteraction, embedId: string, writer_show: string) => {
     const { guild_id, user, member } = interaction;
     if (!guild_id) return;
     const userId = user?.id || member?.user.id;
@@ -25,7 +25,7 @@ export const exec = async (interaction: MessageInteraction, embedId: string) => 
 
     interaction.reply({
         content: `
-질문자: <@${auth_id}>
+질문자: ${writer_show == 'N' ? '익명 질문입니다' : `<@${auth_id}>`}
 답변자: <@${answer_id}>
         `,
         embeds: [
