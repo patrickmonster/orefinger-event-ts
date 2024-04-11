@@ -28,4 +28,5 @@ const api = createMenuinputCommand(
 );
 
 // 인터렉션 이벤트
+export const isAdmin = true; // 봇 관리자만 사용 가능
 export default api;

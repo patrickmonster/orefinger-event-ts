@@ -100,7 +100,7 @@ FROM (
 				'update_at', nc.update_at,
 				'webhook', IF(nc.webhook_id IS NOT NULL, CONCAT('webhook/',nc.webhook_id, '/', nc.token), NULL),
 				'name', nc.name,
-				'img' , nc.src
+				'img' , nc.avatar_url
 			) AS channel
 		FROM v_notice vn
 		LEFT JOIN (
@@ -114,10 +114,9 @@ FROM (
 				, w.webhook_id 
 				, w.token 
 				, w.name
-				, IF(fc.src IS NULL, NULL, CONCAT('https://cdn.orefinger.click/', fc.src)) AS src 
+				, w.avatar_url
 			FROM notice_channel nc
-			LEFT JOIN webhooks w USING(channel_id)
-			LEFT JOIN file_cdn fc ON w.img_idx = fc.idx 
+			LEFT JOIN v_webhook w USING(channel_id)
 			WHERE nc.use_yn = 'Y'
 		) nc using(notice_id)
 		WHERE vn.notice_type = ?

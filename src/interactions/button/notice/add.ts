@@ -81,9 +81,9 @@ export const exec = async (interaction: MessageInteraction, noticeType: string) 
         }
         case '7': {
             // 라프텔
-            await interaction.differ({ ephemeral: true });
 
             interaction.reply({
+                ephemeral: true,
                 content: '콘텐츠를 설정할 수 없습니다.',
                 components: menuComponentBuild(
                     {
