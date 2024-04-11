@@ -161,7 +161,7 @@ export const getChannelLive = async (noticeId: number, hashId: string, lastId: s
                     }
                 } else {
                     // 오프라인
-                    if (lastId || lastId != '0') {
+                    if (lastId && lastId != '0') {
                         const result = await updateLiveEvents(noticeId);
                         if (result.changedRows == 0) {
                             // 이미 처리된 알림

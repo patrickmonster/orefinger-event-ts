@@ -92,11 +92,34 @@ FROM (
 			, vn.name
 			, vn.img_idx
 			, vn.video_yn 
-			, json_object( 'channel_id', nc.channel_id, 'notice_id', nc.notice_id, 'guild_id', nc.guild_id, 'create_at', nc.create_at, 'update_at', nc.update_at ) AS channel
+			, json_object( 
+				'channel_id', nc.channel_id, 
+				'notice_id', nc.notice_id, 
+				'guild_id', nc.guild_id, 
+				'create_at', nc.create_at, 
+				'update_at', nc.update_at,
+				'webhook', IF(nc.webhook_id IS NOT NULL, CONCAT('webhook/',nc.webhook_id, '/', nc.token), NULL),
+				'name', nc.name,
+				'img' , nc.avatar_url
+			) AS channel
 		FROM v_notice vn
-		LEFT JOIN notice_channel nc using(notice_id)
+		LEFT JOIN (
+			SELECT 
+				channel_id
+				, nc.notice_id
+				, nc.guild_id 
+				, nc.create_at 
+				, nc.update_at 
+				, nc.use_yn 
+				, w.webhook_id 
+				, w.token 
+				, w.name
+				, w.avatar_url
+			FROM notice_channel nc
+			LEFT JOIN v_webhook w USING(channel_id)
+			WHERE nc.use_yn = 'Y'
+		) nc using(notice_id)
 		WHERE vn.notice_type = ?
-		AND nc.use_yn = 'Y'
 	) A
 	GROUP BY hash_id
 ) A

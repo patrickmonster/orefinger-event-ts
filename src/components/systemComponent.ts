@@ -97,7 +97,7 @@ export const selectComponentPagingMenuKey = async (
                 components: [
                     createPrimaryButton(`key back ${queryKey}`, {
                         label: '검색결과가 없습니다.',
-                        disabled: searchQuery ? true : false, // 검색결과가 없을때만 비활성화
+                        disabled: searchQuery ? false : true, // 검색결과가 없을때만 비활성화
                     }),
                     menuProps.button ?? null,
                 ].filter(v => v != null) as APIButtonComponent[],

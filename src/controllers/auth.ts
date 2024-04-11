@@ -359,3 +359,23 @@ WHERE ab.guild_id = ?
     `,
         guildId
     );
+
+export const upsertUserReport = async ({
+    auth_id,
+    user_id,
+    ...user
+}: {
+    auth_id: string;
+    user_id: string;
+    use_yn?: 'Y' | 'N';
+    commant: string;
+}) =>
+    query<SqlInsertUpdate>(
+        `INSERT INTO auth_report SET ? ON DUPLICATE KEY UPDATE ?, update_at=CURRENT_TIMESTAMP`,
+        {
+            ...user,
+            auth_id,
+            user_id,
+        },
+        user
+    );
