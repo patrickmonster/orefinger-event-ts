@@ -50,25 +50,34 @@ export const upload = async (auth_id: string, file: MultipartFile, path: string)
  * @param path
  * @returns
  */
-export const uploadUrl = async (auth_id: string, url: string) => {
-    // profile
+export const uploadProfile = async (auth_id: string, avatar?: string) => {
     const uuid = uuidv4();
-    const ext = url.split('.').pop();
-    const key = `profile/${auth_id}/${uuid}.${ext}`;
+    const key = `profile/${auth_id}/${uuid}.png`;
 
-    const buffer = await axios.get(url, { responseType: 'arraybuffer' }).then(res => Buffer.from(res.data));
+    const fileName = avatar ? `${avatar}.png` : `${auth_id}.png`;
+
+    const buffer = await axios
+        .get(
+            avatar
+                ? `https://cdn.discordapp.com/avatars/${auth_id}/${fileName}`
+                : `https://cdn.discordapp.com/embed/avatars/${fileName}`,
+            { responseType: 'arraybuffer' }
+        )
+        .then(res => Buffer.from(res.data, 'binary'));
+
     const command = new PutObjectCommand({
         Bucket: 'orefinger.media',
         Key: key,
         Body: buffer,
-        ContentType: 'image/jpeg',
+        ContentType: 'image/png',
     });
 
     await s3.send(command);
+
     return {
         key,
-        type: 'image/jpeg',
+        type: 'image/png',
         length: buffer.length,
-        name: `${uuid}.${ext}`,
+        name: fileName,
     };
 };
