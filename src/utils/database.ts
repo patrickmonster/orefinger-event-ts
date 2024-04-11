@@ -136,7 +136,17 @@ export const query = async <E>(query: string, ...params: any[]): Promise<Resqult
 export const setLimit = (l: number) => (limit = l);
 
 // 페이징하여 조회
-export const selectPaging = async <E>(query: string, paging: Paging | number, ...params: any[]) => {
+export const selectPaging = async <E>(
+    query: string,
+    paging: Paging | number,
+    ...params: any[]
+): Promise<{
+    total: number;
+    totalPage: number;
+    limit: number;
+    page: number;
+    list: E[];
+}> => {
     let connect: PoolConnection | null = null;
     try {
         connect = await pool.getConnection();

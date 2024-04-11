@@ -24,11 +24,19 @@ import {
 import { basename } from 'path';
 import division from 'utils/division';
 
+type NumberLater<N extends number, Acc extends number[] = []> = Acc['length'] extends N
+    ? Acc[number]
+    : NumberLater<N, [...Acc, Acc['length']]>;
+
+export interface MaxList<T, U extends number> extends Array<T> {
+    length: NumberLater<U>;
+}
+
 export const createActionRow = (
-    ...components: APIMessageActionRowComponent[]
+    ...components: MaxList<APIButtonComponent | null, 6>
 ): APIActionRowComponent<APIMessageActionRowComponent> => ({
     type: ComponentType.ActionRow,
-    components,
+    components: components?.filter(v => v !== null) as APIButtonComponent[],
 });
 
 export const createButton = (
@@ -43,35 +51,23 @@ export const createButton = (
     ...props,
 });
 
-export const createPrimaryButton = (
-    custom_id: string,
-    props: Omit<APIButtonComponentBase<ButtonStyle.Primary>, 'type' | 'style' | 'custom_id'>
-) => createButton(custom_id, { style: ButtonStyle.Primary, ...props });
+type ButtomProps<T extends ButtonStyle> = Omit<APIButtonComponentBase<T>, 'type' | 'style' | 'custom_id'>;
 
-export const createSecondaryButton = (
-    custom_id: string,
-    props: Omit<APIButtonComponentBase<ButtonStyle.Secondary>, 'type' | 'style' | 'custom_id'>
-) => createButton(custom_id, { style: ButtonStyle.Secondary, ...props });
-export const createSuccessButton = (
-    custom_id: string,
-    props: Omit<APIButtonComponentBase<ButtonStyle.Success>, 'type' | 'style' | 'custom_id'>
-) => createButton(custom_id, { style: ButtonStyle.Success, ...props });
-export const createDangerButton = (
-    custom_id: string,
-    props: Omit<APIButtonComponentBase<ButtonStyle.Danger>, 'type' | 'style' | 'custom_id'>
-) => createButton(custom_id, { style: ButtonStyle.Danger, ...props });
+export const createUrlButton = (url: string, props: ButtomProps<ButtonStyle.Link>): APIButtonComponentWithURL => ({
+    type: ComponentType.Button,
+    style: ButtonStyle.Link,
+    url,
+    ...props,
+});
 
-export const createUrlButton = (
-    url: string,
-    props: Omit<APIButtonComponentBase<ButtonStyle.Link>, 'type' | 'style'>
-): APIButtonComponentWithURL => {
-    return {
-        type: ComponentType.Button,
-        style: ButtonStyle.Link,
-        url,
-        ...props,
-    };
-};
+export const createPrimaryButton = (custom_id: string, props: ButtomProps<ButtonStyle.Primary>) =>
+    createButton(custom_id, { style: ButtonStyle.Primary, ...props });
+export const createSecondaryButton = (custom_id: string, props: ButtomProps<ButtonStyle.Secondary>) =>
+    createButton(custom_id, { style: ButtonStyle.Secondary, ...props });
+export const createSuccessButton = (custom_id: string, props: ButtomProps<ButtonStyle.Success>) =>
+    createButton(custom_id, { style: ButtonStyle.Success, ...props });
+export const createDangerButton = (custom_id: string, props: ButtomProps<ButtonStyle.Danger>) =>
+    createButton(custom_id, { style: ButtonStyle.Danger, ...props });
 
 // 버튼을 배열로 만들어주는 함수
 export const createButtonArrays = (...buttons: APIButtonComponent[]): APIActionRowComponent<APIButtonComponent>[] =>

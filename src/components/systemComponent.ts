@@ -7,6 +7,7 @@ import {
     ComponentType,
 } from 'discord-api-types/v10';
 import {
+    createActionRow,
     createPrimaryButton,
     createSecondaryButton,
     createStringSelectMenu,
@@ -18,7 +19,6 @@ type MenuProps = Omit<APIBaseSelectMenuComponent<ComponentType.StringSelect>, 't
     button?: APIButtonComponent;
     isSubQuery?: boolean;
 };
-
 /**
  * 신규 쿼리키 생성
  *  - 매뉴를 위한 쿼리키를 생성합니다.
@@ -111,32 +111,27 @@ export const selectComponentPagingMenuKey = async (
             max_values: (menuProps.max_values || 0) > result.list.length ? result.list.length : menuProps.max_values,
             min_values: menuProps.min_values || 0,
         }),
-        {
-            type: ComponentType.ActionRow,
-            components: [
-                createPrimaryButton(result.page == 0 ? queryKey : `key ${result.page - 1} ${queryKey}`, {
-                    emoji: { name: '⬅️' },
-                    disabled: result.page == 0,
-                }),
-                createSuccessButton(`key page ${queryKey}`, {
-                    label: `${result.page}/${result.totalPage}`,
-                    disabled: other.isSubQuery ? true : false,
-                }),
-                createSecondaryButton(`key back ${queryKey}`, {
-                    emoji: { name: '↩️' },
-                    disabled: search && Object.keys(search).length ? false : true,
-                }),
-                createPrimaryButton(`key ${result.page + 1} ${queryKey}`, {
-                    emoji: { name: '➡️' },
-                    disabled: result.page >= result.totalPage,
-                }),
-                menuProps.button,
-            ].filter((v: APIButtonComponent | undefined) => v != undefined) as APIButtonComponent[],
-        },
+        createActionRow(
+            createPrimaryButton(result.page == 0 ? queryKey : `key ${result.page - 1} ${queryKey}`, {
+                emoji: { name: '⬅️' },
+                disabled: result.page == 0,
+            }),
+            createSuccessButton(`key page ${queryKey}`, {
+                label: `${result.page}/${result.totalPage}`,
+                disabled: other.isSubQuery ? true : false,
+            }),
+            createSecondaryButton(`key back ${queryKey}`, {
+                emoji: { name: '↩️' },
+                disabled: search && Object.keys(search).length ? false : true,
+            }),
+            createPrimaryButton(`key ${result.page + 1} ${queryKey}`, {
+                emoji: { name: '➡️' },
+                disabled: result.page >= result.totalPage,
+            }),
+            menuProps.button ?? null
+        ),
     ];
 };
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////
 // 임베드 템플릿 수정용 컴포넌트
 
 /**
