@@ -18,8 +18,6 @@ export const exec = async (interaction: MessageInteraction, questionId: string, 
 
     const { permissions } = member;
 
-    console.log(permissions, PermissionFlagsBits.ManageChannels);
-
     if (hasNot(permissions, PermissionFlagsBits.ManageChannels)) {
         return interaction.reply({
             content: '권한이 없습니다.',

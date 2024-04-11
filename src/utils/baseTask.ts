@@ -108,11 +108,10 @@ export class BaseTask extends EventEmitter {
     }
 
     /**
-     * ECS Task
+     * ECS Task (full scan)
      * @param idx
      */
     async taskScan(idx: number = 0, length: number) {
-        // ECS Task (full scan)
         const scan = await scanEvent(this.eventId); // 스캔 데이터
         const total = scan.filter(({ id }) => id != '-1').reduce((acc, { total }) => (acc += total), 0); // 활성 테스크
         this.emit('log', `Scan Event: ${this.eventId}`, scan, total);
