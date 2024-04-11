@@ -92,11 +92,35 @@ FROM (
 			, vn.name
 			, vn.img_idx
 			, vn.video_yn 
-			, json_object( 'channel_id', nc.channel_id, 'notice_id', nc.notice_id, 'guild_id', nc.guild_id, 'create_at', nc.create_at, 'update_at', nc.update_at ) AS channel
+			, json_object( 
+				'channel_id', nc.channel_id, 
+				'notice_id', nc.notice_id, 
+				'guild_id', nc.guild_id, 
+				'create_at', nc.create_at, 
+				'update_at', nc.update_at,
+				'webhook', IF(nc.webhook_id IS NOT NULL, CONCAT('webhook/',nc.webhook_id, '/', nc.token), NULL),
+				'name', nc.name,
+				'img' , nc.src
+			) AS channel
 		FROM v_notice vn
-		LEFT JOIN notice_channel nc using(notice_id)
+		LEFT JOIN (
+			SELECT 
+				channel_id
+				, nc.notice_id
+				, nc.guild_id 
+				, nc.create_at 
+				, nc.update_at 
+				, nc.use_yn 
+				, w.webhook_id 
+				, w.token 
+				, w.name
+				, IF(fc.src IS NULL, NULL, CONCAT('https://cdn.orefinger.click/', fc.src)) AS src 
+			FROM notice_channel nc
+			LEFT JOIN webhooks w USING(channel_id)
+			LEFT JOIN file_cdn fc ON w.img_idx = fc.idx 
+			WHERE nc.use_yn = 'Y'
+		) nc using(notice_id)
 		WHERE vn.notice_type = ?
-		AND nc.use_yn = 'Y'
 	) A
 	GROUP BY hash_id
 ) A

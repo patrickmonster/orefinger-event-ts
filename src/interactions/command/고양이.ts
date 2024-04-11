@@ -4,15 +4,15 @@ import { createChatinputCommand } from 'utils/discord/component';
 
 export const exec = async (interaction: AppChatInputInteraction, selectOption: SelectOptionType) => {
     const {
-        data: { _id },
-    } = await axios.get<{ _id: string }>('https://cataas.com/cat?json=true');
+        data: [item],
+    } = await axios.get<{ id: string; url: string }[]>('https://api.thecatapi.com/v1/images/search');
 
     await interaction.reply({
         embeds: [
             {
-                image: { url: `https://cataas.com/cat/${_id}` },
+                image: { url: `${item.url}` },
                 footer: {
-                    text: 'From cataas API',
+                    text: 'From thecatapi API',
                 },
             },
         ],
