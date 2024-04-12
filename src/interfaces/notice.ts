@@ -14,8 +14,11 @@ export interface NoticeChannel {
     notice_id: number;
     guild_id: string;
     channel_id: string;
-    use_yn: string;
-    update_at: Date;
+
+    // hook
+    url: string;
+    username: string;
+    avatar_url: string;
 }
 
 export interface NoticeDetail {
