@@ -8,6 +8,7 @@ import { ChzzkInterface, getChzzkAPI } from 'utils/naverApiInstance';
 import redis, { REDIS_KEY } from 'utils/redis';
 
 import { auth } from 'controllers/auth';
+import dayjs from 'dayjs';
 import { NoticeBat } from 'interfaces/notice';
 import { KeyVal } from 'interfaces/text';
 import qs from 'querystring';
@@ -202,7 +203,6 @@ export const getChannelLive = async (notice_id: number, hash_id: string, liveId:
  * @param notice_id
  * @param hash_id
  * @returns
- * @deprecated
  * @see getChannelLive
  * @see convertVideoObject
  * @see sendChannels
@@ -254,6 +254,6 @@ const convertVideoObject = (video_object: Content, name?: string): APIEmbed => {
         },
         fields: [{ name: categoryType || 'Game', value: `${game_name || 'LIVE'}`, inline: true }],
         footer: { text: '제공. Chzzk' },
-        timestamp: openDate,
+        timestamp: dayjs(openDate).add(-9, 'h').format(),
     };
 };

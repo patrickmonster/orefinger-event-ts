@@ -1,7 +1,7 @@
 import { ecsTaskState } from 'controllers/log';
 import { AppChatInputInteraction, SelectOptionType } from 'interactions/app';
 import { createChatinputCommand } from 'utils/discord/component';
-import { serverRequset } from 'utils/serverState';
+import { lastServerRequset } from 'utils/serverState';
 
 const { version } = require('../../../package.json');
 
@@ -17,7 +17,7 @@ export const exec = async (interaction: AppChatInputInteraction, selectOption: S
 - Version: ${version}
 - Revision: ECS.${revision}
 - Total: ${total.toLocaleString()}
-- Request: ${serverRequset.toLocaleString()} req/m
+- Request: ${lastServerRequset.toLocaleString()} req/m
 
 총 ${ids.length.toLocaleString()}개의 서버가 동작하고 있으며,
 각 서버당, ${Math.round(total / ids.length).toLocaleString()}개의 알림을 처리하고 있습니다.
@@ -37,7 +37,7 @@ export const exec = async (interaction: AppChatInputInteraction, selectOption: S
 
 const api = createChatinputCommand(
     {
-        description: '연결된 계정을 관리 합니다.',
+        description: '서비스 상태를 확인합니다.',
     },
     __filename
 );
