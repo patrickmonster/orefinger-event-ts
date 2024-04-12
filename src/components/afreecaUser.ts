@@ -4,6 +4,7 @@ import redis, { REDIS_KEY } from 'utils/redis';
 
 import { sendChannels } from 'components/notice';
 import { insertLiveEvents, updateLiveEvents } from 'controllers/bat';
+import dayjs from 'dayjs';
 import { APIEmbed } from 'discord-api-types/v10';
 import { Content } from 'interfaces/API/Afreeca';
 import { NoticeBat } from 'interfaces/notice';
@@ -126,7 +127,7 @@ export const convertVideoObject = (videoObject: Content, name?: string): APIEmbe
             },
         ],
         footer: { text: '제공. AfreecaTV' },
-        timestamp: broad_start,
+        timestamp: dayjs(broad_start).add(-9, 'h').format(),
     };
 };
 
