@@ -37,7 +37,7 @@ export const exec = async (interaction: AppChatInputInteraction, selectOption: S
 
 const api = createChatinputCommand(
     {
-        description: '연결된 계정을 관리 합니다.',
+        description: '서비스 상태를 확인합니다.',
     },
     __filename
 );
