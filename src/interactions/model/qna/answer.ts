@@ -62,6 +62,10 @@ export const exec = async (
                                 label: `${item.user_yn ? '' : '익명)'}질문 / 답변 보기`,
                                 emoji: { name: '👀' },
                             })
+                            // createDangerButton(`qna report ${questionId} ${typeId}`, {
+                            //     label: `신고하기`,
+                            //     emoji: { name: '🚨' },
+                            // })
                         ),
                     ],
                 });

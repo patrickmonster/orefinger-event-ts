@@ -62,7 +62,7 @@ export enum SQLType {
 // SQL 타입 - insert / update / delete 인 경우  queryFunctionType 의 리턴 타입이 sqlInsertUpdate
 export type SqlInsertUpdate = SQLType.insert | SQLType.update | SQLType.delete;
 
-export const resultParser = <E>(rows: any[] | any) =>
+export const resultParser = (rows: any[] | any) =>
     JSON.parse(
         JSON.stringify(rows, (k, v) => {
             if (typeof v != 'string') return v;
@@ -130,13 +130,25 @@ export type seleceQueryOption = {
     limit?: number;
 };
 
+export type SelectPagingResult<E> = {
+    total: number;
+    totalPage: number;
+    limit: number;
+    page: number;
+    list: E[];
+};
+
 export const query = async <E>(query: string, ...params: any[]): Promise<ResqultQuery<E>> =>
     await getConnection(async (c: queryFunctionType) => c(query, ...params));
 
 export const setLimit = (l: number) => (limit = l);
 
 // 페이징하여 조회
-export const selectPaging = async <E>(query: string, paging: Paging | number, ...params: any[]) => {
+export const selectPaging = async <E>(
+    query: string,
+    paging: Paging | number,
+    ...params: any[]
+): Promise<SelectPagingResult<E>> => {
     let connect: PoolConnection | null = null;
     try {
         connect = await pool.getConnection();

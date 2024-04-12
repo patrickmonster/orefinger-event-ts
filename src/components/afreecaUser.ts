@@ -104,7 +104,7 @@ export const searchAfreecabeUser = async (keyword: string): Promise<Array<{ name
 export const convertVideoObject = (videoObject: Content, name?: string): APIEmbed => {
     const {
         broad: { broad_title: title, broad_no, user_id },
-        station: { user_nick: channelName },
+        station: { user_nick: channelName, broad_start },
         profile_image: channelImageUrl,
     } = videoObject;
 
@@ -126,6 +126,7 @@ export const convertVideoObject = (videoObject: Content, name?: string): APIEmbe
             },
         ],
         footer: { text: '제공. AfreecaTV' },
+        timestamp: broad_start,
     };
 };
 

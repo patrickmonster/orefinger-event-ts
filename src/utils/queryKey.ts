@@ -1,5 +1,5 @@
 import { Paging } from 'interfaces/swagger';
-import { resultParser, selectPaging } from 'utils/database';
+import { SelectPagingResult, resultParser, selectPaging } from 'utils/database';
 import redis, { REDIS_KEY } from 'utils/redis';
 
 import { format } from 'mysql2';
@@ -8,9 +8,9 @@ export type andOf = { [key: string]: any };
 export type orOf = { [key: string]: any };
 
 type QueryKeyProps = {
-    sql: string;
-    params: any[];
-    other?: string;
+    sql: string; // 쿼리
+    params: any[]; // 쿼리 파라미터
+    other?: string; // 기타 정보 (저장을 위한 정보)
 };
 
 const queryRedisSaveingTime = 60 * 60 * 2; // 2시간
@@ -50,7 +50,15 @@ const searchLikeOrQuery = (search: orOf) =>
  * @param search
  * @returns
  */
-export const selectQueryKeyPaging = async <E extends {}>(queryKey: string, page: Paging, search?: orOf) => {
+export const selectQueryKeyPaging = async <E extends {}>(
+    queryKey: string,
+    page: Paging,
+    search?: orOf
+): Promise<{
+    result: SelectPagingResult<E>;
+    other?: string;
+    search: orOf;
+} | null> => {
     const sql = await redis.get(REDIS_KEY.SQL.SELECT(queryKey));
     if (!sql) return null;
 
@@ -78,7 +86,7 @@ export const selectQueryKeyPaging = async <E extends {}>(queryKey: string, page:
         runningQuery = `SELECT  A.* FROM ( ${query}\n) A ${searchLikeOrQuery(search ?? searchOrg)}`;
 
     return {
-        result: resultParser(await selectPaging<E>(runningQuery, page, ...params)),
+        result: resultParser(await selectPaging(runningQuery, page, ...params)) as SelectPagingResult<E>,
         other,
         search: search || searchOrg,
     };

@@ -88,14 +88,22 @@ export const getNoticeByType = async (
  * @param message TODO : message 객체
  */
 export const sendChannels = async (channels: NoticeChannel[], message: RESTPostAPIChannelMessage) => {
-    for (const { notice_id, channel_id } of channels) {
-        console.log('sendChannels', notice_id, channel_id);
-        discord.post(`/channels/${channel_id}/messages`, { body: message }).catch(e => {
-            ERROR(e);
-            // deleteNoticeChannel(notice_id, channel_id).catch(e => {
-            //     ERROR('DeleteChannel', e);
-            // });
-        });
+    for (const { channel_id, avatar_url, url, username } of channels) {
+        if (url) {
+            discord
+                .post(`/${url}`, {
+                    body: {
+                        ...message,
+                        username: username || '방송알리미',
+                        avatar_url:
+                            avatar_url ||
+                            'https://cdn.orefinger.click/post/466950273928134666/d2d0cc31-a00e-414a-aee9-60b2227ce42c.png',
+                    },
+                })
+                .catch(ERROR);
+        } else {
+            discord.post(`/channels/${channel_id}/messages`, { body: message }).catch(ERROR);
+        }
     }
 
     if (message.embeds?.length)

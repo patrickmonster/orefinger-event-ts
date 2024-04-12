@@ -1,6 +1,7 @@
 'use strict';
 import { REST } from '@discordjs/rest';
 import axios from 'axios';
+import { RESTPostAPIWebhookWithTokenJSONBody } from 'discord-api-types/v10';
 import { RESTPostAPIChannelMessage } from 'plugins/discord';
 import sleep from 'utils/sleep';
 import imageBase64 from './imageBase64';
@@ -68,3 +69,6 @@ export const changeNickname = async (guild_id: string, user_id: string, nick: st
     rest.patch(`/guilds/${guild_id}/members/${user_id}`, {
         body: { nick },
     });
+
+export const sendWebhook = async (webhook_id: string, token: string, message: RESTPostAPIWebhookWithTokenJSONBody) =>
+    openApi.post(`webhooks/${webhook_id}/${token}`, message);
