@@ -112,9 +112,8 @@ export class BaseTask extends EventEmitter {
      * @param idx
      */
     async taskScan(idx: number = 0, length: number) {
-        const scan = await scanEvent(this.eventId); // 스캔 데이터
-        const total = scan.filter(({ id }) => id != '-1').reduce((acc, { total }) => (acc += total), 0); // 활성 테스크
-        this.emit('log', `Scan Event: ${this.eventId}`, scan, total);
+        const { total } = await scanEvent(this.eventId); // 스캔 데이터
+        this.emit('log', `Scan Event: ${this.eventId}`, total);
         if (total) {
             const limit = Math.ceil(total / length); // 테스크당 데이터 처리에 필요한 개수
             const list = await selectEvent(this.eventId, limit, idx);

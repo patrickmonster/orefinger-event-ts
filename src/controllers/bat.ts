@@ -50,33 +50,53 @@ const scanId = (target: string, defaultId?: string) => `
 
 export const scanEvent = (notice_type: number) =>
     query<{
-        id: string;
         total: number;
     }>(
         `
-SELECT ${scanId('vn', '1')} AS id
-	, COUNT(1) AS total
-FROM v_notice vn 
-WHERE vn.notice_type = ?
-GROUP BY id
+SELECT count(0) AS total
+FROM (
+	SELECT
+		notice_id
+		, hash_id
+		, message
+		, name
+		, img_idx
+		, JSON_ARRAYAGG(channel) AS channels
+		, IFNULL( 
+			IF( video_yn = 'N', 
+				( 
+					SELECT IF ( 
+						nl.create_at < DATE_ADD(NOW(), INTERVAL -1 HOUR) 
+						AND ( nl.end_at IS NULL OR nl.end_at < DATE_ADD(NOW(), INTERVAL -3 HOUR) )
+						, IF(nl.end_at IS NOT NULL, '0', nl.id)
+						, '-1' 
+					) FROM notice_live nl 
+					WHERE nl.notice_id = A.notice_id 
+					ORDER BY nl.id DESC 
+					LIMIT 1 
+				), '0' 
+			), '0'
+		) AS id
+	FROM (
+		SELECT
+			vn.notice_id
+			, vn.hash_id
+			, vn.message
+			, vn.name
+			, vn.img_idx
+			, vn.video_yn 
+			, json_object( 'channel_id', nc.channel_id, 'notice_id', nc.notice_id, 'guild_id', nc.guild_id, 'create_at', nc.create_at, 'update_at', nc.update_at ) AS channel
+		FROM v_notice vn
+		LEFT JOIN notice_channel nc using(notice_id)
+		WHERE vn.notice_type = ?
+		AND nc.use_yn = 'Y'
+	) A
+	GROUP BY hash_id
+) A
+WHERE id <> '-1'
 		`,
         notice_type
-    );
-
-export const selectEventCoust = () =>
-    query<{
-        total: number;
-        one: number;
-    }>(`
-SELECT total 
-	, ( 
-		total / (SELECT count(1) AS total FROM task t WHERE t.revision = 242)
-	) AS one
-FROM (
-	SELECT count(1) AS total
-	FROM v_notice vn WHERE vn.notice_type = 4
-) A
-	`);
+    ).then(([item]) => item);
 
 // 배치 조회
 export const selectEventBats = (notice_type: number, paging: Paging) =>
@@ -98,34 +118,18 @@ FROM (
 		, name
 		, img_idx
 		, JSON_ARRAYAGG(channel) AS channels
-		, IFNULL(
-			IF( 
-				video_yn = 'N',
-				(
-					SELECT 
-						IF (
-							nl.create_at < DATE_ADD(NOW(), INTERVAL -1 HOUR) AND
-							( nl.end_at IS NULL OR nl.end_at < DATE_ADD(NOW(), INTERVAL -3 HOUR) ),
-							if(nl.end_at IS NOT NULL, '0', nl.id),
-							'-1'
-						)
-					FROM notice_live nl 
-					WHERE nl.notice_id = A.notice_id
-					ORDER BY nl.id desc
-					LIMIT 1
-				),
-				(
-					SELECT 
-						IF (
-							nv.create_at < DATE_ADD(NOW(), INTERVAL -1 HOUR),
-							'1',
-							'-1'
-						)
-					FROM notice_video nv 
-					WHERE nv.notice_id =A.notice_id
-					ORDER BY nv.create_at DESC
-					LIMIT 1
-				)
+		, IFNULL( 
+			IF( video_yn = 'N', 
+				( 
+					SELECT IF ( 
+						nl.create_at < DATE_ADD(NOW(), INTERVAL -1 HOUR) AND ( nl.end_at IS NULL OR nl.end_at < DATE_ADD(NOW(), INTERVAL -3 HOUR) )
+						, IF(nl.end_at IS NOT NULL, '0', nl.id)
+						, '-1' 
+					) FROM notice_live nl 
+					WHERE nl.notice_id = A.notice_id 
+					ORDER BY nl.id DESC 
+					LIMIT 1 
+				), '0' 
 			), '0'
 		) AS id
 	FROM (
@@ -136,17 +140,11 @@ FROM (
 			, vn.name
 			, vn.img_idx
 			, vn.video_yn 
-			, json_object( 
-				'channel_id', vnch.channel_id, 
-				'notice_id', vnch.notice_id, 
-				'guild_id', vnch.guild_id, 
-				'url', vnch.url,
-				'username', vnch.username ,
-				'avatar_url' , vnch.avatar_url
-			) AS channel
+			, json_object( 'channel_id', nc.channel_id, 'notice_id', nc.notice_id, 'guild_id', nc.guild_id, 'create_at', nc.create_at, 'update_at', nc.update_at ) AS channel
 		FROM v_notice vn
-		LEFT JOIN v_notice_channel_hook vnch using(notice_id)
+		LEFT JOIN notice_channel nc using(notice_id)
 		WHERE vn.notice_type = ?
+		AND nc.use_yn = 'Y'
 	) A
 	GROUP BY hash_id
 ) A
@@ -176,7 +174,20 @@ FROM (
 		, name
 		, img_idx
 		, JSON_ARRAYAGG(channel) AS channels
-		, ${scanId('A')} AS id
+		, IFNULL( 
+			IF( video_yn = 'N', 
+				( 
+					SELECT IF ( 
+						nl.create_at < DATE_ADD(NOW(), INTERVAL -1 HOUR) AND ( nl.end_at IS NULL OR nl.end_at < DATE_ADD(NOW(), INTERVAL -3 HOUR) )
+						, IF(nl.end_at IS NOT NULL, '0', nl.id)
+						, '-1' 
+					) FROM notice_live nl 
+					WHERE nl.notice_id = A.notice_id 
+					ORDER BY nl.id DESC 
+					LIMIT 1 
+				), '0' 
+			), '0'
+		) AS id
 	FROM (
 		SELECT
 			vn.notice_id
