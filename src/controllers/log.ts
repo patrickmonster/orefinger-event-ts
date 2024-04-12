@@ -1,4 +1,5 @@
 import { SqlInsertUpdate, calTo, query } from 'utils/database';
+import { ParseInt } from 'utils/object';
 
 export const CreateMessage = async (id: string, channel_id: string, result: any, webhook_id?: string) =>
     query<SqlInsertUpdate>(`INSERT INTO discord_log.send_message set ?`, {
@@ -11,7 +12,7 @@ export const CreateMessage = async (id: string, channel_id: string, result: any,
 export const ecsSet = async (id: string, revision: string, family: string) =>
     query<SqlInsertUpdate>(`INSERT INTO task set ? `, {
         id,
-        revision,
+        revision: ParseInt(revision),
         family,
     });
 
@@ -42,7 +43,7 @@ SELECT
 FROM task t, (SELECT @rownum := 0) r
 WHERE revision = ?
         `,
-        revision
+        ParseInt(revision)
     );
 
 export const ecsTaskState = async (noticeType?: 4 | 5) =>
