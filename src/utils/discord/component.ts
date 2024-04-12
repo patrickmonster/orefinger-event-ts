@@ -33,10 +33,10 @@ export interface MaxList<T, U extends number> extends Array<T> {
 }
 
 export const createActionRow = (
-    ...components: MaxList<APIButtonComponent | null, 6>
+    ...components: MaxList<APIButtonComponent | undefined, 6>
 ): APIActionRowComponent<APIMessageActionRowComponent> => ({
     type: ComponentType.ActionRow,
-    components: components?.filter(v => v !== null) as APIButtonComponent[],
+    components: components?.filter(v => v) as APIButtonComponent[],
 });
 
 export const createButton = (
