@@ -63,6 +63,21 @@ GROUP BY id
         notice_type
     );
 
+export const selectEventCoust = () =>
+    query<{
+        total: number;
+        one: number;
+    }>(`
+SELECT total 
+	, ( 
+		total / (SELECT count(1) AS total FROM task t WHERE t.revision = 242)
+	) AS one
+FROM (
+	SELECT count(1) AS total
+	FROM v_notice vn WHERE vn.notice_type = 4
+) A
+	`);
+
 // 배치 조회
 export const selectEventBats = (notice_type: number, paging: Paging) =>
     selectPaging<NoticeBat>(

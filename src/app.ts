@@ -1,6 +1,7 @@
 import AutoLoad from '@fastify/autoload';
 import helmet from '@fastify/helmet';
 import fastify from 'fastify';
+import { addServerRequest, bootTime } from 'utils/serverState';
 
 import { config } from 'dotenv';
 import { existsSync } from 'fs';
@@ -39,8 +40,6 @@ const server = fastify({
     },
 });
 
-const bootTime = Date.now();
-
 // 플러그인
 server.register(helmet, { global: true });
 server.register(Multipart);
@@ -48,6 +47,12 @@ server.register(AutoLoad, { dir: join(__dirname, 'plugins') });
 
 // 라우터
 server.register(AutoLoad, { dir: join(__dirname, 'routes'), ignorePattern: /.*(test|spec).*/ });
+
+// 서버 요청 카운트
+server.addHook('onRequest', (request, reply, done) => {
+    addServerRequest();
+    done();
+});
 
 server.listen({ port: 3000, host: '::' }, (err, address) => {
     if (err) {
