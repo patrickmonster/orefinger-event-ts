@@ -83,7 +83,36 @@ FROM (
 		, name
 		, img_idx
 		, JSON_ARRAYAGG(channel) AS channels
-		, ${scanId('A')} AS id
+		, IFNULL(
+			IF( 
+				video_yn = 'N',
+				(
+					SELECT 
+						IF (
+							nl.create_at < DATE_ADD(NOW(), INTERVAL -1 HOUR) AND
+							( nl.end_at IS NULL OR nl.end_at < DATE_ADD(NOW(), INTERVAL -3 HOUR) ),
+							if(nl.end_at IS NOT NULL, '0', nl.id),
+							'-1'
+						)
+					FROM notice_live nl 
+					WHERE nl.notice_id = A.notice_id
+					ORDER BY nl.id desc
+					LIMIT 1
+				),
+				(
+					SELECT 
+						IF (
+							nv.create_at < DATE_ADD(NOW(), INTERVAL -1 HOUR),
+							'1',
+							'-1'
+						)
+					FROM notice_video nv 
+					WHERE nv.notice_id =A.notice_id
+					ORDER BY nv.create_at DESC
+					LIMIT 1
+				)
+			), '0'
+		) AS id
 	FROM (
 		SELECT
 			vn.notice_id
@@ -93,32 +122,15 @@ FROM (
 			, vn.img_idx
 			, vn.video_yn 
 			, json_object( 
-				'channel_id', nc.channel_id, 
-				'notice_id', nc.notice_id, 
-				'guild_id', nc.guild_id, 
-				'create_at', nc.create_at, 
-				'update_at', nc.update_at,
-				'webhook', IF(nc.webhook_id IS NOT NULL, CONCAT('webhook/',nc.webhook_id, '/', nc.token), NULL),
-				'name', nc.name,
-				'img' , nc.avatar_url
+				'channel_id', vnch.channel_id, 
+				'notice_id', vnch.notice_id, 
+				'guild_id', vnch.guild_id, 
+				'url', vnch.url,
+				'username', vnch.username ,
+				'avatar_url' , vnch.avatar_url
 			) AS channel
 		FROM v_notice vn
-		LEFT JOIN (
-			SELECT 
-				channel_id
-				, nc.notice_id
-				, nc.guild_id 
-				, nc.create_at 
-				, nc.update_at 
-				, nc.use_yn 
-				, w.webhook_id 
-				, w.token 
-				, w.name
-				, w.avatar_url
-			FROM notice_channel nc
-			LEFT JOIN v_webhook w USING(channel_id)
-			WHERE nc.use_yn = 'Y'
-		) nc using(notice_id)
+		LEFT JOIN v_notice_channel_hook vnch using(notice_id)
 		WHERE vn.notice_type = ?
 	) A
 	GROUP BY hash_id
