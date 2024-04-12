@@ -9,6 +9,7 @@ import redis, { REDIS_KEY } from 'utils/redis';
 
 import { auth } from 'controllers/auth';
 import { NoticeBat } from 'interfaces/notice';
+import { KeyVal } from 'interfaces/text';
 import qs from 'querystring';
 import { ENCRYPT_KEY, sha256 } from 'utils/cryptoPw';
 import { createActionRow, createSuccessButton } from 'utils/discord/component';
@@ -58,7 +59,12 @@ export const getAuthChzzkUser = async (chzzkHash: string, authId: string) => {
     }
 };
 
-export const getChzzkUser = async (chzzkHash: string) => {
+/**
+ * 치치직 사용자 정보를 가져와, PK를 반환합니다
+ * @param chzzkHash
+ * @returns number
+ */
+export const getChzzkUser = async (chzzkHash: string): Promise<number> => {
     try {
         const { code, message, content } = await chzzk.get<ChzzkInterface<ChannelData>>(`channels/${chzzkHash}`, {
             headers: {
@@ -96,7 +102,7 @@ export const getChzzkUser = async (chzzkHash: string) => {
  * @param keyword 검색어
  * @returns Array<{ name: string; value: string }>
  */
-export const searchChzzkUser = async (keyword: string): Promise<Array<{ name: string; value: string }>> => {
+export const searchChzzkUser = async (keyword: string): Promise<Array<KeyVal<string>>> => {
     if (`${keyword}`.length < 2) return [];
 
     const redisKey = REDIS_KEY.API.SEARCH_USER(`chzzk:${keyword}`);
@@ -191,6 +197,16 @@ export const getChannelLive = async (notice_id: number, hash_id: string, liveId:
             .catch(reject);
     });
 
+/**
+ * 채널의 비디오 목록을 가져옵니다
+ * @param notice_id
+ * @param hash_id
+ * @returns
+ * @deprecated
+ * @see getChannelLive
+ * @see convertVideoObject
+ * @see sendChannels
+ */
 export const getLiveMessage = async ({ channels, notice_id, hash_id, message, name, id, img_idx }: NoticeBat) => {
     const liveStatus = await getChannelLive(notice_id, hash_id, id);
     if (liveStatus && liveStatus.status === 'OPEN') {
@@ -213,13 +229,13 @@ export const getLiveMessage = async ({ channels, notice_id, hash_id, message, na
 /**
  * xml 형태의 데이터를 embed 형태로 변환합니다
  * @param video_object
- * @returns
+ * @returns APIEmbed
  */
 const convertVideoObject = (video_object: Content, name?: string): APIEmbed => {
     const {
         liveTitle: title,
         liveImageUrl,
-        // liveCategory: game_name,
+        openDate,
         liveCategoryValue: game_name,
         categoryType,
         channel: { channelImageUrl, channelId, channelName },
@@ -238,5 +254,6 @@ const convertVideoObject = (video_object: Content, name?: string): APIEmbed => {
         },
         fields: [{ name: categoryType || 'Game', value: `${game_name || 'LIVE'}`, inline: true }],
         footer: { text: '제공. Chzzk' },
+        timestamp: openDate,
     };
 };
