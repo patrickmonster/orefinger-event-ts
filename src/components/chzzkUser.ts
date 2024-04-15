@@ -17,6 +17,10 @@ import { createActionRow, createSuccessButton } from 'utils/discord/component';
 
 const chzzk = getChzzkAPI('v1');
 
+const hashIdChzzk = new RegExp('^[a-zA-Z0-9]{32}$');
+
+export const isChzzkHash = (hashId: string): boolean => hashIdChzzk.test(hashId);
+
 /**
  * 치치직 인증 방식(임시)
  * @param chzzkHash
@@ -65,7 +69,7 @@ export const getAuthChzzkUser = async (chzzkHash: string, authId: string) => {
  * @param chzzkHash
  * @returns number
  */
-export const getChzzkUser = async (chzzkHash: string): Promise<number> => {
+export const getChzzkUser = async (chzzkHash: string, noticeType: number = 4): Promise<number> => {
     try {
         const { code, message, content } = await chzzk.get<ChzzkInterface<ChannelData>>(`channels/${chzzkHash}`, {
             headers: {
@@ -83,7 +87,7 @@ export const getChzzkUser = async (chzzkHash: string): Promise<number> => {
         const noticeId = await upsertNotice(
             {
                 hash_id: chzzkHash,
-                notice_type: 4,
+                notice_type: noticeType,
                 message: '|| @everyone || Live ON Air! 📺',
                 name: content.channelName,
             },

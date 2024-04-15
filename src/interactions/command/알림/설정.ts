@@ -5,7 +5,7 @@ import QUERY from 'controllers/component/noticeListQuerys';
 import { createChatinputCommand } from 'utils/discord/component';
 
 export const exec = async (interaction: AppChatInputInteraction, selectOption: SelectOptionType) => {
-    const { guild_id, channel } = interaction;
+    const { guild_id } = interaction;
 
     await interaction.differ({ ephemeral: true });
     if (!guild_id) return;
