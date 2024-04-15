@@ -1,5 +1,3 @@
-'use strict';
-// import { InteractionResponseType, verifyKey } from 'discord-interactions';
 import { FastifyReply, FastifyRequest } from 'fastify';
 import fp from 'fastify-plugin';
 import rawBody from 'fastify-raw-body';
@@ -53,9 +51,8 @@ export type RESTPostAPIChannelMessageParams = RESTPostAPIChannelMessage | string
 // fastify  정의
 declare module 'fastify' {
     interface FastifyInstance {
-        verifyKey: (request: FastifyRequest) => boolean;
         verifyDiscordKey: (request: FastifyRequest, reply: FastifyReply, done: Function) => void;
-        interaction: (req: FastifyRequest<{ Body: APIInteraction }>, res: FastifyReply) => IReply;
+        interaction: (req: FastifyRequest<{ Body: APIInteraction }>, res: FastifyReply) => Reply;
     }
 }
 
@@ -94,21 +91,11 @@ discordInteraction.interceptors.response.use(
     }
 );
 
-export interface IReply {
-    interaction: Reply;
+export type IReply = {
+    [K in keyof Reply]: Reply[K] extends (...args: any[]) => any ? Reply[K] : never;
+};
 
-    reply(message: RESTPostAPIChannelMessage): Promise<void>;
-    differ(message?: ephemeral): Promise<void>;
-    auth(message: APICommandAutocompleteInteractionResponseCallbackData): Promise<void>;
-    model(message: APIModalInteractionResponseCallbackData): Promise<void>;
-    edit(message: RESTPostAPIChannelMessage): Promise<void>;
-    differEdit(message: RESTPostAPIChannelMessage): Promise<void>;
-    follow(message: RESTPostAPIChannelMessage): Promise<IReply>;
-    get(): Promise<APIMessage>;
-    remove(): Promise<void>;
-}
-
-class Reply {
+export class Reply {
     private req: FastifyRequest<{ Body: APIInteraction }>;
     private res: FastifyReply;
     private isReply: boolean;
@@ -256,25 +243,10 @@ class Reply {
      * @param message
      * @returns
      */
-    public async follow(message: RESTPostAPIChannelMessage): Promise<IReply> {
+    public async follow(message: RESTPostAPIChannelMessage): Promise<Reply> {
         return await discordInteraction
             .post<APIWebhook>(`/webhooks/${this.application_id}/${this.token}`, this.appendEmpheral(message))
-            .then(({ id }) => {
-                const reply = new Reply(this.req, this.res, id);
-
-                return {
-                    reply: reply.reply.bind(reply),
-                    differ: reply.differ.bind(reply),
-                    auth: reply.auth.bind(reply),
-                    model: reply.model.bind(reply),
-                    edit: reply.edit.bind(reply),
-                    differEdit: reply.differEdit.bind(reply),
-                    follow: reply.follow.bind(reply),
-                    get: reply.get.bind(reply),
-                    remove: reply.remove.bind(reply),
-                    interaction: reply,
-                };
-            });
+            .then(({ id }) => new Reply(this.req, this.res, id));
     }
 
     *[Symbol.iterator]() {
@@ -302,20 +274,16 @@ export default fp(async function (fastify, opts) {
         runFirst: true, // get the body before any preParsing hook change/uncompress it. **Default false**
     });
 
-    fastify.decorate('verifyKey', ({ body, headers, rawBody }) =>
-        verifyKey(
-            rawBody || JSON.stringify(body),
-            `${headers['x-signature-ed25519'] || headers['X-Signature-Ed25519']}`,
-            `${headers['x-signature-timestamp'] || headers['X-Signature-Timestamp']}`,
-            `${process.env.DISCORD_PUBLIC_KEY}`
-        )
-    );
-
     // 인증 처리 시도 - 사용자 인증 정보가 있는 경우에 시도함.
     fastify.decorate('verifyDiscordKey', (request: FastifyRequest, reply: FastifyReply, done: Function) => {
-        const { method } = request;
+        const { method, body, headers, rawBody } = request;
         if (method === 'POST') {
-            const isValidRequest = fastify.verifyKey(request);
+            const isValidRequest = verifyKey(
+                rawBody || JSON.stringify(body),
+                `${headers['x-signature-ed25519'] || headers['X-Signature-Ed25519']}`,
+                `${headers['x-signature-timestamp'] || headers['X-Signature-Timestamp']}`,
+                `${process.env.DISCORD_PUBLIC_KEY}`
+            );
             if (isValidRequest) return done();
         }
         return reply.code(401).send('Bad request signature');
@@ -328,21 +296,6 @@ export default fp(async function (fastify, opts) {
                 Body: APIInteraction;
             }>,
             res: FastifyReply
-        ): IReply => {
-            const reply = new Reply(req, res);
-
-            return {
-                reply: reply.reply.bind(reply),
-                differ: reply.differ.bind(reply),
-                auth: reply.auth.bind(reply),
-                model: reply.model.bind(reply),
-                edit: reply.edit.bind(reply),
-                differEdit: reply.differEdit.bind(reply),
-                follow: reply.follow.bind(reply),
-                get: reply.get.bind(reply),
-                remove: reply.remove.bind(reply),
-                interaction: reply,
-            };
-        }
+        ): Reply => new Reply(req, res)
     );
 });
