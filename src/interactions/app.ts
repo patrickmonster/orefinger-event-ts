@@ -90,10 +90,7 @@ export interface SelectOptionType {
  * @param interaction
  */
 export default async (interaction: appInteraction) => {
-    const { type } = interaction;
-    console.log('appComponent', interaction.name, type);
-
-    switch (type) {
+    switch (interaction.type) {
         case ApplicationCommandType.Message:
         case ApplicationCommandType.User:
             const target = appCommands.find(command => command.name === interaction.name);

@@ -83,7 +83,7 @@ export const selectComponentPagingMenuKey = async (
         other: menuProps,
     } = await selectPagingKey<APISelectMenuOption, MenuProps>(queryKey, page, searchQuery);
 
-    if (!list || !menuProps) return [component];
+    if (!list || !list.length || !menuProps) return [component];
 
     return [
         createStringSelectMenu(menuProps.custom_id, {
