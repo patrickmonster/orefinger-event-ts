@@ -250,15 +250,15 @@ export class Reply {
     }
 
     *[Symbol.iterator]() {
-        yield this.get.bind(this);
-        yield this.remove.bind(this);
-        yield this.auth.bind(this);
-        yield this.differ.bind(this);
-        yield this.differEdit.bind(this);
-        yield this.edit.bind(this);
-        yield this.follow.bind(this);
-        yield this.model.bind(this);
-        yield this.reply.bind(this);
+        yield ['get', this.get.bind(this)];
+        yield ['remove', this.remove.bind(this)];
+        yield ['auth', this.auth.bind(this)];
+        yield ['differ', this.differ.bind(this)];
+        yield ['differEdit', this.differEdit.bind(this)];
+        yield ['edit', this.edit.bind(this)];
+        yield ['follow', this.follow.bind(this)];
+        yield ['model', this.model.bind(this)];
+        yield ['reply', this.reply.bind(this)];
     }
 }
 
@@ -270,8 +270,8 @@ export class Reply {
 export default fp(async function (fastify, opts) {
     fastify.register(rawBody, {
         field: 'rawBody',
-        encoding: 'utf8', // set it to false to set rawBody as a Buffer **Default utf8**
-        runFirst: true, // get the body before any preParsing hook change/uncompress it. **Default false**
+        encoding: 'utf8',
+        runFirst: true,
     });
 
     // 인증 처리 시도 - 사용자 인증 정보가 있는 경우에 시도함.
