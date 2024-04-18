@@ -17,7 +17,7 @@ import createCalender from 'utils/createCalender';
 import discord, { openApi } from 'utils/discordApiInstance';
 import { convertMessage } from 'utils/object';
 import { catchRedis } from 'utils/redis';
-import { getUser } from './discord';
+import { getUser, messageCreate } from './discord';
 
 const ERROR = (...e: any) => {
     console.error(__filename, ' Error: ', ...e);
@@ -85,24 +85,28 @@ export const getNoticeByType = async (
 /**
  * 각 채널 별로 메세지를 전송합니다
  * @param channels
- * @param message TODO : message 객체
+ * @param message
  */
 export const sendChannels = async (channels: NoticeChannel[], message: RESTPostAPIChannelMessage) => {
     for (const { channel_id, avatar_url, url, username } of channels) {
         if (url) {
+            // 훅 발송
+            const [embed] = message.embeds || [];
+
             discord
                 .post(`/${url}`, {
                     body: {
                         ...message,
-                        username: username || '방송알리미',
+                        username: username || (embed.author?.name ?? '방송알리미'),
                         avatar_url:
                             avatar_url ||
-                            'https://cdn.orefinger.click/post/466950273928134666/d2d0cc31-a00e-414a-aee9-60b2227ce42c.png',
+                            (embed.author?.icon_url ??
+                                'https://cdn.orefinger.click/post/466950273928134666/d2d0cc31-a00e-414a-aee9-60b2227ce42c.png'),
                     },
                 })
                 .catch(ERROR);
         } else {
-            discord.post(`/channels/${channel_id}/messages`, { body: message }).catch(ERROR);
+            messageCreate(channel_id, message).catch(ERROR);
         }
     }
 
@@ -112,6 +116,12 @@ export const sendChannels = async (channels: NoticeChannel[], message: RESTPostA
         });
 };
 
+/**
+ * 테스트 메세지를 전송합니다
+ * @param noticeId
+ * @param guildId
+ * @returns
+ */
 export const sendTestNotice = async (noticeId: string | number, guildId: string) => {
     const channels = await selectNoticeGuildChannel(noticeId, guildId);
 
@@ -122,27 +132,25 @@ export const sendTestNotice = async (noticeId: string | number, guildId: string)
         };
 
     for (const { channel_id, notice_id, hash_id, notice_type, notice_type_tag, message, name, img_idx } of channels) {
-        discord.post(`/channels/${channel_id}/messages`, {
-            body: {
-                content: message,
-                embeds: [
-                    {
-                        color: 0xffca52,
-                        title: notice_type_tag || '알림',
-                        description: '권한 테스트 알림입니다.',
-                        url: 'https://orefinger.click',
-                        author: {
-                            name: name || '방송알리미',
-                            icon_url: `https://cdn.orefinger.click/post/466950273928134666/d2d0cc31-a00e-414a-aee9-60b2227ce42c.png`,
-                        },
-                        image: {
-                            url: 'https://cdn.orefinger.click/post/466950273928134666/3ee49895-2ac5-48ba-a45c-5855a7d45ee1.png',
-                        },
-                        fields: [{ name: 'TEST', value: `테스트`, inline: true }],
-                        footer: { text: '제공. 방송알림' },
+        messageCreate(channel_id, {
+            content: message,
+            embeds: [
+                {
+                    color: 0xffca52,
+                    title: notice_type_tag || '알림',
+                    description: '권한 테스트 알림입니다.',
+                    url: 'https://orefinger.click',
+                    author: {
+                        name: name || '방송알리미',
+                        icon_url: `https://cdn.orefinger.click/post/466950273928134666/d2d0cc31-a00e-414a-aee9-60b2227ce42c.png`,
                     },
-                ],
-            },
+                    image: {
+                        url: 'https://cdn.orefinger.click/post/466950273928134666/3ee49895-2ac5-48ba-a45c-5855a7d45ee1.png',
+                    },
+                    fields: [{ name: 'TEST', value: `테스트`, inline: true }],
+                    footer: { text: '제공. 방송알림' },
+                },
+            ],
         });
     }
 };

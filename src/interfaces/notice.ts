@@ -16,9 +16,9 @@ export interface NoticeChannel {
     channel_id: string;
 
     // hook
-    url: string;
-    username: string;
-    avatar_url: string;
+    url?: string;
+    username?: string;
+    avatar_url?: string;
 }
 
 export interface NoticeDetail {

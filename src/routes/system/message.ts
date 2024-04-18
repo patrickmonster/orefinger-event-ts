@@ -1,6 +1,6 @@
 import { FastifyInstance } from 'fastify';
 
-import { createMessage, selectMessageList, updateMessage } from 'controllers/message';
+import { selectMessageList, updateMessage } from 'controllers/message';
 
 import { MessageCreate } from 'interfaces/message';
 import { Paging } from 'interfaces/swagger';
@@ -54,25 +54,6 @@ export default async (fastify: FastifyInstance, opts: any) => {
             },
         },
         async req => await selectMessageList(req.query.page || 0, req.query.tag)
-    );
-
-    fastify.post<{
-        Body: MessageCreate;
-    }>(
-        '/message',
-        {
-            onRequest: [fastify.masterkey],
-            schema: {
-                security: [{ Master: [] }],
-                tags: ['System'],
-                description: '메세지 생성',
-                body: {},
-                response: {
-                    200: { $ref: 'sqlResult#' },
-                },
-            },
-        },
-        async (req, res) => await createMessage(req.body)
     );
 
     fastify.patch<{
