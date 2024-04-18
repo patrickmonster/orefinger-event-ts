@@ -140,11 +140,14 @@ FROM (
 			, vn.name
 			, vn.img_idx
 			, vn.video_yn 
-			, json_object( 'channel_id', nc.channel_id, 'notice_id', nc.notice_id, 'guild_id', nc.guild_id, 'create_at', nc.create_at, 'update_at', nc.update_at ) AS channel
+			, if(
+				nc.webhook_id IS NULL,
+				json_object( 'channel_id', nc.channel_id, 'notice_id', nc.notice_id, 'guild_id', nc.guild_id ),
+				json_object( 'channel_id', nc.channel_id, 'notice_id', nc.notice_id, 'guild_id', nc.guild_id, 'url', nc.url, 'username', nc.username, 'avatar_url', nc.avatar_url )
+			) AS channel
 		FROM v_notice vn
-		LEFT JOIN notice_channel nc using(notice_id)
+		INNER JOIN v_notice_channel_hook nc USING(notice_id)
 		WHERE vn.notice_type = ?
-		AND nc.use_yn = 'Y'
 	) A
 	GROUP BY hash_id
 ) A
@@ -196,11 +199,14 @@ FROM (
 			, vn.name
 			, vn.img_idx
 			, vn.video_yn 
-			, json_object( 'channel_id', nc.channel_id, 'notice_id', nc.notice_id, 'guild_id', nc.guild_id, 'create_at', nc.create_at, 'update_at', nc.update_at ) AS channel
+			, if(
+				nc.webhook_id IS NULL,
+				json_object( 'channel_id', nc.channel_id, 'notice_id', nc.notice_id, 'guild_id', nc.guild_id ),
+				json_object( 'channel_id', nc.channel_id, 'notice_id', nc.notice_id, 'guild_id', nc.guild_id, 'url', nc.url, 'username', nc.username, 'avatar_url', nc.avatar_url )
+			) AS channel
 		FROM v_notice vn
-		LEFT JOIN notice_channel nc using(notice_id)
+		INNER JOIN v_notice_channel_hook nc USING(notice_id)
 		WHERE vn.notice_type = ?
-		AND nc.use_yn = 'Y'
 	) A
 	GROUP BY hash_id
 ) A
