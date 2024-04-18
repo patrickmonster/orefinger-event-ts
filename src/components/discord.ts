@@ -74,12 +74,13 @@ export const getUser = async (userId: string) =>
 export const webhooks = async (channel_id: string) =>
     await getDiscord<RESTGetAPIChannelWebhooksResult>(`/channels/${channel_id}/webhooks`);
 
-export const webhookCreate = async (channel_id: string, data: { name: string; avatar?: string }) =>
+export const webhookCreate = async (channel_id: string, data: { name: string; avatar?: string; auth_id?: string }) =>
     await postDiscord<RESTPostAPIChannelWebhookResult>(`/channels/${channel_id}/webhooks`, { body: data }).then(res => {
         upsertWebhook(channel_id, {
             name: data.name || undefined,
             webhook_id: res.id,
             token: res.token,
+            auth_id: data.auth_id,
         }).catch(() => {});
 
         return res;
