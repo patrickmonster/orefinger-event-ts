@@ -18,6 +18,7 @@ export const exec = async (interaction: MessageInteraction, noticeId: string, mo
                 ...model,
                 custom_id: `notice edit ${noticeId}`,
             });
+            break;
         }
         case 'test': {
             interaction.differ({ ephemeral: true });
