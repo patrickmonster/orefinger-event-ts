@@ -1,13 +1,13 @@
 import { SqlInsertUpdate, calTo, query } from 'utils/database';
 import { ParseInt } from 'utils/object';
 
-export const CreateMessage = async (id: string, channel_id: string, result: any, webhook_id?: string) =>
-    query<SqlInsertUpdate>(`INSERT INTO discord_log.send_message set ?`, {
-        id,
-        channel_id,
-        result,
-        webhook_id,
-    });
+interface Message {
+    message_id: string;
+    channel_id: string;
+    message: string;
+}
+export const CreateMessage = async (message: Message) =>
+    query<SqlInsertUpdate>(`INSERT INTO message_log set ?`, message);
 
 export const ecsSet = async (id: string, revision: string, family: string) =>
     query<SqlInsertUpdate>(`INSERT INTO task set ? `, {

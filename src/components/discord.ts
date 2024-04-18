@@ -1,5 +1,8 @@
+import { RequestData } from '@discordjs/rest';
 import axios from 'axios';
 import { channelUpsert } from 'controllers/channel';
+import { upsertWebhook } from 'controllers/guild/webhook';
+import { CreateMessage } from 'controllers/log';
 import {
     RESTGetAPIChannelResult,
     RESTGetAPIChannelWebhooksResult,
@@ -8,6 +11,7 @@ import {
     RESTGetAPIGuildResult,
     RESTGetAPIUserResult,
     RESTPostAPIChannelMessageJSONBody,
+    RESTPostAPIChannelMessageResult,
     RESTPostAPIChannelWebhookResult,
     RESTPostAPIGuildChannelJSONBody,
     RESTPostAPIGuildChannelResult,
@@ -21,30 +25,35 @@ export type Attachment = {
     target?: string;
 };
 
+export const postDiscord = async <T>(url: `/${string}`, options?: RequestData | undefined) =>
+    discord.post(url, options) as T;
+export const getDiscord = async <T>(url: `/${string}`, options?: RequestData | undefined) =>
+    discord.get(url, options) as T;
+
 export const getEmojis = async (guildId: string): Promise<RESTGetAPIGuildEmojisResult> =>
     catchRedis(
         REDIS_KEY.DISCORD.GUILD_EMOJIS(guildId),
-        async () => (await discord.get(`/guilds/${guildId}/emojis`)) as RESTGetAPIGuildEmojisResult,
+        async () => await getDiscord<RESTGetAPIGuildEmojisResult>(`/guilds/${guildId}/emojis`),
         60 * 30 // 30분
     );
 export const getGuild = async (guildId: string): Promise<RESTGetAPIGuildResult> =>
     catchRedis(
         REDIS_KEY.DISCORD.GUILD(guildId),
-        async () => (await discord.get(`/guilds/${guildId}?with_counts=true`)) as RESTGetAPIGuildResult,
+        async () => await getDiscord<RESTGetAPIGuildResult>(`/guilds/${guildId}?with_counts=true`),
         60 * 30 // 30분
     );
 
 export const getGuildChannels = async (guildId: string): Promise<RESTGetAPIGuildChannelsResult> =>
     catchRedis(
         REDIS_KEY.DISCORD.GUILD_CHANNELS(guildId),
-        async () => (await discord.get(`/guilds/${guildId}/channels`)) as RESTGetAPIGuildChannelsResult,
+        async () => await getDiscord<RESTGetAPIGuildChannelsResult>(`/guilds/${guildId}/channels`),
         60 * 30 // 30분
     );
 
 export const getChannel = async (channelId: string): Promise<RESTGetAPIChannelResult> =>
     catchRedis(
         REDIS_KEY.DISCORD.CHANNELS(channelId),
-        async () => (await discord.get(`/channels/${channelId}`)) as RESTGetAPIChannelResult,
+        async () => await getDiscord<RESTGetAPIChannelResult>(`/channels/${channelId}`),
         60 * 30 // 30분
     );
 
@@ -58,15 +67,23 @@ export const getMemtions = async (guildId: string): Promise<RESTGetAPIGuildEmoji
 export const getUser = async (userId: string) =>
     catchRedis(
         REDIS_KEY.DISCORD.USER(userId),
-        async () => (await discord.get(`/users/${userId}`)) as RESTGetAPIUserResult,
+        async () => await getDiscord<RESTGetAPIUserResult>(`/users/${userId}`),
         60 * 30 // 30분
     );
 
 export const webhooks = async (channel_id: string) =>
-    (await discord.get(`/channels/${channel_id}/webhooks`)) as RESTGetAPIChannelWebhooksResult;
+    await getDiscord<RESTGetAPIChannelWebhooksResult>(`/channels/${channel_id}/webhooks`);
 
 export const webhookCreate = async (channel_id: string, data: { name: string; avatar?: string }) =>
-    (await discord.post(`/channels/${channel_id}/webhooks`, { body: data })) as RESTPostAPIChannelWebhookResult;
+    await postDiscord<RESTPostAPIChannelWebhookResult>(`/channels/${channel_id}/webhooks`, { body: data }).then(res => {
+        upsertWebhook(channel_id, {
+            name: data.name || undefined,
+            webhook_id: res.id,
+            token: res.token,
+        }).catch(() => {});
+
+        return res;
+    });
 
 export const attachmentFile = async (...url: Attachment[]) => {
     const form = new FormData();
@@ -89,10 +106,10 @@ export const attachmentFile = async (...url: Attachment[]) => {
 };
 
 export const channelCreate = async (guild_id: string, data: RESTPostAPIGuildChannelJSONBody) => {
-    const channel = (await discord.post(`/guilds/${guild_id}/channels`, {
+    const channel = await postDiscord<RESTPostAPIGuildChannelResult>(`/guilds/${guild_id}/channels`, {
         body: data,
-    })) as RESTPostAPIGuildChannelResult;
-    const update = await channelUpsert([
+    });
+    await channelUpsert([
         {
             guild_id,
             channel_id: channel.id,
@@ -100,13 +117,19 @@ export const channelCreate = async (guild_id: string, data: RESTPostAPIGuildChan
             type: channel.type,
         },
     ]);
-
-    console.log('CREATE CHANNEL', update);
     return channel;
 };
 
 export const messageCreate = async (channel_id: string, body: RESTPostAPIChannelMessageJSONBody) =>
-    discord.post(`/channels/${channel_id}/messages`, { body });
+    postDiscord<RESTPostAPIChannelMessageResult>(`/channels/${channel_id}/messages`, { body }).then(async res => {
+        CreateMessage({
+            channel_id,
+            message_id: res.id,
+            message: JSON.stringify(body),
+        }).catch(() => {});
+
+        return res;
+    });
 
 export const messageDelete = async (channelId: string, messageId: string) =>
     discord.delete(`/channels/${channelId}/messages/${messageId}`);
@@ -118,6 +141,14 @@ const discordRegex = /<[a]?:([\w|\d]+):(\d{17,19})>/im; // 맨션
 const emojiRegex = /:(\w+)(~\d)?:/gim; // 이모티콘
 const roleRegex = /@([ㄱ-ㅎ가-힣a-zA-Z0-9]+)(~\d)?/gim; // 역할
 
+/**
+ * 메세지 캐스팅
+ *  - 역할, 이모티콘을 맨션으로 변경
+ * @param guildId
+ * @param message
+ * @param isSendMessage
+ * @returns
+ */
 export const castMessage = async (guildId: string, message: string, isSendMessage: boolean) => {
     const emojis = (await getEmojis(guildId)).map(({ name, id, animated }) => ({ name, id, animated }));
 
