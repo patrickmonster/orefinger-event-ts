@@ -219,6 +219,7 @@ export const getChannelLive = async (notice_id: number, hash_id: string, liveId:
                         image: content.liveImageUrl?.replace('{type}', '1080') || '',
                         title: content.liveTitle,
                         game: content.liveCategory,
+                        live_at: content.openDate,
                     });
                 } else {
                     if (liveId && liveId != '0') {
