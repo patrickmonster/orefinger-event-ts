@@ -1,6 +1,7 @@
 import { ecsTaskState } from 'controllers/log';
+import dayjs from 'dayjs';
 import { AppChatInputInteraction, SelectOptionType } from 'interactions/app';
-import { createChatinputCommand } from 'utils/discord/component';
+import { createChatinputCommand, createEmbed } from 'utils/discord/component';
 import { lastServerRequset } from 'utils/serverState';
 
 const { version } = require('../../../package.json');
@@ -11,26 +12,23 @@ export const exec = async (interaction: AppChatInputInteraction, selectOption: S
     //
     interaction.reply({
         embeds: [
-            {
+            createEmbed({
                 title: '현재 상태',
                 description: `
-- Version: ${version}
-- Revision: ECS.${revision}
-- Total: ${total.toLocaleString()}
-- Request: ${lastServerRequset.toLocaleString()} req/m
-
-총 ${ids.length.toLocaleString()}개의 서버가 동작하고 있으며,
-각 서버당, ${Math.round(total / ids.length).toLocaleString()}개의 알림을 처리하고 있습니다.
-
-\`알림 처리 속도는 분당 ${(60 * ids.length).toLocaleString()}개 입니다.\`
-                `,
-                footer: {
-                    text: 'Create by.뚱이(Patrickmonster)',
-                    icon_url:
-                        'https://cdn.orefinger.click/post/466950273928134666/d2d0cc31-a00e-414a-aee9-60b2227ce42c.png',
-                },
-                timestamp: create_at,
-            },
+    - Version: ${version}
+    - Revision: ECS.${revision}
+    - Total: ${total.toLocaleString()}
+    - Request: ${lastServerRequset.toLocaleString()} req/m
+    
+    총 ${ids.length.toLocaleString()}개의 서버가 동작하고 있으며,
+    각 서버당, ${Math.round(total / ids.length).toLocaleString()}개의 알림을 처리하고 있습니다.
+    
+    
+    - 알림 테스크는 각 알림 종류별로 분리되어 있으며, 각 알림은 사용자 수에 따라 속도가 차이 날 수 있습니다.
+    \`알림 처리 속도는 분당 ${(60 * ids.length).toLocaleString()}개 입니다.\`
+                    `,
+                timestamp: dayjs(create_at).add(-9, 'h').format(),
+            }),
         ],
     });
 };

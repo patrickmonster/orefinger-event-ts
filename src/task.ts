@@ -85,7 +85,7 @@ ${name} - 방영이 종료되었습니다
             } catch (e) {}
         }
     ),
-    afreeca: new BaseTask({ targetEvent: 5, timmer: 10 }).on('scan', async (item: NoticeBat) => {
+    afreeca: new BaseTask({ targetEvent: 5, timmer: 100 }).on('scan', async (item: NoticeBat) => {
         try {
             await afreeca(item);
         } catch (e) {}

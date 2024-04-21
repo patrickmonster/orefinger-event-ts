@@ -6,6 +6,7 @@ import {
     APIButtonComponentWithCustomId,
     APIButtonComponentWithURL,
     APIChannelSelectComponent,
+    APIEmbed,
     APIMessageActionRowComponent,
     APIModalActionRowComponent,
     APIRoleSelectComponent,
@@ -31,6 +32,14 @@ type NumberLater<N extends number, Acc extends number[] = []> = Acc['length'] ex
 export interface MaxList<T, U extends number> extends Array<T> {
     length: NumberLater<U>;
 }
+
+export const createEmbed = (embed: APIEmbed): APIEmbed => ({
+    ...embed,
+    footer: {
+        text: 'Create by.뚱이(Patrickmonster)',
+        icon_url: 'https://cdn.orefinger.click/post/466950273928134666/d2d0cc31-a00e-414a-aee9-60b2227ce42c.png',
+    },
+});
 
 export const createActionRow = (
     ...components: MaxList<APIButtonComponent | undefined, 6>

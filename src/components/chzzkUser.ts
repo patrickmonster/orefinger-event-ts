@@ -251,6 +251,7 @@ const convertVideoObject = (video_object: Content, name?: string): APIEmbed => {
         image: {
             url: liveImageUrl?.replace('{type}', '1080') || '',
         },
+        color: 0x0ffa3,
         author: {
             name: name ?? channelName,
             icon_url: channelImageUrl,
