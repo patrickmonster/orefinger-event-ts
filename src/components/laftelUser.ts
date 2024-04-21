@@ -103,6 +103,7 @@ const convertVideoObject = (hashId: string, videoObject: LaftelVodDetail, name?:
     return {
         title: subject,
         url: `https://laftel.net/player/${hashId}/${id}`,
+        color: 0x806bff,
         image: { url: liveImageUrl },
         author: {
             name: name ?? title,
