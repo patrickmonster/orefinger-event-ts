@@ -168,6 +168,33 @@ export const searchChzzkUser = async (keyword: string): Promise<Array<KeyVal<str
 };
 
 /**
+ * 메세지 수정
+ *  - 라이브 종료시간을 수정합니다
+ * @param notice_id
+ * @param content
+ */
+const changeMessage = async (notice_id: number, content: any) => {
+    const redisKey = REDIS_KEY.DISCORD.LAST_MESSAGE(`${notice_id}`);
+
+    const messages = await redis.get(redisKey);
+    if (messages) {
+        const { closeDate } = content;
+        for (const { id, message_reference, components, embeds, ...message } of JSON.parse(messages) as APIMessage[]) {
+            const [embed] = embeds;
+
+            embed.description += ` <t:${dayjs(closeDate).add(-9, 'h').unix()}:R>`;
+            embed.timestamp = undefined;
+            messageEdit(message.channel_id, id, {
+                ...message,
+                embeds,
+            }).catch(console.error);
+
+            await redis.del(redisKey);
+        }
+    }
+};
+
+/**
  * 채널의 비디오 목록을 가져옵니다
  * @param notice_ida
  * @param hash_id
@@ -193,32 +220,9 @@ export const getChannelLive = async (notice_id: number, hash_id: string, liveId:
                     });
                 } else {
                     if (liveId && liveId != '0') {
-                        const redisKey = REDIS_KEY.DISCORD.LAST_MESSAGE(`${notice_id}`);
                         const result = await updateLiveEvents(notice_id);
-
-                        const messages = await redis.get(redisKey);
-                        if (messages) {
-                            /// JSON.stringify
-
-                            const { closeDate } = content;
-                            for (const { id, message_reference, components, embeds, ...message } of JSON.parse(
-                                messages
-                            ) as APIMessage[]) {
-                                const [embed] = embeds;
-
-                                embed.description = embed.description?.replace(
-                                    /~ing\.\.\./,
-                                    `========= <t:${dayjs(closeDate).add(-9, 'h').unix()}:R>`
-                                );
-                                embed.timestamp = undefined;
-                                messageEdit(message.channel_id, id, {
-                                    ...message,
-                                    embeds,
-                                });
-                            }
-                        }
-
                         if (result.changedRows == 0) return reject(null);
+                        else await changeMessage(notice_id, content);
                         // 이미 처리된 알림
                     }
                 }
@@ -258,7 +262,7 @@ export const getLiveMessage = async ({ channels, notice_id, hash_id, message, na
 
         const redisKey = REDIS_KEY.DISCORD.LAST_MESSAGE(`${notice_id}`);
         await redis.set(redisKey, JSON.stringify(messages), {
-            EX: 60 * 60 * 12, // 12시간
+            EX: 60 * 60 * 24, // 12시간
         });
     }
 };
@@ -282,7 +286,7 @@ const convertVideoObject = (video_object: Content, name?: string): APIEmbed => {
     return {
         url: `https://chzzk.naver.com/live/${channelId}`,
         title,
-        description: `<t:${time.unix()}:R> ~ing...`,
+        description: `<t:${time.unix()}:R> ==============`,
         image: { url: liveImageUrl?.replace('{type}', '1080') || '', height: 1080, width: 1920 },
         color: 0x0ffa3,
         thumbnail: { url: channelImageUrl },
