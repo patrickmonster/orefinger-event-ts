@@ -179,10 +179,12 @@ const changeMessage = async (notice_id: number, content: any) => {
     const messages = await redis.get(redisKey);
     if (messages) {
         const { closeDate } = content;
-        for (const { id, message_reference, components, embeds, ...message } of JSON.parse(messages) as APIMessage[]) {
+        for (const { id, message_reference, components, content, embeds, ...message } of JSON.parse(
+            messages
+        ) as APIMessage[]) {
             const [embed] = embeds;
 
-            embed.description += ` <t:${dayjs(closeDate).add(-9, 'h').unix()}:R>`;
+            embed.description += `~ <t:${dayjs(closeDate).add(-9, 'h').unix()}:R>`;
             embed.timestamp = undefined;
             messageEdit(message.channel_id, id, {
                 ...message,
@@ -250,8 +252,7 @@ export const getLiveMessage = async ({ channels, notice_id, hash_id, message, na
             components: [
                 createActionRow(
                     createSuccessButton(`notice attendance ${notice_id}`, {
-                        label: '출석체크',
-                        emoji: { name: '📌' },
+                        label: '     📌출석체크     ',
                     }),
                     createUrlButton(`https://chzzk.naver.com/live/${hash_id}`, {
                         emoji: { id: '1218118186717937775' },
@@ -286,10 +287,10 @@ const convertVideoObject = (video_object: Content, name?: string): APIEmbed => {
     return {
         url: `https://chzzk.naver.com/live/${channelId}`,
         title,
-        description: `<t:${time.unix()}:R> ==============`,
+        description: `<t:${time.unix()}:R>`,
         image: { url: liveImageUrl?.replace('{type}', '1080') || '', height: 1080, width: 1920 },
         color: 0x0ffa3,
-        thumbnail: { url: channelImageUrl },
+        thumbnail: channelImageUrl ? { url: channelImageUrl } : undefined,
         fields: [{ name: categoryType || 'Game', value: `${game_name || 'LIVE'}`, inline: true }],
         footer: { text: name ?? channelName },
         timestamp: time.format(),
