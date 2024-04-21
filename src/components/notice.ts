@@ -10,6 +10,8 @@ import {
 } from 'utils/discord/component';
 import { editerComponent } from './systemComponent';
 
+import { APIMessage } from 'discord-api-types/v10';
+
 import { upsertDiscordUserAndJWTToken } from 'controllers/auth';
 import { selectEventBat, selectNoticeGuildChannel } from 'controllers/bat';
 import { getAttendanceAtLive } from 'controllers/notification';
@@ -89,12 +91,13 @@ export const getNoticeByType = async (
  * @param message
  */
 export const sendChannels = async (channels: NoticeChannel[], message: RESTPostAPIChannelMessage) => {
+    const messages: APIMessage[] = [];
     for (const { channel_id, avatar_url, url, username } of channels) {
         if (url) {
             // 훅 발송
             const [embed] = message.embeds || [];
 
-            discord
+            const originMessage = (await discord
                 .post(`/${url}`, {
                     body: {
                         ...message,
@@ -105,9 +108,21 @@ export const sendChannels = async (channels: NoticeChannel[], message: RESTPostA
                                 'https://cdn.orefinger.click/post/466950273928134666/d2d0cc31-a00e-414a-aee9-60b2227ce42c.png'),
                     },
                 })
-                .catch(ERROR);
+                .catch(ERROR)) as APIMessage;
+
+            const id = originMessage?.id;
+
+            if (id) {
+                messages.push(originMessage);
+            }
         } else {
-            messageCreate(channel_id, message).catch(ERROR);
+            const originMessage = await messageCreate(channel_id, message).catch(ERROR);
+
+            const id = originMessage?.id;
+
+            if (id) {
+                messages.push(originMessage);
+            }
         }
     }
 
@@ -115,6 +130,8 @@ export const sendChannels = async (channels: NoticeChannel[], message: RESTPostA
         openApi.post(`${process.env.WEB_HOOK_URL}`, {
             embeds: message.embeds,
         });
+
+    return messages;
 };
 
 /**
