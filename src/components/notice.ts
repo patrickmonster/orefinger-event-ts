@@ -268,10 +268,7 @@ ${createCalender(new Date(), ...pin)}
         components: [
             createActionRow(
                 createUrlButton(`https://orefinger.click/bord/attach/${noticeId}`, {
-                    label: '출석현황',
-                    emoji: {
-                        name: '📅',
-                    },
+                    label: '          📅출석현황          ',
                 })
             ),
         ],
