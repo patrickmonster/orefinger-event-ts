@@ -4,6 +4,7 @@ import { NoticeChannel } from 'interfaces/notice';
 import {
     createActionRow,
     createChannelSelectMenu,
+    createEmbed,
     createSecondaryButton,
     createUrlButton,
 } from 'utils/discord/component';
@@ -227,16 +228,12 @@ export const selectAttachMessage = async (
         content: isSuccess ? '출석체크가 완료되었습니다!' : '이미 출석이 완료되었습니다!',
         ephemeral: true,
         embeds: [
-            {
+            createEmbed({
                 color: 0xffca52,
                 author: {
                     name: '방송알리미',
                     icon_url:
                         'https://cdn.orefinger.click/post/466950273928134666/e4a1e3e4-ffe1-45c1-a0f6-0107301babcc.png',
-                    url: 'https://toss.me/방송알리미',
-                },
-                provider: {
-                    name: 'Create by.뚱이(Patrickmonster)',
                     url: 'https://toss.me/방송알리미',
                 },
                 description: `
@@ -249,7 +246,7 @@ export const selectAttachMessage = async (
 \`\`\`ansi
 ${createCalender(new Date(), ...pin)}
 \`\`\``,
-            },
+            }),
         ],
         components: [
             createActionRow(
@@ -259,12 +256,6 @@ ${createCalender(new Date(), ...pin)}
                         name: '📅',
                     },
                 })
-                // createUrlButton(`https://toss.me/방송알리미`, {
-                //     label: '후원',
-                //     emoji: {
-                //         name: '💰',
-                //     },
-                // })
             ),
         ],
     };

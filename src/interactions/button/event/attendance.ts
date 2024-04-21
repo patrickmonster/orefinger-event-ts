@@ -5,6 +5,7 @@ import { getAdvertisement } from 'controllers/message';
 import { attendance } from 'controllers/twitch';
 
 import createCalender from 'utils/createCalender';
+import { createEmbed } from 'utils/discord/component';
 import redis from 'utils/redis';
 
 const selectMessage = async (broadcaster_user_id: string, user_id: string): Promise<RESTPostAPIChannelMessage> => {
@@ -26,14 +27,9 @@ const selectMessage = async (broadcaster_user_id: string, user_id: string): Prom
         content: is_success ? '출석체크가 완료되었습니다!' : '이미 출석이 완료되었습니다!',
         ephemeral: true,
         embeds: [
-            {
+            createEmbed({
                 url: 'https://toss.me/방송알리미',
                 color: 0x9147ff,
-                footer: {
-                    text: 'Create by.뚱이(Patrickmonster)',
-                    icon_url:
-                        'https://media.discordapp.net/attachments/682449668428529743/873590308502372362/79e40d246645eefc.png',
-                },
                 description: `
 출석율 : ${((pin.length / spin.length) * 100).toFixed(2)}% (${pin.length}/${spin.length})
 출석 : ${count - 1 > 0 ? count + '회 연속' : '연속된 데이터가 없네요 8ㅅ8'}
@@ -44,7 +40,7 @@ const selectMessage = async (broadcaster_user_id: string, user_id: string): Prom
 \`\`\`ansi
 ${createCalender(new Date(), ...pin)}
 \`\`\``,
-            },
+            }),
         ],
     };
 };

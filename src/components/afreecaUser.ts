@@ -112,6 +112,7 @@ export const convertVideoObject = (videoObject: Content, name?: string): APIEmbe
     return {
         title: title || 'LIVE ON',
         url: `https://play.afreecatv.com/${user_id}/${broad_no}`,
+        color: 0x0746af,
         image: {
             url: `https://liveimg.afreecatv.com/m/${broad_no}?${randomIntegerInRange(100, 999)}`,
         },

@@ -213,6 +213,7 @@ export const convertVideoObject = (video_object: any): APIEmbed => {
     return {
         title,
         url: `https://www.youtube.com/watch?v=${id}`,
+        color: 0xf00,
         image: thumbnails.reduce((prev: Thumbnails, curr: Thumbnails) => (prev.width > curr.width ? prev : curr)),
         thumbnail: {
             url: 'https://cdn.discordapp.com/attachments/682449668428529743/1125234663045201950/yt_icon_rgb.png',
