@@ -2,7 +2,7 @@ import axios from 'axios';
 import { sendChannels } from 'components/notice';
 import { insertLiveEvents, updateLiveEvents } from 'controllers/bat';
 import { upsertNotice } from 'controllers/notice';
-import { APIEmbed } from 'discord-api-types/v10';
+import { APIEmbed, APIMessage } from 'discord-api-types/v10';
 import { ChannelData, Content } from 'interfaces/API/Chzzk';
 import { ChzzkInterface, getChzzkAPI } from 'utils/naverApiInstance';
 import redis, { REDIS_KEY } from 'utils/redis';
@@ -13,7 +13,8 @@ import { NoticeBat } from 'interfaces/notice';
 import { KeyVal } from 'interfaces/text';
 import qs from 'querystring';
 import { ENCRYPT_KEY, sha256 } from 'utils/cryptoPw';
-import { createActionRow, createSuccessButton } from 'utils/discord/component';
+import { createActionRow, createSuccessButton, createUrlButton } from 'utils/discord/component';
+import { messageEdit } from './discord';
 
 const chzzk = getChzzkAPI('v1');
 
@@ -192,7 +193,31 @@ export const getChannelLive = async (notice_id: number, hash_id: string, liveId:
                     });
                 } else {
                     if (liveId && liveId != '0') {
+                        const redisKey = REDIS_KEY.DISCORD.LAST_MESSAGE(`${notice_id}`);
                         const result = await updateLiveEvents(notice_id);
+
+                        const messages = await redis.get(redisKey);
+                        if (messages) {
+                            /// JSON.stringify
+
+                            const { closeDate } = content;
+                            for (const { id, message_reference, components, embeds, ...message } of JSON.parse(
+                                messages
+                            ) as APIMessage[]) {
+                                const [embed] = embeds;
+
+                                embed.description = embed.description?.replace(
+                                    /~ing\.\.\./,
+                                    `========= <t:${dayjs(closeDate).add(-9, 'h').unix()}:R>`
+                                );
+                                embed.timestamp = undefined;
+                                messageEdit(message.channel_id, id, {
+                                    ...message,
+                                    embeds,
+                                });
+                            }
+                        }
+
                         if (result.changedRows == 0) return reject(null);
                         // 이미 처리된 알림
                     }
@@ -215,17 +240,25 @@ export const getLiveMessage = async ({ channels, notice_id, hash_id, message, na
     const liveStatus = await getChannelLive(notice_id, hash_id, id);
     if (liveStatus && liveStatus.status === 'OPEN') {
         // online
-        sendChannels(channels, {
+        const messages = await sendChannels(channels, {
             content: message,
             embeds: [convertVideoObject(liveStatus, name)],
             components: [
                 createActionRow(
                     createSuccessButton(`notice attendance ${notice_id}`, {
                         label: '출석체크',
+                        emoji: { name: '📌' },
+                    }),
+                    createUrlButton(`https://chzzk.naver.com/live/${hash_id}`, {
                         emoji: { id: '1218118186717937775' },
                     })
                 ),
             ],
+        });
+
+        const redisKey = REDIS_KEY.DISCORD.LAST_MESSAGE(`${notice_id}`);
+        await redis.set(redisKey, JSON.stringify(messages), {
+            EX: 60 * 60 * 12, // 12시간
         });
     }
 };
@@ -244,21 +277,17 @@ const convertVideoObject = (video_object: Content, name?: string): APIEmbed => {
         categoryType,
         channel: { channelImageUrl, channelId, channelName },
     } = video_object;
+    const time = dayjs(openDate).add(-9, 'h');
 
     return {
-        title,
         url: `https://chzzk.naver.com/live/${channelId}`,
-        image: {
-            url: liveImageUrl?.replace('{type}', '1080') || '',
-        },
+        title,
+        description: `<t:${time.unix()}:R> ~ing...`,
+        image: { url: liveImageUrl?.replace('{type}', '1080') || '', height: 1080, width: 1920 },
         color: 0x0ffa3,
-        author: {
-            name: name ?? channelName,
-            icon_url: channelImageUrl,
-            url: `https://chzzk.naver.com/${channelId}`,
-        },
+        thumbnail: { url: channelImageUrl },
         fields: [{ name: categoryType || 'Game', value: `${game_name || 'LIVE'}`, inline: true }],
-        footer: { text: '제공. Chzzk' },
-        timestamp: dayjs(openDate).add(-9, 'h').format(),
+        footer: { text: name ?? channelName },
+        timestamp: time.format(),
     };
 };
