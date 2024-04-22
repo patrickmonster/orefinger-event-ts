@@ -5,13 +5,14 @@ import redis, { REDIS_KEY } from 'utils/redis';
 import { sendChannels } from 'components/notice';
 import { insertLiveEvents, updateLiveEvents } from 'controllers/bat';
 import dayjs from 'dayjs';
-import { APIEmbed } from 'discord-api-types/v10';
+import { APIEmbed, APIMessage } from 'discord-api-types/v10';
 import { Content } from 'interfaces/API/Afreeca';
 import { NoticeBat } from 'interfaces/notice';
 import qs from 'querystring';
 import afreecaAPI from 'utils/afreecaApiInstance';
-import { createActionRow, createSuccessButton } from 'utils/discord/component';
+import { appendTextWing, createActionRow, createSuccessButton, createUrlButton } from 'utils/discord/component';
 import { randomIntegerInRange } from 'utils/object';
+import { messageEdit } from './discord';
 
 interface ChannelData {
     user_id: string;
@@ -108,27 +109,17 @@ export const convertVideoObject = (videoObject: Content, name?: string): APIEmbe
         station: { user_nick: channelName, broad_start },
         profile_image: channelImageUrl,
     } = videoObject;
+    const time = dayjs(broad_start).add(-9, 'h');
 
     return {
         title: title || 'LIVE ON',
+        description: `<t:${time.unix()}:R>`,
         url: `https://play.afreecatv.com/${user_id}/${broad_no}`,
         color: 0x0746af,
-        image: {
-            url: `https://liveimg.afreecatv.com/m/${broad_no}?${randomIntegerInRange(100, 999)}`,
-        },
-        author: {
-            name: name ?? channelName,
-            icon_url: channelImageUrl.startsWith('http') ? channelImageUrl : `https:${channelImageUrl}`,
-            url: `https://play.afreecatv.com/${user_id}`,
-        },
-        fields: [
-            {
-                name: 'Stream',
-                value: `https://play.afreecatv.com/${user_id}/${broad_no}`,
-            },
-        ],
-        footer: { text: '제공. AfreecaTV' },
-        timestamp: dayjs(broad_start).add(-9, 'h').format(),
+        thumbnail: { url: channelImageUrl.startsWith('http') ? channelImageUrl : `https:${channelImageUrl}` },
+        image: { url: `https://liveimg.afreecatv.com/m/${broad_no}?${randomIntegerInRange(100, 999)}` },
+        footer: { text: name ?? channelName },
+        timestamp: time.format(),
     };
 };
 
@@ -165,6 +156,12 @@ export const getChannelLive = async (noticeId: number, hashId: string, lastId: s
                     }
                 } else {
                     // 오프라인
+
+                    if (content) {
+                        try {
+                            await changeMessage(noticeId, content);
+                        } catch (e) {}
+                    }
                     if (lastId && lastId != '0') {
                         const result = await updateLiveEvents(noticeId);
                         if (result.changedRows == 0) {
@@ -178,21 +175,59 @@ export const getChannelLive = async (noticeId: number, hashId: string, lastId: s
             .catch(reject);
     });
 
+/**
+ * 메세지 수정
+ *  - 라이브 종료시간을 수정합니다
+ * @param notice_id
+ * @param content
+ */
+const changeMessage = async (notice_id: number, content: any) => {
+    const redisKey = REDIS_KEY.DISCORD.LAST_MESSAGE(`${notice_id}`);
+
+    const messages = await redis.get(redisKey);
+    if (messages) {
+        const { closeDate } = content;
+        for (const { id, message_reference, components, content, embeds, ...message } of JSON.parse(
+            messages
+        ) as APIMessage[]) {
+            const [embed] = embeds;
+
+            embed.description += `~ <t:${dayjs(closeDate).add(-9, 'h').unix()}:R>`;
+            embed.timestamp = undefined;
+            messageEdit(message.channel_id, id, {
+                ...message,
+                embeds,
+            }).catch(console.error);
+
+            await redis.del(redisKey);
+        }
+    }
+};
+
 export const getLiveMessage = async ({ channels, notice_id, hash_id, message, name, img_idx, id }: NoticeBat) => {
     const liveStatus = await getChannelLive(notice_id, hash_id, id);
     if (liveStatus) {
         // online
-        sendChannels(channels, {
+        const embed = convertVideoObject(liveStatus, name);
+
+        const messages = await sendChannels(channels, {
             content: message,
-            embeds: [convertVideoObject(liveStatus, name)],
+            embeds: [embed],
             components: [
                 createActionRow(
                     createSuccessButton(`notice attendance ${notice_id}`, {
-                        label: '출석체크',
-                        emoji: { id: '1218859390988456027' },
+                        label: appendTextWing('📌출석체크\u3164', 9), // 크기보정
+                    }),
+                    createUrlButton(`${embed.url}`, {
+                        emoji: { id: '1218118186717937775' },
                     })
                 ),
             ],
+        });
+
+        const redisKey = REDIS_KEY.DISCORD.LAST_MESSAGE(`${notice_id}`);
+        await redis.set(redisKey, JSON.stringify(messages), {
+            EX: 60 * 60 * 24, // 12시간
         });
     } else {
         // offline

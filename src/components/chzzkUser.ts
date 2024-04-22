@@ -199,13 +199,13 @@ const changeMessage = async (notice_id: number, content: any) => {
 /**
  * 채널의 비디오 목록을 가져옵니다
  * @param notice_ida
- * @param hash_id
+ * @param hashId
  * @returns
  */
-export const getChannelLive = async (notice_id: number, hash_id: string, liveId: string | number) =>
+export const getChannelLive = async (noticeId: number, hashId: string, liveId: string | number) =>
     new Promise<Content | null>((resolve, reject) => {
         axios
-            .get(`https://api.chzzk.naver.com/service/v2/channels/${hash_id}/live-detail`, {
+            .get(`https://api.chzzk.naver.com/service/v2/channels/${hashId}/live-detail`, {
                 headers: {
                     'User-Agent':
                         'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
@@ -215,17 +215,23 @@ export const getChannelLive = async (notice_id: number, hash_id: string, liveId:
                 const { content } = data;
                 if (!content?.liveId || content.liveId === liveId) return reject(null);
                 if (content && content.status === 'OPEN') {
-                    await insertLiveEvents(notice_id, content.liveId, {
+                    await insertLiveEvents(noticeId, content.liveId, {
                         image: content.liveImageUrl?.replace('{type}', '1080') || '',
                         title: content.liveTitle,
                         game: content.liveCategory,
                         live_at: content.openDate,
                     });
                 } else {
+                    // close
+
+                    if (content) {
+                        try {
+                            await changeMessage(noticeId, content);
+                        } catch (e) {}
+                    }
                     if (liveId && liveId != '0') {
-                        const result = await updateLiveEvents(notice_id);
+                        const result = await updateLiveEvents(noticeId);
                         if (result.changedRows == 0) return reject(null);
-                        else await changeMessage(notice_id, content);
                         // 이미 처리된 알림
                     }
                 }
@@ -243,8 +249,16 @@ export const getChannelLive = async (notice_id: number, hash_id: string, liveId:
  * @see convertVideoObject
  * @see sendChannels
  */
-export const getLiveMessage = async ({ channels, notice_id, hash_id, message, name, id, img_idx }: NoticeBat) => {
-    const liveStatus = await getChannelLive(notice_id, hash_id, id);
+export const getLiveMessage = async ({
+    channels,
+    notice_id: noticeId,
+    hash_id: hashId,
+    message,
+    name,
+    id,
+    img_idx,
+}: NoticeBat) => {
+    const liveStatus = await getChannelLive(noticeId, hashId, id);
     if (liveStatus && liveStatus.status === 'OPEN') {
         // online
         const messages = await sendChannels(channels, {
@@ -252,17 +266,17 @@ export const getLiveMessage = async ({ channels, notice_id, hash_id, message, na
             embeds: [convertVideoObject(liveStatus, name)],
             components: [
                 createActionRow(
-                    createSuccessButton(`notice attendance 1`, {
+                    createSuccessButton(`notice attendance ${noticeId}`, {
                         label: appendTextWing('📌출석체크\u3164', 9), // 크기보정
                     }),
-                    createUrlButton(`https://chzzk.naver.com/live/${hash_id}`, {
+                    createUrlButton(`https://chzzk.naver.com/live/${hashId}`, {
                         emoji: { id: '1218118186717937775' },
                     })
                 ),
             ],
         });
 
-        const redisKey = REDIS_KEY.DISCORD.LAST_MESSAGE(`${notice_id}`);
+        const redisKey = REDIS_KEY.DISCORD.LAST_MESSAGE(`${noticeId}`);
         await redis.set(redisKey, JSON.stringify(messages), {
             EX: 60 * 60 * 24, // 12시간
         });
@@ -271,10 +285,10 @@ export const getLiveMessage = async ({ channels, notice_id, hash_id, message, na
 
 /**
  * xml 형태의 데이터를 embed 형태로 변환합니다
- * @param video_object
+ * @param videoObject
  * @returns APIEmbed
  */
-const convertVideoObject = (video_object: Content, name?: string): APIEmbed => {
+const convertVideoObject = (videoObject: Content, name?: string): APIEmbed => {
     const {
         liveTitle: title,
         liveImageUrl,
@@ -282,7 +296,7 @@ const convertVideoObject = (video_object: Content, name?: string): APIEmbed => {
         liveCategoryValue: game_name,
         categoryType,
         channel: { channelImageUrl, channelId, channelName },
-    } = video_object;
+    } = videoObject;
     const time = dayjs(openDate).add(-9, 'h');
 
     return {
