@@ -269,7 +269,7 @@ ${createCalender(new Date(), ...pin)}
         components: [
             createActionRow(
                 createUrlButton(`https://orefinger.click/bord/attach/${noticeId}`, {
-                    label: appendTextWing('📅출석현황', 12),
+                    label: appendTextWing('📅출석현황', 9),
                 })
             ),
         ],

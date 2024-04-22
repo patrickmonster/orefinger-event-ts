@@ -253,9 +253,9 @@ export const getLiveMessage = async ({ channels, notice_id, hash_id, message, na
             components: [
                 createActionRow(
                     createSuccessButton(`notice attendance 1`, {
-                        label: appendTextWing('📌출석체크', 9),
+                        label: appendTextWing('📌출석체크\u3164', 9), // 크기보정
                     }),
-                    createUrlButton(`https://chzzk.naver.com/live/1`, {
+                    createUrlButton(`https://chzzk.naver.com/live/${hash_id}`, {
                         emoji: { id: '1218118186717937775' },
                     })
                 ),
