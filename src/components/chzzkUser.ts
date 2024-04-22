@@ -261,14 +261,13 @@ export const getLiveMessage = async ({
 }: NoticeBat) => {
     const liveStatus = await getChannelLive(noticeId, hashId, id);
     if (liveStatus && liveStatus.status === 'OPEN') {
-        // online
         const messages = await sendChannels(channels, {
             content: message,
             embeds: [convertVideoObject(liveStatus, name)],
             components: [
                 createActionRow(
                     createSuccessButton(`notice attendance ${noticeId}`, {
-                        label: appendTextWing('📌출석체크\u3164', 9), // 크기보정
+                        label: appendTextWing('📌출석체크\u3164', 8), // 크기보정
                     }),
                     createUrlButton(`https://chzzk.naver.com/live/${hashId}`, {
                         emoji: { id: '1218118186717937775' },
@@ -282,6 +281,7 @@ export const getLiveMessage = async ({
             EX: 60 * 60 * 24, // 12시간
         });
     }
+    return liveStatus;
 };
 
 /**

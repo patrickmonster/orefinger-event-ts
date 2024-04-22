@@ -69,10 +69,13 @@ export const createUrlButton = (url: string, props: ButtomProps<ButtonStyle.Link
     ...props,
 });
 
-export const appendTextWing = (text: string, count: number) => {
-    const wing = Array.from({ length: count })
-        .map(() => '\u3164')
+export const getTextSpace = (count: number) =>
+    Array.from({ length: count })
+        .map(() => '\u200b')
         .join('');
+
+export const appendTextWing = (text: string, count: number) => {
+    const wing = getTextSpace(count);
     return `${wing}${text}${wing}`;
 };
 

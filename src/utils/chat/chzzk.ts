@@ -38,7 +38,7 @@ export enum ChatType {
     SYSTEM_MESSAGE = 30,
 }
 
-interface ChatMessage {
+export interface ChatMessage {
     profile: any;
     extras: any;
     hidden: boolean;
@@ -54,6 +54,7 @@ interface ChatOption {
     nidSession?: string;
 }
 
+export type ChzzkWebSocketType = typeof ChzzkWebSocket;
 export default class ChzzkWebSocket extends EventEmitter {
     private ws?: WebSocket;
     private options: any;

@@ -96,7 +96,16 @@ ${name} - 방영이 종료되었습니다
     }),
     chzzk: new BaseTask({ targetEvent: 4, timmer: 100 }).on('scan', async (item: NoticeBat) => {
         try {
-            await chzzk(item);
+            const liveStatus = await chzzk(item);
+
+            if (liveStatus) {
+                process.send?.({
+                    type: 'liveCangeChzzk',
+                    data: {
+                        liveStatus,
+                    },
+                });
+            }
         } catch (e: any) {
             if (e) {
                 // 서비스 차단
@@ -137,6 +146,16 @@ if (process.env.ECS_CONTAINER_METADATA_URI) {
             process.env.ECS_FAMILY = Family;
 
             const { insertId } = await ecsSet(id, Revision, Family);
+
+            process.send?.({
+                type: 'ecsSet',
+                data: {
+                    insertId,
+                    Family,
+                    Revision,
+                    TaskARN,
+                },
+            });
 
             console.log(`ECS SET ::`, insertId);
 
