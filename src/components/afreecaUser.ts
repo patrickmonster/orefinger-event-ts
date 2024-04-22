@@ -152,6 +152,7 @@ export const getChannelLive = async (noticeId: number, hashId: string, lastId: s
                             title: broad.broad_title,
                             game: 'TALK',
                             live_at: dayjs(station.broad_start).add(-9, 'h').format(),
+                            chat: '-',
                         });
                     }
                 } else {

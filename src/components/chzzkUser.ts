@@ -220,6 +220,7 @@ export const getChannelLive = async (noticeId: number, hashId: string, liveId: s
                         title: content.liveTitle,
                         game: content.liveCategory,
                         live_at: content.openDate,
+                        chat: content.chatChannelId,
                     });
                 } else {
                     // close
