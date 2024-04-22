@@ -13,6 +13,10 @@ import { BaseTask } from 'utils/baseTask';
 import { openApi } from 'utils/discordApiInstance';
 import { error as errorLog } from './utils/logger';
 
+/**
+ * 알림 작업 스레드 입니다.
+ * @description 알림 작업을 수행하는 스레드로써, 각 알림 스캔 작업을 수행합니다.
+ */
 const tasks = {
     youtube: new BaseTask({ targetEvent: 2, timmer: 1000 * 60 * 3 }).on(
         'scan',
