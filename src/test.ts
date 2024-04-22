@@ -5,10 +5,13 @@
 //     path: join(env.PWD || __dirname, `/src/env/.env.local`),
 // });
 
-import { calculateLevel } from 'utils/discord/xp';
+import Chzzk from 'utils/chzzk/chat';
 
-// import 'bat/youtube';
-
-Array.from({ length: 300 }, (_, i) => {
-    console.log(i + 1, ' :: ', calculateLevel(i));
+const client = new Chzzk({
+    liveChannelId: '2086f44c7b09a17cef6786f21389db3b',
 });
+client.on('chat', message => {
+    console.log(message);
+});
+
+client.connect();
