@@ -222,10 +222,16 @@ export const getChannelLive = async (notice_id: number, hash_id: string, liveId:
                         live_at: content.openDate,
                     });
                 } else {
+                    // close
+
+                    if (content) {
+                        try {
+                            await changeMessage(notice_id, content);
+                        } catch (e) {}
+                    }
                     if (liveId && liveId != '0') {
                         const result = await updateLiveEvents(notice_id);
                         if (result.changedRows == 0) return reject(null);
-                        else await changeMessage(notice_id, content);
                         // 이미 처리된 알림
                     }
                 }
