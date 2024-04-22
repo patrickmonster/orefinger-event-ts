@@ -5,7 +5,7 @@
 //     path: join(env.PWD || __dirname, `/src/env/.env.local`),
 // });
 
-import Chzzk from 'utils/chzzk/chat';
+import Chzzk from 'utils/chat/chzzk';
 
 const client = new Chzzk({
     liveChannelId: '2086f44c7b09a17cef6786f21389db3b',
