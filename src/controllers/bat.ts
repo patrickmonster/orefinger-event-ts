@@ -279,10 +279,12 @@ export const insertLiveEvents = async (
         image,
         title,
         game,
+        live_at,
     }: {
         image: string;
         title: string;
         game: string;
+        live_at: string;
     }
 ) =>
     query(`INSERT INTO notice_live SET ?`, {
@@ -291,6 +293,7 @@ export const insertLiveEvents = async (
         image,
         title,
         game,
+        live_at,
     });
 
 export const updateLiveEvents = async (notice_id: number) =>

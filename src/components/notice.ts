@@ -2,6 +2,7 @@ import { NoticeId, ParseInt, selectNoticeDtilByEmbed, upsertAttach, upsertNotice
 import { ChannelType } from 'discord-api-types/v10';
 import { NoticeChannel } from 'interfaces/notice';
 import {
+    appendTextWing,
     createActionRow,
     createChannelSelectMenu,
     createEmbed,
@@ -268,7 +269,7 @@ ${createCalender(new Date(), ...pin)}
         components: [
             createActionRow(
                 createUrlButton(`https://orefinger.click/bord/attach/${noticeId}`, {
-                    label: '          📅출석현황          ',
+                    label: appendTextWing('📅출석현황', 12),
                 })
             ),
         ],

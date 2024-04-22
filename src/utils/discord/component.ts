@@ -69,6 +69,13 @@ export const createUrlButton = (url: string, props: ButtomProps<ButtonStyle.Link
     ...props,
 });
 
+export const appendTextWing = (text: string, count: number) => {
+    const wing = Array.from({ length: count })
+        .map(() => '\u3164')
+        .join('');
+    return `${wing}${text}${wing}`;
+};
+
 export const createPrimaryButton = (custom_id: string, props: ButtomProps<ButtonStyle.Primary>) =>
     createButton(custom_id, { style: ButtonStyle.Primary, ...props });
 export const createSecondaryButton = (custom_id: string, props: ButtomProps<ButtonStyle.Secondary>) =>

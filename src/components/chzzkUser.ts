@@ -13,7 +13,7 @@ import { NoticeBat } from 'interfaces/notice';
 import { KeyVal } from 'interfaces/text';
 import qs from 'querystring';
 import { ENCRYPT_KEY, sha256 } from 'utils/cryptoPw';
-import { createActionRow, createSuccessButton, createUrlButton } from 'utils/discord/component';
+import { appendTextWing, createActionRow, createSuccessButton, createUrlButton } from 'utils/discord/component';
 import { messageEdit } from './discord';
 
 const chzzk = getChzzkAPI('v1');
@@ -219,6 +219,7 @@ export const getChannelLive = async (notice_id: number, hash_id: string, liveId:
                         image: content.liveImageUrl?.replace('{type}', '1080') || '',
                         title: content.liveTitle,
                         game: content.liveCategory,
+                        live_at: content.openDate,
                     });
                 } else {
                     if (liveId && liveId != '0') {
@@ -251,10 +252,10 @@ export const getLiveMessage = async ({ channels, notice_id, hash_id, message, na
             embeds: [convertVideoObject(liveStatus, name)],
             components: [
                 createActionRow(
-                    createSuccessButton(`notice attendance ${notice_id}`, {
-                        label: '     📌출석체크     ',
+                    createSuccessButton(`notice attendance 1`, {
+                        label: appendTextWing('📌출석체크', 9),
                     }),
-                    createUrlButton(`https://chzzk.naver.com/live/${hash_id}`, {
+                    createUrlButton(`https://chzzk.naver.com/live/1`, {
                         emoji: { id: '1218118186717937775' },
                     })
                 ),
