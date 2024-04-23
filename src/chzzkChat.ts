@@ -1,5 +1,6 @@
 import { ChatLog, insertChatQueue } from 'controllers/chat/chzzk';
-import ChzzkWebSocket, { ChatMessage, ChzzkAPI } from 'utils/chat/chzzk';
+import { ChatMessage } from 'interfaces/chzzk/chat';
+import ChzzkWebSocket, { ChzzkAPI } from 'utils/chat/chzzk';
 import { LoopRunQueue } from 'utils/object';
 import { error as errorLog } from './utils/logger';
 
