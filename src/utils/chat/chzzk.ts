@@ -1,10 +1,9 @@
+import EventEmitter from 'events';
 import WebSocket, { MessageEvent } from 'isomorphic-ws';
-
+import { RoundQueue } from 'utils/object';
 /**
  * 채팅을 위한 소캣 입니다.
  */
-
-import EventEmitter from 'events';
 
 const CHZZK_BASE_URL = 'https://api.chzzk.naver.com';
 const GAME_BASE_URL = 'https://comm-api.game.naver.com/nng_main';
@@ -43,8 +42,9 @@ export interface ChatMessage {
     extras: any;
     hidden: boolean;
     message: any;
-    time: any;
+    time: number;
     isRecent: boolean;
+    id: any;
     memberCount?: any;
 }
 
@@ -54,15 +54,24 @@ interface ChatOption {
     nidSession?: string;
 }
 
+const getServiceId = (channelId: string) =>
+    (Math.abs(channelId.split('').reduce((acc, cur) => acc + cur.charCodeAt(0), 0)) % 9) + 1;
+
 export type ChzzkWebSocketType = typeof ChzzkWebSocket;
+
 export default class ChzzkWebSocket extends EventEmitter {
     private ws?: WebSocket;
-    private options: any;
 
     private nidAuth?: string;
     private nidSession?: string;
 
+    private chatCount: number = 0;
+
     private defaultHeader = {}; // 통신에 필요한 기본 헤더
+
+    private chatList = new RoundQueue(1000); // 채팅 리스트
+
+    private userList = new Map<string, any>(); // 유저 리스트
 
     private uid?: string;
     private sid?: string;
@@ -77,17 +86,20 @@ export default class ChzzkWebSocket extends EventEmitter {
     private pingTimeoutId?: NodeJS.Timeout;
     private taskIntervalId?: NodeJS.Timeout;
 
+    private _pwId: number = 0; // 프로세스 ID (비트 연산을 위한 값)
+
     constructor(options: ChatOption) {
         super();
-        this.options = options;
+        // this.options = options;
         this.liveChannelId = options.liveChannelId;
         this.nidAuth = options.nidAuth;
         this.nidSession = options.nidSession;
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
+
     get serverId() {
-        return (Math.abs(this.chatChannelId.split('').reduce((a, b) => a + b.charCodeAt(0), 0)) % 9) + 1;
+        return getServiceId(this.channelId);
     }
 
     /**
@@ -108,37 +120,65 @@ export default class ChzzkWebSocket extends EventEmitter {
         return this.nidAuth && this.nidSession;
     }
 
+    get host() {
+        return `wss://kr-ss${this.serverId}.chat.naver.com/chat`;
+    }
+
+    get chat() {
+        return this.chatList.toArray();
+    }
+    get chatSize() {
+        return this.chatCount;
+    }
+
+    get users() {
+        return this.userList;
+    }
+
+    get pwId() {
+        if (!this._pwId) {
+            const processId = getServiceId(this.channelId) & 0x1f;
+            const workerId = this.serverId & 0xf;
+
+            this._pwId = (workerId * 2 ** 5) | processId;
+        }
+        return this._pwId;
+    }
+
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     /**
      * 소캣을 연결합니다.
      */
-
     async connect() {
         //
         if (this.isConnect) {
             throw new Error('이미 연결된 상태');
         }
 
-        this.chatChannelId = await this.status()
-            .then(status => status?.chatChannelId)
-            .catch(() => null);
+        if (!this.channelId)
+            this.chatChannelId = await this.status()
+                .then(status => status?.chatChannelId)
+                .catch(() => null);
 
         if (this.channelId && !this.token) {
             this.uid = this.hasAuth ? await this.user().then(user => user?.userIdHash) : undefined;
             this.token = await this.accessToken().then(token => token.accessToken);
         }
 
+        // N19-VM
         this.defaultHeader = {
             cid: this.channelId,
             svcid: 'game',
             ver: '2',
         };
 
-        this.ws = new WebSocket(`wss://kr-ss${this.serverId}.chat.naver.com/chat`);
+        this.ws = new WebSocket(this.host);
         this.ws.onopen = this.onOpen.bind(this);
         this.ws.onclose = this.onClose.bind(this);
         this.ws.onmessage = this.handelMessage.bind(this);
+
+        return this;
     }
 
     async disconnect() {
@@ -174,28 +214,27 @@ export default class ChzzkWebSocket extends EventEmitter {
             tid: 1,
         });
 
-        if (!this.isReConnect) {
-            this.startTask();
-        }
+        if (!this.isReConnect) this.startTask();
     }
 
     private onClose() {
         if (!this.isReConnect) {
             this.emit('disconnect', this.channelId);
-            // this.stopPolling();
+            this.stopTask();
             this.chatChannelId = '';
         }
 
         this.stopPingTimer();
-
         this.ws = undefined;
 
-        if (this.isConnect) {
-            this.disconnect();
-        }
+        if (this.isConnect) this.disconnect();
     }
 
     //////////////////////////////////////////////////////////////////////////
+
+    private hasConnected() {
+        this.hasConnected();
+    }
 
     private fetch(pathOrUrl: string, options?: RequestInit): Promise<any> {
         const headers: any = {
@@ -248,9 +287,7 @@ export default class ChzzkWebSocket extends EventEmitter {
      * @param count 최근 채팅 갯수
      */
     requestRecentChat(count: number = 50) {
-        if (!this.isConnect) {
-            throw new Error('Not connected');
-        }
+        this.hasConnected();
 
         this.sendRow({
             bdy: { recentMessageCount: count },
@@ -261,9 +298,7 @@ export default class ChzzkWebSocket extends EventEmitter {
     }
 
     sendChat(message: string, emojis: Record<string, string> = {}) {
-        if (!this.isConnect) {
-            throw new Error('Not connected');
-        }
+        this.hasConnected();
 
         if (!this.uid) {
             throw new Error('Not logged in');
@@ -290,17 +325,11 @@ export default class ChzzkWebSocket extends EventEmitter {
         });
     }
 
-    private async handelMessage(event: MessageEvent) {
-        const json = JSON.parse(event.data as string);
-        const body = json['bdy'];
-        this.emit('raw', json);
+    private async handelMessage({ data }: MessageEvent) {
+        const { bdy: body, cmd } = JSON.parse(data as string);
+        this.emit('raw', { body, cmd });
 
-        if (!body) {
-            console.log('NO BODY', json);
-            return;
-        }
-
-        switch (json.cmd) {
+        switch (cmd) {
             case ChatCmd.CONNECTED: {
                 const { sid } = body;
                 this.connected = true;
@@ -313,7 +342,7 @@ export default class ChzzkWebSocket extends EventEmitter {
                 }
                 break;
             }
-            case ChatCmd.PING:
+            case ChatCmd.PING: {
                 this.ws?.send(
                     JSON.stringify({
                         cmd: ChatCmd.PONG,
@@ -321,23 +350,24 @@ export default class ChzzkWebSocket extends EventEmitter {
                     })
                 );
                 break;
+            }
             case ChatCmd.CHAT:
             case ChatCmd.RECENT_CHAT:
-            case ChatCmd.DONATION:
-                const isRecent = json.cmd == ChatCmd.RECENT_CHAT;
-                const chats = body['messageList'] || body;
-                const notice = body['notice'];
+            case ChatCmd.DONATION: {
+                const isRecent = cmd == ChatCmd.RECENT_CHAT;
+                const { messageList, notice } = body;
+                const chats = messageList || body;
                 if (notice) {
                     this.emit('notice', this.parseChat(notice, isRecent));
                 }
 
                 for (const chat of chats) {
-                    const type = chat['msgTypeCode'] || chat['messageTypeCode'] || '';
+                    const type = this.getContentAllias(chat, 'msgTypeCode', 'messageTypeCode') || '';
                     const parsed = this.parseChat(chat, isRecent);
 
                     switch (type) {
                         case ChatType.TEXT:
-                            this.emit('chat', parsed);
+                            this.createUserMessage(parsed);
                             break;
                         case ChatType.DONATION:
                             this.emit('donation', parsed);
@@ -351,6 +381,7 @@ export default class ChzzkWebSocket extends EventEmitter {
                     }
                 }
                 break;
+            }
             case ChatCmd.NOTICE:
                 this.emit('notice', Object.keys(body).length != 0 ? this.parseChat(body) : null);
                 break;
@@ -358,9 +389,43 @@ export default class ChzzkWebSocket extends EventEmitter {
                 this.emit('blind', body);
         }
 
-        if (json.cmd != ChatCmd.PONG) {
+        if (cmd != ChatCmd.PONG) {
             this.startPingTimer();
         }
+    }
+
+    // 1232224917869559808
+    // 1232224917869559800
+
+    /**
+     * 메세지 ID를 생성합니다.
+     * @param time
+     * @returns Snowflake
+     * @reference https://discord.com/developers/docs/reference#snowflakes
+     * @reference https://github.com/lemon-mint/snowflake-id-web-visualisation/blob/main/src/main.ts#L107-L110
+     */
+    private getMessageId(time: number) {
+        let snowflake = BigInt(time - 1_420_070_400_000) & ((BigInt(1) << BigInt(41)) - BigInt(1)); // 41 bits for timestamp
+        snowflake = snowflake << BigInt(22); // shift 22 bits
+        snowflake |= BigInt(this.pwId & ((1 << 10) - 1)) << BigInt(12); // 10 bits for node id
+        snowflake |= BigInt(this.chatCount & ((1 << 12) - 1)); // 12 bits for counter
+
+        return snowflake.toString();
+    }
+
+    /**
+     * 메세지를 보존 및 이벤트를 발생시킵니다.
+     * @param chat
+     */
+    private createUserMessage(chat: ChatMessage) {
+        const { profile } = chat;
+        const { userIdHash } = profile;
+
+        this.userList.set(userIdHash, profile);
+        this.chatList.push(chat);
+        this.chatCount++;
+
+        this.emit('chat', chat);
     }
 
     private startPingTimer() {
@@ -396,10 +461,10 @@ export default class ChzzkWebSocket extends EventEmitter {
     }
 
     private parseChat(chat: any, isRecent: boolean = false): ChatMessage {
-        const profile = JSON.parse(chat['profile']);
-        const extras = 'extras' in chat ? JSON.parse(chat['extras']) : null;
+        const profile = JSON.parse(chat.profile);
+        const extras = 'extras' in chat ? JSON.parse(chat.extras) : null;
 
-        const { registerChatProfileJson, targetChatProfileJson, ...params } = extras?.['params'] || {};
+        const { registerChatProfileJson, targetChatProfileJson, ...params } = extras?.params || {};
         if (registerChatProfileJson && targetChatProfileJson) {
             params.registerChatProfile = JSON.parse(registerChatProfileJson);
             params.targetChatProfile = JSON.parse(targetChatProfileJson);
@@ -419,11 +484,12 @@ export default class ChzzkWebSocket extends EventEmitter {
             hidden,
             message,
             time,
+            id: this.getMessageId(time), // 메세지 ID 생성 (Snowflake)
             isRecent,
         };
 
         if (memberCount) {
-            parsed['memberCount'] = memberCount;
+            parsed.memberCount = memberCount;
         }
 
         return parsed;
@@ -432,7 +498,6 @@ export default class ChzzkWebSocket extends EventEmitter {
     private sendRow<T extends Object>(data: { bdy?: T; cmd: ChatCmd; tid?: number; sid?: string; retry?: boolean }) {
         const requsetData = { ...data, ...this.defaultHeader };
         console.log('SEND', requsetData);
-
         if (this.ws) {
             this.ws.send(JSON.stringify(requsetData));
         } else {
@@ -448,7 +513,7 @@ export default class ChzzkWebSocket extends EventEmitter {
                 .catch(() => null);
 
             //  채널 ID 가 변경된 경우
-            if (chatChannelId && chatChannelId != this.options.chatChannelId) {
+            if (chatChannelId && chatChannelId != this.channelId) {
                 this.chatChannelId = chatChannelId;
 
                 await this.reconnect();
