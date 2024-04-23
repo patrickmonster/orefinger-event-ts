@@ -14,45 +14,61 @@ if (existsSync(envDir)) {
 }
 
 import { ChatLog, insertChatQueue } from 'controllers/chat/chzzk';
-import Chzzk, { ChatMessage } from 'utils/chat/chzzk';
+import { ChatBase, ChatMessage } from 'interfaces/chzzk/chat';
+import Chzzk, { ChzzkAPI } from 'utils/chat/chzzk';
 import { LoopRunQueue } from 'utils/object';
 
 const appendChat = LoopRunQueue<ChatLog>(
-    chats => {
-        insertChatQueue(chats).catch(console.error);
+    async chats => {
+        await insertChatQueue(chats).catch(console.error);
     },
     1000 * 60,
     500
 );
 
-const client = new Chzzk({
-    liveChannelId: '458f6ec20b034f49e0fc6d03921646d2',
-});
+const servers = new Map<number, Chzzk>();
+const getServerInstance = async (chatChannelId: string) =>
+    new Promise<Chzzk>((resolve, reject) => {
+        const idx = ChzzkAPI.serverId(chatChannelId);
 
-client
-    .on('chat', (chat: ChatMessage) => {
-        const {
-            time,
-            id,
-            message,
-            hidden,
-            extras: { osType, streamingChannelId },
-            profile: { userIdHash },
-        } = chat;
+        let server = servers.get(idx);
+        if (!server) {
+            server = new Chzzk(idx);
+            servers.set(idx, server);
 
-        console.log('MESSAGE ::', time, id, client.chatSize, message);
-
-        appendChat({
-            channel_id: streamingChannelId,
-            message_id: id,
-            message,
-            user_id: userIdHash,
-            os_type: osType || '-',
-            hidden_yn: hidden ? 'Y' : 'N',
-        });
-    })
-    .on('error', console.error)
-    .on('close', () => {
-        console.log('CLOSE');
+            server
+                .on('error', console.error)
+                .on('close', () => {
+                    console.log('CLOSE');
+                })
+                .once('ready', () => {
+                    if (!server) reject('Server is not created');
+                    else resolve(server);
+                })
+                .connect();
+        } else resolve(server);
     });
-client.connect();
+
+const api = new ChzzkAPI();
+
+api.createChannel('2086f44c7b09a17cef6786f21389db3b').then(async channel => {
+    const server = await getServerInstance(channel.liveChannelId);
+
+    server.join(channel);
+
+    server
+        .on('chat', (chat: ChatMessage) => {
+            const {
+                message,
+                id,
+                profile: { nickname },
+            } = chat;
+            console.log('CHAT ::', id, nickname, '::', message);
+        })
+        .on('subscription', (chat: ChatBase<any, any>) => {
+            console.log('subscription ::', chat);
+        })
+        .on('systemMessage', (chat: ChatBase<any, any>) => {
+            console.log('systemMessage ::', chat);
+        });
+});

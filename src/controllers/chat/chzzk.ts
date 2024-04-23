@@ -24,3 +24,5 @@ export const insertChatQueue = async (chats: ChatLog[]) => {
         )}`
     );
 };
+
+export const selectUser = async (userId: string) => query('SELECT * FROM chat_user WHERE user_id = ?', userId);

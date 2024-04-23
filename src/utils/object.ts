@@ -27,11 +27,11 @@ export const randomIntegerInRange = (min: number, max: number) => Math.floor(Mat
 
 export const ParseInt = (id: string | number) => (typeof id == 'string' ? parseInt(id) : id);
 
-export const LoopRunQueue = <T>(func: (l: T[]) => void, time?: number, limit = 100) => {
+export const LoopRunQueue = <T>(func: (l: T[]) => Promise<any>, time?: number, limit = 100) => {
     const list: T[] = [];
 
-    const loop = () => {
-        list.length && func(list);
+    const loop = async () => {
+        list.length && (await func(list));
         list.length = 0;
         interval = setTimeout(loop, time || 1000 * 60);
     };
