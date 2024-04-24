@@ -26,6 +26,8 @@ export class ChzzkAPI {
     private userProfile?: any;
 
     constructor(options?: ChatOption) {
+        console.log('API', options);
+
         this.nidAuth = options?.nidAuth;
         this.nidSession = options?.nidSession;
     }
@@ -87,7 +89,10 @@ export class ChzzkAPI {
     async user() {
         if (!this.hasAuth) return undefined;
         if (this.userProfile) return this.userProfile;
-        return await this.fetch(`${GAME_BASE_URL}/v1/user/getUserStatus`).then(({ content }) => content);
+        return await this.fetch(`${GAME_BASE_URL}/v1/user/getUserStatus`).then(({ content }) => {
+            this.userProfile = content;
+            return content;
+        });
     }
 
     async createChannel(liveChannelId: string, ver = '2', svcid = 'game'): Promise<ChatChannel> {
@@ -102,7 +107,7 @@ export class ChzzkAPI {
         const workerId = getServiceId(chatChannelId) & 0xf;
         const pwId = (workerId * 2 ** 5) | processId;
 
-        return {
+        const profile = {
             liveChannelId,
             chatChannelId,
             uid,
@@ -115,6 +120,8 @@ export class ChzzkAPI {
                 ver,
             },
         };
+
+        return profile;
     }
 }
 
@@ -135,8 +142,6 @@ export default class ChzzkWebSocket extends EventEmitter {
 
     private serverId: number = 1;
     private api: ChzzkAPI;
-
-    private connectQueue: ChatChannel[] = [];
 
     constructor(serverId: number, api?: ChzzkAPI) {
         super();
@@ -179,32 +184,7 @@ export default class ChzzkWebSocket extends EventEmitter {
         this.ws.onopen = this.onOpen.bind(this);
         this.ws.onclose = this.onClose.bind(this);
         this.ws.onmessage = this.handelMessage.bind(this);
-
         console.log('CONNECT ::', this.host);
-
-        // this.chatChannels
-
-        const uid = await this.api.user().then(user => user?.userIdHash);
-        const token = await this.api.accessToken('N102Fl').then(token => token?.accessToken);
-
-        this.ws.send(
-            JSON.stringify({
-                bdy: {
-                    accTkn: token,
-                    auth: this.api.hasAuth ? 'SEND' : 'READ',
-                    devType: 2001,
-                    uid,
-                },
-                cmd: ChatCmd.CONNECT,
-                tid: 1,
-                svcid: 'game',
-                ver: '2',
-            })
-        );
-
-        for (const chatChannel of this.chatChannels.values()) {
-            await this.join(chatChannel);
-        }
 
         return this;
     }
@@ -233,11 +213,6 @@ export default class ChzzkWebSocket extends EventEmitter {
     }
 
     private onClose() {
-        // if (!this.isReConnect) {
-        //     this.emit('disconnect');
-        //     this.stopTask();
-        // }
-
         this.stopPingTimer();
         this.ws = undefined;
 
@@ -247,45 +222,68 @@ export default class ChzzkWebSocket extends EventEmitter {
     //////////////////////////////////////////////////////////////////////////
 
     private hasConnected() {
-        this.hasConnected();
+        if (!this.isConnect) {
+            throw new Error('소캣이 연결되지 않았습니다.');
+        }
     }
 
     //////////////////////////////////////////////////////////////////////////
 
+    private async initJoiin(channel: ChatChannel) {
+        const { liveChannelId, token, uid } = channel;
+        this.sendRow(liveChannelId, {
+            bdy: {
+                accTkn: token,
+                auth: uid ? 'SEND' : 'READ',
+                devType: 2001,
+                uid: uid,
+            },
+            cmd: ChatCmd.CONNECT,
+            tid: 1,
+        });
+    }
+
     private joinQueue = new Map<string, [Function, Function]>();
+
+    private isInitJoin = false;
 
     /**
      * 새로운 채널에 연결합니다.
      * @param channel
      * @returns
      */
-    async join(channel: ChatChannel) {
+    async join(channel: ChatChannel | string) {
+        if (typeof channel == 'string') channel = await this.api?.createChannel(channel);
         console.log('JOIN', channel.liveChannelId);
         this.chatChannels.set(channel.liveChannelId, channel);
         this.chatCids.set(channel.chatChannelId, channel.liveChannelId);
-        return new Promise<void>(async (resolve, reject) => {
-            this.joinQueue.set(channel.liveChannelId, [resolve, reject]);
-            if (!this.isConnect) await this.connect();
 
-            const { liveChannelId, token, uid, chatChannelId } = channel;
-            this.sendRow(liveChannelId, {
-                bdy: {
-                    accTkn: token,
-                    auth: uid ? 'SEND' : 'READ',
-                    devType: 2001,
-                    uid: uid,
-                },
-                cmd: ChatCmd.JOIN,
-                tid: 1,
+        if (!this.isInitJoin) {
+            this.isInitJoin = true;
+            return await this.initJoiin(channel);
+        } else
+            return new Promise<void>(async (resolve, reject) => {
+                this.joinQueue.set(channel.liveChannelId, [resolve, reject]);
+                const { liveChannelId, token, uid } = channel;
+                this.sendRow(liveChannelId, {
+                    bdy: {
+                        accTkn: token,
+                        auth: uid ? 'SEND' : 'READ',
+                        devType: 2001,
+                        uid: uid,
+                    },
+                    retry: true,
+                    cmd: ChatCmd.CONNECT,
+                    tid: 1,
+                });
             });
-        });
     }
 
     async joinAsync(...liveChannelId: string[]) {
         for (const liveChannel of liveChannelId) {
             const channel = await this.api?.createChannel(liveChannel);
             if (channel) await this.join(channel);
-            await sleep(5000);
+            await sleep(1000);
         }
         return this;
     }
@@ -296,11 +294,6 @@ export default class ChzzkWebSocket extends EventEmitter {
             throw new Error('Channel not found');
         }
 
-        // this.sendRow(liveChannelId, {
-        //     cmd: ChatCmd.DISCONNECT,
-        //     tid: 1,
-        // });
-
         return this;
     }
 
@@ -310,7 +303,6 @@ export default class ChzzkWebSocket extends EventEmitter {
      */
     requestRecentChat(liveChannelId: string, count: number = 50) {
         this.hasConnected();
-
         this.sendRow(
             liveChannelId,
             {
@@ -356,11 +348,9 @@ export default class ChzzkWebSocket extends EventEmitter {
      */
     private getChatChannel(cid: string) {
         const channelId = this.chatCids.get(cid);
-        if (!channelId) {
-            console.log(cid, this.chatCids);
-            return undefined;
-        }
-        return this.chatChannels.get(channelId);
+
+        if (!channelId) return undefined;
+        else return this.chatChannels.get(channelId);
     }
 
     /**
@@ -406,6 +396,12 @@ export default class ChzzkWebSocket extends EventEmitter {
         );
     }
 
+    /**
+     * 상태 업데이트 이벤트
+     * @param liveChannelId
+     * @param isJoin
+     * @returns
+     */
     private async updateState(liveChannelId: string, isJoin: boolean = true) {
         if (!this.api) return;
 
@@ -431,11 +427,6 @@ export default class ChzzkWebSocket extends EventEmitter {
         this.emit('raw', { body, cmd });
 
         switch (cmd) {
-            case ChatCmd.CONNECTED: {
-                const channel = this.getChatChannel(cid);
-                if (channel) this.joinQueue.get(channel.liveChannelId)?.[0](); // resolve
-                break;
-            }
             case ChatCmd.PING: {
                 this.ws?.send(
                     JSON.stringify({
@@ -443,6 +434,19 @@ export default class ChzzkWebSocket extends EventEmitter {
                         ver: '2',
                     })
                 );
+                break;
+            }
+            case ChatCmd.CONNECTED: {
+                const channel = this.getChatChannel(cid);
+                if (channel) {
+                    channel.sid = body.sid;
+                    const [resolve, reject] = this.joinQueue.get(channel.liveChannelId) || [];
+                    if (resolve) {
+                        resolve();
+                        this.joinQueue.delete(channel.liveChannelId);
+                    }
+                    // this.requestRecentChat(channel.liveChannelId);
+                }
                 break;
             }
             case ChatCmd.CHAT:
@@ -588,7 +592,7 @@ export default class ChzzkWebSocket extends EventEmitter {
 
         const hidden = getContentAllias(chat, 'msgStatusType', 'messageStatusType') == 'HIDDEN';
 
-        const id = this.getMessageId(time, channel?.pwId || 0); // 메세지 ID 생성 (Snowflake)
+        const id = isRecent ? '-' : this.getMessageId(time, channel?.pwId || 0); // 메세지 ID 생성 (Snowflake)
 
         const parsed: ChatMessage = { profile, extras, hidden, message, time, id, isRecent };
         if (memberCount) {
@@ -598,6 +602,15 @@ export default class ChzzkWebSocket extends EventEmitter {
         return parsed;
     }
 
+    /**
+     * 미리 셋팅되는 데이터
+     *  cid: string; // 채널 id ( = chatChannelId )
+        svcid: string; // 서비스 id;
+        ver : string; // 버전 (2)
+     * @param liveChannelId 
+     * @param data 
+     * @param isSid 
+     */
     private sendRow<T extends Object>(
         liveChannelId: string,
         data: { bdy?: T; cmd: ChatCmd; tid?: number; sid?: string; retry?: boolean },
@@ -608,8 +621,10 @@ export default class ChzzkWebSocket extends EventEmitter {
             throw new Error('Channel not found');
         }
         const requsetData = { ...data, ...liveChannel.defaultHeader };
+
         if (isSid) requsetData.sid = liveChannel.sid;
-        console.log('SEND', requsetData);
+        // console.log('SEND', requsetData);
+
         if (this.ws) {
             this.ws.send(JSON.stringify(requsetData));
         } else {

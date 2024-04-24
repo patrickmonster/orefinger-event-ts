@@ -17,33 +17,13 @@ if (existsSync(envDir)) {
 import Chzzk, { ChzzkAPI } from 'utils/chat/chzzk';
 
 const servers = new Map<number, Chzzk>();
-const getServerInstance = async (chatChannelId: string) =>
-    new Promise<Chzzk>((resolve, reject) => {
-        const idx = ChzzkAPI.serverId(chatChannelId);
 
-        let server = servers.get(idx);
-        if (!server) {
-            server = new Chzzk(idx);
-            servers.set(idx, server);
+const api = new ChzzkAPI({
+    nidAuth: process.env.NID_AUTH,
+    nidSession: process.env.NID_SECRET,
+});
 
-            server
-                .on('error', console.error)
-                .on('close', () => {
-                    console.log('CLOSE');
-                })
-                .once('ready', () => {
-                    if (!server) reject('Server is not created');
-                    else resolve(server);
-                })
-                .connect();
-        } else resolve(server);
-    });
-
-new Chzzk(1)
-    .on('error', console.error)
-    .on('close', () => {
-        console.log('CLOSE');
-    })
+const server = new Chzzk(1, api)
     .on('chat', (chat: ChatMessage) => {
         const {
             message,
@@ -55,5 +35,19 @@ new Chzzk(1)
     })
     .connect()
     .then(async server => {
-        await server.joinAsync('034449b176b163a705b9c0e81f7a51c2', 'dcd75ef0f2c664e3270de18696ad43bf');
+        await server.join('e229d18df2edef8c9114ae6e8b20373a');
+    });
+const server2 = new Chzzk(1, api)
+    .on('chat', (chat: ChatMessage) => {
+        const {
+            message,
+            id,
+            extras: {},
+            profile: { nickname },
+        } = chat;
+        console.log('CHAT ::', id, nickname, '::', message);
+    })
+    .connect()
+    .then(async server => {
+        await server.join('0fe5c17cea248431e3747d95b7f038eb');
     });

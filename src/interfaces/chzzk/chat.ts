@@ -7,8 +7,10 @@ export enum ChatCmd {
     // COMMANDs
     SEND_CHAT = 3101,
 
-    JOIN = 4001, // 채널 입장
-    QUIT = 4002, // 채널 퇴장
+    // JOIN = 4001, // 채널 입장
+    // QUIT = 4002, // 채널 퇴장
+    JOIN = 94001, // 채널 입장
+    QUIT = 94002, // 채널 퇴장
 
     // 서버측 데이터 요청
     REQUEST_RECENT_CHAT = 5101, // 최근 채팅 요청
@@ -126,7 +128,7 @@ export interface ChatChannel {
     isReConnect: boolean; // 재접속 여부 (재접속시 true)
 
     uid: string; // 유저 id
-    sid?: string; // 세션 id
+    sid?: string; // 세션 id ( = chatSessionId )
     pwId: number; // 프로세서 ID
     token: string; // 토큰
 
