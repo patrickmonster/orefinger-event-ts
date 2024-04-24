@@ -1,19 +1,48 @@
 export enum ChatCmd {
+    // REQUEST
     PING = 0,
-    PONG = 10000,
     CONNECT = 100,
-    CONNECTED = 10100,
-    REQUEST_RECENT_CHAT = 5101,
+    PROFILE_ASYNC = 104, // 프로필 정보 요청 ->
+
+    // COMMANDs
+    SEND_CHAT = 3101,
+
+    JOIN = 4001, // 채널 입장
+    QUIT = 4002, // 채널 퇴장
+
+    // 서버측 데이터 요청
+    REQUEST_RECENT_CHAT = 5101, // 최근 채팅 요청
+
+    UPDATE_CONN_STATEUS = 9002, // 연결 상태 업데이트 -> ?
+
+    //////////////////////////////////////////////////////////////
+    // RESPONSE
+    PONG = 10000,
+    CONNECTED = 10100, // 연결 성공
+    RESPONSE_GET_PROFILE = 10104,
     RECENT_CHAT = 15101,
+    // 서버측 수신
+
+    //////////////////////////////////////////////////////////////
+    CLOSE = 90102, // server close ( 서버측 연결 해제 )
+
+    //// 3000
     EVENT = 93006,
     CHAT = 93101,
     DONATION = 93102,
+
+    //// 4000
     KICK = 94005,
     BLOCK = 94006,
     BLIND = 94008,
+    FORCE_DISCONNECT = 94009, // 서버측 연결 해제
     NOTICE = 94010,
+    CLOSE_LIVE = 94102,
+    DISABLE_LIVE = 94103,
     PENALTY = 94015,
-    SEND_CHAT = 3101,
+
+    // LOUNG_MESSAGE = 3201, // 라운지 메세지
+    RECONNECT = 94201, // 재접속
 }
 
 export enum ChatType {
@@ -91,19 +120,20 @@ export interface ChatOption {
 }
 
 export interface ChatChannel {
-    liveChannelId: string;
-    chatChannelId: string;
+    liveChannelId: string; // 실제 채널 hashId
+    chatChannelId: string; // 채팅 채널 id ( = defaultHeader.cid )
 
-    isReConnect: boolean;
+    isReConnect: boolean; // 재접속 여부 (재접속시 true)
 
-    uid: string;
-    sid?: string;
-    pwId: number;
-    token: string;
+    uid: string; // 유저 id
+    sid?: string; // 세션 id
+    pwId: number; // 프로세서 ID
+    token: string; // 토큰
 
+    // 기본 헤더
     defaultHeader?: {
-        cid: string;
-        svcid: string;
-        ver: string;
+        cid: string; // 채널 id ( = chatChannelId )
+        svcid: string; // 서비스 id;
+        ver: string; // 버전
     };
 }

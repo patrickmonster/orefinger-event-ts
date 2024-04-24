@@ -48,6 +48,15 @@ export const LoopRunQueue = <T>(func: (l: T[]) => Promise<any>, time?: number, l
     };
 };
 
+export const getContentAllias = (conent: any, ...alias: string[]) => {
+    for (const a of alias) {
+        if (conent[a]) {
+            return conent[a];
+        }
+    }
+    return null;
+};
+
 export class RoundQueue<T> {
     private queue: T[] = [];
     private length = 0;

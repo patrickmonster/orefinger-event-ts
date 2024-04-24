@@ -1,5 +1,6 @@
 import { config } from 'dotenv';
 import { existsSync } from 'fs';
+import { ChatMessage } from 'interfaces/chzzk/chat';
 import { join } from 'path';
 import { env } from 'process';
 
@@ -13,18 +14,7 @@ if (existsSync(envDir)) {
     });
 }
 
-import { ChatLog, insertChatQueue } from 'controllers/chat/chzzk';
-import { ChatBase, ChatMessage } from 'interfaces/chzzk/chat';
 import Chzzk, { ChzzkAPI } from 'utils/chat/chzzk';
-import { LoopRunQueue } from 'utils/object';
-
-const appendChat = LoopRunQueue<ChatLog>(
-    async chats => {
-        await insertChatQueue(chats).catch(console.error);
-    },
-    1000 * 60,
-    500
-);
 
 const servers = new Map<number, Chzzk>();
 const getServerInstance = async (chatChannelId: string) =>
@@ -49,26 +39,21 @@ const getServerInstance = async (chatChannelId: string) =>
         } else resolve(server);
     });
 
-const api = new ChzzkAPI();
-
-api.createChannel('2086f44c7b09a17cef6786f21389db3b').then(async channel => {
-    const server = await getServerInstance(channel.liveChannelId);
-
-    server.join(channel);
-
-    server
-        .on('chat', (chat: ChatMessage) => {
-            const {
-                message,
-                id,
-                profile: { nickname },
-            } = chat;
-            console.log('CHAT ::', id, nickname, '::', message);
-        })
-        .on('subscription', (chat: ChatBase<any, any>) => {
-            console.log('subscription ::', chat);
-        })
-        .on('systemMessage', (chat: ChatBase<any, any>) => {
-            console.log('systemMessage ::', chat);
-        });
-});
+new Chzzk(1)
+    .on('error', console.error)
+    .on('close', () => {
+        console.log('CLOSE');
+    })
+    .on('chat', (chat: ChatMessage) => {
+        const {
+            message,
+            id,
+            extras: {},
+            profile: { nickname },
+        } = chat;
+        console.log('CHAT ::', id, nickname, '::', message);
+    })
+    .connect()
+    .then(async server => {
+        await server.joinAsync('034449b176b163a705b9c0e81f7a51c2', 'dcd75ef0f2c664e3270de18696ad43bf');
+    });
