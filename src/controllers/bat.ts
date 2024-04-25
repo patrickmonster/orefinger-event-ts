@@ -2,7 +2,7 @@
 
 import { NoticeBat } from 'interfaces/notice';
 import { Paging } from 'interfaces/swagger';
-import { SqlInsertUpdate, query, selectPaging } from 'utils/database';
+import { SqlInsertUpdate, calTo, query, selectPaging } from 'utils/database';
 
 type NoticeId = string | number;
 
@@ -299,9 +299,14 @@ export const insertLiveEvents = async (
         chat,
     });
 
-export const updateLiveEvents = async (notice_id: number) =>
+export const updateLiveEvents = async (notice_id: number, id?: number) =>
     query<SqlInsertUpdate>(
-        `UPDATE notice_live SET end_at=CURRENT_TIMESTAMP WHERE notice_id=? AND end_at IS NULL`,
+        `
+UPDATE notice_live 
+SET end_at=CURRENT_TIMESTAMP 
+WHERE notice_id=? 
+${calTo(`AND id=?`, id)}
+AND end_at IS NULL`,
         getNoticeId(notice_id)
     );
 
