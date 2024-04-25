@@ -14,6 +14,7 @@ import { KeyVal } from 'interfaces/text';
 import qs from 'querystring';
 import { ENCRYPT_KEY, sha256 } from 'utils/cryptoPw';
 import { appendTextWing, createActionRow, createSuccessButton, createUrlButton } from 'utils/discord/component';
+import { ParseInt } from 'utils/object';
 import { messageEdit } from './discord';
 
 const chzzk = getChzzkAPI('v1');
@@ -233,7 +234,15 @@ export const getChannelLive = async (noticeId: number, hashId: string, liveId: s
                 // 라이브가 진행중인 경우
                 if (content && content.status === 'OPEN') {
                     // 이전에 라이브 정보가 있었다면, 라이브 정보를 업데이트 ( 마감 )
-                    if (liveId != '0') await updateLiveEvents(noticeId);
+                    if (liveId != '0') {
+                        getInstance()
+                            .publish(
+                                REDIS_KEY.SUBSCRIBE.LIVE_STATE('change'),
+                                JSON.stringify({ type: 'notice', noticeId, hashId, liveStatus: content })
+                            )
+                            .catch(console.error);
+                        await updateLiveEvents(noticeId, ParseInt(liveId));
+                    }
 
                     await insertLiveEvents(noticeId, content.liveId, {
                         image: content.liveImageUrl?.replace('{type}', '1080') || '',
@@ -243,7 +252,9 @@ export const getChannelLive = async (noticeId: number, hashId: string, liveId: s
                         chat: content.chatChannelId,
                     });
 
-                    return resolve(content as Content);
+                    if (liveId != '0') {
+                        return reject(null);
+                    } else return resolve(content as Content);
                 } else if (content && content.status == 'CLOSE') {
                     // 이전 라이브 정보가 있었다면, 라이브 정보를 업데이트 ( 마감 )
                     await changeMessage(noticeId, content);
@@ -279,6 +290,12 @@ export const getLiveMessage = async ({
 }: NoticeBat) => {
     const liveStatus = await getChannelLive(noticeId, hashId, id);
     if (liveStatus && liveStatus.status === 'OPEN') {
+        getInstance()
+            .publish(
+                REDIS_KEY.SUBSCRIBE.LIVE_STATE('online'),
+                JSON.stringify({ type: 'notice', noticeId, hashId, liveStatus })
+            )
+            .catch(console.error);
         // online
         const messages = await sendChannels(channels, {
             content: message,
@@ -299,13 +316,12 @@ export const getLiveMessage = async ({
         await redis.set(redisKey, JSON.stringify(messages), {
             EX: 60 * 60 * 24, // 12시간
         });
-
-        getInstance()
-            .publish('chzzk:online', JSON.stringify({ type: 'notice', noticeId, hashId }))
-            .catch(console.error);
     } else if (liveStatus && liveStatus.status == 'CLOSE') {
         getInstance()
-            .publish('chzzk:online', JSON.stringify({ type: 'notice', noticeId, hashId }))
+            .publish(
+                REDIS_KEY.SUBSCRIBE.LIVE_STATE('offline'),
+                JSON.stringify({ type: 'notice', noticeId, hashId, liveStatus })
+            )
             .catch(console.error);
     }
 };
