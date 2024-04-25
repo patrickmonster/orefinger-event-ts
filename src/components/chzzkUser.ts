@@ -229,7 +229,6 @@ export const getChannelLive = async (noticeId: number, hashId: string, liveId: s
             })
             .then(async ({ data }) => {
                 const { content } = data;
-                const { livePollingStatusJson, p2pQuality, livePlaybackJson, ...liveStatus } = content;
                 // 콘텐츠의 라이브 id 가 없거나, 라이브 id 가 같으면 무시
                 if (!content?.liveId || content.liveId === liveId) return reject(null);
 
@@ -237,6 +236,7 @@ export const getChannelLive = async (noticeId: number, hashId: string, liveId: s
                 if (content && content.status === 'OPEN') {
                     // 이전에 라이브 정보가 있었다면, 라이브 정보를 업데이트 ( 마감 )
                     if (liveId != '0') {
+                        const { livePollingStatusJson, p2pQuality, livePlaybackJson, ...liveStatus } = content;
                         getInstance()
                             .publish(
                                 REDIS_KEY.SUBSCRIBE.LIVE_STATE('change'),
@@ -255,7 +255,10 @@ export const getChannelLive = async (noticeId: number, hashId: string, liveId: s
                     });
 
                     if (liveId != '0') return reject(null);
-                    else return resolve(liveStatus as Content);
+                    else {
+                        const { livePollingStatusJson, p2pQuality, livePlaybackJson, ...liveStatus } = content;
+                        return resolve(liveStatus as Content);
+                    }
                 } else if (content && content.status == 'CLOSE') {
                     // 이전 라이브 정보가 있었다면, 라이브 정보를 업데이트 ( 마감 )
                     await changeMessage(noticeId, content);
@@ -265,6 +268,8 @@ export const getChannelLive = async (noticeId: number, hashId: string, liveId: s
                         if (result.changedRows == 0) return reject(null);
                         // 이미 처리된 알림
                     } else return reject(null); // 이미 처리된 알림
+
+                    const { livePollingStatusJson, p2pQuality, livePlaybackJson, ...liveStatus } = content;
                     return resolve(liveStatus as Content);
                 }
             })
