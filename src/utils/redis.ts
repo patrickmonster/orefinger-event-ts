@@ -88,4 +88,7 @@ export const REDIS_KEY = {
     SQL: {
         SELECT: (queryKey: string | number) => `sql:select:${queryKey}`,
     },
+    SUBSCRIBE: {
+        LIVE_STATE: (state: 'online' | 'offline' | 'change') => `subscribe:live:${state}`,
+    },
 };
