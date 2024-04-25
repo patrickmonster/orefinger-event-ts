@@ -16,11 +16,6 @@ export const ecsSet = async (id: string, revision: string, family: string) =>
         family,
     });
 
-export const ecsPing = async (id: string) =>
-    query<SqlInsertUpdate>(`UPDATE task SET last_ping=CURRENT_TIMESTAMP WHERE idx=?`, {
-        id,
-    });
-
 export const ecsSelect = async (revision: string) =>
     query<{
         idx: number;
@@ -73,4 +68,18 @@ LEFT JOIN (
 	ORDER BY idx DESC
 ) B ON 1=1
 LIMIT 1
+    `).then(([res]) => res);
+
+export const liveState = async () =>
+    query<{ time: number }>(`
+SELECT avg(t) AS time 
+FROM (
+    SELECT 
+        TIMESTAMPDIFF(SECOND, live_at, create_at) AS t
+    FROM notice_live nl 
+    WHERE 1=1
+    AND nl.live_at IS NOT NULL
+) A
+WHERE 1=1
+AND t < 1000
     `).then(([res]) => res);
