@@ -35,6 +35,13 @@ client.connect().catch(e => console.error(e));
 
 export default client;
 
+const instance = client.duplicate();
+instance.connect().catch(e => console.error(e));
+
+export const getInstance = () => {
+    return instance;
+};
+
 const hashFuction = (key: string) => {
     let hash = 0;
     for (var i = 0; i < key.length; i++) {
