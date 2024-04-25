@@ -54,7 +54,7 @@ export default class ChatServer {
     }
 
     get serverList() {
-        return this.servers;
+        return this.servers.values();
     }
 
     public addServers(...roomIds: string[]) {

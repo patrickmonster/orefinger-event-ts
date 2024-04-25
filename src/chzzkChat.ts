@@ -82,6 +82,10 @@ if (ECS_PK && ECS_REVISION) {
             server.getServer(hashId)?.disconnect();
         })
         .catch(console.error);
+
+    process.on('SIGINT', function () {
+        for (const s of server.serverList) s.disconnect();
+    });
 } else {
     console.log('ECS_CONTAINER_METADATA_URI is not defined');
 }

@@ -64,3 +64,7 @@ getInstance()
         server.getServer(hashId)?.disconnect();
     })
     .catch(console.error);
+
+process.on('SIGINT', function () {
+    for (const s of server.serverList) s.disconnect();
+});
