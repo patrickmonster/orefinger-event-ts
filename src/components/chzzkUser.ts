@@ -214,7 +214,7 @@ const changeMessage = async (notice_id: number, content: any) => {
  * 채널의 비디오 목록을 가져옵니다
  * @param notice_ida
  * @param hashId
- * @returns
+ * @returns 라이브가 유효한 경우, Content
  */
 export const getChannelLive = async (noticeId: number, hashId: string, liveId: string | number) =>
     new Promise<Content | null>((resolve, reject) => {
@@ -227,8 +227,14 @@ export const getChannelLive = async (noticeId: number, hashId: string, liveId: s
             })
             .then(async ({ data }) => {
                 const { content } = data;
+                // 콘텐츠의 라이브 id 가 없거나, 라이브 id 가 같으면 무시
                 if (!content?.liveId || content.liveId === liveId) return reject(null);
+
+                // 라이브가 진행중인 경우
                 if (content && content.status === 'OPEN') {
+                    // 이전에 라이브 정보가 있었다면, 라이브 정보를 업데이트 ( 마감 )
+                    if (liveId != '0') await updateLiveEvents(noticeId);
+
                     await insertLiveEvents(noticeId, content.liveId, {
                         image: content.liveImageUrl?.replace('{type}', '1080') || '',
                         title: content.liveTitle,
@@ -236,21 +242,19 @@ export const getChannelLive = async (noticeId: number, hashId: string, liveId: s
                         live_at: content.openDate,
                         chat: content.chatChannelId,
                     });
-                } else {
-                    // close
 
-                    if (content) {
-                        try {
-                            await changeMessage(noticeId, content);
-                        } catch (e) {}
-                    }
+                    return resolve(content as Content);
+                } else if (content && content.status == 'CLOSE') {
+                    // 이전 라이브 정보가 있었다면, 라이브 정보를 업데이트 ( 마감 )
+                    await changeMessage(noticeId, content);
+
                     if (liveId && liveId != '0') {
                         const result = await updateLiveEvents(noticeId);
                         if (result.changedRows == 0) return reject(null);
                         // 이미 처리된 알림
-                    }
+                    } else return reject(null); // 이미 처리된 알림
+                    return resolve(content as Content);
                 }
-                resolve(content as Content);
             })
             .catch(reject);
     });
@@ -297,11 +301,11 @@ export const getLiveMessage = async ({
         });
 
         getInstance()
-            .publish('chzzk:online', JSON.stringify({ type: 'notice', hashId }))
+            .publish('chzzk:online', JSON.stringify({ type: 'notice', noticeId, hashId }))
             .catch(console.error);
     } else if (liveStatus && liveStatus.status == 'CLOSE') {
         getInstance()
-            .publish('chzzk:online', JSON.stringify({ type: 'notice', hashId }))
+            .publish('chzzk:online', JSON.stringify({ type: 'notice', noticeId, hashId }))
             .catch(console.error);
     }
 };
