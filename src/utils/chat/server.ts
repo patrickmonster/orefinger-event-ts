@@ -32,11 +32,11 @@ export default class ChatServer {
         this.ondonation = options?.onDonation || (() => {});
     }
 
-    public addServer(roomId: string) {
+    public addServer(roomId: string, chatChannelId?: string) {
         if (this.servers.has(roomId)) return 0;
         if (this.servers.size > 60000) return -1; // 서버 수 제한
         this.queue.add(async () => {
-            const channel = await this.api.createChannel(roomId);
+            const channel = await this.api.createChannel(roomId, chatChannelId);
 
             const server = new ChzzkChat(ChzzkAPI.serverId(channel.chatChannelId), this.api)
                 .on('chat', this.onmessage.bind(this))
@@ -51,6 +51,10 @@ export default class ChatServer {
         });
 
         return this.queue.size;
+    }
+
+    get serverList() {
+        return this.servers;
     }
 
     public addServers(...roomIds: string[]) {
@@ -68,6 +72,10 @@ export default class ChatServer {
             server.disconnect();
             this.servers.delete(roomId);
         }
+    }
+
+    public getServer(roomId: string) {
+        return this.servers.get(roomId);
     }
 
     public get serverState() {

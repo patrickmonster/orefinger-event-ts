@@ -3,7 +3,10 @@ import { ChatDonation, ChatMessage } from 'interfaces/chzzk/chat';
 import { LoopRunQueue } from 'utils/object';
 import { error as errorLog } from './utils/logger';
 
+import { REDIS_KEY, getInstance } from 'utils/redis';
 import ChatServer from './utils/chat/server';
+
+import { Content as ChzzkContent } from 'interfaces/API/Chzzk';
 
 /**
  *
@@ -37,10 +40,10 @@ const appendChat = (chat: ChatMessage | ChatDonation) => {
     });
 };
 
-if (process.env.ECS_PK && process.env.ECS_REVISION) {
-    const { ECS_PK, ECS_REVISION } = process.env;
+const { ECS_PK, ECS_REVISION } = process.env;
+if (ECS_PK && ECS_REVISION) {
     const server = new ChatServer({
-        concurrency: 1,
+        concurrency: 2,
         onMessage: chat => {
             appendChat(chat);
         },
@@ -48,6 +51,37 @@ if (process.env.ECS_PK && process.env.ECS_REVISION) {
             appendChat(chat);
         },
     });
+
+    // -- 채널 변경
+    getInstance()
+        .subscribe(REDIS_KEY.SUBSCRIBE.LIVE_STATE('change'), (message: string) => {
+            const { hashId, liveStatus } = JSON.parse(message);
+            const { chatChannelId } = liveStatus as ChzzkContent;
+
+            server.getServer(hashId)?.updateChannel(chatChannelId, hashId);
+        })
+        .catch(console.error);
+
+    // -- 온라인
+    getInstance()
+        .subscribe(REDIS_KEY.SUBSCRIBE.LIVE_STATE('online'), async (message: string) => {
+            const { type, id, targetId, noticeId, hashId, liveStatus } = JSON.parse(message);
+            const { chatChannelId } = liveStatus as ChzzkContent;
+            if (targetId !== ECS_PK) return; // 자신의 서버가 아닌 경우
+
+            await server.addServer(hashId, chatChannelId);
+        })
+        .catch(console.error);
+
+    // -- 오프라인
+    getInstance()
+        .subscribe(REDIS_KEY.SUBSCRIBE.LIVE_STATE('offline'), (message: string) => {
+            const { hashId, liveStatus } = JSON.parse(message);
+            const { chatChannelId } = liveStatus as ChzzkContent;
+
+            server.getServer(hashId)?.disconnect();
+        })
+        .catch(console.error);
 } else {
     console.log('ECS_CONTAINER_METADATA_URI is not defined');
 }

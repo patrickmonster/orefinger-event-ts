@@ -1,5 +1,7 @@
 import { config } from 'dotenv';
 import { existsSync } from 'fs';
+import { Content as ChzzkContent } from 'interfaces/API/Chzzk';
+import { ChatMessage } from 'interfaces/chzzk/chat';
 import { join } from 'path';
 import { env } from 'process';
 import ChatServer from 'utils/chat/server';
@@ -15,7 +17,7 @@ if (existsSync(envDir)) {
 }
 
 import { selectChatServer } from 'controllers/chat/chzzk';
-import { ChatDonation, ChatMessage } from 'interfaces/chzzk/chat';
+import { REDIS_KEY, getInstance } from 'utils/redis';
 
 const server = new ChatServer({
     concurrency: 2,
@@ -28,17 +30,37 @@ const server = new ChatServer({
         } = chat;
         console.log('CHAT ::', streamingChannelId, id, nickname, '::', message);
     },
-    onDonation: (chat: ChatDonation) => {
-        const {
-            message,
-            id,
-            extras: { streamingChannelId, payAmount },
-            profile: { nickname },
-        } = chat;
-        console.log('DONATION ::', streamingChannelId, id, nickname, '::', message);
-    },
 });
 
 selectChatServer(4).then(servers => {
     server.addServers(...servers.map(server => server.hash_id));
 });
+
+// -- 채널 변경
+getInstance()
+    .subscribe(REDIS_KEY.SUBSCRIBE.LIVE_STATE('change'), (message: string) => {
+        const { hashId, liveStatus } = JSON.parse(message);
+        const { chatChannelId } = liveStatus as ChzzkContent;
+
+        server.getServer(hashId)?.updateChannel(chatChannelId, hashId);
+    })
+    .catch(console.error);
+
+// -- 온라인
+getInstance()
+    .subscribe(REDIS_KEY.SUBSCRIBE.LIVE_STATE('online'), async (message: string) => {
+        const { type, id, targetId, noticeId, hashId, liveStatus } = JSON.parse(message);
+        const { chatChannelId } = liveStatus as ChzzkContent;
+        // if (targetId !== ECS_PK) return; // 자신의 서버가 아닌 경우
+
+        await server.addServer(hashId, chatChannelId);
+    })
+    .catch(console.error);
+
+// -- 오프라인
+getInstance()
+    .subscribe(REDIS_KEY.SUBSCRIBE.LIVE_STATE('offline'), (message: string) => {
+        const { hashId } = JSON.parse(message);
+        server.getServer(hashId)?.disconnect();
+    })
+    .catch(console.error);

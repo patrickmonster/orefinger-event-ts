@@ -90,5 +90,6 @@ export const REDIS_KEY = {
     },
     SUBSCRIBE: {
         LIVE_STATE: (state: 'online' | 'offline' | 'change') => `subscribe:live:${state}`,
+        ECS_CHAT_STATE: (state: 'channels') => `subscribe:ecs:chat:${state}`,
     },
 };

@@ -97,10 +97,19 @@ export class ChzzkAPI {
         });
     }
 
-    async createChannel(liveChannelId: string, ver = '2', svcid = 'game'): Promise<ChatChannel> {
-        const chatChannelId = await this.status(liveChannelId)
-            .then(status => status?.chatChannelId)
-            .catch(() => null);
+    async createChannel(
+        liveChannelId: string,
+        chatChannelId?: string,
+        ver = '2',
+        svcid = 'game'
+    ): Promise<ChatChannel> {
+        // 채널 ID가 없는 경우, 채널 ID를 불러옴
+        if (!chatChannelId)
+            chatChannelId = await this.status(liveChannelId)
+                .then(status => status?.chatChannelId)
+                .catch(() => null);
+
+        if (!chatChannelId) throw new Error('Chat Channel ID not found');
 
         const uid = await this.user().then(user => user?.userIdHash);
         const token = await this.accessToken(chatChannelId).then(token => token.accessToken);
@@ -204,15 +213,20 @@ export default class ChzzkWebSocket extends EventEmitter {
         this.connected = false;
     }
 
+    /**
+     * 현재 채팅 채널이 변경되면, 채널을 재 접속 합니다.
+     */
     async reconnect() {
         await this.disconnect();
         await this.connect();
     }
 
-    private onOpen() {
+    private async onOpen() {
         this.connected = true;
 
         this.emit('ready');
+
+        for (const channel of this.chatChannels.values()) await this.join(channel);
     }
 
     private onClose() {
@@ -295,6 +309,29 @@ export default class ChzzkWebSocket extends EventEmitter {
         const channel = this.getChatChannel(liveChannelId);
         if (!channel) {
             throw new Error('Channel not found');
+        }
+
+        return this;
+    }
+
+    /**
+     * 임시 코드 - 채널 정보를 업데이트 합니다.
+     *  - 채널이 업데이트 된 경우, 소캣을 새로 연결합니다.
+     */
+    updateChannel(cid: string, liveChannelId: string) {
+        const oldChannel = this.chatChannels.get(liveChannelId);
+        if (oldChannel) {
+            this.chatChannels.delete(liveChannelId);
+
+            oldChannel.chatChannelId = cid;
+            oldChannel.defaultHeader = {
+                cid,
+                svcid: 'game',
+                ver: '2',
+            };
+
+            this.chatChannels.set(liveChannelId, oldChannel);
+            this.reconnect();
         }
 
         return this;

@@ -5,6 +5,7 @@
 import axios from 'axios';
 import { ecsSet } from 'controllers/log';
 import { ECStask } from 'interfaces/ecs';
+import { REDIS_KEY, getInstance } from './redis';
 
 /**
  * ECS 컨테이너 정보를 불러옵니다.
@@ -39,4 +40,49 @@ export const createECSState = async () => {
 
         return false;
     }
+};
+
+const serverECS: {
+    [key: string]: {
+        count: number;
+        userCount: number;
+    };
+} = {};
+
+/**
+ * ECS 정보를 수신합니다
+ * @returns ECS ID
+ */
+getInstance()
+    .subscribe(REDIS_KEY.SUBSCRIBE.ECS_CHAT_STATE('channels'), (message: string) => {
+        const { id, revision, count, userCount } = JSON.parse(message);
+        if (revision !== process.env.ECS_REVISION) return;
+
+        serverECS[id] = { count, userCount };
+    })
+    .catch(console.error);
+
+/**
+ * ECS 에서 가장 적은 공간을 찾아서 반환합니다.
+ * @returns
+ */
+export const getECSSpaceId = async () => {
+    // ECS 정보를 불러옵니다.
+    const list = Object.keys(serverECS).map(key => {
+        return {
+            id: key,
+            ...serverECS[key],
+        };
+    });
+
+    const target = list.reduce(
+        (prev, curr) => {
+            if (prev.userCount > curr.userCount) return curr;
+            return prev;
+        },
+        { count: 9999999, userCount: 9999999, id: '' }
+    );
+
+    if (target.id != '') return target.id;
+    else return '0';
 };
