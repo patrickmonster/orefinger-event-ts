@@ -5,7 +5,7 @@ import { upsertNotice } from 'controllers/notice';
 import { APIEmbed, APIMessage } from 'discord-api-types/v10';
 import { ChannelData, Content } from 'interfaces/API/Chzzk';
 import { ChzzkInterface, getChzzkAPI } from 'utils/naverApiInstance';
-import redis, { REDIS_KEY } from 'utils/redis';
+import redis, { REDIS_KEY, getInstance } from 'utils/redis';
 
 import { auth } from 'controllers/auth';
 import dayjs from 'dayjs';
@@ -178,17 +178,31 @@ const changeMessage = async (notice_id: number, content: any) => {
 
     const messages = await redis.get(redisKey);
     if (messages) {
-        const { closeDate } = content;
+        const { closeDate, concurrentUserCount, accumulateCount } = content;
         for (const { id, message_reference, components, content, embeds, ...message } of JSON.parse(
             messages
         ) as APIMessage[]) {
             const [embed] = embeds;
+            const time = dayjs(closeDate).add(-9, 'h');
 
-            embed.description += `~ <t:${dayjs(closeDate).add(-9, 'h').unix()}:R>`;
-            embed.timestamp = undefined;
+            embed.description += `~ <t:${time.unix()}:R>`;
+            embed.fields?.push(
+                {
+                    name: '시청자',
+                    value: `${concurrentUserCount}명`,
+                    inline: true,
+                },
+                {
+                    name: '방문자',
+                    value: `${accumulateCount}명`,
+                    inline: true,
+                }
+            );
+            embed.timestamp = time.format();
             messageEdit(message.channel_id, id, {
                 ...message,
                 embeds,
+                components: [],
             }).catch(console.error);
 
             await redis.del(redisKey);
@@ -281,6 +295,14 @@ export const getLiveMessage = async ({
         await redis.set(redisKey, JSON.stringify(messages), {
             EX: 60 * 60 * 24, // 12시간
         });
+
+        getInstance()
+            .publish('chzzk:online', JSON.stringify({ type: 'notice', hashId }))
+            .catch(console.error);
+    } else if (liveStatus && liveStatus.status == 'CLOSE') {
+        getInstance()
+            .publish('chzzk:online', JSON.stringify({ type: 'notice', hashId }))
+            .catch(console.error);
     }
 };
 
@@ -307,7 +329,7 @@ const convertVideoObject = (videoObject: Content, name?: string): APIEmbed => {
         image: { url: liveImageUrl?.replace('{type}', '1080') || '', height: 1080, width: 1920 },
         color: 0x0ffa3,
         thumbnail: channelImageUrl ? { url: channelImageUrl } : undefined,
-        fields: [{ name: categoryType || 'Game', value: `${game_name || 'LIVE'}`, inline: true }],
+        fields: [{ name: categoryType || 'Game', value: `${game_name || 'LIVE'}` }],
         footer: { text: name ?? channelName },
         timestamp: time.format(),
     };
