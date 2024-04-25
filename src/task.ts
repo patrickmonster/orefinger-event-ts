@@ -1,18 +1,19 @@
-import axios from 'axios';
-
 import { getLiveMessage as afreeca } from 'components/afreecaUser';
 import { getLiveMessage as chzzk } from 'components/chzzkUser';
 import { getVod, getChannelVideos as laftel } from 'components/laftelUser';
 import { sendChannels } from 'components/notice';
 import { getChannelVideos as youtube } from 'components/youtubeUser';
-import { ecsSet } from 'controllers/log';
 import { deleteNotice } from 'controllers/notice';
-import { ECStask } from 'interfaces/ecs';
 import { NoticeBat } from 'interfaces/notice';
 import { BaseTask } from 'utils/baseTask';
 import { openApi } from 'utils/discordApiInstance';
+import { ParseInt } from 'utils/object';
 import { error as errorLog } from './utils/logger';
 
+/**
+ * 알림 작업 스레드 입니다.
+ * @description 알림 작업을 수행하는 스레드로써, 각 알림 스캔 작업을 수행합니다.
+ */
 const tasks = {
     youtube: new BaseTask({ targetEvent: 2, timmer: 1000 * 60 * 3 }).on(
         'scan',
@@ -92,7 +93,16 @@ ${name} - 방영이 종료되었습니다
     }),
     chzzk: new BaseTask({ targetEvent: 4, timmer: 100 }).on('scan', async (item: NoticeBat) => {
         try {
-            await chzzk(item);
+            const liveStatus = await chzzk(item);
+
+            if (liveStatus) {
+                process.send?.({
+                    type: 'liveCangeChzzk',
+                    data: {
+                        liveStatus,
+                    },
+                });
+            }
         } catch (e: any) {
             if (e) {
                 // 서비스 차단
@@ -117,47 +127,26 @@ message : ${e?.response?.data ? JSON.stringify(e.response.data) : ''}
     }),
 };
 
-// GET ecs state
-if (process.env.ECS_CONTAINER_METADATA_URI) {
-    const { ECS_CONTAINER_METADATA_URI } = process.env;
-    console.log(`ECS: ${ECS_CONTAINER_METADATA_URI}`);
-    axios
-        .get<ECStask>(`${ECS_CONTAINER_METADATA_URI}/task`)
-        .then(async ({ data }) => {
-            const { Family, Revision, TaskARN } = data;
-            const [, name, id] = TaskARN.split('/');
-
-            console.log(`ECS STATE ::`, data.Containers);
-            process.env.ECS_ID = id;
-            process.env.ECS_REVISION = Revision;
-            process.env.ECS_FAMILY = Family;
-
-            const { insertId } = await ecsSet(id, Revision, Family);
-
-            console.log(`ECS SET ::`, insertId);
-
-            for (const task of Object.values(tasks)) {
-                task.on('log', (...args) => console.log(`[${name}]`, ...args));
-                task.on('error', (...args) => console.error(`[${name}]`, ...args));
-
-                task.changeTaskCount(Revision, insertId);
-                task.start();
-            }
-        })
-        .catch(e => {
-            console.error(`ECS STATE ERROR ::`, e);
-        });
-} else {
-    console.log('ECS_CONTAINER_METADATA_URI is not defined');
-
+if (process.env.ECS_PK && process.env.ECS_REVISION) {
+    const { ECS_PK, ECS_REVISION } = process.env;
     for (const task of Object.values(tasks)) {
-        task.on('log', console.log);
-        task.on('error', console.error);
+        task.on('log', (...args) => console.log(`[${ECS_PK}]`, ...args));
+        task.on('error', (...args) => console.error(`[${ECS_PK}]`, ...args));
 
+        task.changeTaskCount(ECS_REVISION, ParseInt(ECS_PK));
         task.start();
     }
+} else {
+    console.log('ECS_CONTAINER_METADATA_URI is not defined');
+    // for (const task of Object.values(tasks)) {
+    //     task.on('log', console.log);
+    //     task.on('error', console.error);
+
+    //     task.start();
+    // }
 }
 
+// GET ecs state
 process.on('unhandledRejection', (err, promise) => {
     errorLog('unhandledRejection', JSON.stringify(err, Object.getOwnPropertyNames(err)));
     console.error('unhandledRejection', err);

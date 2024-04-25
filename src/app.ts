@@ -25,6 +25,8 @@ if (existsSync(envDir)) {
     });
 }
 
+import { createECSState } from 'utils/ECS';
+
 //////////////////////////////////////////////////////////////////////
 // 환경변수
 
@@ -64,14 +66,22 @@ server.listen({ port: 3000, host: '::' }, (err, address) => {
     console.log(`Server started in  ${Math.floor(time / 1000)} (${time}ms)`);
     console.log(`Server listening at ${address}`);
 
-    if (env.MASTER_KEY) {
-        startSubtask();
-    }
+    createECSState().then(isECS => {
+        console.log(`ECS: ${isECS}`);
+        isECS && startSubtask('/task.js');
+        isECS && startSubtask('/chzzkChat.js');
+    });
 });
 
-const startSubtask = () => {
-    const child = fork(__dirname + '/task.js');
-    child.on('close', stopSubtask);
+/**
+ * 보조 서비스를 시작함
+ * @param target
+ */
+const startSubtask = (target: `/${string}`) => {
+    const child = fork(__dirname + target);
+    child.on('close', (code: number) => {
+        stopSubtask(target, code);
+    });
     process.on('SIGINT', child.kill);
 };
 
@@ -79,10 +89,10 @@ const startSubtask = () => {
  * 서비스가 강제 종료되면, 다시 시작합니다.
  * @param code
  */
-const stopSubtask = (code: any) => {
+const stopSubtask = (target: `/${string}`, code: number) => {
     if (code !== 0) {
         console.error(`task.js exited with code ${code}`);
-        startSubtask();
+        startSubtask(target);
     }
 };
 

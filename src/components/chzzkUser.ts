@@ -12,6 +12,7 @@ import dayjs from 'dayjs';
 import { NoticeBat } from 'interfaces/notice';
 import { KeyVal } from 'interfaces/text';
 import qs from 'querystring';
+import { getECSSpaceId } from 'utils/ECS';
 import { ENCRYPT_KEY, sha256 } from 'utils/cryptoPw';
 import { appendTextWing, createActionRow, createSuccessButton, createUrlButton } from 'utils/discord/component';
 import { ParseInt } from 'utils/object';
@@ -239,7 +240,7 @@ export const getChannelLive = async (noticeId: number, hashId: string, liveId: s
                         getInstance()
                             .publish(
                                 REDIS_KEY.SUBSCRIBE.LIVE_STATE('change'),
-                                JSON.stringify({ type: 'notice', noticeId, hashId, liveStatus })
+                                JSON.stringify({ type: 'notice', id: process.env.ECS_PK, noticeId, hashId, liveStatus })
                             )
                             .catch(console.error);
                         await updateLiveEvents(noticeId, ParseInt(liveId));
@@ -253,9 +254,8 @@ export const getChannelLive = async (noticeId: number, hashId: string, liveId: s
                         chat: content.chatChannelId,
                     });
 
-                    if (liveId != '0') {
-                        return reject(null);
-                    } else return resolve(liveStatus as Content);
+                    if (liveId != '0') return reject(null);
+                    else return resolve(liveStatus as Content);
                 } else if (content && content.status == 'CLOSE') {
                     // 이전 라이브 정보가 있었다면, 라이브 정보를 업데이트 ( 마감 )
                     await changeMessage(noticeId, content);
@@ -294,7 +294,14 @@ export const getLiveMessage = async ({
         getInstance()
             .publish(
                 REDIS_KEY.SUBSCRIBE.LIVE_STATE('online'),
-                JSON.stringify({ type: 'notice', noticeId, hashId, liveStatus })
+                JSON.stringify({
+                    type: 'notice',
+                    id: process.env.ECS_PK,
+                    targetId: getECSSpaceId(), // ECS ID
+                    noticeId,
+                    hashId,
+                    liveStatus,
+                })
             )
             .catch(console.error);
         // online
@@ -304,7 +311,7 @@ export const getLiveMessage = async ({
             components: [
                 createActionRow(
                     createSuccessButton(`notice attendance ${noticeId}`, {
-                        label: appendTextWing('📌출석체크\u3164', 9), // 크기보정
+                        label: appendTextWing('📌출석체크\u3164', 8), // 크기보정
                     }),
                     createUrlButton(`https://chzzk.naver.com/live/${hashId}`, {
                         emoji: { id: '1218118186717937775' },
@@ -321,10 +328,11 @@ export const getLiveMessage = async ({
         getInstance()
             .publish(
                 REDIS_KEY.SUBSCRIBE.LIVE_STATE('offline'),
-                JSON.stringify({ type: 'notice', noticeId, hashId, liveStatus })
+                JSON.stringify({ type: 'notice', id: process.env.ECS_PK, noticeId, hashId, liveStatus })
             )
             .catch(console.error);
     }
+    return liveStatus;
 };
 
 /**
