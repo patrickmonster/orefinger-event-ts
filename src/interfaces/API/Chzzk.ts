@@ -56,13 +56,14 @@ export interface Content {
     paidPromotion: boolean;
     chatAvailableCondition: string;
     minFollowerMinute: number;
-    // livePlaybackJson: string;
     channel: {
         channelId: string;
         channelName: string;
         channelImageUrl: string;
         verifiedMark: boolean;
     };
-    // livePollingStatusJson: string;
+    livePollingStatusJson?: string;
+    p2pQuality?: any[];
+    livePlaybackJson?: string;
     userAdultStatus: null;
 }
