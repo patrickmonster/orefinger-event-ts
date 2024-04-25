@@ -5,7 +5,7 @@ import { upsertNotice } from 'controllers/notice';
 import { APIEmbed, APIMessage } from 'discord-api-types/v10';
 import { ChannelData, Content } from 'interfaces/API/Chzzk';
 import { ChzzkInterface, getChzzkAPI } from 'utils/naverApiInstance';
-import redis, { REDIS_KEY } from 'utils/redis';
+import redis, { REDIS_KEY, getInstance } from 'utils/redis';
 
 import { auth } from 'controllers/auth';
 import dayjs from 'dayjs';
@@ -294,6 +294,14 @@ export const getLiveMessage = async ({
         await redis.set(redisKey, JSON.stringify(messages), {
             EX: 60 * 60 * 24, // 12시간
         });
+
+        getInstance()
+            .publish('chzzk:online', JSON.stringify({ type: 'notice', hashId }))
+            .catch(console.error);
+    } else if (liveStatus && liveStatus.status == 'CLOSE') {
+        getInstance()
+            .publish('chzzk:online', JSON.stringify({ type: 'notice', hashId }))
+            .catch(console.error);
     }
     return liveStatus;
 };

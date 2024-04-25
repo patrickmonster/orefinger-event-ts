@@ -35,7 +35,20 @@ client.connect().catch(e => console.error(e));
 
 export default client;
 
-export const subscribe = () => client.duplicate();
+const instance = client.duplicate();
+instance.connect().catch(e => console.error(e));
+
+export const getInstance = () => {
+    return instance;
+};
+
+const hashFuction = (key: string) => {
+    let hash = 0;
+    for (var i = 0; i < key.length; i++) {
+        hash += key.charCodeAt(i);
+    }
+    return hash;
+};
 
 export const catchRedis = async <T>(key: string, callback: () => Promise<T>, expire = 60 * 60 * 1) => {
     const data = await client.get(key);
