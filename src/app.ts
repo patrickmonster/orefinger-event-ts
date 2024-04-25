@@ -78,7 +78,14 @@ server.listen({ port: 3000, host: '::' }, (err, address) => {
  * @param target
  */
 const startSubtask = (target: `/${string}`) => {
-    const child = fork(__dirname + target);
+    const child = fork(__dirname + target, {
+        env: {
+            ECS_PK: process.env.ECS_PK,
+            ECS_ID: process.env.ECS_ID,
+            ECS_REVISION: process.env.ECS_REVISION,
+            ECS_FAMILY: process.env.ECS_FAMILY,
+        },
+    });
     child.on('close', (code: number) => {
         stopSubtask(target, code);
     });
