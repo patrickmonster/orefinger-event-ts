@@ -1,6 +1,5 @@
 import { ChatLog, insertChatQueue } from 'controllers/chat/chzzk';
 import { ChatDonation, ChatMessage } from 'interfaces/chzzk/chat';
-import ChzzkWebSocket from 'utils/chat/chzzk';
 import { LoopRunQueue } from 'utils/object';
 import { error as errorLog } from './utils/logger';
 
@@ -11,12 +10,6 @@ import ChatServer from './utils/chat/server';
  * @description 알림 작업을 수행하는 스레드로써, 각 알림 스캔 작업을 수행합니다.
  */
 
-const tasks = new Map<string, ChzzkWebSocket>();
-
-const log = (...message: any[]) => console.log(`CHAT ::`, ...message);
-
-const userState = new Map<string, number>(); // 유저 포인트
-
 // 메세지 로깅용 큐
 const addQueue = LoopRunQueue<ChatLog>(
     async chats => await insertChatQueue(chats).catch(console.error),
@@ -24,7 +17,7 @@ const addQueue = LoopRunQueue<ChatLog>(
     500
 );
 
-const appendChat = (chat: ChatMessage) => {
+const appendChat = (chat: ChatMessage | ChatDonation) => {
     const {
         id,
         message,
@@ -52,22 +45,7 @@ if (process.env.ECS_PK && process.env.ECS_REVISION) {
             appendChat(chat);
         },
         onDonation: (chat: ChatDonation) => {
-            const {
-                id,
-                message,
-                hidden,
-                extras: { osType },
-                cid,
-            } = chat;
-
-            addQueue({
-                channel_id: cid,
-                message_id: id,
-                message,
-                user_id: '-',
-                os_type: osType || '-',
-                hidden_yn: hidden ? 'Y' : 'N',
-            });
+            appendChat(chat);
         },
     });
 } else {
