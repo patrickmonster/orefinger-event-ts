@@ -236,11 +236,16 @@ export const getChannelLive = async (noticeId: number, hashId: string, liveId: s
                 if (content && content.status === 'OPEN') {
                     // 이전에 라이브 정보가 있었다면, 라이브 정보를 업데이트 ( 마감 )
                     if (liveId != '0') {
-                        const { livePollingStatusJson, p2pQuality, livePlaybackJson, ...liveStatus } = content;
                         getInstance()
                             .publish(
                                 REDIS_KEY.SUBSCRIBE.LIVE_STATE('change'),
-                                JSON.stringify({ type: 'notice', id: process.env.ECS_PK, noticeId, hashId, liveStatus })
+                                JSON.stringify({
+                                    type: 'notice',
+                                    id: process.env.ECS_PK,
+                                    noticeId,
+                                    hashId,
+                                    liveStatus: content,
+                                })
                             )
                             .catch(console.error);
                         await updateLiveEvents(noticeId, ParseInt(liveId));
@@ -256,8 +261,7 @@ export const getChannelLive = async (noticeId: number, hashId: string, liveId: s
 
                     if (liveId != '0') return reject(null);
                     else {
-                        const { livePollingStatusJson, p2pQuality, livePlaybackJson, ...liveStatus } = content;
-                        return resolve(liveStatus as Content);
+                        return resolve(content as Content);
                     }
                 } else if (content && content.status == 'CLOSE') {
                     // 이전 라이브 정보가 있었다면, 라이브 정보를 업데이트 ( 마감 )
@@ -269,8 +273,7 @@ export const getChannelLive = async (noticeId: number, hashId: string, liveId: s
                         // 이미 처리된 알림
                     } else return reject(null); // 이미 처리된 알림
 
-                    const { livePollingStatusJson, p2pQuality, livePlaybackJson, ...liveStatus } = content;
-                    return resolve(liveStatus as Content);
+                    return resolve(content as Content);
                 }
             })
             .catch(reject);
