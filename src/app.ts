@@ -25,8 +25,6 @@ if (existsSync(envDir)) {
     });
 }
 
-import { createECSState } from 'utils/ECS';
-
 //////////////////////////////////////////////////////////////////////
 // 환경변수
 
@@ -66,11 +64,15 @@ server.listen({ port: 3000, host: '::' }, (err, address) => {
     console.log(`Server started in  ${Math.floor(time / 1000)} (${time}ms)`);
     console.log(`Server listening at ${address}`);
 
-    createECSState().then(isECS => {
-        console.log(`ECS: ${isECS}`);
-        isECS && startSubtask('/task.js');
-        isECS && startSubtask('/chzzkChat.js');
-    });
+    // createECSState().then(isECS => {
+    //     console.log(`ECS: ${isECS}`);
+    //     isECS && startSubtask('/task.js');
+    //     isECS && startSubtask('/chzzkChat.js');
+    // });
+
+    if (env.MASTER_KEY) {
+        startSubtask('/task.js');
+    }
 });
 
 /**
@@ -78,11 +80,7 @@ server.listen({ port: 3000, host: '::' }, (err, address) => {
  * @param target
  */
 const startSubtask = (target: `/${string}`) => {
-    const child = fork(__dirname + target, {
-        env: {
-            ...process.env,
-        },
-    });
+    const child = fork(__dirname + target);
     child.on('close', (code: number) => {
         stopSubtask(target, code);
     });
