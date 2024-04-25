@@ -30,6 +30,7 @@ export default fp(async function (fastify, opts) {
                 { name: 'Auth', description: '인증' },
 
                 { name: 'Main', description: '매인화면 관련 (캐싱적용) API' },
+                { name: 'WebSocket', description: '웹 소캣' },
 
                 { name: 'Admin', description: '관리자 관리용 API' },
                 { name: 'System', description: '시스템 관리용 API' },
