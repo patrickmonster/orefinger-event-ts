@@ -1,11 +1,12 @@
-import { ChatLog, insertChatQueue } from 'controllers/chat/chzzk';
+import { ChatLog, insertChatQueue, selectChatServer } from 'controllers/chat/chzzk';
 import { ChatDonation, ChatMessage } from 'interfaces/chzzk/chat';
-import { LoopRunQueue } from 'utils/object';
+import { LoopRunQueue, ParseInt } from 'utils/object';
 import { error as errorLog } from './utils/logger';
 
 import { REDIS_KEY, getInstance } from 'utils/redis';
 import ChatServer from './utils/chat/server';
 
+import { ecsSelect } from 'controllers/log';
 import { Content as ChzzkContent } from 'interfaces/API/Chzzk';
 
 /**
@@ -43,6 +44,8 @@ const appendChat = (chat: ChatMessage | ChatDonation) => {
 const { ECS_PK, ECS_REVISION } = process.env;
 if (ECS_PK && ECS_REVISION) {
     const server = new ChatServer({
+        nidAuth: process.env.NID_AUTH,
+        nidSession: process.env.NID_SECRET,
         concurrency: 2,
         onMessage: chat => {
             appendChat(chat);
@@ -76,12 +79,19 @@ if (ECS_PK && ECS_REVISION) {
     // -- 오프라인
     getInstance()
         .subscribe(REDIS_KEY.SUBSCRIBE.LIVE_STATE('offline'), (message: string) => {
-            const { hashId, liveStatus } = JSON.parse(message);
-            const { chatChannelId } = liveStatus as ChzzkContent;
+            const { hashId } = JSON.parse(message);
 
             server.getServer(hashId)?.disconnect();
         })
         .catch(console.error);
+
+    ecsSelect(ECS_REVISION).then(servers => {
+        const server = servers.find(item => item.idx == ParseInt(ECS_PK));
+        if (!server) return;
+    });
+    selectChatServer(4).then(servers => {
+        server.addServers(...servers.map(server => server.hash_id));
+    });
 
     process.on('SIGINT', function () {
         for (const s of server.serverList) s.disconnect();

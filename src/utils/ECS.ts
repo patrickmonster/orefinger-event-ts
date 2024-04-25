@@ -37,7 +37,6 @@ export const createECSState = async () => {
         return true;
     } else {
         console.log('ECS_CONTAINER_METADATA_URI is not defined');
-
         return false;
     }
 };
@@ -84,5 +83,5 @@ export const getECSSpaceId = async () => {
     );
 
     if (target.id != '') return target.id;
-    else return '0';
+    else return '1';
 };
