@@ -5,7 +5,6 @@ import { LoopRunQueue } from 'utils/object';
 import { error as errorLog } from './utils/logger';
 
 import ChatServer from './utils/chat/server';
-import { subscribe } from './utils/redis';
 
 /**
  *
@@ -24,8 +23,6 @@ const addQueue = LoopRunQueue<ChatLog>(
     1000 * 60,
     500
 );
-
-const client = subscribe();
 
 const appendChat = (chat: ChatMessage) => {
     const {
@@ -47,43 +44,35 @@ const appendChat = (chat: ChatMessage) => {
     });
 };
 
-client
-    .connect()
-    .then(() => {
-        log('Redis connected');
-        if (process.env.ECS_PK && process.env.ECS_REVISION) {
-            const { ECS_PK, ECS_REVISION } = process.env;
-            client.publish('SUBSCRIBE:CHAT', JSON.stringify({ ECS_PK, ECS_REVISION }));
-            const server = new ChatServer({
-                concurrency: 1,
-                onMessage: chat => {
-                    appendChat(chat);
-                },
-                onDonation: (chat: ChatDonation) => {
-                    const {
-                        id,
-                        message,
-                        hidden,
-                        extras: { osType },
-                        cid,
-                    } = chat;
+if (process.env.ECS_PK && process.env.ECS_REVISION) {
+    const { ECS_PK, ECS_REVISION } = process.env;
+    const server = new ChatServer({
+        concurrency: 1,
+        onMessage: chat => {
+            appendChat(chat);
+        },
+        onDonation: (chat: ChatDonation) => {
+            const {
+                id,
+                message,
+                hidden,
+                extras: { osType },
+                cid,
+            } = chat;
 
-                    addQueue({
-                        channel_id: cid,
-                        message_id: id,
-                        message,
-                        user_id: '-',
-                        os_type: osType || '-',
-                        hidden_yn: hidden ? 'Y' : 'N',
-                    });
-                },
+            addQueue({
+                channel_id: cid,
+                message_id: id,
+                message,
+                user_id: '-',
+                os_type: osType || '-',
+                hidden_yn: hidden ? 'Y' : 'N',
             });
-        } else {
-            console.log('ECS_CONTAINER_METADATA_URI is not defined');
-        }
-    })
-    .catch(e => console.error(e));
-
+        },
+    });
+} else {
+    console.log('ECS_CONTAINER_METADATA_URI is not defined');
+}
 process.on('unhandledRejection', (err, promise) => {
     errorLog('unhandledRejection', JSON.stringify(err, Object.getOwnPropertyNames(err)));
     console.error('unhandledRejection', err);
