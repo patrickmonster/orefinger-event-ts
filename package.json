@@ -32,6 +32,7 @@
         "isomorphic-ws": "^5.0.0",
         "moment": "^2.29.4",
         "mysql2": "^3.4.2",
+        "p-queue": "^6.6.2",
         "querystring": "^0.2.1",
         "redis": "^4.6.7",
         "sha256": "^0.2.0",

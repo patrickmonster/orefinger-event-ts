@@ -16,6 +16,8 @@ const getServiceId = (channelId: string) =>
 export type ChzzkWebSocketType = typeof ChzzkWebSocket;
 export type ChzzkAPIType = typeof ChzzkAPI;
 
+type TaskPromise = (...data: any[]) => Promise<void>;
+
 /**
  * 치지직. api - 채팅 서버와 연결합니다. (Naver Streaming Chat)
  */
@@ -143,6 +145,8 @@ export default class ChzzkWebSocket extends EventEmitter {
     private serverId: number = 1;
     private api: ChzzkAPI;
 
+    private chatUserCount: { [key: string]: number } = {};
+
     constructor(serverId: number, api?: ChzzkAPI) {
         super();
         this.serverId = serverId;
@@ -169,24 +173,24 @@ export default class ChzzkWebSocket extends EventEmitter {
         return this.userList;
     }
 
+    get userTotalCount() {
+        return Object.values(this.chatUserCount).reduce((acc, cur) => acc + cur, 0);
+    }
+
     ////////////////////////////////////////////////////////////////////////////////////////////////
 
     /**
      * 소캣을 연결합니다.
      */
     async connect() {
-        //
         if (this.isConnect) {
             return this;
         }
-
         this.ws = new WebSocket(this.host);
         this.ws.onopen = this.onOpen.bind(this);
         this.ws.onclose = this.onClose.bind(this);
         this.ws.onmessage = this.handelMessage.bind(this);
         console.log('CONNECT ::', this.host);
-
-        return this;
     }
 
     async disconnect() {
@@ -209,7 +213,6 @@ export default class ChzzkWebSocket extends EventEmitter {
         this.connected = true;
 
         this.emit('ready');
-        // if (!this.isReConnect) this.startTask();
     }
 
     private onClose() {
@@ -422,7 +425,6 @@ export default class ChzzkWebSocket extends EventEmitter {
      * @param message 수신 메세지
      */
     private async handelMessage({ data }: MessageEvent) {
-        console.log('RECV ::', data);
         const { bdy: body, cmd, type, cid } = JSON.parse(data as string);
         this.emit('raw', { body, cmd });
 
@@ -485,7 +487,7 @@ export default class ChzzkWebSocket extends EventEmitter {
                 break;
             case ChatCmd.BLIND:
                 this.emit('blind', body);
-
+                break;
             case ChatCmd.CLOSE_LIVE: {
                 // 채널 종료
                 const channel = this.getChatChannel(cid);
@@ -594,9 +596,12 @@ export default class ChzzkWebSocket extends EventEmitter {
 
         const id = isRecent ? '-' : this.getMessageId(time, channel?.pwId || 0); // 메세지 ID 생성 (Snowflake)
 
-        const parsed: ChatMessage = { profile, extras, hidden, message, time, id, isRecent };
+        const parsed: ChatMessage = { profile, extras, hidden, message, time, id, isRecent, cid };
         if (memberCount) {
             parsed.memberCount = memberCount;
+
+            // 채널 인원수 업데이트
+            this.chatUserCount[cid] = memberCount;
         }
 
         return parsed;

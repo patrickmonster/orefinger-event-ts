@@ -16,11 +16,6 @@ export const ecsSet = async (id: string, revision: string, family: string) =>
         family,
     });
 
-export const ecsPing = async (id: string) =>
-    query<SqlInsertUpdate>(`UPDATE task SET last_ping=CURRENT_TIMESTAMP WHERE idx=?`, {
-        id,
-    });
-
 export const ecsSelect = async (revision: string) =>
     query<{
         idx: number;

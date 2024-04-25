@@ -1,8 +1,8 @@
 import { config } from 'dotenv';
 import { existsSync } from 'fs';
-import { ChatMessage } from 'interfaces/chzzk/chat';
 import { join } from 'path';
 import { env } from 'process';
+import ChatServer from 'utils/chat/server';
 
 const envDir = join(env.PWD || __dirname, `/.env`);
 if (existsSync(envDir)) {
@@ -14,40 +14,31 @@ if (existsSync(envDir)) {
     });
 }
 
-import Chzzk, { ChzzkAPI } from 'utils/chat/chzzk';
+import { selectChatServer } from 'controllers/chat/chzzk';
+import { ChatDonation, ChatMessage } from 'interfaces/chzzk/chat';
 
-const servers = new Map<number, Chzzk>();
-
-const api = new ChzzkAPI({
-    nidAuth: process.env.NID_AUTH,
-    nidSession: process.env.NID_SECRET,
+const server = new ChatServer({
+    concurrency: 2,
+    onMessage: (chat: ChatMessage) => {
+        const {
+            message,
+            id,
+            extras: { streamingChannelId },
+            profile: { nickname },
+        } = chat;
+        console.log('CHAT ::', streamingChannelId, id, nickname, '::', message);
+    },
+    onDonation: (chat: ChatDonation) => {
+        const {
+            message,
+            id,
+            extras: { streamingChannelId, payAmount },
+            profile: { nickname },
+        } = chat;
+        console.log('DONATION ::', streamingChannelId, id, nickname, '::', message);
+    },
 });
 
-const server = new Chzzk(1, api)
-    .on('chat', (chat: ChatMessage) => {
-        const {
-            message,
-            id,
-            extras: {},
-            profile: { nickname },
-        } = chat;
-        console.log('CHAT ::', id, nickname, '::', message);
-    })
-    .connect()
-    .then(async server => {
-        await server.join('e229d18df2edef8c9114ae6e8b20373a');
-    });
-const server2 = new Chzzk(1, api)
-    .on('chat', (chat: ChatMessage) => {
-        const {
-            message,
-            id,
-            extras: {},
-            profile: { nickname },
-        } = chat;
-        console.log('CHAT ::', id, nickname, '::', message);
-    })
-    .connect()
-    .then(async server => {
-        await server.join('0fe5c17cea248431e3747d95b7f038eb');
-    });
+selectChatServer(4).then(servers => {
+    server.addServers(...servers.map(server => server.hash_id));
+});

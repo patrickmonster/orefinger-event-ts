@@ -1,8 +1,11 @@
 import { ChatLog, insertChatQueue } from 'controllers/chat/chzzk';
-import { ChatMessage } from 'interfaces/chzzk/chat';
-import ChzzkWebSocket, { ChzzkAPI } from 'utils/chat/chzzk';
+import { ChatDonation, ChatMessage } from 'interfaces/chzzk/chat';
+import ChzzkWebSocket from 'utils/chat/chzzk';
 import { LoopRunQueue } from 'utils/object';
 import { error as errorLog } from './utils/logger';
+
+import ChatServer from './utils/chat/server';
+import { subscribe } from './utils/redis';
 
 /**
  *
@@ -22,17 +25,20 @@ const addQueue = LoopRunQueue<ChatLog>(
     500
 );
 
-const appendChat = (channelId: string, chat: ChatMessage) => {
+const client = subscribe();
+
+const appendChat = (chat: ChatMessage) => {
     const {
         id,
         message,
         hidden,
         extras: { osType },
         profile: { userIdHash },
+        cid,
     } = chat;
 
     addQueue({
-        channel_id: channelId,
+        channel_id: cid,
         message_id: id,
         message,
         user_id: userIdHash,
@@ -41,73 +47,42 @@ const appendChat = (channelId: string, chat: ChatMessage) => {
     });
 };
 
-process.on('message', async (message: { type: string; data: any }) => {
-    const { type } = message;
-    switch (type) {
-        case 'add': {
-            try {
-                const { channelId } = message.data;
-                const channel = await api.createChannel(channelId);
-                const task = await getServerInstance(channel.chatChannelId);
-                await task.join(channel);
-            } catch (e) {}
-            break;
-        }
-        case 'remove': {
-            try {
-                const { channelId } = message.data;
-                const task = tasks.get(channelId);
-                await task?.disconnect();
-            } catch (e) {}
-            break;
-        }
-        case 'list': {
-            process.send?.({
-                type: 'list',
-                data: Array.from(tasks.keys()),
+client
+    .connect()
+    .then(() => {
+        log('Redis connected');
+        if (process.env.ECS_PK && process.env.ECS_REVISION) {
+            const { ECS_PK, ECS_REVISION } = process.env;
+            client.publish('SUBSCRIBE:CHAT', JSON.stringify({ ECS_PK, ECS_REVISION }));
+            const server = new ChatServer({
+                concurrency: 1,
+                onMessage: chat => {
+                    appendChat(chat);
+                },
+                onDonation: (chat: ChatDonation) => {
+                    const {
+                        id,
+                        message,
+                        hidden,
+                        extras: { osType },
+                        cid,
+                    } = chat;
+
+                    addQueue({
+                        channel_id: cid,
+                        message_id: id,
+                        message,
+                        user_id: '-',
+                        os_type: osType || '-',
+                        hidden_yn: hidden ? 'Y' : 'N',
+                    });
+                },
             });
-            break;
+        } else {
+            console.log('ECS_CONTAINER_METADATA_URI is not defined');
         }
-    }
-});
-
-const servers = new Map<number, ChzzkWebSocket>();
-const getServerInstance = async (chatChannelId: string) =>
-    new Promise<ChzzkWebSocket>((resolve, reject) => {
-        const idx = ChzzkAPI.serverId(chatChannelId);
-
-        let server = servers.get(idx);
-        if (!server) {
-            server = new ChzzkWebSocket(idx);
-            servers.set(idx, server);
-
-            server
-                .on('error', console.error)
-                .on('close', () => {
-                    console.log('CLOSE');
-                })
-                .once('ready', () => {
-                    if (!server) reject('Server is not created');
-                    else resolve(server);
-                })
-                .connect();
-        } else resolve(server);
-    });
-
-const api = new ChzzkAPI({
-    nidAuth: process.env.NID_AUTH,
-    nidSession: process.env.NID_SECRET,
-});
-
-const interval = setInterval(() => {
-    tasks.forEach((task, channelId) => {
-        if (!task.isConnect) {
-            tasks.delete(channelId);
-            log('delete', channelId);
-        }
-    });
-    log('tasks', tasks.size);
-}, 10000);
+    })
+    .catch(e => console.error(e));
 
 process.on('unhandledRejection', (err, promise) => {
     errorLog('unhandledRejection', JSON.stringify(err, Object.getOwnPropertyNames(err)));
@@ -119,7 +94,6 @@ process.on('uncaughtException', (err, promise) => {
 });
 
 process.on('SIGINT', function () {
-    clearInterval(interval);
     console.error(`=============================${process.pid}번 프로세서가 종료됨=============================`);
     process.exit();
 });

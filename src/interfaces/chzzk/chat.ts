@@ -66,6 +66,7 @@ export interface ChatBase<E, P> {
     time: number;
     isRecent: boolean;
     id: string;
+    cid: string;
     memberCount?: number;
 }
 
@@ -114,7 +115,7 @@ export interface ChatUserProfile {
 }
 
 export type ChatMessage = ChatBase<ChatMessageExtras, ChatUserProfile>;
-export type ChatDonation = ChatBase<ChatDonationExtras, null>;
+export type ChatDonation = ChatBase<ChatDonationExtras, ChatUserProfile>;
 
 export interface ChatOption {
     nidAuth?: string;
