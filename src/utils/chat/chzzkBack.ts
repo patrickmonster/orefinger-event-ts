@@ -2,6 +2,7 @@ import EventEmitter from 'events';
 import { ChatChannel, ChatCmd, ChatMessage, ChatOption, ChatType } from 'interfaces/chzzk/chat';
 import WebSocket, { MessageEvent } from 'isomorphic-ws';
 import { getContentAllias } from 'utils/object';
+import sleep from 'utils/sleep';
 /**
  * 채팅을 위한 소캣 입니다.
  */
@@ -245,7 +246,23 @@ export default class ChzzkWebSocket extends EventEmitter {
 
     //////////////////////////////////////////////////////////////////////////
 
+    private async initJoiin(channel: ChatChannel) {
+        const { liveChannelId, token, uid } = channel;
+        this.sendRow(liveChannelId, {
+            bdy: {
+                accTkn: token,
+                auth: uid ? 'SEND' : 'READ',
+                devType: 2001,
+                uid: uid,
+            },
+            cmd: ChatCmd.CONNECT,
+            tid: 1,
+        });
+    }
+
     private joinQueue = new Map<string, [Function, Function]>();
+
+    private isInitJoin = false;
 
     /**
      * 새로운 채널에 연결합니다.
@@ -258,21 +275,34 @@ export default class ChzzkWebSocket extends EventEmitter {
         this.chatChannels.set(channel.liveChannelId, channel);
         this.chatCids.set(channel.chatChannelId, channel.liveChannelId);
 
-        return new Promise<void>(async (resolve, reject) => {
-            this.joinQueue.set(channel.liveChannelId, [resolve, reject]);
-            const { liveChannelId, token, uid } = channel;
-            this.sendRow(liveChannelId, {
-                bdy: {
-                    accTkn: token,
-                    auth: uid ? 'SEND' : 'READ',
-                    devType: 2001,
-                    uid: uid,
-                },
-                retry: true,
-                cmd: ChatCmd.CONNECT,
-                tid: 1,
+        if (!this.isInitJoin) {
+            this.isInitJoin = true;
+            return await this.initJoiin(channel);
+        } else
+            return new Promise<void>(async (resolve, reject) => {
+                this.joinQueue.set(channel.liveChannelId, [resolve, reject]);
+                const { liveChannelId, token, uid } = channel;
+                this.sendRow(liveChannelId, {
+                    bdy: {
+                        accTkn: token,
+                        auth: uid ? 'SEND' : 'READ',
+                        devType: 2001,
+                        uid: uid,
+                    },
+                    retry: true,
+                    cmd: ChatCmd.CONNECT,
+                    tid: 1,
+                });
             });
-        });
+    }
+
+    async joinAsync(...liveChannelId: string[]) {
+        for (const liveChannel of liveChannelId) {
+            const channel = await this.api?.createChannel(liveChannel);
+            if (channel) await this.join(channel);
+            await sleep(1000);
+        }
+        return this;
     }
 
     async leave(liveChannelId: string) {
