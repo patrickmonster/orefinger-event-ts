@@ -5,29 +5,22 @@ const client = createClient({
     pingInterval: 1000 * 30,
 });
 
-console.log('REDIS_URL', process.env.REDIS_URL);
+console.log('SUBSCRIBE_URL', process.env.REDIS_URL);
 
-client.on('error', err => {});
-
-client.on('reconnecting', () => {
-    console.log('SUBSCRIBE] client reconnecting...');
-});
-client.on('connect', () => {
-    console.log('SUBSCRIBE] client connected');
-    client.set(`SERVER:START:${process.pid}`, new Date().toISOString(), {
-        EX: 60 * 60,
+client
+    .on('error', err => {})
+    .on('reconnecting', () => {
+        console.log('SUBSCRIBE] client reconnecting...');
+    })
+    .on('connect', () => {
+        console.log('SUBSCRIBE] client connected');
+    })
+    .on('error', e => {
+        console.log('SUBSCRIBE] Error', e);
     });
-});
-
-client.on('error', e => {
-    console.log('SUBSCRIBE] Error', e);
-});
 
 process.on('SIGINT', function () {
-    client.set(`SERVER:STOP:${process.pid}`, new Date().toISOString(), {
-        EX: 60 * 60,
-    });
-    client.disconnect();
+    client.quit();
 });
 
 // 타임아웃 발생 방지
@@ -36,5 +29,3 @@ setTimeout(() => {
 }, 1000 * 5);
 
 export default client;
-
-export type QueryKey = string | number;
