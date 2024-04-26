@@ -56,10 +56,6 @@ server.addHook('onRequest', (request, reply, done) => {
     done();
 });
 
-// ECS_PK
-// ECS_REVISION
-// ECS_PK
-
 server.listen({ port: 3000, host: '::' }, (err, address) => {
     if (err) {
         console.error(err);
@@ -73,7 +69,7 @@ server.listen({ port: 3000, host: '::' }, (err, address) => {
     createECSState().then(isECS => {
         console.log(`ECS: ${isECS}`);
         isECS && startSubtask('/task.js');
-        // isECS && startSubtask('/chzzkChat.js');
+        isECS && startSubtask('/chzzkChat.js');
     });
 });
 

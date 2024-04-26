@@ -2,7 +2,7 @@ import { ChatLog, insertChatQueue } from 'controllers/chat/chzzk';
 import { ChatDonation, ChatMessage } from 'interfaces/chzzk/chat';
 import { LoopRunQueue } from 'utils/object';
 
-import { REDIS_KEY } from 'utils/redis';
+import redis, { REDIS_KEY } from 'utils/redis';
 import redisBroadcast from 'utils/redisBroadcast';
 import ChatServer from './utils/chat/server';
 
@@ -57,7 +57,7 @@ if (ECS_ID) {
         },
     });
 
-    ecsSelect(undefined, ECS_ID).then(([{ idx, revision, family }]) => {
+    ecsSelect(undefined, ECS_ID).then(([{ idx, revision, family, rownum }]) => {
         process.env.ECS_ID = ECS_ID;
         process.env.ECS_REVISION = revision;
         process.env.ECS_FAMILY = family;
@@ -93,8 +93,21 @@ if (ECS_ID) {
             .catch(console.error);
     });
 
+    const loop = setInterval(() => {
+        // ECS 상태를 전송합니다.
+        redis.publish(
+            REDIS_KEY.SUBSCRIBE.ECS_CHAT_STATE('channels'),
+            JSON.stringify({
+                id: process.env.ECS_PK,
+                revision: process.env.ECS_REVISION,
+                ...server.serverState,
+            })
+        );
+    }, 1000 * 60 * 5);
+
     process.on('SIGINT', function () {
         for (const s of server.serverList) s.disconnect();
+        clearInterval(loop);
     });
 } else {
     console.log('ECS_ID is not defined');

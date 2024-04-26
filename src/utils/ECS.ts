@@ -63,7 +63,7 @@ redisBroadcast
  * ECS 에서 가장 적은 공간을 찾아서 반환합니다.
  * @returns
  */
-export const getECSSpaceId = async () => {
+export const getECSSpaceId = () => {
     // ECS 정보를 불러옵니다.
     const list = Object.keys(serverECS).map(key => {
         return {
@@ -81,5 +81,5 @@ export const getECSSpaceId = async () => {
     );
 
     if (target.id != '') return target.id;
-    else return '1';
+    else return process.env.ECS_PK;
 };
