@@ -1,4 +1,4 @@
-import { ChatLog, insertChatQueue } from 'controllers/chat/chzzk';
+import { ChatLog, insertChatQueue, selectChatServer } from 'controllers/chat/chzzk';
 import { ChatDonation, ChatMessage } from 'interfaces/chzzk/chat';
 import { LoopRunQueue } from 'utils/object';
 
@@ -91,6 +91,14 @@ if (ECS_ID) {
                 server.getServer(hashId)?.disconnect();
             })
             .catch(console.error);
+
+        if (rownum == 1) {
+            selectChatServer(4).then(async rows => {
+                for (const { hash_id } of rows) {
+                    await server.addServer(hash_id);
+                }
+            });
+        }
     });
 
     const loop = setInterval(() => {
