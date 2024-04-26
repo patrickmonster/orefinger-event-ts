@@ -5,8 +5,9 @@
 import axios from 'axios';
 import { ecsSet } from 'controllers/log';
 import { ECStask } from 'interfaces/ecs';
-import { REDIS_KEY, getInstance } from './redis';
+import { REDIS_KEY } from './redis';
 
+import redisBroadcast from 'utils/redisBroadcast';
 /**
  * ECS 컨테이너 정보를 불러옵니다.
  */
@@ -14,20 +15,17 @@ export const createECSState = async () => {
     if (process.env.ECS_CONTAINER_METADATA_URI) {
         const { ECS_CONTAINER_METADATA_URI } = process.env;
         console.log(`ECS: ${ECS_CONTAINER_METADATA_URI}`);
-        axios
+        await axios
             .get<ECStask>(`${ECS_CONTAINER_METADATA_URI}/task`)
             .then(async ({ data }) => {
                 const { Family, Revision, TaskARN } = data;
                 const [, name, id] = TaskARN.split('/');
+                const { insertId } = await ecsSet(id, Revision, Family);
 
-                console.log(`ECS STATE ::`, data.Containers);
+                console.log(`ECS STATE ::`, data.Containers, insertId);
                 process.env.ECS_ID = id;
                 process.env.ECS_REVISION = Revision;
                 process.env.ECS_FAMILY = Family;
-
-                const { insertId } = await ecsSet(id, Revision, Family);
-                console.log(`ECS SET ::`, insertId);
-
                 process.env.ECS_PK = `${insertId}`;
             })
             .catch(e => {
@@ -52,7 +50,7 @@ const serverECS: {
  * ECS 정보를 수신합니다
  * @returns ECS ID
  */
-getInstance()
+redisBroadcast
     .subscribe(REDIS_KEY.SUBSCRIBE.ECS_CHAT_STATE('channels'), (message: string) => {
         const { id, revision, count, userCount } = JSON.parse(message);
         if (revision !== process.env.ECS_REVISION) return;

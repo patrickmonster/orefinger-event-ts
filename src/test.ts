@@ -17,7 +17,8 @@ if (existsSync(envDir)) {
 }
 
 import { selectChatServer } from 'controllers/chat/chzzk';
-import { REDIS_KEY, getInstance } from 'utils/redis';
+import { REDIS_KEY } from 'utils/redis';
+import redisBroadcast from 'utils/redisBroadcast';
 
 const server = new ChatServer({
     concurrency: 2,
@@ -37,7 +38,7 @@ selectChatServer(4).then(servers => {
 });
 
 // -- 채널 변경
-getInstance()
+redisBroadcast
     .subscribe(REDIS_KEY.SUBSCRIBE.LIVE_STATE('change'), (message: string) => {
         const { hashId, liveStatus } = JSON.parse(message);
         const { chatChannelId } = liveStatus as ChzzkContent;
@@ -47,7 +48,7 @@ getInstance()
     .catch(console.error);
 
 // -- 온라인
-getInstance()
+redisBroadcast
     .subscribe(REDIS_KEY.SUBSCRIBE.LIVE_STATE('online'), async (message: string) => {
         const { type, id, targetId, noticeId, hashId, liveStatus } = JSON.parse(message);
         const { chatChannelId } = liveStatus as ChzzkContent;
@@ -58,7 +59,7 @@ getInstance()
     .catch(console.error);
 
 // -- 오프라인
-getInstance()
+redisBroadcast
     .subscribe(REDIS_KEY.SUBSCRIBE.LIVE_STATE('offline'), (message: string) => {
         const { hashId } = JSON.parse(message);
         server.getServer(hashId)?.disconnect();
