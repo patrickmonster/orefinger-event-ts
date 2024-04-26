@@ -57,7 +57,7 @@ if (ECS_ID) {
         },
     });
 
-    ecsSelect(undefined, ECS_ID).then(([{ idx, revision, family, rownum }]) => {
+    ecsSelect(undefined, ECS_ID).then(([{ idx, revision, family }]) => {
         process.env.ECS_ID = ECS_ID;
         process.env.ECS_REVISION = revision;
         process.env.ECS_FAMILY = family;
@@ -92,13 +92,18 @@ if (ECS_ID) {
             })
             .catch(console.error);
 
-        if (rownum == 1) {
-            selectChatServer(4).then(async rows => {
-                for (const { hash_id } of rows) {
-                    await server.addServer(hash_id);
-                }
-            });
-        }
+        ecsSelect(revision).then(async rows => {
+            if (!rows.length) return;
+            const ecs = rows.find(row => row.idx === idx);
+
+            if (ecs && ecs.rownum === 1) {
+                selectChatServer(4).then(async chats => {
+                    for (const { hash_id } of chats) {
+                        await server.addServer(hash_id);
+                    }
+                });
+            }
+        });
     });
 
     const loop = setInterval(() => {
