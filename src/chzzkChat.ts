@@ -1,13 +1,15 @@
-import { ChatLog, insertChatQueue, selectChatServer } from 'controllers/chat/chzzk';
+import { ChatLog, insertChatQueue } from 'controllers/chat/chzzk';
 import { ChatDonation, ChatMessage } from 'interfaces/chzzk/chat';
-import { LoopRunQueue, ParseInt } from 'utils/object';
-import { error as errorLog } from './utils/logger';
+import { LoopRunQueue } from 'utils/object';
 
-import { REDIS_KEY, getInstance } from 'utils/redis';
+import { REDIS_KEY } from 'utils/redis';
+import redisBroadcast from 'utils/redisBroadcast';
 import ChatServer from './utils/chat/server';
 
 import { ecsSelect } from 'controllers/log';
 import { Content as ChzzkContent } from 'interfaces/API/Chzzk';
+
+import 'utils/procesTuning';
 
 /**
  *
@@ -41,8 +43,8 @@ const appendChat = (chat: ChatMessage | ChatDonation) => {
     });
 };
 
-const { ECS_PK, ECS_REVISION } = process.env;
-if (ECS_PK && ECS_REVISION) {
+const [, file, ECS_ID, ...argv] = process.argv;
+if (ECS_ID) {
     const server = new ChatServer({
         nidAuth: process.env.NID_AUTH,
         nidSession: process.env.NID_SECRET,
@@ -55,60 +57,45 @@ if (ECS_PK && ECS_REVISION) {
         },
     });
 
-    // -- 채널 변경
-    getInstance()
-        .subscribe(REDIS_KEY.SUBSCRIBE.LIVE_STATE('change'), (message: string) => {
-            const { hashId, liveStatus } = JSON.parse(message);
-            const { chatChannelId } = liveStatus as ChzzkContent;
+    ecsSelect(undefined, ECS_ID).then(([{ idx, revision, family }]) => {
+        process.env.ECS_ID = ECS_ID;
+        process.env.ECS_REVISION = revision;
+        process.env.ECS_FAMILY = family;
+        process.env.ECS_PK = `${idx}`;
 
-            server.getServer(hashId)?.updateChannel(chatChannelId, hashId);
-        })
-        .catch(console.error);
+        redisBroadcast
+            .subscribe(REDIS_KEY.SUBSCRIBE.LIVE_STATE('change'), (message: string) => {
+                const { hashId, liveStatus } = JSON.parse(message);
+                const { chatChannelId } = liveStatus as ChzzkContent;
 
-    // -- 온라인
-    getInstance()
-        .subscribe(REDIS_KEY.SUBSCRIBE.LIVE_STATE('online'), async (message: string) => {
-            const { type, id, targetId, noticeId, hashId, liveStatus } = JSON.parse(message);
-            const { chatChannelId } = liveStatus as ChzzkContent;
-            if (targetId !== ECS_PK) return; // 자신의 서버가 아닌 경우
+                server.getServer(hashId)?.updateChannel(chatChannelId, hashId);
+            })
+            .catch(console.error);
 
-            await server.addServer(hashId, chatChannelId);
-        })
-        .catch(console.error);
+        // -- 온라인
+        redisBroadcast
+            .subscribe(REDIS_KEY.SUBSCRIBE.LIVE_STATE('online'), async (message: string) => {
+                const { targetId, hashId, liveStatus } = JSON.parse(message);
+                const { chatChannelId } = liveStatus as ChzzkContent;
+                if (targetId !== idx) return; // 자신의 서버가 아닌 경우
 
-    // -- 오프라인
-    getInstance()
-        .subscribe(REDIS_KEY.SUBSCRIBE.LIVE_STATE('offline'), (message: string) => {
-            const { hashId } = JSON.parse(message);
+                await server.addServer(hashId, chatChannelId);
+            })
+            .catch(console.error);
 
-            server.getServer(hashId)?.disconnect();
-        })
-        .catch(console.error);
+        // -- 오프라인
+        redisBroadcast
+            .subscribe(REDIS_KEY.SUBSCRIBE.LIVE_STATE('offline'), (message: string) => {
+                const { hashId } = JSON.parse(message);
 
-    ecsSelect(ECS_REVISION).then(servers => {
-        const server = servers.find(item => item.idx == ParseInt(ECS_PK));
-        if (!server) return;
-    });
-    selectChatServer(4).then(servers => {
-        server.addServers(...servers.map(server => server.hash_id));
+                server.getServer(hashId)?.disconnect();
+            })
+            .catch(console.error);
     });
 
     process.on('SIGINT', function () {
         for (const s of server.serverList) s.disconnect();
     });
 } else {
-    console.log('ECS_CONTAINER_METADATA_URI is not defined');
+    console.log('ECS_ID is not defined');
 }
-process.on('unhandledRejection', (err, promise) => {
-    errorLog('unhandledRejection', JSON.stringify(err, Object.getOwnPropertyNames(err)));
-    console.error('unhandledRejection', err);
-});
-process.on('uncaughtException', (err, promise) => {
-    errorLog('uncaughtException', JSON.stringify(err, Object.getOwnPropertyNames(err)));
-    console.error('uncaughtException', err);
-});
-
-process.on('SIGINT', function () {
-    console.error(`=============================${process.pid}번 프로세서가 종료됨=============================`);
-    process.exit();
-});

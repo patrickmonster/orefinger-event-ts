@@ -48,7 +48,7 @@ const util = {
     scanDir: (modulePath: string, options?: AutoCommandOptions, basePath?: string[]): Modules[] => {
         if (!basePath) basePath = []; // 경로 저장
         const files = fs.readdirSync(modulePath);
-        options?.isLog && console.log('AutoCommand] ScanDir', files);
+        options?.isLog && console.log('AutoCommand] ScanDir', `[${files.join(', ')}]`);
 
         const out: Modules[] = [];
         for (const file of files) {
@@ -80,7 +80,12 @@ const util = {
     flattenModules: (list: Modules[]): Module[] =>
         list.reduce<Module[]>((acc, cur) => {
             if ('ext' in cur) acc.push(cur);
-            else acc.push(...util.flattenModules(cur.modules).map(module => ({ ...module, path: [cur.name, ...module.path], ext: '.dir' })));
+            else
+                acc.push(
+                    ...util
+                        .flattenModules(cur.modules)
+                        .map(module => ({ ...module, path: [cur.name, ...module.path], ext: '.dir' }))
+                );
             return acc;
         }, []),
 };
@@ -97,7 +102,10 @@ const util = {
  * @param options
  * @returns
  */
-export default (modulePath: string, options?: AutoCommandOptions): [{ name: string; file: string; path: string[]; pathTag: string }[], Modules[]] => {
+export default (
+    modulePath: string,
+    options?: AutoCommandOptions
+): [{ name: string; file: string; path: string[]; pathTag: string }[], Modules[]] => {
     const option = Object.assign({ isSubfolder: true, pathTag: ' ' }, options);
 
     const list = util.scanDir(util.getOriginFileName(modulePath), option); // 디렉토리 스캔
@@ -108,11 +116,7 @@ export default (modulePath: string, options?: AutoCommandOptions): [{ name: stri
         file: i.file,
     })); // 트리 직열화
 
-    option.isLog &&
-        console.log(
-            'AutoCommand] Loading commands',
-            modules.map(i => i.name)
-        );
+    option.isLog && console.log('AutoCommand] Loading commands', `[${modules.map(i => i.name).join(', ')}]`);
 
     return [modules, list];
 };

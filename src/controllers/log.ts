@@ -16,7 +16,7 @@ export const ecsSet = async (id: string, revision: string, family: string) =>
         family,
     });
 
-export const ecsSelect = async (revision: string) =>
+export const ecsSelect = async (revision?: string, id?: string) =>
     query<{
         idx: number;
         id: string;
@@ -36,9 +36,10 @@ SELECT
     , create_at 
 	, @rownum := @rownum + 1 AS rownum
 FROM task t, (SELECT @rownum := 0) r
-WHERE revision = ?
-        `,
-        ParseInt(revision)
+WHERE 1=1
+${calTo('AND t.revision = ?', revision)}
+${calTo('AND t.id = ?', id)}
+        `
     );
 
 export const ecsTaskState = async (noticeType?: 4 | 5) =>

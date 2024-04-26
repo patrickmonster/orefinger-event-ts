@@ -5,7 +5,8 @@ import { upsertNotice } from 'controllers/notice';
 import { APIEmbed, APIMessage } from 'discord-api-types/v10';
 import { ChannelData, Content } from 'interfaces/API/Chzzk';
 import { ChzzkInterface, getChzzkAPI } from 'utils/naverApiInstance';
-import redis, { REDIS_KEY, getInstance } from 'utils/redis';
+import redis, { REDIS_KEY } from 'utils/redis';
+import redisBroadcast from 'utils/redisBroadcast';
 
 import { auth } from 'controllers/auth';
 import dayjs from 'dayjs';
@@ -236,7 +237,7 @@ export const getChannelLive = async (noticeId: number, hashId: string, liveId: s
                 if (content && content.status === 'OPEN') {
                     // 이전에 라이브 정보가 있었다면, 라이브 정보를 업데이트 ( 마감 )
                     if (liveId != '0') {
-                        getInstance()
+                        redisBroadcast
                             .publish(
                                 REDIS_KEY.SUBSCRIBE.LIVE_STATE('change'),
                                 JSON.stringify({
@@ -265,7 +266,7 @@ export const getChannelLive = async (noticeId: number, hashId: string, liveId: s
                     }
                 } else if (content && content.status == 'CLOSE') {
                     // 이전 라이브 정보가 있었다면, 라이브 정보를 업데이트 ( 마감 )
-                    await changeMessage(noticeId, content);
+                    changeMessage(noticeId, content).catch(() => {});
 
                     if (liveId && liveId != '0') {
                         const result = await updateLiveEvents(noticeId);
@@ -299,7 +300,7 @@ export const getLiveMessage = async ({
 }: NoticeBat) => {
     const liveStatus = await getChannelLive(noticeId, hashId, id);
     if (liveStatus && liveStatus.status === 'OPEN') {
-        getInstance()
+        redisBroadcast
             .publish(
                 REDIS_KEY.SUBSCRIBE.LIVE_STATE('online'),
                 JSON.stringify({
@@ -333,7 +334,7 @@ export const getLiveMessage = async ({
             EX: 60 * 60 * 24, // 12시간
         });
     } else if (liveStatus && liveStatus.status == 'CLOSE') {
-        getInstance()
+        redisBroadcast
             .publish(
                 REDIS_KEY.SUBSCRIBE.LIVE_STATE('offline'),
                 JSON.stringify({ type: 'notice', id: process.env.ECS_PK, noticeId, hashId, liveStatus })

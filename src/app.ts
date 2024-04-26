@@ -13,7 +13,7 @@ import Multipart from '@fastify/sensible';
 
 import { fork } from 'child_process';
 
-import { error as errorLog } from './utils/logger';
+import 'utils/procesTuning';
 
 const envDir = join(env.PWD || __dirname, `/.env`);
 if (existsSync(envDir)) {
@@ -27,6 +27,8 @@ if (existsSync(envDir)) {
 
 //////////////////////////////////////////////////////////////////////
 // 환경변수
+
+import { createECSState } from 'utils/ECS';
 
 const server = fastify({
     // logger: env.NODE_ENV != 'prod'
@@ -54,6 +56,10 @@ server.addHook('onRequest', (request, reply, done) => {
     done();
 });
 
+// ECS_PK
+// ECS_REVISION
+// ECS_PK
+
 server.listen({ port: 3000, host: '::' }, (err, address) => {
     if (err) {
         console.error(err);
@@ -64,15 +70,11 @@ server.listen({ port: 3000, host: '::' }, (err, address) => {
     console.log(`Server started in  ${Math.floor(time / 1000)} (${time}ms)`);
     console.log(`Server listening at ${address}`);
 
-    // createECSState().then(isECS => {
-    //     console.log(`ECS: ${isECS}`);
-    //     isECS && startSubtask('/task.js');
-    //     isECS && startSubtask('/chzzkChat.js');
-    // });
-
-    if (env.MASTER_KEY) {
-        startSubtask('/task.js');
-    }
+    createECSState().then(isECS => {
+        console.log(`ECS: ${isECS}`);
+        isECS && startSubtask('/task.js');
+        // isECS && startSubtask('/chzzkChat.js');
+    });
 });
 
 /**
@@ -80,7 +82,9 @@ server.listen({ port: 3000, host: '::' }, (err, address) => {
  * @param target
  */
 const startSubtask = (target: `/${string}`) => {
-    const child = fork(__dirname + target);
+    const { ECS_ID } = process.env;
+    // node file.js ${ECS_ID}
+    const child = fork(__dirname + target, [`${ECS_ID}`]);
     child.on('close', (code: number) => {
         stopSubtask(target, code);
     });
@@ -100,17 +104,3 @@ const stopSubtask = (target: `/${string}`, code: number) => {
 
 //////////////////////////////////////////////////////////////////////
 // 프로세서 모듈
-
-process.on('unhandledRejection', (err, promise) => {
-    errorLog('unhandledRejection', JSON.stringify(err, Object.getOwnPropertyNames(err)));
-    console.error('unhandledRejection', err);
-});
-process.on('uncaughtException', (err, promise) => {
-    errorLog('uncaughtException', JSON.stringify(err, Object.getOwnPropertyNames(err)));
-    console.error('uncaughtException', err);
-});
-
-process.on('SIGINT', function () {
-    console.error(`=============================${process.pid}번 프로세서가 종료됨=============================`);
-    process.exit();
-});
