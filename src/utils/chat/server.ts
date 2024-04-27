@@ -15,6 +15,9 @@ interface ChatServerOption extends ChatOption {
     onDonation?: (chat: ChatDonation) => void;
 }
 
+/**
+ * 채팅 서버 관리자
+ */
 export default class ChatServer {
     private servers = new Map<string, ChzzkChat>(); // 서버 목록
     private queue: PQueue; // 동시 실행 가능한 서버 수
@@ -23,6 +26,7 @@ export default class ChatServer {
     private ondonation: (chat: ChatDonation) => void;
 
     private api: ChzzkAPI;
+    private uid?: string;
 
     constructor(options?: ChatServerOption) {
         this.api = new ChzzkAPI(options);
@@ -30,19 +34,38 @@ export default class ChatServer {
 
         this.onmessage = options?.onMessage || (() => {});
         this.ondonation = options?.onDonation || (() => {});
+
+        this.api.user().then(user => {
+            this.uid = user?.userIdHash;
+        });
     }
 
     public addServer(roomId: string, chatChannelId?: string) {
         if (this.servers.has(roomId)) return 0;
         if (this.servers.size > 60000) return -1; // 서버 수 제한
         this.queue.add(async () => {
-            const channel = await this.api.createChannel(roomId, chatChannelId);
+            if (!chatChannelId)
+                chatChannelId = await this.api
+                    .status(roomId)
+                    .then(status => status?.chatChannelId)
+                    .catch(() => null);
+            if (!chatChannelId) {
+                console.error('INVALID CHAT CHANNEL ID', roomId);
+                return;
+            }
+            const token = await this.api.accessToken(chatChannelId).then(token => token.accessToken);
 
-            const server = new ChzzkChat(ChzzkAPI.serverId(channel.chatChannelId), this.api)
+            const server = new ChzzkChat({
+                //
+                chatChannelId,
+                liveChannelId: roomId,
+                token: token,
+                uid: this.uid,
+            })
                 .on('chat', this.onmessage.bind(this))
                 .on('donation', this.ondonation.bind(this))
                 .on('ready', () => {
-                    server.join(channel);
+                    console.log('CONNECTED TO CHAT SERVER', roomId, chatChannelId);
                 });
             this.servers.set(roomId, server);
 
