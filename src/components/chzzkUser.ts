@@ -266,13 +266,13 @@ export const getChannelLive = async (noticeId: number, hashId: string, liveId: s
                 } else if (content && content.status == 'CLOSE') {
                     // 이전 라이브 정보가 있었다면, 라이브 정보를 업데이트 ( 마감 )
                     changeMessage(noticeId, content).catch(() => {});
-
                     if (liveId && liveId != '0') {
+                        return reject(null); // 이미 처리된 알림
+                    } else {
+                        // 오프라인
                         const result = await updateLiveEvents(noticeId);
                         if (result.changedRows == 0) return reject(null);
-                        // 이미 처리된 알림
-                    } else return reject(null); // 이미 처리된 알림
-
+                    }
                     return resolve(content as Content);
                 }
             })

@@ -1,6 +1,5 @@
 import { config } from 'dotenv';
 import { existsSync } from 'fs';
-import { Content as ChzzkContent } from 'interfaces/API/Chzzk';
 import { ChatMessage } from 'interfaces/chzzk/chat';
 import { join } from 'path';
 import { env } from 'process';
@@ -17,8 +16,6 @@ if (existsSync(envDir)) {
 }
 
 import { selectChatServer } from 'controllers/chat/chzzk';
-import { REDIS_KEY } from 'utils/redis';
-import redisBroadcast from 'utils/redisBroadcast';
 
 const server = new ChatServer({
     concurrency: 2,
@@ -38,33 +35,33 @@ selectChatServer(4).then(servers => {
 });
 
 // -- 채널 변경
-redisBroadcast
-    .subscribe(REDIS_KEY.SUBSCRIBE.LIVE_STATE('change'), (message: string) => {
-        const { hashId, liveStatus } = JSON.parse(message);
-        const { chatChannelId } = liveStatus as ChzzkContent;
+// redisBroadcast
+//     .subscribe(REDIS_KEY.SUBSCRIBE.LIVE_STATE('change'), (message: string) => {
+//         const { hashId, liveStatus } = JSON.parse(message);
+//         const { chatChannelId } = liveStatus as ChzzkContent;
 
-        server.getServer(hashId)?.updateChannel(chatChannelId, hashId);
-    })
-    .catch(console.error);
+//         server.getServer(hashId)?.updateChannel(chatChannelId, hashId);
+//     })
+//     .catch(console.error);
 
-// -- 온라인
-redisBroadcast
-    .subscribe(REDIS_KEY.SUBSCRIBE.LIVE_STATE('online'), async (message: string) => {
-        const { type, id, targetId, noticeId, hashId, liveStatus } = JSON.parse(message);
-        const { chatChannelId } = liveStatus as ChzzkContent;
-        // if (targetId !== ECS_PK) return; // 자신의 서버가 아닌 경우
+// // -- 온라인
+// redisBroadcast
+//     .subscribe(REDIS_KEY.SUBSCRIBE.LIVE_STATE('online'), async (message: string) => {
+//         const { type, id, targetId, noticeId, hashId, liveStatus } = JSON.parse(message);
+//         const { chatChannelId } = liveStatus as ChzzkContent;
+//         // if (targetId !== ECS_PK) return; // 자신의 서버가 아닌 경우
 
-        await server.addServer(hashId, chatChannelId);
-    })
-    .catch(console.error);
+//         await server.addServer(hashId, chatChannelId);
+//     })
+//     .catch(console.error);
 
-// -- 오프라인
-redisBroadcast
-    .subscribe(REDIS_KEY.SUBSCRIBE.LIVE_STATE('offline'), (message: string) => {
-        const { hashId } = JSON.parse(message);
-        server.getServer(hashId)?.disconnect();
-    })
-    .catch(console.error);
+// // -- 오프라인
+// redisBroadcast
+//     .subscribe(REDIS_KEY.SUBSCRIBE.LIVE_STATE('offline'), (message: string) => {
+//         const { hashId } = JSON.parse(message);
+//         server.getServer(hashId)?.disconnect();
+//     })
+// .catch(console.error);
 
 process.on('SIGINT', function () {
     for (const s of server.serverList) s.disconnect();
