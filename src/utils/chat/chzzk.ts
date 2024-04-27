@@ -9,8 +9,8 @@ import { getContentAllias } from 'utils/object';
 const CHZZK_BASE_URL = 'https://api.chzzk.naver.com';
 const GAME_BASE_URL = 'https://comm-api.game.naver.com/nng_main';
 
-const getServiceId = (channelId: string) =>
-    (Math.abs(channelId.split('').reduce((acc, cur) => acc + cur.charCodeAt(0), 0)) % 9) + 1;
+const getServiceId = (channelId: string, maxSize = 9) =>
+    (Math.abs(channelId.split('').reduce((acc, cur) => acc + cur.charCodeAt(0), 0)) % maxSize) + 1;
 
 export type ChzzkWebSocketType = typeof ChzzkWebSocket;
 export type ChzzkAPIType = typeof ChzzkAPI;
@@ -177,8 +177,6 @@ export default class ChzzkWebSocket extends EventEmitter {
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
-
-    interval: NodeJS.Timeout | undefined;
 
     /**
      * 1.
@@ -387,11 +385,11 @@ export default class ChzzkWebSocket extends EventEmitter {
      * @reference https://discord.com/developers/docs/reference#snowflakes
      * @reference https://github.com/lemon-mint/snowflake-id-web-visualisation/blob/main/src/main.ts#L107-L110
      */
-    private getMessageId(time: number, pwId: number) {
+    private getMessageId(time: number, userId: string) {
         let snowflake = BigInt(time - 1_420_070_400_000) & ((BigInt(1) << BigInt(41)) - BigInt(1)); // 41 bits for timestamp
         snowflake = snowflake << BigInt(22); // shift 22 bits
-        snowflake |= BigInt(pwId & ((1 << 10) - 1)) << BigInt(12); // 10 bits for node id
-        snowflake |= BigInt(this.chatCount & ((1 << 12) - 1)); // 12 bits for counter
+        snowflake |= BigInt(getServiceId(userId, 1023) & ((1 << 10) - 1)) << BigInt(12); // 10 bits for node id
+        snowflake |= BigInt(getServiceId(this.chatChannelId, 1023) & ((1 << 12) - 1)); // 12 bits for counter
 
         return snowflake.toString();
     }
@@ -458,8 +456,9 @@ export default class ChzzkWebSocket extends EventEmitter {
         const time = getContentAllias(chat, 'msgTime', 'messageTime');
 
         const hidden = getContentAllias(chat, 'msgStatusType', 'messageStatusType') == 'HIDDEN';
+        const id = isRecent ? '-' : this.getMessageId(time, profile.userIdHash); // 메세지 ID 생성 (Snowflake)
 
-        const parsed: ChatMessage = { profile, extras, hidden, message, time, id: '-', isRecent, cid };
+        const parsed: ChatMessage = { profile, extras, hidden, message, time, id, isRecent, cid };
         if (memberCount) {
             parsed.memberCount = memberCount;
 
