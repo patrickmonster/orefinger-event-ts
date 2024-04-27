@@ -76,6 +76,13 @@ export default class ChatServer {
         return this.queue.size;
     }
 
+    public send(roomId: string, message: string) {
+        const server = this.servers.get(roomId);
+        if (server) {
+            server.sendChat(message);
+        }
+    }
+
     get serverList() {
         return this.servers.values();
     }

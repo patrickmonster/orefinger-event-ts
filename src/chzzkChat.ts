@@ -69,6 +69,16 @@ if (ECS_ID) {
             const [command, ...args] = message.split(' ');
 
             switch (command) {
+                case '@방송알리미':
+                    const [channelId, ...msg] = args;
+                    const message = msg.join(' ');
+
+                    if (message) {
+                        server.send(channelId, `안녕하세요! 디스코드에서 방송알림을 전송하고 있는 방송 알리미 입니다!`);
+                    }
+                    break;
+                default:
+                    break;
             }
 
             //
