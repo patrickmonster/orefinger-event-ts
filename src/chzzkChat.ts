@@ -55,12 +55,7 @@ if (ECS_ID) {
         concurrency: 2,
         onMessage: chat => {
             appendChat(chat);
-            const {
-                message,
-                id,
-                extras: { streamingChannelId },
-                profile: { nickname },
-            } = chat;
+            const { message } = chat;
 
             if (!message.startsWith('@')) {
                 return;
