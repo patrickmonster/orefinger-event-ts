@@ -106,6 +106,12 @@ if (ECS_ID) {
             if (hash_id) server.removeServer(hash_id).catch(console.error);
         });
 
+        // -- 채널 연결 *(명령)
+        ECSStateSubscribe('CONNECT', ({ hash_id, id }) => {
+            if (id !== process.env.ECS_PK) return; // 자신의 서버가 아닌 경우
+            hash_id && server.addServer(hash_id);
+        });
+
         ecsSelect(revision).then(async rows => {
             if (!rows.length) return;
             const ecs = rows.find(row => row.idx === idx);

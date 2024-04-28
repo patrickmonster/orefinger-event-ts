@@ -32,7 +32,7 @@ interface BaseState {
 }
 
 export const ECSStateSubscribe = async (
-    state: 'channels' | 'JOIN',
+    state: 'channels' | 'JOIN' | 'CONNECT',
     onMessage: (message: { count: number; userCount: number; hash_id?: string } & BaseState) => void
 ) => {
     client
