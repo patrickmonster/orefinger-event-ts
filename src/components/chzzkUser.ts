@@ -236,6 +236,7 @@ export const getChannelLive = async (noticeId: number, hashId: string, liveId: s
                 if (content && content.status === 'OPEN') {
                     // 이전에 라이브 정보가 있었다면, 라이브 정보를 업데이트 ( 마감 )
                     if (liveId != '0') {
+                        // 기존 라이브 정보가 있었다면
                         redis
                             .publish(
                                 REDIS_KEY.SUBSCRIBE.LIVE_STATE('change'),
@@ -267,12 +268,10 @@ export const getChannelLive = async (noticeId: number, hashId: string, liveId: s
                     // 이전 라이브 정보가 있었다면, 라이브 정보를 업데이트 ( 마감 )
                     changeMessage(noticeId, content).catch(() => {});
                     if (liveId && liveId != '0') {
-                        return reject(null); // 이미 처리된 알림
-                    } else {
                         // 오프라인
                         const result = await updateLiveEvents(noticeId);
                         if (result.changedRows == 0) return reject(null);
-                    }
+                    } else return reject(null); // 이미 처리된 알림
                     return resolve(content as Content);
                 }
             })

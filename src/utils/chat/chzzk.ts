@@ -269,7 +269,7 @@ export default class ChzzkWebSocket extends EventEmitter {
      * @param count 최근 채팅 갯수
      */
     requestRecentChat(count: number = 50) {
-        this.hasConnected();
+        if (!this.isConnect) return;
         this.sendRow(
             {
                 bdy: { recentMessageCount: count },
@@ -281,7 +281,7 @@ export default class ChzzkWebSocket extends EventEmitter {
     }
 
     sendChat(message: string, emojis: Record<string, string> = {}) {
-        this.hasConnected();
+        if (!this.isConnect) return;
 
         const extras = {
             chatType: 'STREAMING',
