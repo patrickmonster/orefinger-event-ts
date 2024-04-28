@@ -488,7 +488,8 @@ export default class ChzzkWebSocket extends EventEmitter {
         if (this.ws) {
             this.ws.send(JSON.stringify(requsetData));
         } else {
-            throw new Error('소캣이 연결되지 않았습니다.');
+            console.error('소캣이 연결되지 않았습니다.', requsetData);
+            // throw new Error('소캣이 연결되지 않았습니다.');
         }
     }
 }

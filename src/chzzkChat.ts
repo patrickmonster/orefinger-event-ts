@@ -2,8 +2,8 @@ import { ChatLog, insertChatQueue, selectChatServer } from 'controllers/chat/chz
 import { ChatDonation, ChatMessage } from 'interfaces/chzzk/chat';
 import { LoopRunQueue } from 'utils/object';
 
-import redis, { REDIS_KEY } from 'utils/redis';
-import redisBroadcast from 'utils/redisBroadcast';
+import { ECSStatePublish } from 'utils/redis';
+import { ECSStateSubscribe, LiveStateSubscribe } from 'utils/redisBroadcast';
 import ChatServer from './utils/chat/server';
 
 import { ecsSelect } from 'controllers/log';
@@ -15,10 +15,6 @@ import 'utils/procesTuning';
  *
  * @description 알림 작업을 수행하는 스레드로써, 각 알림 스캔 작업을 수행합니다.
  */
-
-const defaultMessage = {
-    방송알리미: '치지직 알림은 방송알리미#4866!',
-};
 
 // 메세지 로깅용 큐
 const addQueue = LoopRunQueue<ChatLog>(
@@ -48,6 +44,7 @@ const appendChat = (chat: ChatMessage | ChatDonation) => {
 };
 
 const [, file, ECS_ID, ...argv] = process.argv;
+
 if (ECS_ID) {
     const server = new ChatServer({
         nidAuth: process.env.NID_AUTH,
@@ -89,54 +86,25 @@ if (ECS_ID) {
         process.env.ECS_FAMILY = family;
         process.env.ECS_PK = `${idx}`;
 
-        redisBroadcast
-            .subscribe(REDIS_KEY.SUBSCRIBE.LIVE_STATE('change'), (message: string) => {
-                const { hashId, liveStatus } = JSON.parse(message);
-                const { chatChannelId } = liveStatus as ChzzkContent;
+        LiveStateSubscribe('change', ({ hashId, liveStatus }) => {
+            const { chatChannelId } = liveStatus as ChzzkContent;
+            server.getServer(hashId)?.updateChannel(chatChannelId);
+        });
 
-                server.getServer(hashId)?.updateChannel(chatChannelId);
-            })
-            .catch(console.error);
+        LiveStateSubscribe('online', ({ targetId, hashId, liveStatus }) => {
+            const { chatChannelId } = liveStatus as ChzzkContent;
+            if (targetId !== process.env.ECS_PK) return; // 자신의 서버가 아닌 경우
+            server.addServer(hashId, chatChannelId);
+        });
 
-        // -- 온라인
-        redisBroadcast
-            .subscribe(REDIS_KEY.SUBSCRIBE.LIVE_STATE('online'), async (message: string) => {
-                const { targetId, hashId, liveStatus } = JSON.parse(message);
-                const { chatChannelId } = liveStatus as ChzzkContent;
-                if (targetId !== idx) return; // 자신의 서버가 아닌 경우
-
-                await server.addServer(hashId, chatChannelId);
-
-                redis.publish(
-                    REDIS_KEY.SUBSCRIBE.ECS_CHAT_STATE('JOIN'),
-                    JSON.stringify({
-                        id: process.env.ECS_PK,
-                        revision: process.env.ECS_REVISION,
-                        hashId,
-                    })
-                );
-            })
-            .catch(console.error);
-
-        // -- 오프라인
-        redisBroadcast
-            .subscribe(REDIS_KEY.SUBSCRIBE.LIVE_STATE('offline'), (message: string) => {
-                const { hashId } = JSON.parse(message);
-
-                server.getServer(hashId)?.disconnect();
-            })
-            .catch(console.error);
+        LiveStateSubscribe('offline', ({ hashId }) => {
+            server.getServer(hashId)?.disconnect();
+        });
 
         // -- 새로운 채널 입장 알림
-        redisBroadcast
-            .subscribe(REDIS_KEY.SUBSCRIBE.ECS_CHAT_STATE('JOIN'), (message: string) => {
-                const { id, hash_id: hashId } = JSON.parse(message);
-
-                if (id === process.env.ECS_PK) return;
-                // 다른 ECS 서버가 채널에 입장했을 때, 현재 작업에서는 제거 합니다
-                server.removeServer(hashId).catch(console.error);
-            })
-            .catch(console.error);
+        ECSStateSubscribe('JOIN', ({ hash_id }) => {
+            if (hash_id) server.removeServer(hash_id).catch(console.error);
+        });
 
         ecsSelect(revision).then(async rows => {
             if (!rows.length) return;
@@ -145,16 +113,11 @@ if (ECS_ID) {
             if (ecs && ecs.rownum === 1) {
                 selectChatServer(4).then(async chats => {
                     for (const { hash_id: hashId } of chats) {
-                        await server.addServer(hashId);
-
-                        redis.publish(
-                            REDIS_KEY.SUBSCRIBE.ECS_CHAT_STATE('JOIN'),
-                            JSON.stringify({
-                                id: process.env.ECS_PK,
-                                revision: process.env.ECS_REVISION,
-                                hash_id: hashId,
-                            })
-                        );
+                        server.addServer(hashId);
+                        ECSStatePublish('JOIN', {
+                            ...server.serverState,
+                            hash_id: hashId,
+                        });
                     }
                 });
             }
@@ -163,15 +126,8 @@ if (ECS_ID) {
 
     const loop = setInterval(() => {
         // ECS 상태를 전송합니다.
-        redis.publish(
-            REDIS_KEY.SUBSCRIBE.ECS_CHAT_STATE('channels'),
-            JSON.stringify({
-                id: process.env.ECS_PK,
-                revision: process.env.ECS_REVISION,
-                ...server.serverState,
-            })
-        );
-    }, 1000 * 60 * 5);
+        ECSStatePublish('channels', server.serverState);
+    }, 1000 * 60); // 1분마다 상태 전송
 
     process.on('SIGINT', function () {
         for (const s of server.serverList) s.disconnect();

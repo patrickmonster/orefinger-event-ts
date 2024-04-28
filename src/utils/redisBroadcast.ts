@@ -1,4 +1,5 @@
 import { createClient } from 'redis';
+import { REDIS_KEY } from './redis';
 
 const client = createClient({
     url: process.env.REDIS_URL,
@@ -22,6 +23,44 @@ client
 process.on('SIGINT', function () {
     client.quit();
 });
+
+////////////////////////////////////////////////////////////////////////////////////////
+
+interface BaseState {
+    revision: string;
+    id: string;
+}
+
+export const ECSStateSubscribe = async (
+    state: 'channels' | 'JOIN',
+    onMessage: (message: { count: number; userCount: number; hash_id?: string } & BaseState) => void
+) => {
+    client
+        .subscribe(REDIS_KEY.SUBSCRIBE.ECS_CHAT_STATE(state), (message: string) => {
+            const { id } = JSON.parse(message) as BaseState;
+            if (id === process.env.ECS_PK) return;
+            onMessage(JSON.parse(message));
+        })
+        .catch(console.error);
+};
+export const LiveStateSubscribe = async (
+    state: 'online' | 'offline' | 'change',
+    onMessage: (
+        message: {
+            targetId?: string;
+            noticeId: number;
+            hashId: string;
+            liveStatus: any;
+        } & BaseState
+    ) => void
+) => {
+    //
+    client
+        .subscribe(REDIS_KEY.SUBSCRIBE.LIVE_STATE(state), (message: string) => {
+            onMessage(JSON.parse(message));
+        })
+        .catch(console.error);
+};
 
 // 타임아웃 발생 방지
 setTimeout(() => {
