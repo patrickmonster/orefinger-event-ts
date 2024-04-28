@@ -95,6 +95,11 @@ if (ECS_ID) {
             const { chatChannelId } = liveStatus as ChzzkContent;
             if (targetId !== process.env.ECS_PK) return; // 자신의 서버가 아닌 경우
             server.addServer(hashId, chatChannelId);
+
+            ECSStatePublish('JOIN', {
+                ...server.serverState,
+                hash_id: hashId,
+            });
         });
 
         LiveStateSubscribe('offline', ({ hashId }) => {
