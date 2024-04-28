@@ -5,7 +5,7 @@ import { upsertNotice } from 'controllers/notice';
 import { APIEmbed, APIMessage } from 'discord-api-types/v10';
 import { ChannelData, Content } from 'interfaces/API/Chzzk';
 import { ChzzkInterface, getChzzkAPI } from 'utils/naverApiInstance';
-import redis, { REDIS_KEY } from 'utils/redis';
+import redis, { LiveStatePublish, REDIS_KEY } from 'utils/redis';
 
 import { auth } from 'controllers/auth';
 import dayjs from 'dayjs';
@@ -15,7 +15,6 @@ import qs from 'querystring';
 import { getECSSpaceId } from 'utils/ECS';
 import { ENCRYPT_KEY, sha256 } from 'utils/cryptoPw';
 import { appendTextWing, createActionRow, createSuccessButton, createUrlButton } from 'utils/discord/component';
-import { ParseInt } from 'utils/object';
 import { messageEdit } from './discord';
 
 const chzzk = getChzzkAPI('v1');
@@ -237,19 +236,11 @@ export const getChannelLive = async (noticeId: number, hashId: string, liveId: s
                     // 이전에 라이브 정보가 있었다면, 라이브 정보를 업데이트 ( 마감 )
                     if (liveId != '0') {
                         // 기존 라이브 정보가 있었다면
-                        redis
-                            .publish(
-                                REDIS_KEY.SUBSCRIBE.LIVE_STATE('change'),
-                                JSON.stringify({
-                                    type: 'notice',
-                                    id: process.env.ECS_PK,
-                                    noticeId,
-                                    hashId,
-                                    liveStatus: content,
-                                })
-                            )
-                            .catch(console.error);
-                        await updateLiveEvents(noticeId, ParseInt(liveId));
+                        LiveStatePublish('change', {
+                            noticeId,
+                            hashId,
+                            liveStatus: content,
+                        });
                     }
 
                     await insertLiveEvents(noticeId, content.liveId, {
@@ -298,19 +289,13 @@ export const getLiveMessage = async ({
 }: NoticeBat) => {
     const liveStatus = await getChannelLive(noticeId, hashId, id);
     if (liveStatus && liveStatus.status === 'OPEN') {
-        redis
-            .publish(
-                REDIS_KEY.SUBSCRIBE.LIVE_STATE('online'),
-                JSON.stringify({
-                    type: 'notice',
-                    id: process.env.ECS_PK,
-                    targetId: getECSSpaceId(), // ECS ID
-                    noticeId,
-                    hashId,
-                    liveStatus,
-                })
-            )
-            .catch(console.error);
+        LiveStatePublish('online', {
+            noticeId,
+            hashId,
+            liveStatus,
+            targetId: getECSSpaceId(), // ECS ID
+        });
+
         // online
         const messages = await sendChannels(channels, {
             content: message,
@@ -327,17 +312,15 @@ export const getLiveMessage = async ({
             ],
         });
 
-        const redisKey = REDIS_KEY.DISCORD.LAST_MESSAGE(`${noticeId}`);
-        await redis.set(redisKey, JSON.stringify(messages), {
+        await redis.set(REDIS_KEY.DISCORD.LAST_MESSAGE(`${noticeId}`), JSON.stringify(messages), {
             EX: 60 * 60 * 24, // 12시간
         });
     } else if (liveStatus && liveStatus.status == 'CLOSE') {
-        redis
-            .publish(
-                REDIS_KEY.SUBSCRIBE.LIVE_STATE('offline'),
-                JSON.stringify({ type: 'notice', id: process.env.ECS_PK, noticeId, hashId, liveStatus })
-            )
-            .catch(console.error);
+        LiveStatePublish('offline', {
+            noticeId,
+            hashId,
+            liveStatus,
+        });
     }
     return liveStatus;
 };

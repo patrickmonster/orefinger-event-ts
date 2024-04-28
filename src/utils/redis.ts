@@ -51,6 +51,44 @@ export const catchRedis = async <T>(key: string, callback: () => Promise<T>, exp
     return result;
 };
 
+////////////////////////////////////////////////////////////////////////////////////////
+
+const publish = async (channel: string, message: string) => {
+    client.publish(channel, message).catch(console.error);
+};
+
+export const LiveStatePublish = async (
+    state: 'online' | 'offline' | 'change',
+    message: {
+        targetId?: string;
+        noticeId: number;
+        hashId: string;
+        liveStatus: any;
+    }
+) => {
+    publish(
+        REDIS_KEY.SUBSCRIBE.LIVE_STATE(state),
+        JSON.stringify({
+            ...message,
+            id: process.env.ECS_PK,
+        })
+    );
+};
+
+export const ECSStatePublish = async (
+    state: 'channels' | 'JOIN',
+    message: { count: number; userCount: number; hash_id?: string }
+) => {
+    publish(
+        REDIS_KEY.SUBSCRIBE.ECS_CHAT_STATE(state),
+        JSON.stringify({
+            ...message,
+            revision: process.env.ECS_REVISION,
+            id: process.env.ECS_PK,
+        })
+    );
+};
+
 export type QueryKey = string | number;
 
 export const REDIS_KEY = {
@@ -75,6 +113,6 @@ export const REDIS_KEY = {
     },
     SUBSCRIBE: {
         LIVE_STATE: (state: 'online' | 'offline' | 'change') => `subscribe:live:${state}`,
-        ECS_CHAT_STATE: (state: 'channels' | 'JOIN') => `subscribe:ecs:chat:${state}`,
+        ECS_CHAT_STATE: (state: 'channels' | 'JOIN' | 'CONNECT') => `subscribe:ecs:chat:${state}`,
     },
 };

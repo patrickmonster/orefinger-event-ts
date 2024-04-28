@@ -1,18 +1,18 @@
 import axios from 'axios';
-import { upsertNotice } from 'controllers/notice';
-import redis, { REDIS_KEY } from 'utils/redis';
+import dayjs from 'dayjs';
+import qs from 'querystring';
 
+import { messageEdit } from 'components/discord';
 import { sendChannels } from 'components/notice';
 import { insertLiveEvents, updateLiveEvents } from 'controllers/bat';
-import dayjs from 'dayjs';
+import { upsertNotice } from 'controllers/notice';
 import { APIEmbed, APIMessage } from 'discord-api-types/v10';
 import { Content } from 'interfaces/API/Afreeca';
 import { NoticeBat } from 'interfaces/notice';
-import qs from 'querystring';
 import afreecaAPI from 'utils/afreecaApiInstance';
 import { appendTextWing, createActionRow, createSuccessButton, createUrlButton } from 'utils/discord/component';
 import { randomIntegerInRange } from 'utils/object';
-import { messageEdit } from './discord';
+import redis, { REDIS_KEY } from 'utils/redis';
 
 interface ChannelData {
     user_id: string;
@@ -73,7 +73,6 @@ export const searchAfreecabeUser = async (keyword: string): Promise<Array<{ name
                 m: 'searchHistory',
                 service: 'list',
                 d: `${keyword}`,
-                // _ :'1708908097116',
                 v: '3.0',
             })}`,
             {
