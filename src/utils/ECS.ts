@@ -5,9 +5,8 @@
 import axios from 'axios';
 import { ecsSet } from 'controllers/log';
 import { ECStask } from 'interfaces/ecs';
-import { REDIS_KEY } from './redis';
 
-import redisBroadcast from 'utils/redisBroadcast';
+import { ECSStateSubscribe } from 'utils/redisBroadcast';
 /**
  * ECS 컨테이너 정보를 불러옵니다.
  */
@@ -50,14 +49,10 @@ const serverECS: {
  * ECS 정보를 수신합니다
  * @returns ECS ID
  */
-redisBroadcast
-    .subscribe(REDIS_KEY.SUBSCRIBE.ECS_CHAT_STATE('channels'), (message: string) => {
-        const { id, revision, count, userCount } = JSON.parse(message);
-        if (revision !== process.env.ECS_REVISION) return;
-
-        serverECS[id] = { count, userCount };
-    })
-    .catch(console.error);
+ECSStateSubscribe('channels', ({ id, count, userCount, revision }) => {
+    if (revision !== process.env.ECS_REVISION) return;
+    serverECS[id] = { count, userCount };
+});
 
 /**
  * ECS 에서 가장 적은 공간을 찾아서 반환합니다.

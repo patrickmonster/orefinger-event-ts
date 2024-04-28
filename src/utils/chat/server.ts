@@ -53,8 +53,8 @@ export default class ChatServer {
                 console.error('INVALID CHAT CHANNEL ID', roomId);
                 return;
             }
-            const token = await this.api.accessToken(chatChannelId).then(token => token.accessToken);
 
+            const token = await this.api.accessToken(chatChannelId).then(token => token.accessToken);
             const server = new ChzzkChat({
                 //
                 chatChannelId,
