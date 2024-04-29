@@ -114,6 +114,7 @@ export default class ChzzkWebSocket extends EventEmitter {
     private userList = new Map<string, any>(); // 유저 리스트
 
     private connected: boolean = false;
+    private reconnecting: boolean = false;
 
     private pingTimeoutId?: NodeJS.Timeout;
 
@@ -190,6 +191,7 @@ export default class ChzzkWebSocket extends EventEmitter {
         this.ws.onopen = this.onOpen.bind(this);
         this.ws.onclose = this.onClose.bind(this);
         this.ws.onmessage = this.handelMessage.bind(this);
+        this.reconnecting = false;
     }
 
     async disconnect() {
@@ -207,6 +209,7 @@ export default class ChzzkWebSocket extends EventEmitter {
      * 현재 채팅 채널이 변경되면, 채널을 재 접속 합니다.
      */
     async reconnect() {
+        this.reconnecting = true;
         await this.disconnect();
         await this.connect();
     }
@@ -235,14 +238,9 @@ export default class ChzzkWebSocket extends EventEmitter {
         this.stopPingTimer();
         this.ws = undefined;
         this.connected = false;
-    }
 
-    //////////////////////////////////////////////////////////////////////////
-
-    private hasConnected() {
-        if (!this.isConnect) {
-            throw new Error('소캣이 연결되지 않았습니다.');
-        }
+        // 재접속이 아닌 경우, close 이벤트 발생
+        if (!this.reconnecting) this.emit('close');
     }
 
     //////////////////////////////////////////////////////////////////////////
@@ -456,7 +454,7 @@ export default class ChzzkWebSocket extends EventEmitter {
         const time = getContentAllias(chat, 'msgTime', 'messageTime');
 
         const hidden = getContentAllias(chat, 'msgStatusType', 'messageStatusType') == 'HIDDEN';
-        const id = isRecent ? '-' : this.getMessageId(time, profile.userIdHash); // 메세지 ID 생성 (Snowflake)
+        const id = isRecent || !profile?.userIdHash ? '-' : this.getMessageId(time, profile.userIdHash); // 메세지 ID 생성 (Snowflake)
 
         const parsed: ChatMessage = { profile, extras, hidden, message, time, id, isRecent, cid };
         if (memberCount) {
