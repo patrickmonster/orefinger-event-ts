@@ -13,6 +13,8 @@ interface ChatServerOption extends ChatOption {
     concurrency?: number; // 동시에 생성할 수 있는 서버 수
     onMessage?: (chat: ChatMessage) => void;
     onDonation?: (chat: ChatDonation) => void;
+    onReady?: (channelId: string) => void;
+    onClose?: (channelId: string) => void;
 }
 
 /**
@@ -24,6 +26,8 @@ export default class ChatServer {
 
     private onmessage: (chat: ChatMessage) => void;
     private ondonation: (chat: ChatDonation) => void;
+    private onready: (channelId: string) => void;
+    private onclose: (channelId: string) => void;
 
     private api: ChzzkAPI;
     private uid?: string;
@@ -34,6 +38,8 @@ export default class ChatServer {
 
         this.onmessage = options?.onMessage || (() => {});
         this.ondonation = options?.onDonation || (() => {});
+        this.onready = options?.onReady || (() => {});
+        this.onclose = options?.onClose || (() => {});
 
         this.api.user().then(user => {
             this.uid = user?.userIdHash;
@@ -64,6 +70,10 @@ export default class ChatServer {
             })
                 .on('chat', this.onmessage.bind(this))
                 .on('donation', this.ondonation.bind(this))
+                .on('close', () => {
+                    this.onclose(roomId);
+                    this.servers.delete(roomId);
+                })
                 .on('ready', () => {
                     console.log('CONNECTED TO CHAT SERVER', roomId, chatChannelId);
                 });

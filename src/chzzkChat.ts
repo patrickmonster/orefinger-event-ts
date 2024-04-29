@@ -78,6 +78,15 @@ if (ECS_ID) {
         onDonation: (chat: ChatDonation) => {
             appendChat(chat);
         },
+        onReady: channelId => {
+            console.log('READY', channelId);
+        },
+        onClose: channelId => {
+            ECSStatePublish('JOIN', {
+                ...server.serverState,
+                hash_id: channelId,
+            });
+        },
     });
 
     ecsSelect(ECS_REVISION).then(tasks => {
