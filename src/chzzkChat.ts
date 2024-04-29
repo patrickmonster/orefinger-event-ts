@@ -62,7 +62,7 @@ if (ECS_ID) {
             console.log('READY', channelId);
         },
         onClose: channelId => {
-            ECSStatePublish('LEAVE', {
+            ECSStatePublish('leave', {
                 ...server.serverState,
                 hash_id: channelId,
             });
@@ -87,7 +87,7 @@ if (ECS_ID) {
             if (targetId !== process.env.ECS_PK) return; // 자신의 서버가 아닌 경우
             server.addServer(hashId, chatChannelId);
 
-            ECSStatePublish('JOIN', {
+            ECSStatePublish('join', {
                 ...server.serverState,
                 hash_id: hashId,
             });
@@ -98,12 +98,12 @@ if (ECS_ID) {
         });
 
         // -- 새로운 채널 입장 알림
-        ECSStateSubscribe('JOIN', ({ hash_id }) => {
+        ECSStateSubscribe('join', ({ hash_id }) => {
             if (hash_id) server.removeServer(hash_id).catch(console.error);
         });
 
         // -- 채널 연결 *(명령)
-        ECSStateSubscribe('CONNECT', ({ hash_id, id }) => {
+        ECSStateSubscribe('connect', ({ hash_id, id }) => {
             if (id !== process.env.ECS_PK) return; // 자신의 서버가 아닌 경우
             hash_id && server.addServer(hash_id);
         });
@@ -112,7 +112,7 @@ if (ECS_ID) {
             selectChatServer(4).then(async chats => {
                 for (const { hash_id: hashId } of chats) {
                     server.addServer(hashId);
-                    ECSStatePublish('JOIN', {
+                    ECSStatePublish('join', {
                         ...server.serverState,
                         hash_id: hashId,
                     });

@@ -1,6 +1,15 @@
+import { ECSState, ECSStateMessage, LiveState, LiveStateMessage } from 'interfaces/redis';
 import { createClient } from 'redis';
 import { REDIS_KEY } from './redis';
 
+/**
+ * Redis BroadCast
+ *  이벤트 수신 서버
+ *  - ECSStateSubscribe
+ *  - LiveStateSubscribe
+ *
+ * @version 1.0
+ */
 const client = createClient({
     url: process.env.REDIS_URL,
     pingInterval: 1000 * 30,
@@ -31,10 +40,7 @@ interface BaseState {
     id: string;
 }
 
-export const ECSStateSubscribe = async (
-    state: 'channels' | 'JOIN' | 'CONNECT' | 'LEAVE',
-    onMessage: (message: { count: number; userCount: number; hash_id?: string } & BaseState) => void
-) => {
+export const ECSStateSubscribe = async (state: ECSState, onMessage: (message: ECSStateMessage & BaseState) => void) => {
     client
         .subscribe(REDIS_KEY.SUBSCRIBE.ECS_CHAT_STATE(state), (message: string) => {
             const { id } = JSON.parse(message) as BaseState;
@@ -44,17 +50,9 @@ export const ECSStateSubscribe = async (
         .catch(console.error);
 };
 export const LiveStateSubscribe = async (
-    state: 'online' | 'offline' | 'change',
-    onMessage: (
-        message: {
-            targetId?: string;
-            noticeId: number;
-            hashId: string;
-            liveStatus: any;
-        } & BaseState
-    ) => void
+    state: LiveState,
+    onMessage: (message: LiveStateMessage & BaseState) => void
 ) => {
-    //
     client
         .subscribe(REDIS_KEY.SUBSCRIBE.LIVE_STATE(state), (message: string) => {
             onMessage(JSON.parse(message));
