@@ -451,7 +451,7 @@ export default class ChzzkWebSocket extends EventEmitter {
         const time = getContentAllias(chat, 'msgTime', 'messageTime');
 
         const hidden = getContentAllias(chat, 'msgStatusType', 'messageStatusType') == 'HIDDEN';
-        const id = isRecent || !profile?.userIdHash ? '-' : this.getMessageId(time, profile.userIdHash); // 메세지 ID 생성 (Snowflake)
+        const id = profile?.userIdHash ? this.getMessageId(time, profile.userIdHash) : '-'; // 메세지 ID 생성 (Snowflake)
 
         const parsed: ChatMessage = { profile, extras, hidden, message, time, id, isRecent, cid };
         if (memberCount) {
