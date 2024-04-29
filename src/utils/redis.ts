@@ -76,7 +76,7 @@ export const LiveStatePublish = async (
 };
 
 export const ECSStatePublish = async (
-    state: 'channels' | 'JOIN',
+    state: 'channels' | 'JOIN' | 'CONNECT' | 'LEAVE',
     message: { count: number; userCount: number; hash_id?: string }
 ) => {
     publish(
@@ -113,6 +113,6 @@ export const REDIS_KEY = {
     },
     SUBSCRIBE: {
         LIVE_STATE: (state: 'online' | 'offline' | 'change') => `subscribe:live:${state}`,
-        ECS_CHAT_STATE: (state: 'channels' | 'JOIN' | 'CONNECT' | 'COLSE') => `subscribe:ecs:chat:${state}`,
+        ECS_CHAT_STATE: (state: 'channels' | 'JOIN' | 'CONNECT' | 'LEAVE') => `subscribe:ecs:chat:${state}`,
     },
 };

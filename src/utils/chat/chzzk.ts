@@ -200,9 +200,6 @@ export default class ChzzkWebSocket extends EventEmitter {
         }
 
         this.ws?.close();
-
-        this.ws = undefined;
-        this.connected = false;
     }
 
     /**

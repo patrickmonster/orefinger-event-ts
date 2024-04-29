@@ -82,7 +82,7 @@ if (ECS_ID) {
             console.log('READY', channelId);
         },
         onClose: channelId => {
-            ECSStatePublish('JOIN', {
+            ECSStatePublish('LEAVE', {
                 ...server.serverState,
                 hash_id: channelId,
             });
