@@ -173,12 +173,10 @@ export default class ChzzkWebSocket extends EventEmitter {
     get pwId() {
         const processId = getServiceId(this.chatChannelId || '') & 0x1f;
         const workerId = getServiceId(this.chatChannelId || '') & 0xf;
-
         return (workerId * 2 ** 5) | processId;
     }
 
-    ////////////////////////////////////////////////////////////////////////////////////////////////
-
+    ////////////////////////////////////////////////////////////////////////////////////////////////7
     /**
      * 1.
      * 소캣을 연결합니다.
@@ -198,7 +196,6 @@ export default class ChzzkWebSocket extends EventEmitter {
         if (!this.isConnect) {
             return;
         }
-
         this.ws?.close();
     }
 
@@ -213,7 +210,6 @@ export default class ChzzkWebSocket extends EventEmitter {
 
     private async onOpen() {
         this.connected = true;
-
         console.log('CONNECT ::', this.host);
 
         this.sendRow({
@@ -253,7 +249,6 @@ export default class ChzzkWebSocket extends EventEmitter {
                 svcid: 'game',
                 ver: '2',
             };
-
             this.reconnect();
         }
         return this;

@@ -23,16 +23,14 @@ const addQueue = LoopRunQueue<ChatLog>(
     500
 );
 
-const appendChat = (chat: ChatMessage | ChatDonation) => {
-    const {
-        id,
-        message,
-        hidden,
-        extras: { osType },
-        profile: { userIdHash },
-        cid,
-    } = chat;
-
+const appendChat = ({
+    id,
+    message,
+    hidden,
+    extras: { osType },
+    profile: { userIdHash },
+    cid,
+}: ChatMessage | ChatDonation) =>
     addQueue({
         channel_id: cid,
         message_id: id,
@@ -41,7 +39,6 @@ const appendChat = (chat: ChatMessage | ChatDonation) => {
         os_type: osType || '-',
         hidden_yn: hidden ? 'Y' : 'N',
     });
-};
 
 const [, file, ECS_ID, ECS_REVISION, ...argv] = process.argv;
 
@@ -57,23 +54,6 @@ if (ECS_ID) {
             if (!message.startsWith('@')) {
                 return;
             }
-
-            const [command, ...args] = message.split(' ');
-
-            switch (command) {
-                case '@방송알리미':
-                    const [channelId, ...msg] = args;
-                    const message = msg.join(' ');
-
-                    if (message) {
-                        server.send(channelId, `안녕하세요! 디스코드에서 방송알림을 전송하고 있는 방송 알리미 입니다!`);
-                    }
-                    break;
-                default:
-                    break;
-            }
-
-            //
         },
         onDonation: (chat: ChatDonation) => {
             appendChat(chat);

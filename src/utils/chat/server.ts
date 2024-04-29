@@ -102,7 +102,6 @@ export default class ChatServer {
         for (const roomId of roomIds) {
             out.push(this.addServer(roomId));
         }
-
         return out;
     }
 
