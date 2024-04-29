@@ -43,7 +43,7 @@ const appendChat = (chat: ChatMessage | ChatDonation) => {
     });
 };
 
-const [, file, ECS_ID, ...argv] = process.argv;
+const [, file, ECS_ID, ECS_REVISION, ...argv] = process.argv;
 
 if (ECS_ID) {
     const server = new ChatServer({
@@ -80,11 +80,13 @@ if (ECS_ID) {
         },
     });
 
-    ecsSelect(undefined, ECS_ID).then(([{ idx, revision, family }]) => {
+    ecsSelect(ECS_REVISION).then(tasks => {
+        if (!tasks.length) return;
+        const task = tasks.find(task => `${task.idx}` === ECS_ID);
         process.env.ECS_ID = ECS_ID;
-        process.env.ECS_REVISION = revision;
-        process.env.ECS_FAMILY = family;
-        process.env.ECS_PK = `${idx}`;
+        process.env.ECS_REVISION = ECS_REVISION;
+        process.env.ECS_FAMILY = `${task?.family}`;
+        process.env.ECS_PK = `${task?.idx}`;
 
         LiveStateSubscribe('change', ({ hashId, liveStatus }) => {
             const { chatChannelId } = liveStatus as ChzzkContent;
@@ -117,22 +119,17 @@ if (ECS_ID) {
             hash_id && server.addServer(hash_id);
         });
 
-        ecsSelect(revision).then(async rows => {
-            if (!rows.length) return;
-            const ecs = rows.find(row => row.idx === idx);
-
-            if (ecs && ecs.rownum === 1) {
-                selectChatServer(4).then(async chats => {
-                    for (const { hash_id: hashId } of chats) {
-                        server.addServer(hashId);
-                        ECSStatePublish('JOIN', {
-                            ...server.serverState,
-                            hash_id: hashId,
-                        });
-                    }
-                });
-            }
-        });
+        if (task?.rownum === 1) {
+            selectChatServer(4).then(async chats => {
+                for (const { hash_id: hashId } of chats) {
+                    server.addServer(hashId);
+                    ECSStatePublish('JOIN', {
+                        ...server.serverState,
+                        hash_id: hashId,
+                    });
+                }
+            });
+        }
     });
 
     const loop = setInterval(() => {

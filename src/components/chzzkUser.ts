@@ -174,7 +174,7 @@ export const searchChzzkUser = async (keyword: string): Promise<Array<KeyVal<str
  * @param notice_id
  * @param content
  */
-const changeMessage = async (notice_id: number, content: any) => {
+const changeMessage = async (notice_id: number, content: Content) => {
     const redisKey = REDIS_KEY.DISCORD.LAST_MESSAGE(`${notice_id}`);
 
     const messages = await redis.get(redisKey);
@@ -190,12 +190,12 @@ const changeMessage = async (notice_id: number, content: any) => {
             embed.fields?.push(
                 {
                     name: '시청자',
-                    value: `${concurrentUserCount}명`,
+                    value: `${concurrentUserCount.toLocaleString()}명`,
                     inline: true,
                 },
                 {
                     name: '방문자',
-                    value: `${accumulateCount}명`,
+                    value: `${accumulateCount.toLocaleString()}명`,
                     inline: true,
                 }
             );
@@ -230,19 +230,9 @@ export const getChannelLive = async (noticeId: number, hashId: string, liveId: s
                 const { content } = data;
                 // 콘텐츠의 라이브 id 가 없거나, 라이브 id 가 같으면 무시
                 if (!content?.liveId || content.liveId === liveId) return reject(null);
-
                 // 라이브가 진행중인 경우
                 if (content && content.status === 'OPEN') {
                     // 이전에 라이브 정보가 있었다면, 라이브 정보를 업데이트 ( 마감 )
-                    if (liveId != '0') {
-                        // 기존 라이브 정보가 있었다면
-                        LiveStatePublish('change', {
-                            noticeId,
-                            hashId,
-                            liveStatus: content,
-                        });
-                    }
-
                     await insertLiveEvents(noticeId, content.liveId, {
                         image: content.liveImageUrl?.replace('{type}', '1080') || '',
                         title: content.liveTitle,
@@ -251,20 +241,25 @@ export const getChannelLive = async (noticeId: number, hashId: string, liveId: s
                         chat: content.chatChannelId,
                     });
 
-                    if (liveId != '0') return reject(null);
-                    else {
-                        return resolve(content as Content);
+                    if (liveId != '0') {
+                        // 기존 라이브 정보가 있었다면 ( 라이브 교체 )
+                        LiveStatePublish('change', {
+                            noticeId,
+                            hashId,
+                            liveStatus: content,
+                        });
+                        return reject(null);
                     }
                 } else if (content && content.status == 'CLOSE') {
                     // 이전 라이브 정보가 있었다면, 라이브 정보를 업데이트 ( 마감 )
                     changeMessage(noticeId, content).catch(() => {});
                     if (liveId && liveId != '0') {
                         // 오프라인
-                        const result = await updateLiveEvents(noticeId);
-                        if (result.changedRows == 0) return reject(null);
+                        const { changedRows } = await updateLiveEvents(noticeId);
+                        if (changedRows == 0) return reject(null);
                     } else return reject(null); // 이미 처리된 알림
-                    return resolve(content as Content);
                 }
+                return resolve(content as Content);
             })
             .catch(reject);
     });
@@ -285,7 +280,6 @@ export const getLiveMessage = async ({
     message,
     name,
     id,
-    img_idx,
 }: NoticeBat) => {
     const liveStatus = await getChannelLive(noticeId, hashId, id);
     if (liveStatus && liveStatus.status === 'OPEN') {
