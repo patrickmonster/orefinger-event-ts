@@ -82,7 +82,7 @@ if (ECS_ID) {
 
     ecsSelect(ECS_REVISION).then(tasks => {
         if (!tasks.length) return;
-        const task = tasks.find(task => `${task.idx}` === ECS_ID);
+        const task = tasks.find(task => `${task.id}` === ECS_ID);
         process.env.ECS_ID = ECS_ID;
         process.env.ECS_REVISION = ECS_REVISION;
         process.env.ECS_FAMILY = `${task?.family}`;
