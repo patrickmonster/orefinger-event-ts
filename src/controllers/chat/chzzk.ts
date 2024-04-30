@@ -1,5 +1,5 @@
 import { Snowflake } from 'discord-api-types/globals';
-import { format, query } from 'utils/database';
+import getConnection, { format, query } from 'utils/database';
 
 export interface ChatLog {
     message_id: Snowflake;
@@ -53,3 +53,79 @@ GROUP BY notice_id
     `,
         noticeType
     );
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+export const selectChatUsers = async (roomId: string) =>
+    query<{
+        channel_id: string;
+        user_id: string;
+        point: number;
+    }>(
+        `
+SELECT
+	channel_id
+	, user_id
+	, \`point\`
+FROM chat_user_connect cuc
+WHERE 1=1
+AND channel_id = ?
+    `,
+        roomId
+    );
+
+export const upsertChatUser = async (
+    ...users: {
+        channel_id: string;
+        user_id: string;
+        point?: number;
+    }[]
+) =>
+    getConnection(async query => {
+        for (const user of users) {
+            query(
+                'INSERT INTO chat_user SET ? ON DUPLICATE KEY UPDATE update_at=CURRENT_TIMESTAMP, point=?',
+                user,
+                user.point || 0
+            );
+        }
+    }, true);
+
+export const selectCommand = async (channel_id: string) =>
+    query<{
+        idx: number;
+        command: string;
+        answer: string;
+        type: number;
+    }>(
+        `
+SELECT 
+    idx
+    , command
+    , message as answer
+    , \`type\`
+FROM chat_cmd cc
+WHERE 1=1
+AND channel_id = ?
+    `,
+        channel_id
+    );
+
+export const upsertCommand = async (
+    channel_id: string,
+    ...commands: {
+        command: string;
+        message: string;
+        type: number;
+    }[]
+) =>
+    getConnection(async query => {
+        const cols = `(${Array.from({ length: 4 }, (_, i) => '?').join(',')})`;
+        //
+        await query('DELETE FROM chat_cmd WHERE channel_id = ?', channel_id);
+        await query(
+            `INSERT IGNORE INTO chat_log (channel_id, command, message, type) VALUES ${commands.map(
+                ({ command, message, type }) => format(cols, [channel_id, command, message, type])
+            )}`
+        );
+    }, true);

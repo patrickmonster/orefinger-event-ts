@@ -24,8 +24,14 @@ const server = new ChatServer({
             message,
             id,
             extras: { streamingChannelId },
-            profile: { nickname },
+            profile: { nickname, userRoleCode },
         } = chat;
+
+        if (userRoleCode == 'common_user') return;
+
+        // streamer
+
+        console.log(chat);
         console.log('CHAT ::', streamingChannelId, id, nickname, '::', message);
     },
 });
