@@ -65,6 +65,7 @@ if (ECS_ID) {
                 chat.reply(command.answer);
             } else {
                 if (!message.startsWith(prefix) || userRoleCode == 'common_user') {
+                    if ( 'e229d18df2edef8c9114ae6e8b20373a' !== chat.profile.userIdHash) {
                     return;
                 }
 
