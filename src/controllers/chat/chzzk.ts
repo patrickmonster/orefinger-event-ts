@@ -93,17 +93,15 @@ export const upsertChatUser = async (
 
 export const selectCommand = async (channel_id: string) =>
     query<{
-        idx: number;
         command: string;
         answer: string;
         type: number;
     }>(
         `
-SELECT 
-    idx
-    , command
-    , message as answer
-    , \`type\`
+SELECT
+    cc.command
+    , cc.message as answer
+    , cc.type
 FROM chat_cmd cc
 WHERE 1=1
 AND channel_id = ?

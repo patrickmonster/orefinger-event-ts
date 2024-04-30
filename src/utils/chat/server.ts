@@ -6,11 +6,11 @@ import PQueue from 'p-queue';
 import ChzzkChat, { ChatUser, ChzzkAPI, Command } from 'utils/chat/chzzk';
 import sleep from 'utils/sleep';
 
-interface ChatMessageT extends ChatMessage {
+export interface ChatMessageT extends ChatMessage {
     reply: (message: string) => void;
 }
 
-interface ChatDonationT extends ChatDonation {
+export interface ChatDonationT extends ChatDonation {
     reply: (message: string) => void;
 }
 
@@ -118,13 +118,7 @@ export default class ChatServer<
             }
 
             const token = await this.getToken(chatChannelId);
-            const server = new ChzzkChat<
-                U,
-                Command & {
-                    idx: number;
-                    type: number;
-                }
-            >({
+            const server = new ChzzkChat<U, Command & { type: number }>({
                 //
                 chatChannelId,
                 liveChannelId: roomId,
@@ -217,7 +211,6 @@ export default class ChatServer<
         };
 
         const keys = Object.keys(alias);
-        let out = message;
         for (const key of keys) {
             message = message.replace(`{${key}}`, alias[key]);
         }
@@ -267,7 +260,14 @@ export default class ChatServer<
         }
         this.onmessage({
             ...chat,
-            reply: (message: string) => server.sendChat(this.convertSendCommand(chat, message)),
+            reply: (message: string) => {
+                try {
+                    server.sendChat(this.convertSendCommand(chat, message));
+                } catch (e) {
+                    console.error('Chat ERROR', e);
+                    return message;
+                }
+            },
         });
     }
 

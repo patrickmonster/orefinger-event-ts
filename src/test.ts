@@ -1,9 +1,7 @@
 import { config } from 'dotenv';
 import { existsSync } from 'fs';
-import { ChatMessage } from 'interfaces/chzzk/chat';
 import { join } from 'path';
 import { env } from 'process';
-import ChatServer from 'utils/chat/server';
 
 const envDir = join(env.PWD || __dirname, `/.env`);
 if (existsSync(envDir)) {
@@ -17,9 +15,12 @@ if (existsSync(envDir)) {
 
 import { selectChatServer } from 'controllers/chat/chzzk';
 
+import ChatServer from 'utils/chat/server';
+
 const server = new ChatServer({
     concurrency: 2,
-    onMessage: (chat: ChatMessage) => {
+    onMessage: chat => {
+        console.log(chat);
         const {
             message,
             id,
@@ -27,11 +28,6 @@ const server = new ChatServer({
             profile: { nickname, userRoleCode },
         } = chat;
 
-        if (userRoleCode == 'common_user') return;
-
-        // streamer
-
-        console.log(chat);
         console.log('CHAT ::', streamingChannelId, id, nickname, '::', message);
     },
 });

@@ -393,6 +393,8 @@ export default class ChzzkWebSocket<T extends ChatUser = ChatUser, C extends Com
                     const type = getContentAllias(chat, 'msgTypeCode', 'messageTypeCode') || '';
                     const parsed = this.parseChat(chat, isRecent);
 
+                    if (!parsed.profile || !parsed.profile?.userIdHash) continue;
+
                     switch (type) {
                         case ChatType.TEXT:
                             this.createUserMessage(parsed); // ChatMessage
