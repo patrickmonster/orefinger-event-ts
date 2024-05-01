@@ -194,8 +194,6 @@ if (ECS_ID) {
                 ...server.serverState,
                 hash_id: hashId,
             });
-
-            updateChannelState();
         });
 
         LiveStateSubscribe('change', ({ hashId, liveStatus }) => {
@@ -214,8 +212,6 @@ if (ECS_ID) {
                 ...server.serverState,
                 hash_id: hashId,
             });
-
-            updateChannelState();
         });
 
         LiveStateSubscribe('offline', ({ hashId }) => {
@@ -224,6 +220,7 @@ if (ECS_ID) {
 
         // -- 새로운 채널 입장 알림
         ECSStateSubscribe('join', ({ hash_id, id }) => {
+            updateChannelState();
             if (id == process.env.ECS_PK) return; // 자신의 서버인 경우
 
             if (hash_id) server.removeServer(hash_id).catch(console.error);
