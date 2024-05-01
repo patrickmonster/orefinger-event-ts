@@ -193,7 +193,7 @@ export default class ChzzkWebSocket<T extends ChatUser = ChatUser, C extends Com
 
     addCommand(command: C) {
         const idx = this.commandList.findIndex(({ command: c }) => c == command.command);
-        if (idx != -1) {
+        if (idx == -1) {
             this.commandList.push(command);
         } else {
             this.commandList[idx] = command;
