@@ -87,6 +87,8 @@ export default class ChatServer<
     private onready: (roomId: string, chatChannelId: string) => void;
     private onclose: (roomId: string, chatChannelId: string) => void;
 
+    private isEdit = false;
+
     private api: ChzzkAPI;
     private uid?: string;
 
