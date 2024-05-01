@@ -65,12 +65,7 @@ FROM (
 		, IFNULL( 
 			IF( video_yn = 'N', 
 				( 
-					SELECT IF ( 
-						nl.create_at < DATE_ADD(NOW(), INTERVAL -1 HOUR) 
-						AND ( nl.end_at IS NULL OR nl.end_at < DATE_ADD(NOW(), INTERVAL -3 HOUR) )
-						, IF(nl.end_at IS NOT NULL, '0', nl.id)
-						, '-1' 
-					) FROM notice_live nl 
+					SELECT IF(nl.end_at IS NOT NULL, '0', nl.id) FROM notice_live nl 
 					WHERE nl.notice_id = A.notice_id 
 					ORDER BY nl.id DESC 
 					LIMIT 1 
@@ -180,11 +175,7 @@ FROM (
 		, IFNULL( 
 			IF( video_yn = 'N', 
 				( 
-					SELECT IF ( 
-						nl.create_at < DATE_ADD(NOW(), INTERVAL -1 HOUR) AND ( nl.end_at IS NULL OR nl.end_at < DATE_ADD(NOW(), INTERVAL -3 HOUR) )
-						, IF(nl.end_at IS NOT NULL, '0', nl.id)
-						, '-1' 
-					) FROM notice_live nl 
+					SELECT IF(nl.end_at IS NOT NULL, '0', nl.id) FROM notice_live nl 
 					WHERE nl.notice_id = A.notice_id 
 					ORDER BY nl.id DESC 
 					LIMIT 1 
