@@ -161,6 +161,7 @@ export default class ChatServer<
             server.commands = await selectCommand(roomId);
 
             await server.connect();
+            await this.updateLiveState(roomId, await this.api.status(roomId));
             await sleep(100); // 1초 대기
         });
 
@@ -190,6 +191,7 @@ export default class ChatServer<
         const { userIdHash, nickname } = profile;
         const { streamingChannelId } = extras;
 
+        const client = this.getServer(streamingChannelId);
         const liveStatus = this.state.get(streamingChannelId);
 
         const alias: {
@@ -206,6 +208,11 @@ export default class ChatServer<
             game: liveStatus?.liveCategoryValue,
             gameValue: liveStatus?.liveCategoryValue,
             uptime: liveStatus?.openDate,
+            list:
+                client?.commands
+                    .map(({ command }) => command)
+                    .join(', ')
+                    .slice(0, 2000) || '{오류가 발생했습니다}',
 
             // TODO: Add more aliases
             pid: process.env.ECS_ID,
