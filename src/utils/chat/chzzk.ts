@@ -181,6 +181,16 @@ export default class ChzzkWebSocket<T extends ChatUser = ChatUser, C extends Com
         return list;
     }
 
+    editState = false;
+
+    get isEdit() {
+        return this.editState;
+    }
+
+    set isEdit(state: boolean) {
+        this.editState = state;
+    }
+
     set users(users: T[]) {
         for (const user of users) {
             this.userList.set(user.user_id, user);
@@ -192,6 +202,7 @@ export default class ChzzkWebSocket<T extends ChatUser = ChatUser, C extends Com
     }
 
     addCommand(command: C) {
+        this.editState = true;
         const idx = this.commandList.findIndex(({ command: c }) => c == command.command);
         if (idx == -1) {
             this.commandList.push(command);
@@ -203,6 +214,7 @@ export default class ChzzkWebSocket<T extends ChatUser = ChatUser, C extends Com
     }
 
     set command(command: C) {
+        this.editState = true;
         const idx = this.commandList.findIndex(({ command: c }) => c == command.command);
         if (idx != -1) {
             this.commandList.push(command);
