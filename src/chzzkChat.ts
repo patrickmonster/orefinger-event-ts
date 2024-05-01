@@ -163,7 +163,8 @@ if (ECS_ID) {
             JSON.stringify({
                 serverState: server.serverState,
                 list,
-            })
+            }),
+            { EX: 60 * 60 }
         );
     };
 
