@@ -98,8 +98,10 @@ export default class ChatServer<
         this.onready = options?.onReady || (() => {});
         this.onclose = options?.onClose || (() => {});
 
-        this.api.user().then(user => {
+        this.queue.add(async () => {
+            const user = await this.api.user();
             this.uid = user?.userIdHash;
+            await sleep(1000); // 1초 대기
         });
     }
 
