@@ -49,7 +49,7 @@ if (ECS_ID) {
     const server = new ChatServer<ChzzkContent>({
         nidAuth: process.env.NID_AUTH,
         nidSession: process.env.NID_SECRET,
-        concurrency: 2,
+        concurrency: 1,
         onMessage: chat => {
             appendChat(chat);
             const {
