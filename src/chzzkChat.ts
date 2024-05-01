@@ -61,7 +61,7 @@ if (ECS_ID) {
             if (!client) return;
             const [userCommand, ...args] = message.split(' ');
 
-            const command = client.commands.find(({ command }) => command === userCommand);
+            const command = client.commands.find(({ command }) => command === userCommand.trim());
             if (command) {
                 chat.reply(command.answer);
             } else {
