@@ -161,7 +161,7 @@ export default class ChatServer<
             server.commands = await selectCommand(roomId);
 
             await server.connect();
-            await sleep(1000); // 1초 대기
+            await sleep(100); // 1초 대기
         });
 
         return this.queue.size;
