@@ -399,6 +399,8 @@ export default class ChzzkWebSocket<T extends ChatUser = ChatUser, C extends Com
 
                     if (!parsed.profile || !parsed.profile?.userIdHash) continue;
 
+                    // 자신의 메세지는 무시합니다.
+                    if (parsed.profile.userIdHash == this.uid) continue;
                     switch (type) {
                         case ChatType.TEXT:
                             this.createUserMessage(parsed); // ChatMessage
