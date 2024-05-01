@@ -1,4 +1,4 @@
-export type ECSState = 'channels' | 'join' | 'connect' | 'leave';
+export type ECSState = 'channels' | 'join' | 'connect' | 'leave' | 'new';
 export type LiveState = 'online' | 'offline' | 'change' | 'move' | '*';
 
 export interface BaseState {
