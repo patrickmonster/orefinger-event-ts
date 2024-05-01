@@ -3,7 +3,7 @@ import { ChatDonation, ChatMessage } from 'interfaces/chzzk/chat';
 import { LoopRunQueue, ParseInt } from 'utils/object';
 
 import redis, { ECSStatePublish, LiveStatePublish, REDIS_KEY } from 'utils/redis';
-import { ECSStateSubscribe, LiveStateSubscribe } from 'utils/redisBroadcast';
+import client, { ECSStateSubscribe, LiveStateSubscribe } from 'utils/redisBroadcast';
 import ChatServer from './utils/chat/server';
 
 import { ecsSelect } from 'controllers/log';
@@ -181,7 +181,7 @@ if (ECS_ID) {
             server.updateLiveState(hashId, liveStatus);
         });
 
-        // -- 채널 이동명령
+        // -- 채널 이동명령 강제실행
         LiveStateSubscribe('move', ({ hashId, liveStatus }) => {
             const targetId = getECSSpaceId();
             if (targetId !== process.env.ECS_PK) return; // 자신의 서버가 아닌 경우
@@ -236,7 +236,11 @@ if (ECS_ID) {
             updateChannelState();
         });
 
+        /**
+         * 새로운 서버가 시작함
+         */
         ECSStateSubscribe('new', ({ hash_id, revision }) => {
+            // ECS ID 가 다를경우
             if (revision === process.env.ECS_REVISION || hash_id != process.env.ECS_ROWNUM) return; // 자신의 버전과 맞을경우
             for (const s of server.serverList) {
                 const state = server.moveServer(s.roomId);
@@ -251,18 +255,20 @@ if (ECS_ID) {
         });
     });
 
-    ECSStatePublish('new', {
-        ...server.serverState,
-        hash_id: process.env.ECS_ROWNUM,
-    });
+    client.on('connect', () => {
+        ECSStatePublish('new', {
+            ...server.serverState,
+            hash_id: process.env.ECS_ROWNUM,
+        });
 
-    const loop = setInterval(() => {
-        // ECS 상태를 전송합니다.
+        const loop = setInterval(() => {
+            // ECS 상태를 전송합니다.
+            ECSStatePublish('channels', server.serverState);
+        }, 1000 * 60); // 1분마다 상태 전송
+
+        // 초기상태 전송
         ECSStatePublish('channels', server.serverState);
-    }, 1000 * 60); // 1분마다 상태 전송
-
-    process.on('SIGINT', function () {
-        clearInterval(loop);
+        process.on('SIGINT', () => clearInterval(loop));
     });
 } else {
     console.log('ECS_ID is not defined');

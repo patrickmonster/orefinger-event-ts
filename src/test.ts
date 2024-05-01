@@ -1,10 +1,7 @@
-import { selectChatServer } from 'controllers/chat/chzzk';
 import { config } from 'dotenv';
 import { existsSync } from 'fs';
 import { join } from 'path';
 import { env } from 'process';
-import { ChzzkAPI } from 'utils/chat/chzzk';
-import { LiveStatePublish } from 'utils/redis';
 import sleep from 'utils/sleep';
 
 const envDir = join(env.PWD || __dirname, `/.env`);
@@ -17,6 +14,9 @@ if (existsSync(envDir)) {
     });
 }
 
+import { selectChatServer } from 'controllers/chat/chzzk';
+import { ChzzkAPI } from 'utils/chat/chzzk';
+import redis, { LiveStatePublish } from 'utils/redis';
 const prefix = '@';
 
 console.log(process.env.NID_AUTH, process.env.NID_SECRET);
@@ -144,15 +144,17 @@ console.log(process.env.NID_AUTH, process.env.NID_SECRET);
 // .catch(console.error);
 const api = new ChzzkAPI();
 
-selectChatServer(4).then(async chats => {
-    for (const chat of chats) {
-        LiveStatePublish('move', {
-            noticeId: 0,
-            hashId: chat.hash_id,
-            liveStatus: await api.status(chat.hash_id),
-        });
-        await sleep(1000);
-    }
+redis.on('connect', () => {
+    selectChatServer(4).then(async chats => {
+        for (const chat of chats) {
+            LiveStatePublish('move', {
+                noticeId: 0,
+                hashId: chat.hash_id,
+                liveStatus: await api.status(chat.hash_id),
+            });
+            await sleep(1000);
+        }
+    });
 });
 
 // for (const { hash_id: hashId } of chats) {
