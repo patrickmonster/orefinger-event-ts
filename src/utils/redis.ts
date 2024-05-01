@@ -101,6 +101,9 @@ export const REDIS_KEY = {
     SQL: {
         SELECT: (queryKey: string | number) => `sql:select:${queryKey}`,
     },
+    CHAT: {
+        CHZZK: (id: string) => `chat:chzzk:${id}`,
+    },
     SUBSCRIBE: {
         LIVE_STATE: (state: LiveState) => `subscribe:live:${state}`,
         ECS_CHAT_STATE: (state: ECSState) => `subscribe:ecs:chat:${state}`,
