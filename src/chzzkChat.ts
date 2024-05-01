@@ -180,7 +180,7 @@ if (ECS_ID) {
         // -- 채널 이동명령 강제실행
         LiveStateSubscribe('move', ({ hashId, liveStatus }) => {
             const targetId = getECSSpaceId();
-            if (targetId !== process.env.ECS_PK) return; // 자신의 서버가 아닌 경우
+            if (targetId !== `${task?.idx}`) return; // 자신의 서버가 아닌 경우
 
             const { chatChannelId } = liveStatus as ChzzkContent;
             server.addServer(hashId, chatChannelId);

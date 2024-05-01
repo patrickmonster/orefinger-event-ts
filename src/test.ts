@@ -148,8 +148,9 @@ redis.on('connect', () => {
     selectChatServer(4).then(async chats => {
         for (const chat of chats) {
             LiveStatePublish('move', {
-                noticeId: 0,
+                noticeId: chat.notice_id,
                 hashId: chat.hash_id,
+                targetId: '321',
                 liveStatus: await api.status(chat.hash_id),
             });
             await sleep(1000);
