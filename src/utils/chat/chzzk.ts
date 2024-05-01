@@ -265,17 +265,20 @@ export default class ChzzkWebSocket<T extends ChatUser = ChatUser, C extends Com
         this.connected = true;
         console.log('CONNECT ::', this.host);
 
+        const bdy = {
+            accTkn: this.token,
+            auth: this.uid ? 'SEND' : 'READ',
+            devType: 2001,
+            uid: this.uid,
+        };
+
         this.sendRow({
-            bdy: {
-                accTkn: this.token,
-                auth: this.uid ? 'SEND' : 'READ',
-                devType: 2001,
-                uid: this.uid,
-            },
+            bdy,
             retry: true,
             cmd: ChatCmd.CONNECT,
             tid: 1,
         });
+        console.log('CONNECTED :: ', this.host, bdy);
 
         this.emit('ready');
     }
@@ -308,6 +311,7 @@ export default class ChzzkWebSocket<T extends ChatUser = ChatUser, C extends Com
             };
 
             this.token = token;
+
             this.reconnect();
         }
         return this;
