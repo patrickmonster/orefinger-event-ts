@@ -1,14 +1,15 @@
 import { ChatLog, insertChatQueue, selectChatServer } from 'controllers/chat/chzzk';
 import { ChatDonation, ChatMessage } from 'interfaces/chzzk/chat';
-import { LoopRunQueue } from 'utils/object';
+import { LoopRunQueue, ParseInt } from 'utils/object';
 
-import { ECSStatePublish } from 'utils/redis';
+import { ECSStatePublish, LiveStatePublish } from 'utils/redis';
 import { ECSStateSubscribe, LiveStateSubscribe } from 'utils/redisBroadcast';
 import ChatServer from './utils/chat/server';
 
 import { ecsSelect } from 'controllers/log';
 import { Content as ChzzkContent } from 'interfaces/API/Chzzk';
 
+import { getECSSpaceId } from 'utils/ECS';
 import 'utils/procesTuning';
 
 /**
@@ -61,7 +62,7 @@ if (ECS_ID) {
             if (!client) return;
             const [userCommand, ...args] = message.split(' ');
 
-            const command = client.commands.find(({ command }) => command === userCommand);
+            const command = client.commands.find(({ command }) => command === userCommand.trim());
             if (command) {
                 chat.reply(command.answer);
             } else {
@@ -81,7 +82,7 @@ if (ECS_ID) {
 
                         const idx = client.addCommand({
                             answer: answer.join(' '),
-                            command: question,
+                            command: question.trim(),
                         });
 
                         chat.reply(`명령어가 ${idx != -1 ? '교체' : '추가'}되었습니다. - ${question}`);
@@ -95,7 +96,7 @@ if (ECS_ID) {
                             return;
                         }
 
-                        const idx = client.commands.findIndex(({ command }) => command === question);
+                        const idx = client.commands.findIndex(({ command }) => command === question.trim());
                         if (idx === -1) {
                             chat.reply('해당 명령어가 없습니다.');
                             return;
@@ -121,7 +122,16 @@ if (ECS_ID) {
                     }
                     case `${prefix}help`: {
                         chat.reply(
-                            `${prefix}add [명령어] [응답] - 명령어 추가 / ${prefix}remove [명령어] - 명령어 삭제 / ${prefix}list - 명령어 목록 / https://orefinger.notion.site`
+                            `${prefix}add [명령어] [응답] - 명령어 추가 / ${prefix}remove [명령어] - 명령어 삭제 `
+                        );
+                        break;
+                    }
+                    case `${prefix}server`: {
+                        const { count, userCount } = server.serverState;
+                        chat.reply(
+                            `현재 서버 : ${getECSSpaceId()} / 연결된 서버 : ${(count || 0).toLocaleString()} / ${(
+                                userCount || 0
+                            ).toLocaleString()}`
                         );
                         break;
                     }
@@ -150,15 +160,32 @@ if (ECS_ID) {
             server.updateLiveState(hashId, liveStatus);
         });
 
+        // -- 채널 이동명령
+        LiveStateSubscribe('move', ({ hashId, liveStatus }) => {
+            const targetId = getECSSpaceId();
+            if (targetId !== process.env.ECS_PK) return; // 자신의 서버가 아닌 경우
+
+            const { chatChannelId } = liveStatus as ChzzkContent;
+            server.addServer(hashId, chatChannelId);
+            server.setServerState(hashId, liveStatus);
+
+            ECSStatePublish('join', {
+                ...server.serverState,
+                hash_id: hashId,
+            });
+        });
+
         LiveStateSubscribe('change', ({ hashId, liveStatus }) => {
             const { chatChannelId } = liveStatus as ChzzkContent;
             server.updateChannel(hashId, chatChannelId);
+            server.setServerState(hashId, liveStatus);
         });
 
         LiveStateSubscribe('online', ({ targetId, hashId, liveStatus }) => {
             const { chatChannelId } = liveStatus as ChzzkContent;
             if (targetId !== process.env.ECS_PK) return; // 자신의 서버가 아닌 경우
             server.addServer(hashId, chatChannelId);
+            server.setServerState(hashId, liveStatus);
 
             ECSStatePublish('join', {
                 ...server.serverState,
@@ -188,7 +215,7 @@ if (ECS_ID) {
                 for (const { hash_id: hashId } of chats) {
                     server.addServer(hashId);
                     ECSStatePublish('join', {
-                        ...server.serverState,
+                        ...(await server.api.status(hashId)),
                         hash_id: hashId,
                     });
                 }
@@ -202,7 +229,16 @@ if (ECS_ID) {
     }, 1000 * 60); // 1분마다 상태 전송
 
     process.on('SIGINT', function () {
-        for (const s of server.serverList) s.disconnect();
+        for (const s of server.serverList) {
+            const state = server.moveServer(s.roomId);
+            if (state)
+                LiveStatePublish('move', {
+                    noticeId: ParseInt(`${process.env.ECS_PK}`),
+                    hashId: s.roomId,
+                    liveStatus: state,
+                    targetId: getECSSpaceId(), // ECS ID
+                });
+        }
         clearInterval(loop);
     });
 } else {

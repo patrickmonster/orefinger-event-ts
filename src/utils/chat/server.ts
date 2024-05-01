@@ -87,11 +87,11 @@ export default class ChatServer<
     private onready: (roomId: string, chatChannelId: string) => void;
     private onclose: (roomId: string, chatChannelId: string) => void;
 
-    private api: ChzzkAPI;
+    private _api: ChzzkAPI;
     private uid?: string;
 
     constructor(options?: ChatServerOption) {
-        this.api = new ChzzkAPI(options);
+        this._api = new ChzzkAPI(options);
         this.queue = new PQueue({ concurrency: options?.concurrency || 1 });
 
         this.onmessage = options?.onMessage || (() => {});
@@ -99,18 +99,24 @@ export default class ChatServer<
         this.onclose = options?.onClose || (() => {});
 
         this.queue.add(async () => {
-            const user = await this.api.user();
+            const user = await this._api.user();
             this.uid = user?.userIdHash;
             await sleep(1000); // 1초 대기
         });
     }
 
+    /**
+     * 채팅 서버 추가
+     * @param roomId
+     * @param chatChannelId
+     * @returns
+     */
     public addServer(roomId: string, chatChannelId?: string) {
         if (this.servers.has(roomId)) return 0;
         if (this.servers.size > 60000) return -1; // 서버 수 제한
         this.queue.add(async () => {
             if (!chatChannelId)
-                chatChannelId = await this.api
+                chatChannelId = await this._api
                     .status(roomId)
                     .then(status => status?.chatChannelId)
                     .catch(() => null);
@@ -167,6 +173,10 @@ export default class ChatServer<
         return this.queue.size;
     }
 
+    get api() {
+        return this._api;
+    }
+
     reloadCommand = async (roomId: string) => {
         const server = this.servers.get(roomId);
         if (server) {
@@ -190,6 +200,7 @@ export default class ChatServer<
         const { userIdHash, nickname } = profile;
         const { streamingChannelId } = extras;
 
+        const client = this.getServer(streamingChannelId);
         const liveStatus = this.state.get(streamingChannelId);
 
         const alias: {
@@ -206,6 +217,11 @@ export default class ChatServer<
             game: liveStatus?.liveCategoryValue,
             gameValue: liveStatus?.liveCategoryValue,
             uptime: liveStatus?.openDate,
+            list:
+                client?.commands
+                    .map(({ command }) => command)
+                    .join(', ')
+                    .slice(0, 2000) || '{오류가 발생했습니다}',
 
             // TODO: Add more aliases
             pid: process.env.ECS_ID,
@@ -273,8 +289,12 @@ export default class ChatServer<
         });
     }
 
+    get serverSzie() {
+        return this.servers.size;
+    }
+
     public async getToken(chatChannelId: string) {
-        return await this.api.accessToken(chatChannelId).then(token => token.accessToken);
+        return await this._api.accessToken(chatChannelId).then(token => token.accessToken);
     }
 
     public async updateChannel(roomId: string, chatChannelId: string) {
@@ -296,12 +316,26 @@ export default class ChatServer<
         return this.servers.values();
     }
 
+    setServerState(roomId: string, state: T) {
+        this.state.set(roomId, state);
+    }
+
     public async removeServer(roomId: string) {
         const server = this.servers.get(roomId);
         if (server) {
             server.disconnect();
             this.servers.delete(roomId);
         }
+    }
+
+    public moveServer(roomId: string) {
+        const state = this.state.get(roomId);
+        const server = this.servers.get(roomId);
+        if (state && server) {
+            server.disconnect();
+            return state as T;
+        }
+        return null;
     }
 
     public getServer(roomId: string) {
