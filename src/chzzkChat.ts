@@ -121,8 +121,7 @@ if (ECS_ID) {
                     }
                     case `${prefix}help`: {
                         chat.reply(
-                            `${prefix}add [명령어] [응답] - 명령어 추가 / ${prefix}remove [명령어] - 명령어 삭제 / ${prefix}list - 명령어 목록 / ${prefix}help - 도움말 / https://orefinger.notion.site
-                            `.trim()
+                            `${prefix}add [명령어] [응답] - 명령어 추가 / ${prefix}remove [명령어] - 명령어 삭제 / ${prefix}list - 명령어 목록 / https://orefinger.notion.site`
                         );
                         break;
                     }

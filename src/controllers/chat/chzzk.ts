@@ -127,7 +127,7 @@ export const upsertCommand = async (
         await query('DELETE FROM chat_cmd WHERE channel_id = ?', channel_id);
         if (commands.length)
             await query(
-                `INSERT IGNORE INTO chat_log (channel_id, command, message, type) VALUES ${commands.map(
+                `INSERT IGNORE INTO chat_cmd (channel_id, command, message, type) VALUES ${commands.map(
                     ({ command, message, type }) => format(cols, [channel_id, command, message, type])
                 )}`
             );
