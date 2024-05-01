@@ -81,7 +81,7 @@ if (ECS_ID) {
 
                         const idx = client.addCommand({
                             answer: answer.join(' '),
-                            command: question,
+                            command: question.trim(),
                         });
 
                         chat.reply(`명령어가 ${idx != -1 ? '교체' : '추가'}되었습니다. - ${question}`);
@@ -95,7 +95,7 @@ if (ECS_ID) {
                             return;
                         }
 
-                        const idx = client.commands.findIndex(({ command }) => command === question);
+                        const idx = client.commands.findIndex(({ command }) => command === question.trim());
                         if (idx === -1) {
                             chat.reply('해당 명령어가 없습니다.');
                             return;
