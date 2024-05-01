@@ -78,3 +78,15 @@ export const getECSSpaceId = () => {
     if (target.id != '') return target.id;
     else return process.env.ECS_PK;
 };
+
+export const totalECS = () => {
+    return Object.keys(serverECS).reduce((prev, curr) => {
+        return prev + serverECS[curr].count;
+    }, 0);
+};
+
+export const totalECSUser = () => {
+    return Object.keys(serverECS).reduce((prev, curr) => {
+        return prev + serverECS[curr].userCount;
+    }, 0);
+};
