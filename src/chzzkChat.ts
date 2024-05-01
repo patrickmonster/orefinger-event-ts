@@ -152,7 +152,7 @@ if (ECS_ID) {
         const list = [];
         for (const server of servers) {
             list.push({
-                hash_id: server.host,
+                hash_id: server.roomId,
                 host: server.host,
                 chatChannelId: server.chatChannelId,
             });
