@@ -1,14 +1,15 @@
-import { ChatLog, insertChatQueue, selectChatServer } from 'controllers/chat/chzzk';
+import { ChatLog, insertChatQueue } from 'controllers/chat/chzzk';
 import { ChatDonation, ChatMessage } from 'interfaces/chzzk/chat';
-import { LoopRunQueue } from 'utils/object';
+import { LoopRunQueue, ParseInt } from 'utils/object';
 
-import { ECSStatePublish } from 'utils/redis';
+import { ECSStatePublish, LiveStatePublish } from 'utils/redis';
 import { ECSStateSubscribe, LiveStateSubscribe } from 'utils/redisBroadcast';
 import ChatServer from './utils/chat/server';
 
 import { ecsSelect } from 'controllers/log';
 import { Content as ChzzkContent } from 'interfaces/API/Chzzk';
 
+import { getECSSpaceId } from 'utils/ECS';
 import 'utils/procesTuning';
 
 /**
@@ -150,15 +151,32 @@ if (ECS_ID) {
             server.updateLiveState(hashId, liveStatus);
         });
 
+        // -- 채널 이동명령
+        LiveStateSubscribe('move', ({ hashId, liveStatus }) => {
+            const targetId = getECSSpaceId();
+            if (targetId !== process.env.ECS_PK) return; // 자신의 서버가 아닌 경우
+
+            const { chatChannelId } = liveStatus as ChzzkContent;
+            server.addServer(hashId, chatChannelId);
+            server.setServerState(hashId, liveStatus);
+
+            ECSStatePublish('join', {
+                ...server.serverState,
+                hash_id: hashId,
+            });
+        });
+
         LiveStateSubscribe('change', ({ hashId, liveStatus }) => {
             const { chatChannelId } = liveStatus as ChzzkContent;
             server.updateChannel(hashId, chatChannelId);
+            server.setServerState(hashId, liveStatus);
         });
 
         LiveStateSubscribe('online', ({ targetId, hashId, liveStatus }) => {
             const { chatChannelId } = liveStatus as ChzzkContent;
             if (targetId !== process.env.ECS_PK) return; // 자신의 서버가 아닌 경우
             server.addServer(hashId, chatChannelId);
+            server.setServerState(hashId, liveStatus);
 
             ECSStatePublish('join', {
                 ...server.serverState,
@@ -183,17 +201,6 @@ if (ECS_ID) {
             hash_id && server.addServer(hash_id);
         });
 
-        if (task?.rownum === 1) {
-            selectChatServer(4).then(async chats => {
-                for (const { hash_id: hashId } of chats) {
-                    server.addServer(hashId);
-                    ECSStatePublish('join', {
-                        ...server.serverState,
-                        hash_id: hashId,
-                    });
-                }
-            });
-        }
     });
 
     const loop = setInterval(() => {
@@ -202,7 +209,15 @@ if (ECS_ID) {
     }, 1000 * 60); // 1분마다 상태 전송
 
     process.on('SIGINT', function () {
-        for (const s of server.serverList) s.disconnect();
+        for (const s of server.serverList) {
+            const state = server.moveServer(s.roomId);
+            if ( state )
+                LiveStatePublish('move', {
+                    noticeId : ParseInt(`${process.env.ECS_PK}`),
+                    hashId : s.roomId,
+                    liveStatus : state,
+                    targetId: getECSSpaceId(), // ECS ID
+                });
         clearInterval(loop);
     });
 } else {

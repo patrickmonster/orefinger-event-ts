@@ -161,7 +161,6 @@ export default class ChatServer<
             server.commands = await selectCommand(roomId);
 
             await server.connect();
-            await this.updateLiveState(roomId, await this.api.status(roomId));
             await sleep(100); // 1초 대기
         });
 
@@ -303,12 +302,26 @@ export default class ChatServer<
         return this.servers.values();
     }
 
+    setServerState(roomId: string, state: T) {
+        this.state.set(roomId, state);
+    }
+
     public async removeServer(roomId: string) {
         const server = this.servers.get(roomId);
         if (server) {
             server.disconnect();
             this.servers.delete(roomId);
         }
+    }
+
+    public moveServer(roomId: string) {
+        const state = this.state.get(roomId);
+        const server = this.servers.get(roomId);
+        if (state && server) {
+            server.disconnect();
+            return state as T;
+        }
+        return null;
     }
 
     public getServer(roomId: string) {
