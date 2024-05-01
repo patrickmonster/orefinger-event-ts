@@ -174,6 +174,7 @@ if (ECS_ID) {
         process.env.ECS_REVISION = ECS_REVISION;
         process.env.ECS_FAMILY = `${task?.family}`;
         process.env.ECS_PK = `${task?.idx}`;
+        process.env.ECS_ROWNUM = `${task?.rownum}`;
 
         LiveStateSubscribe('*', ({ hashId, liveStatus }) => {
             server.updateLiveState(hashId, liveStatus);
@@ -234,17 +235,31 @@ if (ECS_ID) {
             updateChannelState();
         });
 
-        // if (task?.rownum === 1) {
-        //     selectChatServer(4).then(async chats => {
-        //         for (const { hash_id: hashId } of chats) {
-        //             server.addServer(hashId);
-        //             ECSStatePublish('join', {
-        //                 ...(await server.api.status(hashId)),
-        //                 hash_id: hashId,
-        //             });
-        //         }
-        //     });
-        // }
+        // -- 채널 연결 *(명령)
+        ECSStateSubscribe('connect', ({ hash_id, id }) => {
+            if (id !== process.env.ECS_PK) return; // 자신의 서버가 아닌 경우
+            hash_id && server.addServer(hash_id);
+            updateChannelState();
+        });
+
+        ECSStateSubscribe('new', ({ hash_id, revision }) => {
+            if (revision === process.env.ECS_REVISION || hash_id != process.env.ECS_ROWNUM) return; // 자신의 버전과 맞을경우
+            for (const s of server.serverList) {
+                const state = server.moveServer(s.roomId);
+                if (state)
+                    LiveStatePublish('move', {
+                        noticeId: ParseInt(`${process.env.ECS_PK}`),
+                        hashId: s.roomId,
+                        liveStatus: state,
+                        targetId: getECSSpaceId(), // ECS ID
+                    });
+            }
+        });
+    });
+
+    ECSStatePublish('new', {
+        ...server.serverState,
+        hash_id: process.env.ECS_ROWNUM,
     });
 
     const loop = setInterval(() => {
@@ -253,16 +268,6 @@ if (ECS_ID) {
     }, 1000 * 60); // 1분마다 상태 전송
 
     process.on('SIGINT', function () {
-        for (const s of server.serverList) {
-            const state = server.moveServer(s.roomId);
-            if (state)
-                LiveStatePublish('move', {
-                    noticeId: ParseInt(`${process.env.ECS_PK}`),
-                    hashId: s.roomId,
-                    liveStatus: state,
-                    targetId: getECSSpaceId(), // ECS ID
-                });
-        }
         clearInterval(loop);
     });
 } else {
