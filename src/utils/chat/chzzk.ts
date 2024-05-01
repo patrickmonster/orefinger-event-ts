@@ -102,16 +102,27 @@ interface ChzzkWebSocketOption {
     uid?: string;
 }
 
+export interface ChatUser {
+    channel_id: string;
+    user_id: string;
+}
+
+export interface Command {
+    command: string;
+    answer: string;
+}
+
 /**
  * 필요한 데이터만 구현함.
  */
-export default class ChzzkWebSocket extends EventEmitter {
+export default class ChzzkWebSocket<T extends ChatUser = ChatUser, C extends Command = Command> extends EventEmitter {
     private option: ChzzkWebSocketOption;
     private ws?: WebSocket;
 
     private chatCount: number = 0;
 
-    private userList = new Map<string, any>(); // 유저 리스트
+    private userList = new Map<string, T>(); // 유저 리스트
+    private commandList: C[] = [];
 
     private connected: boolean = false;
     private reconnecting: boolean = false;
@@ -158,8 +169,50 @@ export default class ChzzkWebSocket extends EventEmitter {
         return this.chatCount;
     }
 
+    get roomId() {
+        return this.option.liveChannelId;
+    }
+
     get users() {
-        return this.userList.values();
+        const list: T[] = [];
+        for (const user of this.userList.values()) {
+            list.push(user);
+        }
+        return list;
+    }
+
+    set users(users: T[]) {
+        for (const user of users) {
+            this.userList.set(user.user_id, user);
+        }
+    }
+
+    get commands() {
+        return this.commandList;
+    }
+
+    addCommand(command: C) {
+        const idx = this.commandList.findIndex(({ command: c }) => c == command.command);
+        if (idx != -1) {
+            this.commandList.push(command);
+        } else {
+            this.commandList[idx] = command;
+        }
+
+        return idx;
+    }
+
+    set command(command: C) {
+        const idx = this.commandList.findIndex(({ command: c }) => c == command.command);
+        if (idx != -1) {
+            this.commandList.push(command);
+        } else {
+            this.commandList[idx] = command;
+        }
+    }
+
+    set commands(command: C[]) {
+        this.commandList.push(...command);
     }
 
     get userTotalCount() {
@@ -238,17 +291,23 @@ export default class ChzzkWebSocket extends EventEmitter {
 
     //////////////////////////////////////////////////////////////////////////
 
+    getUser(hashId: string): T | undefined {
+        return this.userList.get(hashId);
+    }
+
     /**
      * 임시 코드 - 채널 정보를 업데이트 합니다.
      *  - 채널이 업데이트 된 경우, 소캣을 새로 연결합니다.
      */
-    updateChannel(cid: string) {
+    updateChannel(cid: string, token: string) {
         if (this.defaultHeader?.cid == cid) {
             this.defaultHeader = {
                 cid,
                 svcid: 'game',
                 ver: '2',
             };
+
+            this.token = token;
             this.reconnect();
         }
         return this;
@@ -277,7 +336,7 @@ export default class ChzzkWebSocket extends EventEmitter {
             chatType: 'STREAMING',
             emojis,
             osType: 'PC',
-            streamingChannelId: this.chatChannelId,
+            streamingChannelId: this.roomId,
         };
 
         this.sendRow(
@@ -334,6 +393,8 @@ export default class ChzzkWebSocket extends EventEmitter {
                     const type = getContentAllias(chat, 'msgTypeCode', 'messageTypeCode') || '';
                     const parsed = this.parseChat(chat, isRecent);
 
+                    if (!parsed.profile || !parsed.profile?.userIdHash) continue;
+
                     switch (type) {
                         case ChatType.TEXT:
                             this.createUserMessage(parsed); // ChatMessage
@@ -369,6 +430,30 @@ export default class ChzzkWebSocket extends EventEmitter {
     }
 
     /**
+     * 미리 셋팅되는 데이터
+     *  cid: string; // 채널 id ( = chatChannelId )
+        svcid: string; // 서비스 id;
+        ver : string; // 버전 (2)
+     * @param liveChannelId 
+     * @param data 
+     * @param isSid 
+     */
+    private sendRow<T extends Object>(
+        data: { bdy?: T; cmd: ChatCmd; tid?: number; sid?: string; retry?: boolean },
+        isSid: boolean = false
+    ) {
+        const requsetData = { ...data, ...this.defaultHeader };
+        if (isSid) requsetData.sid = this.sid;
+
+        if (this.ws) {
+            this.ws.send(JSON.stringify(requsetData));
+        } else {
+            console.error('소캣이 연결되지 않았습니다.', requsetData);
+            // throw new Error('소캣이 연결되지 않았습니다.');
+        }
+    }
+
+    /**
      * 메세지 ID를 생성합니다.
      * @param time
      * @returns Snowflake
@@ -392,7 +477,14 @@ export default class ChzzkWebSocket extends EventEmitter {
         const { profile } = chat;
         const { userIdHash } = profile;
 
-        this.userList.set(userIdHash, profile);
+        if (!this.userList.has(userIdHash)) {
+            // 유저 정보가 없는 경우, 추가합니다.
+            this.userList.set(userIdHash, {
+                channel_id: this.roomId,
+                user_id: userIdHash,
+            } as T);
+        }
+
         this.chatCount++;
 
         this.emit('chat', chat);
@@ -457,29 +549,5 @@ export default class ChzzkWebSocket extends EventEmitter {
         }
 
         return parsed;
-    }
-
-    /**
-     * 미리 셋팅되는 데이터
-     *  cid: string; // 채널 id ( = chatChannelId )
-        svcid: string; // 서비스 id;
-        ver : string; // 버전 (2)
-     * @param liveChannelId 
-     * @param data 
-     * @param isSid 
-     */
-    private sendRow<T extends Object>(
-        data: { bdy?: T; cmd: ChatCmd; tid?: number; sid?: string; retry?: boolean },
-        isSid: boolean = false
-    ) {
-        const requsetData = { ...data, ...this.defaultHeader };
-        if (isSid) requsetData.sid = this.sid;
-
-        if (this.ws) {
-            this.ws.send(JSON.stringify(requsetData));
-        } else {
-            console.error('소캣이 연결되지 않았습니다.', requsetData);
-            // throw new Error('소캣이 연결되지 않았습니다.');
-        }
     }
 }

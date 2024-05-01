@@ -1,3 +1,4 @@
+import { ECSState, ECSStateMessage, LiveState, LiveStateMessage } from 'interfaces/redis';
 import { createClient } from 'redis';
 
 const client = createClient({
@@ -57,15 +58,7 @@ const publish = async (channel: string, message: string) => {
     client.publish(channel, message).catch(console.error);
 };
 
-export const LiveStatePublish = async (
-    state: 'online' | 'offline' | 'change',
-    message: {
-        targetId?: string;
-        noticeId: number;
-        hashId: string;
-        liveStatus: any;
-    }
-) => {
+export const LiveStatePublish = async (state: LiveState, message: LiveStateMessage) => {
     publish(
         REDIS_KEY.SUBSCRIBE.LIVE_STATE(state),
         JSON.stringify({
@@ -75,10 +68,7 @@ export const LiveStatePublish = async (
     );
 };
 
-export const ECSStatePublish = async (
-    state: 'channels' | 'JOIN' | 'CONNECT' | 'LEAVE',
-    message: { count: number; userCount: number; hash_id?: string }
-) => {
+export const ECSStatePublish = async (state: ECSState, message: ECSStateMessage) => {
     publish(
         REDIS_KEY.SUBSCRIBE.ECS_CHAT_STATE(state),
         JSON.stringify({
@@ -112,7 +102,7 @@ export const REDIS_KEY = {
         SELECT: (queryKey: string | number) => `sql:select:${queryKey}`,
     },
     SUBSCRIBE: {
-        LIVE_STATE: (state: 'online' | 'offline' | 'change') => `subscribe:live:${state}`,
-        ECS_CHAT_STATE: (state: 'channels' | 'JOIN' | 'CONNECT' | 'LEAVE') => `subscribe:ecs:chat:${state}`,
+        LIVE_STATE: (state: LiveState) => `subscribe:live:${state}`,
+        ECS_CHAT_STATE: (state: ECSState) => `subscribe:ecs:chat:${state}`,
     },
 };

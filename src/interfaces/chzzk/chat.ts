@@ -99,7 +99,8 @@ export interface ChatUserProfile {
     userIdHash: string;
     nickname: string;
     profileImageUrl: string;
-    userRoleCode: string;
+    // 운영자 / 일반유저 / 채팅관리자
+    userRoleCode: 'streamer' | 'common_user' | 'streaming_chat_manager' | 'streaming_channel_manager';
     badge: string;
     title: string;
     verifiedMark: boolean;

@@ -30,7 +30,7 @@ const appendChat = ({
     extras: { osType },
     profile: { userIdHash },
     cid,
-}: ChatMessage | ChatDonation) =>
+}: ChatMessage | ChatDonation) => {
     addQueue({
         channel_id: cid,
         message_id: id,
@@ -39,30 +39,101 @@ const appendChat = ({
         os_type: osType || '-',
         hidden_yn: hidden ? 'Y' : 'N',
     });
+};
 
 const [, file, ECS_ID, ECS_REVISION, ...argv] = process.argv;
+// 봇 접두사
+const prefix = '@';
 
 if (ECS_ID) {
-    const server = new ChatServer({
+    const server = new ChatServer<ChzzkContent>({
         nidAuth: process.env.NID_AUTH,
         nidSession: process.env.NID_SECRET,
         concurrency: 2,
         onMessage: chat => {
             appendChat(chat);
-            const { message } = chat;
+            const {
+                message,
+                profile: { userRoleCode },
+                extras: { streamingChannelId },
+            } = chat;
+            const client = server.getServer(streamingChannelId);
+            if (!client) return;
+            const [userCommand, ...args] = message.split(' ');
 
-            if (!message.startsWith('@')) {
-                return;
+            const command = client.commands.find(({ command }) => command === userCommand);
+            if (command) {
+                chat.reply(command.answer);
+            } else {
+                if (!message.startsWith(prefix) || userRoleCode == 'common_user') {
+                    if ('e229d18df2edef8c9114ae6e8b20373a' !== chat.profile.userIdHash) {
+                        return;
+                    }
+
+                    switch (userCommand) {
+                        case `${prefix}add`: {
+                            const [question, ...answer] = args;
+
+                            if (!question || !answer.length) {
+                                chat.reply('명령어를 입력해주세요. - add [명령어] [응답]');
+                                return;
+                            }
+
+                            const idx = client.addCommand({
+                                answer: answer.join(' '),
+                                command: question,
+                            });
+
+                            chat.reply(`명령어가 ${idx != -1 ? '교체' : '추가'}되었습니다. - ${question}`);
+                            break;
+                        }
+                        case `${prefix}remove`: {
+                            const [question] = args;
+
+                            if (!question) {
+                                chat.reply('명령어를 입력해주세요. - remove [명령어]');
+                                return;
+                            }
+
+                            const idx = client.commands.findIndex(({ command }) => command === question);
+                            if (idx === -1) {
+                                chat.reply('해당 명령어가 없습니다.');
+                                return;
+                            }
+
+                            client.commands.splice(idx, 1);
+                            chat.reply(`명령어가 삭제되었습니다. - ${question}`);
+                            break;
+                        }
+                        case `${prefix}list`: {
+                            chat.reply(
+                                client.commands
+                                    .map(({ command }) => command)
+                                    .join(', ')
+                                    .slice(0, 2000)
+                            );
+                            break;
+                        }
+                        case `${prefix}reload`: {
+                            server.reloadCommand(streamingChannelId);
+                            chat.reply('명령어를 다시 불러옵니다... 적용까지 1분...');
+                            break;
+                        }
+                        case `${prefix}help`: {
+                            chat.reply(
+                                `${prefix}add [명령어] [응답] - 명령어 추가 / ${prefix}remove [명령어] - 명령어 삭제 / ${prefix}list - 명령어 목록 / ${prefix}help - 도움말 / https://orefinger.notion.site
+                            `.trim()
+                            );
+                            break;
+                        }
+                        default:
+                            break;
+                    }
+                }
             }
         },
-        onDonation: (chat: ChatDonation) => {
-            appendChat(chat);
-        },
-        onReady: channelId => {
-            console.log('READY', channelId);
-        },
         onClose: channelId => {
-            ECSStatePublish('LEAVE', {
+            ECSStatePublish('leave', {
                 ...server.serverState,
                 hash_id: channelId,
             });
@@ -77,9 +148,13 @@ if (ECS_ID) {
         process.env.ECS_FAMILY = `${task?.family}`;
         process.env.ECS_PK = `${task?.idx}`;
 
+        LiveStateSubscribe('*', ({ hashId, liveStatus }) => {
+            server.updateLiveState(hashId, liveStatus);
+        });
+
         LiveStateSubscribe('change', ({ hashId, liveStatus }) => {
             const { chatChannelId } = liveStatus as ChzzkContent;
-            server.getServer(hashId)?.updateChannel(chatChannelId);
+            server.updateChannel(hashId, chatChannelId);
         });
 
         LiveStateSubscribe('online', ({ targetId, hashId, liveStatus }) => {
@@ -87,7 +162,7 @@ if (ECS_ID) {
             if (targetId !== process.env.ECS_PK) return; // 자신의 서버가 아닌 경우
             server.addServer(hashId, chatChannelId);
 
-            ECSStatePublish('JOIN', {
+            ECSStatePublish('join', {
                 ...server.serverState,
                 hash_id: hashId,
             });
@@ -98,12 +173,14 @@ if (ECS_ID) {
         });
 
         // -- 새로운 채널 입장 알림
-        ECSStateSubscribe('JOIN', ({ hash_id }) => {
+        ECSStateSubscribe('join', ({ hash_id, id }) => {
+            if (id == process.env.ECS_PK) return; // 자신의 서버인 경우
+
             if (hash_id) server.removeServer(hash_id).catch(console.error);
         });
 
         // -- 채널 연결 *(명령)
-        ECSStateSubscribe('CONNECT', ({ hash_id, id }) => {
+        ECSStateSubscribe('connect', ({ hash_id, id }) => {
             if (id !== process.env.ECS_PK) return; // 자신의 서버가 아닌 경우
             hash_id && server.addServer(hash_id);
         });
@@ -112,7 +189,7 @@ if (ECS_ID) {
             selectChatServer(4).then(async chats => {
                 for (const { hash_id: hashId } of chats) {
                     server.addServer(hashId);
-                    ECSStatePublish('JOIN', {
+                    ECSStatePublish('join', {
                         ...server.serverState,
                         hash_id: hashId,
                     });
