@@ -177,10 +177,6 @@ if (ECS_ID) {
         process.env.ECS_PK = `${task?.idx}`;
         process.env.ECS_ROWNUM = `${task?.rownum}`;
 
-        LiveStateSubscribe('*', ({ hashId, liveStatus }) => {
-            server.updateLiveState(hashId, liveStatus);
-        });
-
         // -- 채널 이동명령 강제실행
         LiveStateSubscribe('move', ({ hashId, liveStatus }) => {
             const targetId = getECSSpaceId();
