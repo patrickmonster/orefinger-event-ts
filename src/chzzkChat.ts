@@ -235,13 +235,6 @@ if (ECS_ID) {
             updateChannelState();
         });
 
-        // -- 채널 연결 *(명령)
-        ECSStateSubscribe('connect', ({ hash_id, id }) => {
-            if (id !== process.env.ECS_PK) return; // 자신의 서버가 아닌 경우
-            hash_id && server.addServer(hash_id);
-            updateChannelState();
-        });
-
         ECSStateSubscribe('new', ({ hash_id, revision }) => {
             if (revision === process.env.ECS_REVISION || hash_id != process.env.ECS_ROWNUM) return; // 자신의 버전과 맞을경우
             for (const s of server.serverList) {
