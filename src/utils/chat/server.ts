@@ -103,6 +103,31 @@ export default class ChatServer<
             this.uid = user?.userIdHash;
             await sleep(1000); // 1초 대기
         });
+
+        const loop = setInterval(() => {
+            this.servers.forEach(server => {
+                if (server.isEdit) {
+                    // 명령어 업데이트
+                    const commands = this.servers.get(server.roomId)?.commands;
+                    if (commands) {
+                        upsertCommand(
+                            server.roomId,
+                            ...commands.map(({ answer, command }) => {
+                                return {
+                                    command,
+                                    message: answer,
+                                    type: 1,
+                                };
+                            })
+                        ).catch(console.error);
+                    }
+                }
+            });
+        }, 1000 * 60 * 30);
+
+        process.on('SIGINT', function () {
+            clearInterval(loop);
+        });
     }
 
     /**
