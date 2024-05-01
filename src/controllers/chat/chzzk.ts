@@ -18,6 +18,9 @@ export const insertChat = async (chat: ChatLog) => query('INSERT IGNORE INTO cha
  */
 export const insertChatQueue = async (chats: ChatLog[]) => {
     const cols = `(${Array.from({ length: 6 }, (_, i) => '?').join(',')})`;
+    if (!chats.length) return;
+    console.log(chats);
+
     return await query(
         `INSERT IGNORE INTO chat_log (message_id, user_id, channel_id, message, os_type, hidden_yn) VALUES ${chats.map(
             chat =>
@@ -82,9 +85,10 @@ export const upsertChatUser = async (
     }[]
 ) =>
     getConnection(async query => {
+        if (!users.length) return;
         for (const user of users) {
             query(
-                'INSERT INTO chat_user SET ? ON DUPLICATE KEY UPDATE update_at=CURRENT_TIMESTAMP, point=?',
+                'INSERT INTO chat_user_connect SET ? ON DUPLICATE KEY UPDATE update_at=CURRENT_TIMESTAMP, point=?',
                 user,
                 user.point || 0
             );
@@ -121,9 +125,10 @@ export const upsertCommand = async (
         const cols = `(${Array.from({ length: 4 }, (_, i) => '?').join(',')})`;
         //
         await query('DELETE FROM chat_cmd WHERE channel_id = ?', channel_id);
-        await query(
-            `INSERT IGNORE INTO chat_log (channel_id, command, message, type) VALUES ${commands.map(
-                ({ command, message, type }) => format(cols, [channel_id, command, message, type])
-            )}`
-        );
+        if (commands.length)
+            await query(
+                `INSERT IGNORE INTO chat_log (channel_id, command, message, type) VALUES ${commands.map(
+                    ({ command, message, type }) => format(cols, [channel_id, command, message, type])
+                )}`
+            );
     }, true);
