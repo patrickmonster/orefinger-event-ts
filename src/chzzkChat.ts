@@ -52,7 +52,6 @@ if (ECS_ID) {
         nidSession: process.env.NID_SECRET,
         concurrency: 1,
         onMessage: chat => {
-            appendChat(chat);
             const {
                 message,
                 profile: { userRoleCode },
