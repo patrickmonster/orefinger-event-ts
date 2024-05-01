@@ -38,6 +38,7 @@ const server = new ChatServer<ChzzkContent>({
 
         const command = client.commands.find(({ command }) => command === userCommand);
         if (command) {
+            console.log('COMMAND ::', command.command, '::', command.answer);
             chat.reply(command.answer);
         } else {
             if (!message.startsWith(prefix) || userRoleCode == 'common_user') {
