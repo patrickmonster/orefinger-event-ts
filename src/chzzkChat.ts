@@ -200,7 +200,6 @@ if (ECS_ID) {
             if (id !== process.env.ECS_PK) return; // 자신의 서버가 아닌 경우
             hash_id && server.addServer(hash_id);
         });
-
     });
 
     const loop = setInterval(() => {
@@ -211,13 +210,14 @@ if (ECS_ID) {
     process.on('SIGINT', function () {
         for (const s of server.serverList) {
             const state = server.moveServer(s.roomId);
-            if ( state )
+            if (state)
                 LiveStatePublish('move', {
-                    noticeId : ParseInt(`${process.env.ECS_PK}`),
-                    hashId : s.roomId,
-                    liveStatus : state,
+                    noticeId: ParseInt(`${process.env.ECS_PK}`),
+                    hashId: s.roomId,
+                    liveStatus: state,
                     targetId: getECSSpaceId(), // ECS ID
                 });
+        }
         clearInterval(loop);
     });
 } else {
