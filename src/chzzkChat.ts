@@ -2,7 +2,7 @@ import { ChatLog, insertChatQueue } from 'controllers/chat/chzzk';
 import { ChatDonation, ChatMessage } from 'interfaces/chzzk/chat';
 import { LoopRunQueue, ParseInt } from 'utils/object';
 
-import { ECSStatePublish, LiveStatePublish } from 'utils/redis';
+import redis, { ECSStatePublish, LiveStatePublish, REDIS_KEY } from 'utils/redis';
 import { ECSStateSubscribe, LiveStateSubscribe } from 'utils/redisBroadcast';
 import ChatServer from './utils/chat/server';
 
@@ -52,7 +52,6 @@ if (ECS_ID) {
         nidSession: process.env.NID_SECRET,
         concurrency: 1,
         onMessage: chat => {
-            appendChat(chat);
             const {
                 message,
                 profile: { userRoleCode },
@@ -148,6 +147,26 @@ if (ECS_ID) {
         },
     });
 
+    const updateChannelState = () => {
+        const servers = server.serverList;
+        const list = [];
+        for (const server of servers) {
+            list.push({
+                hash_id: server.host,
+                host: server.host,
+                chatChannelId: server.chatChannelId,
+            });
+        }
+
+        redis.set(
+            REDIS_KEY.CHAT.CHZZK(`${process.env.ECS_PK}`),
+            JSON.stringify({
+                serverState: server.serverState,
+                list,
+            })
+        );
+    };
+
     ecsSelect(ECS_REVISION).then(tasks => {
         if (!tasks.length) return;
         const task = tasks.find(task => `${task.id}` === ECS_ID);
@@ -173,6 +192,8 @@ if (ECS_ID) {
                 ...server.serverState,
                 hash_id: hashId,
             });
+
+            updateChannelState();
         });
 
         LiveStateSubscribe('change', ({ hashId, liveStatus }) => {
@@ -191,6 +212,8 @@ if (ECS_ID) {
                 ...server.serverState,
                 hash_id: hashId,
             });
+
+            updateChannelState();
         });
 
         LiveStateSubscribe('offline', ({ hashId }) => {
@@ -208,6 +231,7 @@ if (ECS_ID) {
         ECSStateSubscribe('connect', ({ hash_id, id }) => {
             if (id !== process.env.ECS_PK) return; // 자신의 서버가 아닌 경우
             hash_id && server.addServer(hash_id);
+            updateChannelState();
         });
 
         // if (task?.rownum === 1) {
