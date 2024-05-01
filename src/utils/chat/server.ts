@@ -279,6 +279,10 @@ export default class ChatServer<
         });
     }
 
+    get serverSzie() {
+        return this.servers.size;
+    }
+
     public async getToken(chatChannelId: string) {
         return await this.api.accessToken(chatChannelId).then(token => token.accessToken);
     }

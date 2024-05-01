@@ -126,6 +126,15 @@ if (ECS_ID) {
                         );
                         break;
                     }
+                    case `${prefix}server`: {
+                        const { count, userCount } = server.serverState;
+                        chat.reply(
+                            `현재 서버 : ${getECSSpaceId()} / 연결된 서버 : ${(count || 0).toLocaleString()} / ${(
+                                userCount || 0
+                            ).toLocaleString()}`
+                        );
+                        break;
+                    }
                     default:
                         break;
                 }
