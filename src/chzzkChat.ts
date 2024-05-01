@@ -1,4 +1,4 @@
-import { ChatLog, insertChatQueue, selectChatServer } from 'controllers/chat/chzzk';
+import { ChatLog, insertChatQueue } from 'controllers/chat/chzzk';
 import { ChatDonation, ChatMessage } from 'interfaces/chzzk/chat';
 import { LoopRunQueue, ParseInt } from 'utils/object';
 
@@ -210,17 +210,17 @@ if (ECS_ID) {
             hash_id && server.addServer(hash_id);
         });
 
-        if (task?.rownum === 1) {
-            selectChatServer(4).then(async chats => {
-                for (const { hash_id: hashId } of chats) {
-                    server.addServer(hashId);
-                    ECSStatePublish('join', {
-                        ...(await server.api.status(hashId)),
-                        hash_id: hashId,
-                    });
-                }
-            });
-        }
+        // if (task?.rownum === 1) {
+        //     selectChatServer(4).then(async chats => {
+        //         for (const { hash_id: hashId } of chats) {
+        //             server.addServer(hashId);
+        //             ECSStatePublish('join', {
+        //                 ...(await server.api.status(hashId)),
+        //                 hash_id: hashId,
+        //             });
+        //         }
+        //     });
+        // }
     });
 
     const loop = setInterval(() => {
