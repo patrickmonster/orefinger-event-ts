@@ -161,7 +161,7 @@ export default class ChatServer<
      * @param chatChannelId
      * @returns
      */
-    addServer(roomId: string, chatChannelId?: string) {
+    addServer(roomId: string, chatChannelId?: string, callback?: Function) {
         if (this.servers.has(roomId)) return 0;
         if (this.servers.size > 60000) return -1; // 서버 수 제한
         this.queue.add(async () => {
