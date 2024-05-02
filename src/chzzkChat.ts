@@ -48,18 +48,24 @@ if (ECS_ID) {
                     case `${prefix}a`:
                     case `${prefix}add`: {
                         const [question, ...answer] = args;
+                        const command = question.trim();
 
                         if (!question || !answer.length) {
                             chat.reply('명령어를 입력해주세요. - add [명령어] [응답]');
                             return;
                         }
 
+                        if (command.startsWith(prefix)) {
+                            chat.reply(`명령어는 접두사(${prefix})로 시작할 수 없습니다.`);
+                            return;
+                        }
+
                         const idx = client.addCommand({
                             answer: answer.join(' '),
-                            command: question.trim(),
+                            command,
                         });
 
-                        chat.reply(`명령어가 ${idx != -1 ? '교체' : '추가'}되었습니다. - ${question}`);
+                        chat.reply(`명령어가 ${idx != -1 ? '교체' : '추가'}되었습니다. - ${command}`);
                         break;
                     }
                     case `${prefix}s`:
@@ -73,6 +79,7 @@ if (ECS_ID) {
                         break;
                     }
                     case `${prefix}d`:
+                    case `${prefix}delete`:
                     case `${prefix}remove`: {
                         const [question] = args;
 
@@ -103,14 +110,23 @@ if (ECS_ID) {
                     }
                     case `${prefix}r`:
                     case `${prefix}reload`: {
-                        server.loadCommand(streamingChannelId);
                         chat.reply('명령어를 다시 불러옵니다... 적용까지 1분...');
+                        Promise.all([server.loadUser(streamingChannelId), server.loadCommand(streamingChannelId)]).then(
+                            () => {
+                                chat.reply(`명령어를 다시 불러왔습니다.`);
+                            }
+                        );
                         break;
                     }
-                    case `${prefix}h`:
                     case `${prefix}help`: {
                         chat.reply(
                             `${prefix}add [명령어] [응답] - 명령어 추가 / ${prefix}remove [명령어] - 명령어 삭제 `
+                        );
+                        break;
+                    }
+                    case `${prefix}h`: {
+                        chat.reply(
+                            `a [c] [a] ADD / r [c] - DELETE / l - LIST / s - SAVE / r - RELOAD / h - HELP / server - SERVER / help - HELP`
                         );
                         break;
                     }
@@ -178,9 +194,10 @@ if (ECS_ID) {
          * 채널 이동 명령
          *  - 가장 여유로운 서버가 본인의 서버인 경우 작업을 실행 합니다.
          */
-        LiveStateSubscribe('move', ({ hashId, liveStatus }) => {
+        LiveStateSubscribe('move', async ({ hashId, liveStatus }) => {
             const targetId = getECSSpaceId();
             if (targetId !== `${task?.idx}`) return; // 자신의 서버가 아닌 경우
+            if (!liveStatus) liveStatus = await server.getChannelState(hashId);
             const { chatChannelId } = liveStatus;
             server.addServer(hashId, chatChannelId);
             server.setServerState(hashId, liveStatus);
@@ -244,14 +261,12 @@ if (ECS_ID) {
             // ECS ID 가 다를경우
             if (revision === process.env.ECS_REVISION || hash_id != process.env.ECS_ROWNUM) return; // 자신의 버전과 맞을경우
             for (const s of server.serverList) {
-                const state = server.moveServer(s.roomId);
-                if (state)
-                    LiveStatePublish('move', {
-                        noticeId: ParseInt(`${process.env.ECS_PK}`),
-                        hashId: s.roomId,
-                        liveStatus: state,
-                        targetId: getECSSpaceId(), // ECS ID
-                    });
+                LiveStatePublish('move', {
+                    noticeId: ParseInt(`${process.env.ECS_PK}`),
+                    hashId: s.roomId,
+                    liveStatus: null,
+                    targetId: getECSSpaceId(), // ECS ID
+                });
             }
         });
     });
