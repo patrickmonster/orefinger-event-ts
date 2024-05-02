@@ -199,12 +199,13 @@ if (ECS_ID) {
             if (targetId !== `${task?.idx}`) return; // 자신의 서버가 아닌 경우
             if (!liveStatus) liveStatus = await server.getChannelState(hashId);
             const { chatChannelId } = liveStatus;
-            server.addServer(hashId, chatChannelId);
-            server.setServerState(hashId, liveStatus);
-            ECSStatePublish('join', {
-                ...server.serverState,
-                hash_id: hashId,
+            server.addServer(hashId, chatChannelId, () => {
+                ECSStatePublish('join', {
+                    ...server.serverState,
+                    hash_id: hashId,
+                });
             });
+            server.setServerState(hashId, liveStatus);
         });
 
         /**
@@ -229,12 +230,13 @@ if (ECS_ID) {
         LiveStateSubscribe('online', ({ targetId, hashId, liveStatus }) => {
             if (targetId !== process.env.ECS_PK) return; // 자신의 서버가 아닌 경우
             const { chatChannelId } = liveStatus;
-            server.addServer(hashId, chatChannelId);
-            server.setServerState(hashId, liveStatus);
-            ECSStatePublish('join', {
-                ...server.serverState,
-                hash_id: hashId,
+            server.addServer(hashId, chatChannelId, () => {
+                ECSStatePublish('join', {
+                    ...server.serverState,
+                    hash_id: hashId,
+                });
             });
+            server.setServerState(hashId, liveStatus);
         });
 
         LiveStateSubscribe('offline', ({ hashId }) => {
