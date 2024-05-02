@@ -252,8 +252,22 @@ if (ECS_ID) {
         // -- 채널
         ECSStateSubscribe('connect', ({ hash_id, id }) => {
             if (id !== process.env.ECS_PK) return; // 자신의 서버가 아닌 경우
-            hash_id && server.addServer(hash_id);
-            updateChannelState();
+            if (!hash_id) {
+                console.log('hash_id is not defined');
+                return;
+            }
+            server.getChannelState(hash_id).then(liveStatus => {
+                const { chatChannelId } = liveStatus;
+                server.addServer(hash_id, chatChannelId, () => {
+                    ECSStatePublish('join', {
+                        ...server.serverState,
+                        hash_id,
+                    });
+                });
+                server.setServerState(hash_id, liveStatus);
+
+                updateChannelState();
+            });
         });
 
         /**
