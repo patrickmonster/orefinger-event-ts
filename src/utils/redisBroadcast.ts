@@ -49,6 +49,7 @@ export const ECSStateSubscribe = async (state: ECSState, onMessage: (message: EC
         })
         .catch(console.error);
 };
+
 export const LiveStateSubscribe = async (
     state: LiveState,
     onMessage: (message: LiveStateMessage & BaseState) => void

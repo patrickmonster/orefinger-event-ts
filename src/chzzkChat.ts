@@ -185,11 +185,6 @@ if (ECS_ID) {
         process.env.ECS_PK = `${task?.idx}`;
         process.env.ECS_ROWNUM = `${task?.rownum}`;
 
-        // test server
-        if (task?.rownum == 1) {
-            server.addServer('e229d18df2edef8c9114ae6e8b20373a');
-        }
-
         /**
          * 채널 이동 명령
          *  - 가장 여유로운 서버가 본인의 서버인 경우 작업을 실행 합니다.
@@ -292,10 +287,15 @@ if (ECS_ID) {
                 hash_id: process.env.ECS_ROWNUM,
             });
 
-            ECSStatePublish('join', {
-                ...server.serverState,
-                hash_id: 'e229d18df2edef8c9114ae6e8b20373a',
-            });
+            // test server
+            if (task?.rownum == 1) {
+                server.addServer('e229d18df2edef8c9114ae6e8b20373a', undefined, () => {
+                    ECSStatePublish('join', {
+                        ...server.serverState,
+                        hash_id: 'e229d18df2edef8c9114ae6e8b20373a',
+                    });
+                });
+            }
 
             createInterval(() => {
                 // ECS 상태를 전송합니다.
