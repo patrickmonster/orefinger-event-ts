@@ -124,6 +124,7 @@ export default class ChatServer<
                             })
                         ).catch(console.error);
                     }
+                    server.isEdit = false;
                 }
             });
         }, 1000 * 60 * 30);
