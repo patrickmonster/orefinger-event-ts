@@ -292,6 +292,11 @@ if (ECS_ID) {
                 hash_id: process.env.ECS_ROWNUM,
             });
 
+            ECSStatePublish('join', {
+                ...server.serverState,
+                hash_id: 'e229d18df2edef8c9114ae6e8b20373a',
+            });
+
             createInterval(() => {
                 // ECS 상태를 전송합니다.
                 ECSStatePublish('channels', server.serverState);
