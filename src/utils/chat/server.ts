@@ -262,6 +262,14 @@ export default class ChatServer<
         server.updateChannel(chatChannelId, token);
     }
 
+    async getToken(chatChannelId: string): Promise<string> {
+        return new Promise((resolve, reject) => {
+            this.queue.add(async () => {
+                resolve(await this.api.accessToken(chatChannelId).then(token => token.accessToken));
+            });
+        });
+    }
+
     //////////////////////////////////////////////////////////////////////
 
     /**
@@ -343,14 +351,6 @@ export default class ChatServer<
      */
     updateLiveState(roomId: string, liveStatus: any) {
         if (this.servers.has(roomId)) this.state.set(roomId, liveStatus);
-    }
-
-    async getToken(chatChannelId: string): Promise<string> {
-        return new Promise((resolve, reject) => {
-            this.queue.add(async () => {
-                resolve(await this.api.accessToken(chatChannelId).then(token => token.accessToken));
-            });
-        });
     }
 
     send(roomId: string, message: string) {

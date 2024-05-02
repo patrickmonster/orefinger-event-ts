@@ -160,35 +160,18 @@ if (ECS_ID) {
         }
 
         /**
-         * 채널 입장
-         * @param hashId 입장 채널 정보
-         * @param liveStatus 채널 정보
-         */
-        const addServer = async (hashId: string, liveStatus?: ChzzkContent) => {
-            if (!liveStatus) {
-                liveStatus = (await server.api.status(hashId)) as ChzzkContent;
-            }
-            const { chatChannelId } = liveStatus;
-            if (server.hasServer(hashId)) {
-                server.updateChannel(hashId, chatChannelId);
-            } else {
-                server.addServer(hashId, chatChannelId);
-            }
-            server.setServerState(hashId, liveStatus);
-            ECSStatePublish('join', {
-                ...server.serverState,
-                hash_id: hashId,
-            });
-        };
-
-        /**
          * 채널 이동 명령
          *  - 가장 여유로운 서버가 본인의 서버인 경우 작업을 실행 합니다.
          */
         LiveStateSubscribe('move', ({ hashId, liveStatus }) => {
             const targetId = getECSSpaceId();
             if (targetId !== `${task?.idx}`) return; // 자신의 서버가 아닌 경우
-            addServer(hashId, liveStatus as ChzzkContent);
+            const { chatChannelId } = liveStatus;
+            server.addServer(hashId, chatChannelId);
+            ECSStatePublish('join', {
+                ...server.serverState,
+                hash_id: hashId,
+            });
         });
 
         /**
@@ -203,12 +186,21 @@ if (ECS_ID) {
         });
 
         LiveStateSubscribe('change', ({ hashId, liveStatus }) => {
-            addServer(hashId, liveStatus);
+            if (server.hasServer(hashId)) {
+                const { chatChannelId } = liveStatus;
+                server.updateChannel(hashId, chatChannelId);
+                server.setServerState(hashId, liveStatus);
+            }
         });
 
         LiveStateSubscribe('online', ({ targetId, hashId, liveStatus }) => {
             if (targetId !== process.env.ECS_PK) return; // 자신의 서버가 아닌 경우
-            addServer(hashId, liveStatus);
+            const { chatChannelId } = liveStatus;
+            server.addServer(hashId, chatChannelId);
+            ECSStatePublish('join', {
+                ...server.serverState,
+                hash_id: hashId,
+            });
         });
 
         LiveStateSubscribe('offline', ({ hashId }) => {
