@@ -1,9 +1,12 @@
+import { String } from 'aws-sdk/clients/cloudtrail';
 import { selectChatUsers, selectCommand, upsertChatUser, upsertCommand } from 'controllers/chat/chzzk';
 import { ChatDonation, ChatMessage, ChatOption } from 'interfaces/chzzk/chat';
 
 import PQueue from 'p-queue';
 
 import ChzzkChat, { ChatUser, ChzzkAPI, Command } from 'utils/chat/chzzk';
+import { getTimeDiff } from 'utils/day';
+import { createInterval } from 'utils/inteval';
 import sleep from 'utils/sleep';
 
 export interface ChatMessageT extends ChatMessage {
@@ -104,7 +107,7 @@ export default class ChatServer<
             await sleep(1000); // 1초 대기
         });
 
-        const loop = setInterval(() => {
+        createInterval(() => {
             this.servers.forEach(server => {
                 if (server.isEdit) {
                     // 명령어 업데이트
@@ -124,11 +127,32 @@ export default class ChatServer<
                 }
             });
         }, 1000 * 60 * 30);
-
-        process.on('SIGINT', function () {
-            clearInterval(loop);
-        });
     }
+
+    get api() {
+        return this._api;
+    }
+
+    get serverState() {
+        let total = 0;
+        for (const server of this.servers.values()) {
+            total += server.userTotalCount;
+        }
+
+        return {
+            count: this.servers.size,
+            userCount: total,
+        };
+    }
+
+    get serverSzie() {
+        return this.servers.size;
+    }
+
+    get serverList() {
+        return this.servers.values();
+    }
+    //////////////////////////////////////////////////////////////////////
 
     /**
      * 채팅 서버 추가
@@ -136,7 +160,7 @@ export default class ChatServer<
      * @param chatChannelId
      * @returns
      */
-    public addServer(roomId: string, chatChannelId?: string) {
+    addServer(roomId: string, chatChannelId?: string) {
         if (this.servers.has(roomId)) return 0;
         if (this.servers.size > 60000) return -1; // 서버 수 제한
         this.queue.add(async () => {
@@ -162,24 +186,10 @@ export default class ChatServer<
                 .on('donation', chat => this.onChat(roomId, chat))
                 .on('close', () => {
                     console.log('DISCONNECTED FROM CHAT SERVER', roomId, chatChannelId);
-                    const users = this.servers.get(roomId)?.users;
-                    if (users) {
-                        upsertChatUser(...users).catch(console.error);
-                    }
 
-                    const commands = this.servers.get(roomId)?.commands;
-                    if (commands) {
-                        upsertCommand(
-                            roomId,
-                            ...commands.map(({ answer, command }) => {
-                                return {
-                                    command,
-                                    message: answer,
-                                    type: 1,
-                                };
-                            })
-                        ).catch(console.error);
-                    }
+                    this.saveUser(roomId).catch(console.error);
+                    this.saveCommand(roomId).catch(console.error);
+
                     this.onclose(roomId, `${chatChannelId}`);
                     this.servers.delete(roomId);
                 })
@@ -188,8 +198,9 @@ export default class ChatServer<
                     this.onready(roomId, `${chatChannelId}`);
                 });
             this.servers.set(roomId, server);
-            server.users = (await selectChatUsers(roomId)) as U[];
-            server.commands = await selectCommand(roomId);
+
+            this.loadUser(roomId).catch(console.error);
+            this.loadCommand(roomId).catch(console.error);
 
             await server.connect();
             await sleep(100); // 1초 대기
@@ -198,25 +209,63 @@ export default class ChatServer<
         return this.queue.size;
     }
 
-    get api() {
-        return this._api;
+    async saveUser(roomId: String) {
+        const users = this.servers.get(roomId)?.users;
+        if (users) {
+            upsertChatUser(...users).catch(console.error);
+        }
     }
 
-    reloadCommand = async (roomId: string) => {
+    async loadUser(roomId: string) {
+        const server = this.servers.get(roomId);
+        if (server) {
+            server.users = (await selectChatUsers(roomId)) as U[];
+        }
+    }
+
+    async saveCommand(roomId: String) {
+        const commands = this.servers.get(roomId)?.commands;
+        if (commands) {
+            await upsertCommand(
+                roomId,
+                ...commands.map(({ answer, command }) => {
+                    return {
+                        command,
+                        message: answer,
+                        type: 1,
+                    };
+                })
+            );
+        }
+    }
+
+    async loadCommand(roomId: string) {
         const server = this.servers.get(roomId);
         if (server) {
             server.commands = await selectCommand(roomId);
         }
-    };
+    }
 
-    reloadCommands = async () => {
-        for (const roomId of this.servers.keys()) {
-            await this.reloadCommand(roomId);
-        }
-    };
+    async getChannelState(roomId: string): Promise<T> {
+        return new Promise((resolve, reject) => {
+            this.queue.add(async () => {
+                resolve(await this.api.status(roomId));
+            });
+        });
+    }
+
+    async updateChannel(roomId: string, chatChannelId: string) {
+        const server = this.servers.get(roomId);
+        const token = await this.getToken(chatChannelId);
+        if (!server || !token) return;
+
+        server.updateChannel(chatChannelId, token);
+    }
+
+    //////////////////////////////////////////////////////////////////////
 
     /**
-     * 전송 메세지를 명령어로 변환합니다.
+     * 별칭을 명령어로 변환
      * @param origin
      * @returns {string}
      */
@@ -241,7 +290,7 @@ export default class ChatServer<
             title: liveStatus?.liveTitle,
             game: liveStatus?.liveCategoryValue,
             gameValue: liveStatus?.liveCategoryValue,
-            uptime: liveStatus?.openDate,
+            uptime: liveStatus?.openDate ? getTimeDiff(liveStatus?.openDate) : '오프라인',
             list:
                 client?.commands
                     .map(({ command }) => command)
@@ -260,37 +309,8 @@ export default class ChatServer<
 
         return message;
     }
-
-    convertCommand(command: ChatCommand) {
-        // TODO: Add command
-        const { type } = command;
-
-        switch (type) {
-            case 1: // 채팅 명령어
-            case 2: // 채팅 반복 명령어
-            case 3: // 채팅 기부 명령어
-            case 4: // 채팅 포인트(사용) 명령어
-        }
-    }
-
     /**
-     * 라이브 상태 업데이트
-     * @param roomId
-     * @param liveStatus
-     */
-    updateLiveState(roomId: string, liveStatus: any) {
-        if (this.servers.has(roomId)) this.state.set(roomId, liveStatus);
-    }
-
-    public addServers(...roomIds: string[]) {
-        for (const roomId of roomIds) {
-            this.addServer(roomId);
-        }
-        return this.queue.size;
-    }
-
-    /**
-     * 채팅 메세지 이벤트
+     * 채팅 메세지 튜닝
      * @param roomId
      * @param chat
      * @returns
@@ -314,38 +334,47 @@ export default class ChatServer<
         });
     }
 
-    get serverSzie() {
-        return this.servers.size;
+    //////////////////////////////////////////////////////////////////////
+
+    /**
+     * 라이브 상태 업데이트
+     * @param roomId
+     * @param liveStatus
+     */
+    updateLiveState(roomId: string, liveStatus: any) {
+        if (this.servers.has(roomId)) this.state.set(roomId, liveStatus);
     }
 
-    public async getToken(chatChannelId: string) {
-        return await this._api.accessToken(chatChannelId).then(token => token.accessToken);
+    async getToken(chatChannelId: string): Promise<string> {
+        return new Promise((resolve, reject) => {
+            this.queue.add(async () => {
+                resolve(await this.api.accessToken(chatChannelId).then(token => token.accessToken));
+            });
+        });
     }
 
-    public async updateChannel(roomId: string, chatChannelId: string) {
-        const server = this.servers.get(roomId);
-        const token = await this.getToken(chatChannelId);
-        if (!server || !token) return;
-
-        server.updateChannel(chatChannelId, token);
-    }
-
-    public send(roomId: string, message: string) {
+    send(roomId: string, message: string) {
         const server = this.servers.get(roomId);
         if (server) {
             server.sendChat(message);
         }
     }
 
-    get serverList() {
-        return this.servers.values();
+    sendAll(message: string) {
+        for (const server of this.servers.values()) {
+            server.sendChat(message);
+        }
+    }
+
+    hasServer(roomId: string) {
+        return this.servers.has(roomId);
     }
 
     setServerState(roomId: string, state: T) {
         this.state.set(roomId, state);
     }
 
-    public async removeServer(roomId: string) {
+    removeServer(roomId: string) {
         const server = this.servers.get(roomId);
         if (server) {
             server.disconnect();
@@ -353,29 +382,13 @@ export default class ChatServer<
         }
     }
 
-    public moveServer(roomId: string) {
+    moveServer(roomId: string) {
         const state = this.state.get(roomId);
-        const server = this.servers.get(roomId);
-        if (state && server) {
-            server.disconnect();
-            return state as T;
-        }
-        return null;
+        if (state) this.removeServer(roomId);
+        return state;
     }
 
-    public getServer(roomId: string) {
+    getServer(roomId: string) {
         return this.servers.get(roomId);
-    }
-
-    public get serverState() {
-        let total = 0;
-        for (const server of this.servers.values()) {
-            total += server.userTotalCount;
-        }
-
-        return {
-            count: this.servers.size,
-            userCount: total,
-        };
     }
 }

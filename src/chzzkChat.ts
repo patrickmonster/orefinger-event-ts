@@ -1,6 +1,4 @@
-import { ChatLog, insertChatQueue } from 'controllers/chat/chzzk';
-import { ChatDonation, ChatMessage } from 'interfaces/chzzk/chat';
-import { LoopRunQueue, ParseInt } from 'utils/object';
+import { ParseInt } from 'utils/object';
 
 import redis, { ECSStatePublish, LiveStatePublish, REDIS_KEY } from 'utils/redis';
 import client, { ECSStateSubscribe, LiveStateSubscribe } from 'utils/redisBroadcast';
@@ -10,37 +8,13 @@ import { ecsSelect } from 'controllers/log';
 import { Content as ChzzkContent } from 'interfaces/API/Chzzk';
 
 import { getECSSpaceId } from 'utils/ECS';
+import { createInterval } from 'utils/inteval';
 import 'utils/procesTuning';
 
 /**
  *
  * @description 알림 작업을 수행하는 스레드로써, 각 알림 스캔 작업을 수행합니다.
  */
-
-// 메세지 로깅용 큐
-const addQueue = LoopRunQueue<ChatLog>(
-    async chats => await insertChatQueue(chats).catch(console.error),
-    1000 * 60,
-    500
-);
-
-const appendChat = ({
-    id,
-    message,
-    hidden,
-    extras: { osType },
-    profile: { userIdHash },
-    cid,
-}: ChatMessage | ChatDonation) => {
-    addQueue({
-        channel_id: cid,
-        message_id: id,
-        message,
-        user_id: userIdHash,
-        os_type: osType || '-',
-        hidden_yn: hidden ? 'Y' : 'N',
-    });
-};
 
 const [, file, ECS_ID, ECS_REVISION, ...argv] = process.argv;
 // 봇 접두사
@@ -115,7 +89,7 @@ if (ECS_ID) {
                         break;
                     }
                     case `${prefix}reload`: {
-                        server.reloadCommand(streamingChannelId);
+                        server.loadCommand(streamingChannelId);
                         chat.reply('명령어를 다시 불러옵니다... 적용까지 1분...');
                         break;
                     }
@@ -177,52 +151,74 @@ if (ECS_ID) {
         process.env.ECS_PK = `${task?.idx}`;
         process.env.ECS_ROWNUM = `${task?.rownum}`;
 
-        // -- 채널 이동명령 강제실행
+        // test server
+        if (task?.rownum == 1) {
+            server.addServer('e229d18df2edef8c9114ae6e8b20373a');
+        }
+
+        /**
+         * 채널 입장
+         * @param hashId 입장 채널 정보
+         * @param liveStatus 채널 정보
+         */
+        const addServer = async (hashId: string, liveStatus?: ChzzkContent) => {
+            if (!liveStatus) {
+                liveStatus = (await server.api.status(hashId)) as ChzzkContent;
+            }
+            const { chatChannelId } = liveStatus;
+            if (server.hasServer(hashId)) {
+                server.updateChannel(hashId, chatChannelId);
+            } else {
+                server.addServer(hashId, chatChannelId);
+            }
+            server.setServerState(hashId, liveStatus);
+            ECSStatePublish('join', {
+                ...server.serverState,
+                hash_id: hashId,
+            });
+        };
+
+        /**
+         * 채널 이동 명령
+         *  - 가장 여유로운 서버가 본인의 서버인 경우 작업을 실행 합니다.
+         */
         LiveStateSubscribe('move', ({ hashId, liveStatus }) => {
             const targetId = getECSSpaceId();
             if (targetId !== `${task?.idx}`) return; // 자신의 서버가 아닌 경우
+            addServer(hashId, liveStatus as ChzzkContent);
+        });
 
-            const { chatChannelId } = liveStatus as ChzzkContent;
-            server.addServer(hashId, chatChannelId);
-            server.setServerState(hashId, liveStatus);
-
-            ECSStatePublish('join', {
-                ...server.serverState,
-                hash_id: hashId,
-            });
+        /**
+         * 공지사항을 전송합니다.
+         */
+        LiveStateSubscribe('notice', ({ hashId, liveStatus }) => {
+            if (hashId != '-') {
+                server.send(hashId, liveStatus as string);
+            } else {
+                server.sendAll(liveStatus as string);
+            }
         });
 
         LiveStateSubscribe('change', ({ hashId, liveStatus }) => {
-            const { chatChannelId } = liveStatus as ChzzkContent;
-            server.updateChannel(hashId, chatChannelId);
-            server.setServerState(hashId, liveStatus);
+            addServer(hashId, liveStatus);
         });
 
         LiveStateSubscribe('online', ({ targetId, hashId, liveStatus }) => {
-            const { chatChannelId } = liveStatus as ChzzkContent;
             if (targetId !== process.env.ECS_PK) return; // 자신의 서버가 아닌 경우
-            server.addServer(hashId, chatChannelId);
-            server.setServerState(hashId, liveStatus);
-
-            ECSStatePublish('join', {
-                ...server.serverState,
-                hash_id: hashId,
-            });
+            addServer(hashId, liveStatus);
         });
 
         LiveStateSubscribe('offline', ({ hashId }) => {
-            server.getServer(hashId)?.disconnect();
+            server.removeServer(hashId);
         });
 
         // -- 새로운 채널 입장 알림
         ECSStateSubscribe('join', ({ hash_id, id }) => {
-            updateChannelState();
             if (id == process.env.ECS_PK) return; // 자신의 서버인 경우
-
-            if (hash_id) server.removeServer(hash_id).catch(console.error);
+            if (hash_id) server.removeServer(hash_id);
         });
 
-        // -- 채널 연결 *(명령)
+        // -- 채널
         ECSStateSubscribe('connect', ({ hash_id, id }) => {
             if (id !== process.env.ECS_PK) return; // 자신의 서버가 아닌 경우
             hash_id && server.addServer(hash_id);
@@ -254,14 +250,14 @@ if (ECS_ID) {
             hash_id: process.env.ECS_ROWNUM,
         });
 
-        const loop = setInterval(() => {
+        createInterval(() => {
             // ECS 상태를 전송합니다.
             ECSStatePublish('channels', server.serverState);
-        }, 1000 * 60); // 1분마다 상태 전송
+            updateChannelState();
+        }, 1000 * 60);
 
         // 초기상태 전송
         ECSStatePublish('channels', server.serverState);
-        process.on('SIGINT', () => clearInterval(loop));
     });
 } else {
     console.log('ECS_ID is not defined');
