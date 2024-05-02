@@ -48,18 +48,24 @@ if (ECS_ID) {
                     case `${prefix}a`:
                     case `${prefix}add`: {
                         const [question, ...answer] = args;
+                        const command = question.trim();
 
                         if (!question || !answer.length) {
                             chat.reply('명령어를 입력해주세요. - add [명령어] [응답]');
                             return;
                         }
 
+                        if (command.startsWith(prefix)) {
+                            chat.reply(`명령어는 접두사(${prefix})로 시작할 수 없습니다.`);
+                            return;
+                        }
+
                         const idx = client.addCommand({
                             answer: answer.join(' '),
-                            command: question.trim(),
+                            command,
                         });
 
-                        chat.reply(`명령어가 ${idx != -1 ? '교체' : '추가'}되었습니다. - ${question}`);
+                        chat.reply(`명령어가 ${idx != -1 ? '교체' : '추가'}되었습니다. - ${command}`);
                         break;
                     }
                     case `${prefix}s`:
@@ -73,6 +79,7 @@ if (ECS_ID) {
                         break;
                     }
                     case `${prefix}d`:
+                    case `${prefix}delete`:
                     case `${prefix}remove`: {
                         const [question] = args;
 
@@ -103,14 +110,23 @@ if (ECS_ID) {
                     }
                     case `${prefix}r`:
                     case `${prefix}reload`: {
-                        server.loadCommand(streamingChannelId);
                         chat.reply('명령어를 다시 불러옵니다... 적용까지 1분...');
+                        Promise.all([server.loadUser(streamingChannelId), server.loadCommand(streamingChannelId)]).then(
+                            () => {
+                                chat.reply(`명령어를 다시 불러왔습니다.`);
+                            }
+                        );
                         break;
                     }
-                    case `${prefix}h`:
                     case `${prefix}help`: {
                         chat.reply(
                             `${prefix}add [명령어] [응답] - 명령어 추가 / ${prefix}remove [명령어] - 명령어 삭제 `
+                        );
+                        break;
+                    }
+                    case `${prefix}h`: {
+                        chat.reply(
+                            `a [c] [a] ADD / r [c] - DELETE / l - LIST / s - SAVE / r - RELOAD / h - HELP / server - SERVER / help - HELP`
                         );
                         break;
                     }
