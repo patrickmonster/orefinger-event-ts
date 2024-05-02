@@ -45,6 +45,7 @@ if (ECS_ID) {
                     }
                 }
                 switch (userCommand) {
+                    case `${prefix}a`:
                     case `${prefix}add`: {
                         const [question, ...answer] = args;
 
@@ -61,6 +62,17 @@ if (ECS_ID) {
                         chat.reply(`명령어가 ${idx != -1 ? '교체' : '추가'}되었습니다. - ${question}`);
                         break;
                     }
+                    case `${prefix}s`:
+                    case `${prefix}save`: {
+                        chat.reply(`명령어를 저장중...`);
+                        Promise.all([server.saveCommand(streamingChannelId), server.saveUser(streamingChannelId)]).then(
+                            () => {
+                                chat.reply(`명령어가 저장되었습니다. - ${streamingChannelId}`);
+                            }
+                        );
+                        break;
+                    }
+                    case `${prefix}d`:
                     case `${prefix}remove`: {
                         const [question] = args;
 
@@ -79,6 +91,7 @@ if (ECS_ID) {
                         chat.reply(`명령어가 삭제되었습니다. - ${question}`);
                         break;
                     }
+                    case `${prefix}l`:
                     case `${prefix}list`: {
                         chat.reply(
                             client.commands
@@ -88,11 +101,13 @@ if (ECS_ID) {
                         );
                         break;
                     }
+                    case `${prefix}r`:
                     case `${prefix}reload`: {
                         server.loadCommand(streamingChannelId);
                         chat.reply('명령어를 다시 불러옵니다... 적용까지 1분...');
                         break;
                     }
+                    case `${prefix}h`:
                     case `${prefix}help`: {
                         chat.reply(
                             `${prefix}add [명령어] [응답] - 명령어 추가 / ${prefix}remove [명령어] - 명령어 삭제 `
@@ -102,7 +117,7 @@ if (ECS_ID) {
                     case `${prefix}server`: {
                         const { count, userCount } = server.serverState;
                         chat.reply(
-                            `현재 서버 : ${getECSSpaceId()} / 연결된 서버 : ${(count || 0).toLocaleString()} / ${(
+                            `현재 서버 : ${process.env.ECS_PK} / 연결된 서버 : ${(count || 0).toLocaleString()} / ${(
                                 userCount || 0
                             ).toLocaleString()}`
                         );

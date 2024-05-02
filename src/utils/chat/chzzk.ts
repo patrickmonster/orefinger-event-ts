@@ -224,6 +224,7 @@ export default class ChzzkWebSocket<T extends ChatUser = ChatUser, C extends Com
     }
 
     set commands(command: C[]) {
+        this.commandList.length = 0;
         this.commandList.push(...command);
     }
 
@@ -412,7 +413,8 @@ export default class ChzzkWebSocket<T extends ChatUser = ChatUser, C extends Com
                     if (!parsed.profile || !parsed.profile?.userIdHash) continue;
 
                     // 자신의 메세지는 무시합니다.
-                    if (parsed.profile.userIdHash == this.uid) continue;
+                    if (['f9e64bb112c323c9fb76d93f62aec429', this.uid].includes(parsed.profile.userIdHash)) continue;
+
                     switch (type) {
                         case ChatType.TEXT:
                             this.createUserMessage(parsed); // ChatMessage
