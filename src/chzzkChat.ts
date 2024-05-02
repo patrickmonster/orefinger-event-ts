@@ -269,22 +269,22 @@ if (ECS_ID) {
                 });
             }
         });
-    });
 
-    client.on('connect', () => {
-        ECSStatePublish('new', {
-            ...server.serverState,
-            hash_id: process.env.ECS_ROWNUM,
-        });
+        client.on('connect', () => {
+            ECSStatePublish('new', {
+                ...server.serverState,
+                hash_id: process.env.ECS_ROWNUM,
+            });
 
-        createInterval(() => {
-            // ECS 상태를 전송합니다.
+            createInterval(() => {
+                // ECS 상태를 전송합니다.
+                ECSStatePublish('channels', server.serverState);
+                updateChannelState();
+            }, 1000 * 60);
+
+            // 초기상태 전송
             ECSStatePublish('channels', server.serverState);
-            updateChannelState();
-        }, 1000 * 60);
-
-        // 초기상태 전송
-        ECSStatePublish('channels', server.serverState);
+        });
     });
 } else {
     console.log('ECS_ID is not defined');
