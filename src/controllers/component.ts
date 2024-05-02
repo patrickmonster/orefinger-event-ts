@@ -17,10 +17,9 @@ import {
     ComponentOptionCreate,
 } from 'interfaces/component';
 import { Paging } from 'interfaces/swagger';
+import { ParseInt } from 'utils/object';
 
 export type ComponentId = number | string;
-
-export const ParseInt = (id: ComponentId) => (typeof id == 'string' ? parseInt(id) : id);
 
 export type Component = {
     component_id: number;
