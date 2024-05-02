@@ -18,7 +18,7 @@ const prefix = '@';
 console.log(process.env.NID_AUTH, process.env.NID_SECRET);
 
 import { selectChatServer } from 'controllers/chat/chzzk';
-import redis, { LiveStatePublish } from 'utils/redis';
+import { REDIS_KEY, default as client, default as redis } from 'utils/redis';
 import sleep from 'utils/sleep';
 // import ChatServer from 'utils/chat/server';
 
@@ -148,12 +148,16 @@ redis.on('connect', () => {
     selectChatServer(4).then(async chats => {
         for (const chat of chats) {
             console.log(chat);
-            LiveStatePublish('move', {
-                noticeId: chat.notice_id,
-                hashId: chat.hash_id,
-                targetId: '-',
-                liveStatus: null,
-            });
+            client.publish(
+                REDIS_KEY.SUBSCRIBE.LIVE_STATE('move'),
+                JSON.stringify({
+                    count: chat.notice_id,
+                    userCount: chat.id,
+                    hash_id: chat.hash_id,
+                    revision: '1',
+                    id: '355',
+                })
+            );
             await sleep(1000);
         }
     });
