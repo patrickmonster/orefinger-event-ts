@@ -194,9 +194,10 @@ if (ECS_ID) {
          * 채널 이동 명령
          *  - 가장 여유로운 서버가 본인의 서버인 경우 작업을 실행 합니다.
          */
-        LiveStateSubscribe('move', ({ hashId, liveStatus }) => {
+        LiveStateSubscribe('move', async ({ hashId, liveStatus }) => {
             const targetId = getECSSpaceId();
             if (targetId !== `${task?.idx}`) return; // 자신의 서버가 아닌 경우
+            if (!liveStatus) liveStatus = await server.getChannelState(hashId);
             const { chatChannelId } = liveStatus;
             server.addServer(hashId, chatChannelId);
             server.setServerState(hashId, liveStatus);
@@ -260,14 +261,12 @@ if (ECS_ID) {
             // ECS ID 가 다를경우
             if (revision === process.env.ECS_REVISION || hash_id != process.env.ECS_ROWNUM) return; // 자신의 버전과 맞을경우
             for (const s of server.serverList) {
-                const state = server.moveServer(s.roomId);
-                if (state)
-                    LiveStatePublish('move', {
-                        noticeId: ParseInt(`${process.env.ECS_PK}`),
-                        hashId: s.roomId,
-                        liveStatus: state,
-                        targetId: getECSSpaceId(), // ECS ID
-                    });
+                LiveStatePublish('move', {
+                    noticeId: ParseInt(`${process.env.ECS_PK}`),
+                    hashId: s.roomId,
+                    liveStatus: null,
+                    targetId: getECSSpaceId(), // ECS ID
+                });
             }
         });
     });
