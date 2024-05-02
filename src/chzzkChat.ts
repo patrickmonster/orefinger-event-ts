@@ -121,6 +121,9 @@ if (ECS_ID) {
         },
     });
 
+    /*
+     * 채널 상태를 redis 에 업데이트 합니다.
+     */
     const updateChannelState = () => {
         const servers = server.serverList;
         const list = [];
