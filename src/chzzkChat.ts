@@ -168,6 +168,7 @@ if (ECS_ID) {
             if (targetId !== `${task?.idx}`) return; // 자신의 서버가 아닌 경우
             const { chatChannelId } = liveStatus;
             server.addServer(hashId, chatChannelId);
+            server.setServerState(hashId, liveStatus);
             ECSStatePublish('join', {
                 ...server.serverState,
                 hash_id: hashId,
@@ -197,6 +198,7 @@ if (ECS_ID) {
             if (targetId !== process.env.ECS_PK) return; // 자신의 서버가 아닌 경우
             const { chatChannelId } = liveStatus;
             server.addServer(hashId, chatChannelId);
+            server.setServerState(hashId, liveStatus);
             ECSStatePublish('join', {
                 ...server.serverState,
                 hash_id: hashId,
