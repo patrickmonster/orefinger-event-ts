@@ -2,7 +2,6 @@ import { MessageInteraction } from 'interactions/message';
 
 import { selectComponentPagingMenuByKey } from 'components/systemComponent';
 import {
-    ParseInt,
     copyComponentActionRow,
     selectComponentActionRowEditByModel,
     selectComponentRowDtilByEmbed,
@@ -13,6 +12,7 @@ import {
 import { ButtonStyle, ComponentType } from 'discord-api-types/v10';
 
 import QUERY from 'controllers/component/embedListQuerys';
+import { ParseInt } from 'utils/object';
 
 const componentActionRowReload = async (interaction: MessageInteraction, component_row_id: string) => {
     interaction.edit({

@@ -4,8 +4,6 @@ import { SqlInsertUpdate, YN, calTo, query } from 'utils/database';
 import { APISelectMenuOption } from 'discord-api-types/v10';
 import { QnaBord, QnaBordPK } from 'interfaces/qna';
 
-export const ParseInt = (id: string | number) => (typeof id == 'string' ? parseInt(id) : id);
-
 // 인증 데시보드를 불러 옵니다.
 export const getDashboard = async (guild: string, type?: number | string) =>
     query<{

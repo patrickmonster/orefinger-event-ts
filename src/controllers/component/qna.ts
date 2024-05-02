@@ -7,8 +7,6 @@
 
 import { SqlInsertUpdate, calTo, query } from 'utils/database';
 
-export const ParseInt = (id: string | number) => (typeof id == 'string' ? parseInt(id) : id);
-
 interface QnaAnswer {
     auth_id: string;
     title: string;

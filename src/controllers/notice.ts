@@ -6,10 +6,9 @@ import {
 } from 'discord-api-types/v10';
 import { NoticeDetail } from 'interfaces/notice';
 import getConnection, { SqlInsertUpdate, calTo, format, query } from 'utils/database';
+import { ParseInt } from 'utils/object';
 
 export type NoticeId = number | string;
-
-export const ParseInt = (id: NoticeId) => (typeof id == 'string' ? parseInt(id) : id);
 
 export const list = async () =>
     query<{

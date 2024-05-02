@@ -1,7 +1,8 @@
 import { MessageInteraction } from 'interactions/message';
 
 import { selectComponentPagingMenuByKey } from 'components/systemComponent';
-import { ParseInt, copyComponentGroup, selectComponentGroupEditByModel } from 'controllers/component';
+import { copyComponentGroup, selectComponentGroupEditByModel } from 'controllers/component';
+import { ParseInt } from 'utils/object';
 
 /**
  *
