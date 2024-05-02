@@ -168,7 +168,10 @@ export default class ChatServer<
                 chatChannelId = await this._api
                     .status(roomId)
                     .then(status => status?.chatChannelId)
-                    .catch(() => null);
+                    .catch(e => {
+                        console.error('ERROR', e);
+                        return '';
+                    });
             if (!chatChannelId) {
                 console.error('INVALID CHAT CHANNEL ID', roomId);
                 return;
@@ -247,11 +250,7 @@ export default class ChatServer<
     }
 
     async getChannelState(roomId: string): Promise<T> {
-        return new Promise((resolve, reject) => {
-            this.queue.add(async () => {
-                resolve(await this.api.status(roomId));
-            });
-        });
+        return await this.api.status(roomId);
     }
 
     async updateChannel(roomId: string, chatChannelId: string) {
@@ -263,11 +262,7 @@ export default class ChatServer<
     }
 
     async getToken(chatChannelId: string): Promise<string> {
-        return new Promise((resolve, reject) => {
-            this.queue.add(async () => {
-                resolve(await this.api.accessToken(chatChannelId).then(token => token.accessToken));
-            });
-        });
+        return await this.api.accessToken(chatChannelId).then(token => token.accessToken);
     }
 
     //////////////////////////////////////////////////////////////////////
