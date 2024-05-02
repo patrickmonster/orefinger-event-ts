@@ -1,6 +1,7 @@
-import { ParseInt, selectQnaTypes } from 'controllers/guild/qna';
+import { selectQnaTypes } from 'controllers/guild/qna';
 import { MessageInteraction } from 'interactions/message';
 import { createTextParagraphInput, createTextShortInput } from 'utils/discord/component';
+import { ParseInt } from 'utils/object';
 
 import redis, { REDIS_KEY } from 'utils/redis';
 

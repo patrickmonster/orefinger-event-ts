@@ -1,10 +1,10 @@
 import { selectQnaQuestion } from 'controllers/component/qna';
-import { ParseInt } from 'controllers/notice';
 import { PermissionFlagsBits } from 'discord-api-types/v10';
 import { MessageInteraction } from 'interactions/message';
 import { createTextParagraphInput } from 'utils/discord/component';
 
 import { hasNot } from 'utils/discord/permission';
+import { ParseInt } from 'utils/object';
 import redis, { REDIS_KEY } from 'utils/redis';
 
 /**

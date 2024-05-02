@@ -1,6 +1,7 @@
 import { castMessage } from 'components/discord';
-import { ParseInt, upsertNotice } from 'controllers/notice';
+import { upsertNotice } from 'controllers/notice';
 import { MessageMenuInteraction } from 'interactions/message';
+import { ParseInt } from 'utils/object';
 
 /**
  * 알림을 수정합니다.

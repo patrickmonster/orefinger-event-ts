@@ -1,6 +1,7 @@
-import { ParseInt, selectQnaTypes } from 'controllers/guild/qna';
+import { selectQnaTypes } from 'controllers/guild/qna';
 import { MessageInteraction } from 'interactions/message';
 import { createTextShortInput } from 'utils/discord/component';
+import { ParseInt } from 'utils/object';
 
 /**
  * 질문/답변을 신고합니다.

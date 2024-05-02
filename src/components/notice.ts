@@ -1,4 +1,4 @@
-import { NoticeId, ParseInt, selectNoticeDtilByEmbed, upsertAttach, upsertNotice } from 'controllers/notice';
+import { NoticeId, selectNoticeDtilByEmbed, upsertAttach, upsertNotice } from 'controllers/notice';
 import { ChannelType } from 'discord-api-types/v10';
 import { NoticeChannel } from 'interfaces/notice';
 import {
@@ -19,7 +19,7 @@ import { getAttendanceAtLive } from 'controllers/notification';
 import { RESTPostAPIChannelMessage } from 'plugins/discord';
 import createCalender from 'utils/createCalender';
 import discord, { openApi } from 'utils/discordApiInstance';
-import { convertMessage } from 'utils/object';
+import { ParseInt, convertMessage } from 'utils/object';
 import { catchRedis } from 'utils/redis';
 import { getUser, messageCreate } from './discord';
 
