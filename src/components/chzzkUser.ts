@@ -18,7 +18,7 @@ import { getECSSpaceId } from 'utils/ECS';
 import { ENCRYPT_KEY, sha256 } from 'utils/cryptoPw';
 import { appendTextWing, createActionRow, createSuccessButton, createUrlButton } from 'utils/discord/component';
 import { ChzzkInterface, getChzzkAPI } from 'utils/naverApiInstance';
-import redis, { LiveStatePublish, REDIS_KEY } from 'utils/redis';
+import redis, { LiveStatePublish, REDIS_KEY, saveRedis } from 'utils/redis';
 
 const chzzk = getChzzkAPI('v1');
 
@@ -161,8 +161,7 @@ export const searchChzzkUser = async (keyword: string): Promise<Array<KeyVal<str
                 value: channelId,
             })
         );
-
-        if (result) await redis.set(redisKey, JSON.stringify(result), 'EX', 60 * 60 * 24);
+        if (result) await saveRedis(redisKey, result, 60 * 60 * 24);
 
         return result || [];
     }
@@ -306,10 +305,9 @@ export const getLiveMessage = async ({
             ],
         });
 
-        await redis.set(
+        await saveRedis(
             REDIS_KEY.DISCORD.LAST_MESSAGE(`${noticeId}`),
-            JSON.stringify(messages),
-            'EX',
+            messages,
             60 * 60 * 24 // 12시간
         );
     } else if (liveStatus && liveStatus.status == 'CLOSE') {

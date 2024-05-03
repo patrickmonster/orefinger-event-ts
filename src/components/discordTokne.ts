@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { tokens, userRefreshTokenUpdate } from 'controllers/auth';
-import redis from 'utils/redis';
+import redis, { saveRedis } from 'utils/redis';
 
 export const getUserToken = async (user_id: string) => {
     const token_id = `token:discord:${user_id}`;
@@ -45,12 +45,7 @@ export const getUserToken = async (user_id: string) => {
     // 갱신토큰 업데이트
     await userRefreshTokenUpdate({ user_id, refresh_token: refresh_token }, 1);
 
-    redis.set(
-        token_id,
-        JSON.stringify({ access_token, token_type, expires_in, refresh_token, scope }),
-        'EX',
-        expires_in
-    );
+    await saveRedis(token_id, { access_token, token_type, expires_in, refresh_token, scope }, expires_in);
 
     return access_token;
 };

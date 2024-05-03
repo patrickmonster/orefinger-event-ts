@@ -1,7 +1,7 @@
 'use strict';
 import axios from 'axios';
 import { CustomInstance } from 'interfaces/API/Axios';
-import redis from './redis';
+import redis, { saveRedis } from './redis';
 import sleep from './sleep';
 
 const API_VERSION = 'helix';
@@ -61,7 +61,7 @@ export const GetToken = async (id: string, sc: string, scope: string[]) => {
             '%20'
         )}`
     );
-    await redis.set(token_id, data.access_token, 'EX', data.expires_in - 10);
+    saveRedis(token_id, data.access_token, data.expires_in - 10);
 
     return { token: data.access_token, id, scope };
 };

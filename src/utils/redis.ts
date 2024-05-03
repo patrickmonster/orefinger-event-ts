@@ -36,6 +36,11 @@ client.connect().catch(e => console.error(e));
 
 export default client;
 
+export const saveRedis = (key: string, value: any, expire = 60 * 60 * 1) => {
+    console.log('REDIS] saveRedis', key, value);
+    return client.set(key, JSON.stringify(value), 'EX', expire);
+};
+
 export const catchRedis = async <T>(key: string, callback: () => Promise<T>, expire = 60 * 60 * 1) => {
     const data = await client.get(key);
 
@@ -43,8 +48,7 @@ export const catchRedis = async <T>(key: string, callback: () => Promise<T>, exp
 
     const result = await callback();
 
-    await client.set(key, JSON.stringify(result), 'EX', expire);
-
+    await saveRedis(key, result, expire);
     console.log('REDIS] catchRedis', key, result);
 
     return result;

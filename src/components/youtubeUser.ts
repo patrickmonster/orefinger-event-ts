@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { upsertNotice } from 'controllers/notice';
-import redis, { REDIS_KEY } from 'utils/redis';
+import redis, { REDIS_KEY, saveRedis } from 'utils/redis';
 
 import https from 'https';
 
@@ -116,8 +116,7 @@ export const searchYoutubeUser = async (keyword: string): Promise<Array<{ name: 
             name: title,
             value: channelId,
         }));
-
-        if (result) await redis.set(redisKey, JSON.stringify(result), 'EX', 60 * 60 * 24);
+        if (result) await saveRedis(redisKey, result, 60 * 60 * 24);
 
         return result || [];
     }

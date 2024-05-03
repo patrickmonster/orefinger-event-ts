@@ -1,6 +1,6 @@
 import { ParseInt } from 'utils/object';
 
-import redis, { ECSStatePublish, LiveStatePublish, REDIS_KEY } from 'utils/redis';
+import { ECSStatePublish, LiveStatePublish, REDIS_KEY, saveRedis } from 'utils/redis';
 import client, { ECSStateSubscribe, LiveStateSubscribe } from 'utils/redisBroadcast';
 import ChatServer from './utils/chat/server';
 
@@ -166,13 +166,12 @@ if (ECS_ID) {
             });
         }
 
-        redis.set(
+        saveRedis(
             REDIS_KEY.CHAT.CHZZK(`${process.env.ECS_PK}`),
-            JSON.stringify({
+            {
                 serverState: server.serverState,
                 list,
-            }),
-            'EX',
+            },
             60 * 60
         );
     };

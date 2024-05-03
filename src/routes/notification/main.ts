@@ -1,7 +1,7 @@
 import { FastifyInstance } from 'fastify';
 
 import { getUser } from 'components/twitch';
-import redis from 'utils/redis';
+import redis, { saveRedis } from 'utils/redis';
 
 import { liveList, stream, total } from 'controllers/notification';
 
@@ -146,10 +146,9 @@ export default async (fastify: FastifyInstance, opts: any) => {
                     .then(data => {
                         console.log(data);
 
-                        redis.set(
+                        saveRedis(
                             'streamers',
-                            JSON.stringify(data),
-                            'EX',
+                            data,
                             60 * 60 * 24 // 하루동안 유효
                         );
                         return data;
