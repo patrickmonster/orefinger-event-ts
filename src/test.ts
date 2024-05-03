@@ -13,13 +13,16 @@ if (existsSync(envDir)) {
     });
 }
 
-const prefix = '@';
+import client from 'utils/redisBroadcast';
 
-console.log(process.env.NID_AUTH, process.env.NID_SECRET);
+client.on('new', msg => {
+    console.log('REDIS] message', msg);
+});
 
-import { selectChatServer } from 'controllers/chat/chzzk';
-import { REDIS_KEY, default as client, default as redis } from 'utils/redis';
-import sleep from 'utils/sleep';
+client.emit('new', {
+    test: 0,
+});
+
 // import ChatServer from 'utils/chat/server';
 
 // const server = new ChatServer<Content>({
@@ -143,25 +146,6 @@ import sleep from 'utils/sleep';
 //         server.getServer(hashId)?.disconnect();
 //     })
 // .catch(console.error);
-
-redis.on('connect', () => {
-    selectChatServer(4).then(async chats => {
-        for (const chat of chats) {
-            console.log(chat);
-            client.publish(
-                REDIS_KEY.SUBSCRIBE.LIVE_STATE('move'),
-                JSON.stringify({
-                    count: chat.notice_id,
-                    userCount: chat.id,
-                    hash_id: chat.hash_id,
-                    revision: '1',
-                    id: '355',
-                })
-            );
-            await sleep(1000);
-        }
-    });
-});
 
 // for (const { hash_id: hashId } of chats) {
 //     server.addServer(hashId);

@@ -1,69 +1,24 @@
-import { ECSState, ECSStateMessage, LiveState, LiveStateMessage } from 'interfaces/redis';
-import { createClient } from 'redis';
-import { REDIS_KEY } from './redis';
+import { createAdapter } from '@socket.io/redis-adapter';
+import { Redis } from 'ioredis';
+import { Server } from 'socket.io';
+
+import PQueue from 'p-queue';
 
 /**
- * Redis BroadCast
- *  이벤트 수신 서버
- *  - ECSStateSubscribe
- *  - LiveStateSubscribe
- *
- * @version 1.0
+ * Redis Adapter를 사용한 Socket.IO 서버
+ * @see https://socket.io/docs/v4/redis-adapter/
  */
-const client = createClient({
-    url: process.env.REDIS_URL,
-    pingInterval: 1000 * 30,
+const pubClient = new Redis(`${process.env.REDIS_URL}`);
+const subClient = pubClient.duplicate();
+
+const queue = new PQueue({ concurrency: 1 });
+
+const io = new Server({
+    adapter: createAdapter(pubClient, subClient),
+}).on('connection', socket => {
+    console.log('connection', socket.id);
 });
 
-console.log('SUBSCRIBE_URL', process.env.REDIS_URL);
-
-client
-    .on('error', err => {})
-    .on('reconnecting', () => {
-        console.log('SUBSCRIBE] client reconnecting...');
-    })
-    .on('connect', () => {
-        console.log('SUBSCRIBE] client connected');
-    })
-    .on('error', e => {
-        console.log('SUBSCRIBE] Error', e);
-    });
-
-process.on('SIGINT', function () {
-    client.quit();
-});
+export default io;
 
 ////////////////////////////////////////////////////////////////////////////////////////
-
-interface BaseState {
-    revision: string;
-    id: string;
-}
-
-export const ECSStateSubscribe = async (state: ECSState, onMessage: (message: ECSStateMessage & BaseState) => void) => {
-    client
-        .subscribe(REDIS_KEY.SUBSCRIBE.ECS_CHAT_STATE(state), (message: string) => {
-            const { id } = JSON.parse(message) as BaseState;
-            if (id === process.env.ECS_PK) return;
-            onMessage(JSON.parse(message));
-        })
-        .catch(console.error);
-};
-
-export const LiveStateSubscribe = async (
-    state: LiveState,
-    onMessage: (message: LiveStateMessage & BaseState) => void
-) => {
-    client
-        .subscribe(REDIS_KEY.SUBSCRIBE.LIVE_STATE(state), (message: string) => {
-            onMessage(JSON.parse(message));
-        })
-        .catch(console.error);
-};
-
-// 타임아웃 발생 방지
-setTimeout(() => {
-    client.connect().catch(e => console.error(e));
-}, 1000 * 5);
-
-export default client;
