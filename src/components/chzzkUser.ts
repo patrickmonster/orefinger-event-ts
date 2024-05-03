@@ -18,13 +18,17 @@ import { getECSSpaceId } from 'utils/ECS';
 import { ENCRYPT_KEY, sha256 } from 'utils/cryptoPw';
 import { appendTextWing, createActionRow, createSuccessButton, createUrlButton } from 'utils/discord/component';
 import { ChzzkInterface, getChzzkAPI } from 'utils/naverApiInstance';
-import redis, { LiveStatePublish, REDIS_KEY, saveRedis } from 'utils/redis';
+import redis, { REDIS_KEY, saveRedis } from 'utils/redis';
+import socket from 'utils/redisBroadcast';
 
 const chzzk = getChzzkAPI('v1');
 
 const hashIdChzzk = new RegExp('^[a-zA-Z0-9]{32}$');
 
 export const isChzzkHash = (hashId: string): boolean => hashIdChzzk.test(hashId);
+
+// 라이브 상태 소켓
+const roomLiveState = socket.to('live:state');
 
 /**
  * 치치직 인증 방식(임시)
@@ -242,7 +246,7 @@ export const getChannelLive = async (noticeId: number, hashId: string, liveId: s
 
                     if (liveId != '0') {
                         // 기존 라이브 정보가 있었다면 ( 라이브 교체 )
-                        LiveStatePublish('change', {
+                        roomLiveState.emit('change', {
                             noticeId,
                             hashId,
                             liveStatus: content,
@@ -282,7 +286,7 @@ export const getLiveMessage = async ({
 }: NoticeBat) => {
     const liveStatus = await getChannelLive(noticeId, hashId, id);
     if (liveStatus && liveStatus.status === 'OPEN') {
-        LiveStatePublish('online', {
+        roomLiveState.emit('online', {
             noticeId,
             hashId,
             liveStatus,
@@ -311,7 +315,7 @@ export const getLiveMessage = async ({
             60 * 60 * 24 // 12시간
         );
     } else if (liveStatus && liveStatus.status == 'CLOSE') {
-        LiveStatePublish('offline', {
+        roomLiveState.emit('offline', {
             noticeId,
             hashId,
             liveStatus,

@@ -1,7 +1,7 @@
 import { ParseInt } from 'utils/object';
 
 import { ECSStatePublish, LiveStatePublish, REDIS_KEY, saveRedis } from 'utils/redis';
-import client, { ECSStateSubscribe, LiveStateSubscribe } from 'utils/redisBroadcast';
+import socket from 'utils/redisBroadcast';
 import ChatServer from './utils/chat/server';
 
 import { ecsSelect } from 'controllers/log';
@@ -21,6 +21,8 @@ const [, file, ECS_ID, ECS_REVISION, ...argv] = process.argv;
 const prefix = '@';
 
 if (ECS_ID) {
+    const roomECSState = socket.to('ecs:state');
+
     const server = new ChatServer<ChzzkContent>({
         nidAuth: process.env.NID_AUTH,
         nidSession: process.env.NID_SECRET,
@@ -145,10 +147,7 @@ if (ECS_ID) {
             }
         },
         onClose: channelId => {
-            ECSStatePublish('leave', {
-                ...server.serverState,
-                hash_id: channelId,
-            });
+            roomECSState.emit('leave', { hash_id: channelId });
         },
     });
 
@@ -184,6 +183,11 @@ if (ECS_ID) {
         process.env.ECS_FAMILY = `${task?.family}`;
         process.env.ECS_PK = `${task?.idx}`;
         process.env.ECS_ROWNUM = `${task?.rownum}`;
+
+        socket.on('connection', client => {
+            client.join(`ecs:state`);
+            client.on('disconnect', () => {});
+        });
 
         /**
          * 채널 이동 명령
