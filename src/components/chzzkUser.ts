@@ -162,10 +162,7 @@ export const searchChzzkUser = async (keyword: string): Promise<Array<KeyVal<str
             })
         );
 
-        if (result)
-            await redis.set(redisKey, JSON.stringify(result), {
-                EX: 60 * 60 * 24,
-            });
+        if (result) await redis.set(redisKey, JSON.stringify(result), 'EX', 60 * 60 * 24);
 
         return result || [];
     }
@@ -309,9 +306,12 @@ export const getLiveMessage = async ({
             ],
         });
 
-        await redis.set(REDIS_KEY.DISCORD.LAST_MESSAGE(`${noticeId}`), JSON.stringify(messages), {
-            EX: 60 * 60 * 24, // 12시간
-        });
+        await redis.set(
+            REDIS_KEY.DISCORD.LAST_MESSAGE(`${noticeId}`),
+            JSON.stringify(messages),
+            'EX',
+            60 * 60 * 24 // 12시간
+        );
     } else if (liveStatus && liveStatus.status == 'CLOSE') {
         LiveStatePublish('offline', {
             noticeId,

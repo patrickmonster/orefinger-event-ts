@@ -172,7 +172,8 @@ if (ECS_ID) {
                 serverState: server.serverState,
                 list,
             }),
-            { EX: 60 * 60 }
+            'EX',
+            60 * 60
         );
     };
 

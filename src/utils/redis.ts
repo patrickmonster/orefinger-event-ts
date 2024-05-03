@@ -1,10 +1,14 @@
 import { ECSState, ECSStateMessage, LiveState, LiveStateMessage } from 'interfaces/redis';
-import { createClient } from 'redis';
+import Redis from 'ioredis';
 
-const client = createClient({
-    url: process.env.REDIS_URL,
-    pingInterval: 1000 * 30,
-    // legacyMode: true, // 레거시 모드
+// const client = createClient({
+//     url: process.env.REDIS_URL,
+//     pingInterval: 1000 * 30,
+//     // legacyMode: true, // 레거시 모드
+// });
+
+const client = new Redis(`${process.env.REDIS_URL}`, {
+    enableAutoPipelining: true,
 });
 
 console.log('REDIS_URL', process.env.REDIS_URL);
@@ -16,9 +20,7 @@ client.on('reconnecting', () => {
 });
 client.on('connect', () => {
     console.log('REDIS] client connected');
-    client.set(`SERVER:START:${process.pid}`, new Date().toISOString(), {
-        EX: 60 * 60,
-    });
+    client.set(`SERVER:START:${process.pid}`, new Date().toISOString(), 'EX', 60 * 60);
 });
 
 client.on('error', e => {
@@ -26,9 +28,7 @@ client.on('error', e => {
 });
 
 process.on('SIGINT', function () {
-    client.set(`SERVER:STOP:${process.pid}`, new Date().toISOString(), {
-        EX: 60 * 60,
-    });
+    client.set(`SERVER:STOP:${process.pid}`, new Date().toISOString(), 'EX', 60 * 60);
     client.disconnect();
 });
 
@@ -43,9 +43,7 @@ export const catchRedis = async <T>(key: string, callback: () => Promise<T>, exp
 
     const result = await callback();
 
-    await client.set(key, JSON.stringify(result), {
-        EX: expire,
-    });
+    await client.set(key, JSON.stringify(result), 'EX', expire);
 
     console.log('REDIS] catchRedis', key, result);
 

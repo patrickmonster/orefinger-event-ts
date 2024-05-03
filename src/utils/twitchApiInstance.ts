@@ -61,7 +61,7 @@ export const GetToken = async (id: string, sc: string, scope: string[]) => {
             '%20'
         )}`
     );
-    await redis.set(token_id, data.access_token, { EX: data.expires_in - 10 });
+    await redis.set(token_id, data.access_token, 'EX', data.expires_in - 10);
 
     return { token: data.access_token, id, scope };
 };

@@ -33,9 +33,9 @@ export const exec = async (interaction: MessageInteraction, typeId: string, embe
             embeds: message.embeds,
             components: message.components,
         }),
-        {
-            EX: 60 * 60 * 60,
-        }
+
+        'EX',
+        60 * 60 * 60
     );
 
     interaction.model({

@@ -9,9 +9,7 @@ const getDate = () => ({
 const saveRedis = (tag: string, data: any) => {
     const { date, EX } = getDate();
     const key = `${tag}:${date}`;
-    redis.set(key, JSON.stringify(data), {
-        EX,
-    });
+    redis.set(key, JSON.stringify(data), 'EX', EX);
     return key;
 };
 

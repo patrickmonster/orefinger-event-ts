@@ -24,7 +24,7 @@ export const createQueryKey = async (queryKey: QueryKeyProps): Promise<string> =
     const key = `${new Date().getTime()}`;
     const queryObject = JSON.stringify({ sql: queryKey.sql, params: queryKey.params, other: queryKey.other });
 
-    await redis.set(REDIS_KEY.SQL.SELECT(key), queryObject, { EX: queryRedisSaveingTime });
+    await redis.set(REDIS_KEY.SQL.SELECT(key), queryObject, 'EX', queryRedisSaveingTime);
 
     console.log(REDIS_KEY.SQL.SELECT(key), queryObject);
 
@@ -76,9 +76,12 @@ export const selectQueryKeyPaging = async <E extends {}>(
 
     let runningQuery = query;
     if (search) {
-        await redis.set(REDIS_KEY.SQL.SELECT(queryKey), JSON.stringify({ sql: query, params, other, search }), {
-            EX: queryRedisSaveingTime,
-        });
+        await redis.set(
+            REDIS_KEY.SQL.SELECT(queryKey),
+            JSON.stringify({ sql: query, params, other, search }),
+            'EX',
+            queryRedisSaveingTime
+        );
     }
 
     // 서브 검색조건이 있는 경우에만 OR 조건을 추가합니다.
