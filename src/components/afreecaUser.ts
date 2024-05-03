@@ -88,10 +88,7 @@ export const searchAfreecabeUser = async (keyword: string): Promise<Array<{ name
             value: user_id,
         }));
 
-        if (result)
-            await redis.set(redisKey, JSON.stringify(result), {
-                EX: 60 * 60 * 24,
-            });
+        if (result) await redis.set(redisKey, JSON.stringify(result), 'EX', 60 * 60 * 24);
 
         return result || [];
     }
@@ -226,9 +223,12 @@ export const getLiveMessage = async ({ channels, notice_id, hash_id, message, na
         });
 
         const redisKey = REDIS_KEY.DISCORD.LAST_MESSAGE(`${notice_id}`);
-        await redis.set(redisKey, JSON.stringify(messages), {
-            EX: 60 * 60 * 24, // 12시간
-        });
+        await redis.set(
+            redisKey,
+            JSON.stringify(messages),
+            'EX',
+            60 * 60 * 24 // 12시간
+        );
     } else {
         // offline
     }

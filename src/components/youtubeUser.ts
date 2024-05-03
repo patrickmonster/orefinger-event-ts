@@ -117,10 +117,7 @@ export const searchYoutubeUser = async (keyword: string): Promise<Array<{ name: 
             value: channelId,
         }));
 
-        if (result)
-            await redis.set(redisKey, JSON.stringify(result), {
-                EX: 60 * 60 * 24,
-            });
+        if (result) await redis.set(redisKey, JSON.stringify(result), 'EX', 60 * 60 * 24);
 
         return result || [];
     }

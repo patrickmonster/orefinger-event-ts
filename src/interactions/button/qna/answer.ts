@@ -31,9 +31,8 @@ export const exec = async (interaction: MessageInteraction, questionId: string, 
             embeds: message.embeds,
             components: message.components,
         }),
-        {
-            EX: 60 * 60 * 60,
-        }
+        'EX',
+        60 * 60 * 60
     );
 
     const origin = await selectQnaQuestion(ParseInt(questionId));

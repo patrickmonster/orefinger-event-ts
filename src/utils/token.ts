@@ -13,11 +13,11 @@ export const getToken = async (id: string, sc: string) => {
 
     try {
         const { data } = await axios.post(
-            `https://id.twitch.tv/oauth2/token?client_id=${id}&client_secret=${sc}&grant_type=client_credentials&scope=${subscribeScope.join('%20')}`
+            `https://id.twitch.tv/oauth2/token?client_id=${id}&client_secret=${sc}&grant_type=client_credentials&scope=${subscribeScope.join(
+                '%20'
+            )}`
         );
-        await redis.set(`token:${id}`, data.access_token, {
-            EX: data.expires_in - 10,
-        });
+        await redis.set(`token:${id}`, data.access_token, 'EX', data.expires_in - 10);
 
         console.log({ message: '토큰 발급', data });
 

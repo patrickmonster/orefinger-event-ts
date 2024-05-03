@@ -146,9 +146,12 @@ export default async (fastify: FastifyInstance, opts: any) => {
                     .then(data => {
                         console.log(data);
 
-                        redis.set('streamers', JSON.stringify(data), {
-                            EX: 60 * 60 * 24, // 하루동안 유효
-                        });
+                        redis.set(
+                            'streamers',
+                            JSON.stringify(data),
+                            'EX',
+                            60 * 60 * 24 // 하루동안 유효
+                        );
                         return data;
                     })
                     .catch(e => {
