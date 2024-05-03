@@ -6,7 +6,7 @@ import { attendance } from 'controllers/twitch';
 
 import createCalender from 'utils/createCalender';
 import { createEmbed } from 'utils/discord/component';
-import redis from 'utils/redis';
+import redis, { saveRedis } from 'utils/redis';
 
 const selectMessage = async (broadcaster_user_id: string, user_id: string): Promise<RESTPostAPIChannelMessage> => {
     const { is_success, list } = await attendance(user_id, broadcaster_user_id);
@@ -67,13 +67,7 @@ export const exec = async (interaction: MessageInteraction, broadcaster_user_id:
             let message = data ? JSON.parse(data) : null;
             if (!message) {
                 message = await selectMessage(broadcaster_user_id, userId);
-                redis.set(
-                    redisId,
-                    JSON.stringify(message),
-                    // 10분
-                    'EX',
-                    60 * 10
-                );
+                saveRedis(redisId, message, 60 * 10); // 10분
             } else redis.expire(redisId, 60 * 10); // 연장
 
             message.embeds?.push(advertisement);

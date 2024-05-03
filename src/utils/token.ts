@@ -1,5 +1,5 @@
 import axios from 'axios';
-import redis from 'utils/redis';
+import redis, { saveRedis } from 'utils/redis';
 
 const subscribeScope = ['channel:read:subscriptions', 'user:read:email']; // 권한
 
@@ -17,7 +17,7 @@ export const getToken = async (id: string, sc: string) => {
                 '%20'
             )}`
         );
-        await redis.set(`token:${id}`, data.access_token, 'EX', data.expires_in - 10);
+        await saveRedis(`token:${id}`, data.access_token, data.expires_in - 10);
 
         console.log({ message: '토큰 발급', data });
 
