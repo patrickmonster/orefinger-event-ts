@@ -12,7 +12,7 @@ import { NoticeBat } from 'interfaces/notice';
 import afreecaAPI from 'utils/afreecaApiInstance';
 import { appendTextWing, createActionRow, createSuccessButton, createUrlButton } from 'utils/discord/component';
 import { randomIntegerInRange } from 'utils/object';
-import redis, { REDIS_KEY } from 'utils/redis';
+import redis, { REDIS_KEY, saveRedis } from 'utils/redis';
 
 interface ChannelData {
     user_id: string;
@@ -88,11 +88,7 @@ export const searchAfreecabeUser = async (keyword: string): Promise<Array<{ name
             value: user_id,
         }));
 
-        if (result)
-            await redis.set(redisKey, JSON.stringify(result), {
-                EX: 60 * 60 * 24,
-            });
-
+        if (result) await saveRedis(redisKey, result, 60 * 60 * 24);
         return result || [];
     }
 };
@@ -225,10 +221,7 @@ export const getLiveMessage = async ({ channels, notice_id, hash_id, message, na
             ],
         });
 
-        const redisKey = REDIS_KEY.DISCORD.LAST_MESSAGE(`${notice_id}`);
-        await redis.set(redisKey, JSON.stringify(messages), {
-            EX: 60 * 60 * 24, // 12시간
-        });
+        await saveRedis(REDIS_KEY.DISCORD.LAST_MESSAGE(`${notice_id}`), messages, 60 * 60 * 24);
     } else {
         // offline
     }

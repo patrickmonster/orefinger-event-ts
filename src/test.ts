@@ -1,25 +1,39 @@
-import { config } from 'dotenv';
-import { existsSync } from 'fs';
-import { join } from 'path';
-import { env } from 'process';
+// import { config } from 'dotenv';
+// import { existsSync } from 'fs';
+// import { join } from 'path';
+// import { env } from 'process';
 
-const envDir = join(env.PWD || __dirname, `/.env`);
-if (existsSync(envDir)) {
-    config({ path: envDir });
-} else {
-    // 로컬버전 - 운영 환경에서는 빌드시 자동으로 .env 파일을 생성함.
-    config({
-        path: join(env.PWD || __dirname, `/src/env/.env.${env.NODE_ENV}`),
+// const envDir = join(env.PWD || __dirname, `/.env`);
+// if (existsSync(envDir)) {
+//     config({ path: envDir });
+// } else {
+//     // 로컬버전 - 운영 환경에서는 빌드시 자동으로 .env 파일을 생성함.
+//     config({
+//         path: join(env.PWD || __dirname, `/src/env/.env.${env.NODE_ENV}`),
+//     });
+// }
+
+import client from 'utils/socketClient';
+
+client.on('connect', () => {
+    console.log('connect');
+});
+client.on('disconnect', () => {
+    console.log('disconnect');
+});
+client.on('error', err => {
+    console.log('error', err);
+});
+client
+    .on('status', (...args) => {
+        console.log('status', args);
+    })
+    .on('message', (...args) => {
+        console.log('message', args);
     });
-}
 
-const prefix = '@';
+client.emit('status', 'test');
 
-console.log(process.env.NID_AUTH, process.env.NID_SECRET);
-
-import { selectChatServer } from 'controllers/chat/chzzk';
-import redis, { LiveStatePublish } from 'utils/redis';
-import sleep from 'utils/sleep';
 // import ChatServer from 'utils/chat/server';
 
 // const server = new ChatServer<Content>({
@@ -143,21 +157,6 @@ import sleep from 'utils/sleep';
 //         server.getServer(hashId)?.disconnect();
 //     })
 // .catch(console.error);
-
-redis.on('connect', () => {
-    selectChatServer(4).then(async chats => {
-        for (const chat of chats) {
-            console.log(chat);
-            LiveStatePublish('move', {
-                noticeId: chat.notice_id,
-                hashId: chat.hash_id,
-                targetId: '-',
-                liveStatus: null,
-            });
-            await sleep(1000);
-        }
-    });
-});
 
 // for (const { hash_id: hashId } of chats) {
 //     server.addServer(hashId);

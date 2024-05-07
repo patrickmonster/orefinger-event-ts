@@ -1,10 +1,14 @@
 import { ECSState, ECSStateMessage, LiveState, LiveStateMessage } from 'interfaces/redis';
-import { createClient } from 'redis';
+import Redis from 'ioredis';
 
-const client = createClient({
-    url: process.env.REDIS_URL,
-    pingInterval: 1000 * 30,
-    // legacyMode: true, // 레거시 모드
+// const client = createClient({
+//     url: process.env.REDIS_URL,
+//     pingInterval: 1000 * 30,
+//     // legacyMode: true, // 레거시 모드
+// });
+
+const client = new Redis(`${process.env.REDIS_URL}`, {
+    enableAutoPipelining: true,
 });
 
 console.log('REDIS_URL', process.env.REDIS_URL);
@@ -16,9 +20,7 @@ client.on('reconnecting', () => {
 });
 client.on('connect', () => {
     console.log('REDIS] client connected');
-    client.set(`SERVER:START:${process.pid}`, new Date().toISOString(), {
-        EX: 60 * 60,
-    });
+    client.set(`SERVER:START:${process.pid}`, new Date().toISOString(), 'EX', 60 * 60);
 });
 
 client.on('error', e => {
@@ -26,15 +28,16 @@ client.on('error', e => {
 });
 
 process.on('SIGINT', function () {
-    client.set(`SERVER:STOP:${process.pid}`, new Date().toISOString(), {
-        EX: 60 * 60,
-    });
+    client.set(`SERVER:STOP:${process.pid}`, new Date().toISOString(), 'EX', 60 * 60);
     client.disconnect();
 });
 
-client.connect().catch(e => console.error(e));
-
 export default client;
+
+export const saveRedis = (key: string, value: any, expire = 60 * 60 * 1) => {
+    // console.log('REDIS] saveRedis', key, value);
+    return client.set(key, JSON.stringify(value), 'EX', expire);
+};
 
 export const catchRedis = async <T>(key: string, callback: () => Promise<T>, expire = 60 * 60 * 1) => {
     const data = await client.get(key);
@@ -43,10 +46,7 @@ export const catchRedis = async <T>(key: string, callback: () => Promise<T>, exp
 
     const result = await callback();
 
-    await client.set(key, JSON.stringify(result), {
-        EX: expire,
-    });
-
+    await saveRedis(key, result, expire);
     console.log('REDIS] catchRedis', key, result);
 
     return result;

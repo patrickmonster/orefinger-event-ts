@@ -3,7 +3,7 @@ import { MessageInteraction } from 'interactions/message';
 import { createTextParagraphInput, createTextShortInput } from 'utils/discord/component';
 import { ParseInt } from 'utils/object';
 
-import redis, { REDIS_KEY } from 'utils/redis';
+import { REDIS_KEY, saveRedis } from 'utils/redis';
 
 /**
  * 질문을 생성 합니다.
@@ -26,16 +26,14 @@ export const exec = async (interaction: MessageInteraction, typeId: string, embe
     const [item] = await selectQnaTypes(ParseInt(typeId));
     if (!item) return null;
 
-    await redis.set(
+    await saveRedis(
         REDIS_KEY.DISCORD.LAST_MESSAGE(channel.id),
-        JSON.stringify({
+        {
             id: message.id,
             embeds: message.embeds,
             components: message.components,
-        }),
-        {
-            EX: 60 * 60 * 60,
-        }
+        },
+        60 * 60 * 60
     );
 
     interaction.model({

@@ -5,7 +5,7 @@ import { createTextParagraphInput } from 'utils/discord/component';
 
 import { hasNot } from 'utils/discord/permission';
 import { ParseInt } from 'utils/object';
-import redis, { REDIS_KEY } from 'utils/redis';
+import { REDIS_KEY, saveRedis } from 'utils/redis';
 
 /**
  * 답변을 생성합니다.
@@ -25,15 +25,13 @@ export const exec = async (interaction: MessageInteraction, questionId: string, 
         });
     }
 
-    await redis.set(
+    await saveRedis(
         REDIS_KEY.DISCORD.ANSWER_MESSAGE(channel.id, message.id),
-        JSON.stringify({
+        {
             embeds: message.embeds,
             components: message.components,
-        }),
-        {
-            EX: 60 * 60 * 60,
-        }
+        },
+        60 * 60 * 60
     );
 
     const origin = await selectQnaQuestion(ParseInt(questionId));

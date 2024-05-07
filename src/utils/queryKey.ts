@@ -1,6 +1,6 @@
 import { Paging } from 'interfaces/swagger';
 import { SelectPagingResult, resultParser, selectPaging } from 'utils/database';
-import redis, { REDIS_KEY } from 'utils/redis';
+import redis, { REDIS_KEY, saveRedis } from 'utils/redis';
 
 import { format } from 'mysql2';
 
@@ -24,7 +24,7 @@ export const createQueryKey = async (queryKey: QueryKeyProps): Promise<string> =
     const key = `${new Date().getTime()}`;
     const queryObject = JSON.stringify({ sql: queryKey.sql, params: queryKey.params, other: queryKey.other });
 
-    await redis.set(REDIS_KEY.SQL.SELECT(key), queryObject, { EX: queryRedisSaveingTime });
+    await saveRedis(REDIS_KEY.SQL.SELECT(key), queryObject, queryRedisSaveingTime);
 
     console.log(REDIS_KEY.SQL.SELECT(key), queryObject);
 
@@ -76,9 +76,7 @@ export const selectQueryKeyPaging = async <E extends {}>(
 
     let runningQuery = query;
     if (search) {
-        await redis.set(REDIS_KEY.SQL.SELECT(queryKey), JSON.stringify({ sql: query, params, other, search }), {
-            EX: queryRedisSaveingTime,
-        });
+        await saveRedis(REDIS_KEY.SQL.SELECT(queryKey), { sql: query, params, other, search }, queryRedisSaveingTime);
     }
 
     // 서브 검색조건이 있는 경우에만 OR 조건을 추가합니다.
