@@ -1,75 +1,38 @@
 import { String } from 'aws-sdk/clients/cloudtrail';
+import axios from 'axios';
+import EventEmitter from 'events';
+import PQueue from 'p-queue';
+
 import { selectChatUsers, selectCommand, upsertChatUser, upsertCommand } from 'controllers/chat/chzzk';
 import { ChatDonation, ChatMessage, ChatOption } from 'interfaces/chzzk/chat';
-
-import PQueue from 'p-queue';
 
 import ChzzkChat, { ChatUser, ChzzkAPI, Command } from 'utils/chat/chzzk';
 import { getTimeDiff } from 'utils/day';
 import { createInterval } from 'utils/inteval';
+import { appendUrlHttp } from 'utils/object';
 import sleep from 'utils/sleep';
 
-export interface ChatMessageT extends ChatMessage {
-    reply: (message: string) => void;
-}
+export interface ChatMessageT extends ChatMessage {}
+export interface ChatDonationT extends ChatDonation {}
 
-export interface ChatDonationT extends ChatDonation {
+export type BaseChatMessage<C extends any> = (ChatDonation | ChatMessage) & {
     reply: (message: string) => void;
-}
+    commands: C[];
+};
 
 /**
  * 채팅 서버 옵션
  * @interface ChatServerOption
  */
-interface ChatServerOption extends ChatOption {
+interface ChatServerOption<T> extends ChatOption {
     concurrency?: number; // 동시에 생성할 수 있는 서버 수
-    onMessage?: (chat: ChatMessageT | ChatDonationT) => void;
-    onReady?: (roomId: string, chatChannelId: string) => void;
-    onClose?: (roomId: string, chatChannelId: string) => void;
 }
-
-interface BaseChatCommand {
-    name: string;
-    description: string;
-    type: number;
-}
-
-/**
- * 채팅 명령어
- */
-interface ChatMessageCommand extends BaseChatCommand {
-    type: 1;
-}
-
-/**
- * 채팅 반복 명령어
- */
-interface IntervalChatCommand extends BaseChatCommand {
-    type: 2;
-    loopTime: number; // seconds
-}
-
-/**
- * 채팅 기부 명령어
- */
-interface ChatDonationCommand extends BaseChatCommand {
-    type: 3;
-    amount: number;
-}
-
-/**
- * 채팅 포인트 명령어
- */
-interface ChatPointCommand extends BaseChatCommand {
-    type: 4;
-    amount: number;
-}
-
-type ChatCommand = ChatMessageCommand | ChatPointCommand | ChatDonationCommand | IntervalChatCommand;
 
 /**
  * 채팅 서버 관리자
  *  - 다중 서버에 접속하여 채팅을 관리합니다.
+ *
+ *
  */
 export default class ChatServer<
     T extends {
@@ -80,26 +43,20 @@ export default class ChatServer<
     } = any,
     U extends ChatUser & {
         point: number;
-    } = any
-> {
+    } = any,
+    C extends Command & { type: number } = any
+> extends EventEmitter {
     private servers = new Map<string, ChzzkChat>(); // 서버 목록
     private state = new Map<string, T>(); // 라이브 상태
     private queue: PQueue; // 동시 실행 가능한 서버 수
 
-    private onmessage: (chat: ChatMessageT | ChatDonationT) => void;
-    private onready: (roomId: string, chatChannelId: string) => void;
-    private onclose: (roomId: string, chatChannelId: string) => void;
-
     private _api: ChzzkAPI;
     private uid?: string;
 
-    constructor(options?: ChatServerOption) {
+    constructor(options?: ChatServerOption<C>) {
+        super();
         this._api = new ChzzkAPI(options);
         this.queue = new PQueue({ concurrency: options?.concurrency || 1 });
-
-        this.onmessage = options?.onMessage || (() => {});
-        this.onready = options?.onReady || (() => {});
-        this.onclose = options?.onClose || (() => {});
 
         this.queue.add(async () => {
             const user = await this._api.user();
@@ -179,7 +136,7 @@ export default class ChatServer<
             }
 
             const token = await this.getToken(chatChannelId);
-            const server = new ChzzkChat<U, Command & { type: number }>({
+            const server = new ChzzkChat<U, C>({
                 //
                 chatChannelId,
                 liveChannelId: roomId,
@@ -188,23 +145,26 @@ export default class ChatServer<
             })
                 .on('chat', chat => this.onChat(roomId, chat))
                 .on('donation', chat => this.onChat(roomId, chat))
+                .on('recnnect', () => this.emit('reconnect', roomId, chatChannelId))
                 .on('close', () => {
                     console.log('DISCONNECTED FROM CHAT SERVER', roomId, chatChannelId);
 
                     this.saveUser(roomId).catch(console.error);
                     this.saveCommand(roomId).catch(console.error);
 
-                    this.onclose(roomId, `${chatChannelId}`);
+                    this.emit('close', roomId, chatChannelId);
                     this.servers.delete(roomId);
                 })
                 .on('ready', () => {
                     console.log('CONNECTED TO CHAT SERVER', roomId, chatChannelId);
-                    this.onready(roomId, `${chatChannelId}`);
+                    this.emit('ready', roomId, chatChannelId);
                 });
             this.servers.set(roomId, server);
 
             this.loadUser(roomId).catch(console.error);
             this.loadCommand(roomId).catch(console.error);
+
+            this.emit('join', roomId, chatChannelId);
 
             await server.connect();
             await sleep(100); // 1초 대기
@@ -277,8 +237,6 @@ export default class ChatServer<
         const { profile, extras, cid, memberCount, id } = chat;
         const { userIdHash, nickname } = profile;
         const { streamingChannelId } = extras;
-
-        const client = this.getServer(streamingChannelId);
         const liveStatus = this.state.get(streamingChannelId);
 
         const alias: {
@@ -294,24 +252,39 @@ export default class ChatServer<
             title: liveStatus?.liveTitle,
             game: liveStatus?.liveCategoryValue,
             gameValue: liveStatus?.liveCategoryValue,
-            uptime: liveStatus?.openDate ? getTimeDiff(liveStatus?.openDate) : '오프라인',
-            list:
-                client?.commands
-                    .map(({ command }) => command)
-                    .join(', ')
-                    .slice(0, 2000) || '{오류가 발생했습니다}',
 
             // TODO: Add more aliases
             pid: process.env.ECS_ID,
             count: (this.getServer(streamingChannelId)?.chatSize || 1).toLocaleString(),
         };
 
-        const keys = Object.keys(alias);
-        for (const key of keys) {
-            message = message.replace(`{${key}}`, alias[key]);
-        }
+        return message.replace(/\{([^\}])\}/gi, (match, name) => alias[name] || match);
+    }
 
-        return message;
+    static CommandBlock = /\$\{([^\}^ ]+) ?([^\}^ ]+)?\}/gi;
+
+    /**
+     * 명령어 블럭 처리
+     * @param chat
+     */
+    private async convertCommandBlock(chat: ChatMessage | ChatDonation, message: string) {
+        const tmp = `${message}`;
+        let match;
+        // ChatServer.CommandBlock.test(tmp)
+        while ((match = ChatServer.CommandBlock.exec(message))) {
+            const [, command, target] = match;
+            switch (command) {
+                case 'uptime':
+                    return getTimeDiff(target);
+                case 'feat':
+                    if (target) axios.post(appendUrlHttp(target), { feat: target });
+                    else return `ERROR] Notfound feat command 'target' - \${feat url}`;
+                    break;
+                default:
+                //
+            }
+        }
+        return tmp;
     }
     /**
      * 채팅 메세지 튜닝
@@ -321,12 +294,15 @@ export default class ChatServer<
      */
     private onChat(roomId: string, chat: ChatMessage | ChatDonation) {
         const server = this.servers.get(roomId);
+
         if (!server) {
             console.log('INVALID SERVER', roomId);
             return;
         }
-        this.onmessage({
+
+        this.emit('message', {
             ...chat,
+            commands: server.commands as C[],
             reply: (message: string) => {
                 try {
                     server.sendChat(this.convertSendCommand(chat, message));

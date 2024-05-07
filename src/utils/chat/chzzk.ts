@@ -255,6 +255,9 @@ export default class ChzzkWebSocket<T extends ChatUser = ChatUser, C extends Com
         this.ws.onopen = this.onOpen.bind(this);
         this.ws.onclose = this.onClose.bind(this);
         this.ws.onmessage = this.handelMessage.bind(this);
+        if (this.reconnecting) {
+            this.emit('reconnect');
+        }
         this.reconnecting = false;
     }
 

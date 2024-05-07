@@ -6,7 +6,6 @@ import axios from 'axios';
 import { ecsSet } from 'controllers/log';
 import { ECStask } from 'interfaces/ecs';
 
-import { ECSStateSubscribe } from 'utils/redisBroadcast';
 /**
  * ECS 컨테이너 정보를 불러옵니다.
  */
@@ -49,10 +48,10 @@ const serverECS: {
  * ECS 정보를 수신합니다
  * @returns ECS ID
  */
-ECSStateSubscribe('channels', ({ id, count, userCount, revision }) => {
-    if (revision !== process.env.ECS_REVISION) return;
-    serverECS[id] = { count, userCount };
-});
+// ECSStateSubscribe('channels', ({ id, count, userCount, revision }) => {
+//     if (revision !== process.env.ECS_REVISION) return;
+//     serverECS[id] = { count, userCount };
+// });
 
 /**
  * ECS 에서 가장 적은 공간을 찾아서 반환합니다.

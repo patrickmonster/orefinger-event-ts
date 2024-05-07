@@ -32,12 +32,10 @@ process.on('SIGINT', function () {
     client.disconnect();
 });
 
-client.connect().catch(e => console.error(e));
-
 export default client;
 
 export const saveRedis = (key: string, value: any, expire = 60 * 60 * 1) => {
-    console.log('REDIS] saveRedis', key, value);
+    // console.log('REDIS] saveRedis', key, value);
     return client.set(key, JSON.stringify(value), 'EX', expire);
 };
 
