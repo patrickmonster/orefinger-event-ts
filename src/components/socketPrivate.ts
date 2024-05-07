@@ -19,6 +19,7 @@ const emitMessage = (target: `/${string}`, event: string, data: any) => {
 server.on('connection', client => {
     client.join('/ecs');
     client.join('/state');
+    client.join('/chzzk');
 
     client.on('liveState', message => {
         const { state, target, ...data } = message;
@@ -31,6 +32,10 @@ server.on('connection', client => {
 
         emitMessage(`/${target}`, state, data);
     });
+});
+
+server.on('liveState', message => {
+    console.log(message);
 });
 
 export default server;

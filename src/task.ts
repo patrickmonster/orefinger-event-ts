@@ -1,10 +1,3 @@
-import { ecsSelect } from 'controllers/log';
-import { deleteNotice } from 'controllers/notice';
-import { NoticeBat } from 'interfaces/notice';
-
-import { BaseTask } from 'utils/baseTask';
-import { openApi } from 'utils/discordApiInstance';
-
 const [, file, ECS_ID, ECS_REVISION] = process.argv;
 // GET ecs state
 if (!ECS_ID) {
@@ -12,6 +5,12 @@ if (!ECS_ID) {
     process.exit(0);
 }
 
+import { ecsSelect } from 'controllers/log';
+import { deleteNotice } from 'controllers/notice';
+import { NoticeBat } from 'interfaces/notice';
+
+import { BaseTask } from 'utils/baseTask';
+import { openApi } from 'utils/discordApiInstance';
 import 'utils/procesTuning';
 
 import { getLiveMessage as afreeca } from 'components/afreecaUser';
