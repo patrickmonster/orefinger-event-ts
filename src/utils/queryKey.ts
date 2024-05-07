@@ -22,11 +22,12 @@ const queryRedisSaveingTime = 60 * 60 * 2; // 2시간
  */
 export const createQueryKey = async (queryKey: QueryKeyProps): Promise<string> => {
     const key = `${new Date().getTime()}`;
-    const queryObject = JSON.stringify({ sql: queryKey.sql, params: queryKey.params, other: queryKey.other });
 
-    await saveRedis(REDIS_KEY.SQL.SELECT(key), queryObject, queryRedisSaveingTime);
-
-    console.log(REDIS_KEY.SQL.SELECT(key), queryObject);
+    await saveRedis(
+        REDIS_KEY.SQL.SELECT(key),
+        { sql: queryKey.sql, params: queryKey.params, other: queryKey.other },
+        queryRedisSaveingTime
+    );
 
     return key;
 };
@@ -82,6 +83,8 @@ export const selectQueryKeyPaging = async <E extends {}>(
     // 서브 검색조건이 있는 경우에만 OR 조건을 추가합니다.
     if (search || searchOrg)
         runningQuery = `SELECT  A.* FROM ( ${query}\n) A ${searchLikeOrQuery(search ?? searchOrg)}`;
+
+    console.log('params', params);
 
     return {
         result: resultParser(await selectPaging(runningQuery, page, ...params)) as SelectPagingResult<E>,
