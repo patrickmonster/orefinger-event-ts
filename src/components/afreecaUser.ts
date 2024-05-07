@@ -215,7 +215,7 @@ export const getLiveMessage = async ({ channels, notice_id, hash_id, message, na
                         label: appendTextWing('📌출석체크\u3164', 9), // 크기보정
                     }),
                     createUrlButton(`${embed.url}`, {
-                        emoji: { id: '1218118186717937775' },
+                        emoji: { id: '1218859390988456027' },
                     })
                 ),
             ],
