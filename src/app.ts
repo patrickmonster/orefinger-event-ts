@@ -64,7 +64,6 @@ server.listen({ port: 3000, host: '::' }, (err, address) => {
     const time = Date.now() - bootTime;
     console.log(`Server started in  ${Math.floor(time / 1000)} (${time}ms)`);
     console.log(`Server listening at ${address}`);
-
     createECSState().then(isECS => {
         console.log(`ECS: ${isECS}`);
         if (isECS) {
@@ -81,6 +80,7 @@ server.listen({ port: 3000, host: '::' }, (err, address) => {
         }
     });
 });
+
 
 /**
  * 보조 서비스를 시작함
@@ -106,6 +106,16 @@ const stopSubtask = (target: `/${string}`, code: number) => {
         startSubtask(target);
     }
 };
+
+
+
+server.ready(err => {
+    if (err) throw err;
+});
+
+server.addHook('onClose', async () => {
+    socket.close();
+});
 
 server.ready(err => {
     if (err) throw err;
