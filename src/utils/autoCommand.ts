@@ -34,7 +34,7 @@ const util = {
 
     FileLoader: (modulePath: string, options?: AutoCommandOptions): Module => {
         const { name, ext } = parse(modulePath);
-        options?.isLog && console.log('AutoCommand] FileLoader', name, ext);
+        // options?.isLog && console.log('AutoCommand] FileLoader', name, ext);
 
         return {
             name,
@@ -48,9 +48,12 @@ const util = {
     scanDir: (modulePath: string, options?: AutoCommandOptions, basePath?: string[]): Modules[] => {
         if (!basePath) basePath = []; // 경로 저장
         const files = fs.readdirSync(modulePath);
-        options?.isLog && console.log('AutoCommand] ScanDir', `[${files.join(', ')}]`);
 
         const out: Modules[] = [];
+
+        if (files.length === 0) return out;
+        options?.isLog && console.log('AutoCommand] ScanDir', `[${files.join(', ')}]`);
+
         for (const file of files) {
             const filePath = join(modulePath, file);
             const stat = fs.statSync(filePath); // await promises.stat(filePath);

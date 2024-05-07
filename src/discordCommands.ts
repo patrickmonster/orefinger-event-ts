@@ -25,8 +25,8 @@ import {
     PermissionFlagsBits,
     RESTPutAPIApplicationCommandsJSONBody,
 } from 'discord-api-types/v10';
+import { api } from 'interactions/app';
 import discord from 'utils/discordApiInstance';
-import { api } from './interactions/app';
 
 const COM = {
     REGISTER_CMD: (commands: RESTPutAPIApplicationCommandsJSONBody): void => {

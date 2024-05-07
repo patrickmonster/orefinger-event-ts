@@ -9,27 +9,24 @@ const server = new Server(3001, {
     adapter: createAdapter(pubClient, subClient),
 });
 
-const emitMessage = (target: `/${string}`, event: string, data: any) => {
-    server.to(target).emit(event, data);
+const emitMessage = (event: string, data: any) => {
+    server.emit(event, data);
 };
 
 /**
  * 소켓 연결
  */
 server.on('connection', client => {
-    client.join('/ecs');
-    client.join('/state');
-
     client.on('liveState', message => {
-        const { state, target, ...data } = message;
+        const { state, ...data } = message;
 
-        emitMessage(`/${target}`, state, data);
+        emitMessage(state, data);
     });
 
     client.on('chat', message => {
         const { state, target, ...data } = message;
 
-        emitMessage(`/${target}`, state, data);
+        emitMessage(state, data);
     });
 });
 

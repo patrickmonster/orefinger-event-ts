@@ -10,7 +10,7 @@ import 'utils/procesTuning';
  * @description 알림 작업을 수행하는 스레드로써, 각 알림 스캔 작업을 수행합니다.
  */
 
-const [, file, ECS_ID, ECS_REVISION, ...argv] = process.argv;
+const [, file, ECS_ID, ECS_REVISION] = process.argv;
 // 봇 접두사
 const prefix = '@';
 
@@ -19,7 +19,9 @@ if (!ECS_ID) {
     process.exit(0);
 }
 
-import { Chat } from 'utils/socketClient';
+import { getECSSpaceId } from 'utils/ECS';
+import { createInterval } from 'utils/inteval';
+import { Chat, ECSState } from 'utils/socketClient';
 
 const server = new ChatServer<ChzzkContent>({
     nidAuth: process.env.NID_AUTH,
@@ -38,13 +40,14 @@ server.on('message', chat => {
     const [userCommand, ...args] = message.split(' ');
 
     const command = client.commands.find(({ command }) => command.toUpperCase() === userCommand.trim().toUpperCase());
+
     if (command) {
         chat.reply(command.answer);
     } else {
         if (!message.startsWith(prefix) || userRoleCode == 'common_user') {
             if ('e229d18df2edef8c9114ae6e8b20373a' !== chat.profile.userIdHash) return;
         }
-        //
+
         switch (userCommand) {
             case `${prefix}a`:
             case `${prefix}add`: {
@@ -110,9 +113,13 @@ server.on('message', chat => {
             case `${prefix}r`:
             case `${prefix}reload`: {
                 chat.reply('명령어를 다시 불러옵니다... 적용까지 1분...');
-                Promise.all([server.loadUser(streamingChannelId), server.loadCommand(streamingChannelId)]).then(() => {
-                    chat.reply(`명령어를 다시 불러왔습니다.`);
-                });
+                Promise.all([server.loadUser(streamingChannelId), server.loadCommand(streamingChannelId)])
+                    .then(() => {
+                        chat.reply(`명령어를 다시 불러왔습니다.`);
+                    })
+                    .catch(() => {
+                        chat.reply(`Error :: Command Reload Failed. - 관리자에게 문의하세요.`);
+                    });
                 break;
             }
             case `${prefix}help`: {
@@ -161,6 +168,30 @@ server.on('close', channelId => {
         data: { channelId },
     });
 });
+server.on('online', message => {
+    const { state, target, ...data } = message;
+
+    switch (state) {
+        case 'change': {
+            server.setServerState(data.channelId, data);
+            break;
+        }
+        case 'offline': {
+            server.removeServer(data.channelId);
+            break;
+        }
+        case 'online': {
+            const { chatChannelId, channel } = data as ChzzkContent;
+            const { channelId } = channel;
+            const processId = getECSSpaceId();
+            if (processId == process.env.ECS_PK) {
+                server.addServer(channelId, chatChannelId);
+                server.setServerState(channelId, data);
+            }
+            break;
+        }
+    }
+});
 
 ecsSelect(ECS_REVISION).then(tasks => {
     if (!tasks.length) return;
@@ -170,4 +201,18 @@ ecsSelect(ECS_REVISION).then(tasks => {
     process.env.ECS_FAMILY = `${task?.family}`;
     process.env.ECS_PK = `${task?.idx}`;
     process.env.ECS_ROWNUM = `${task?.rownum}`;
+
+    /**
+     * ECS 정보를 발신합니다
+     */
+    createInterval(() => {
+        ECSState({
+            state: 'user',
+            revision: ECS_REVISION,
+            data: {
+                ...server.serverState,
+                id: ECS_ID,
+            },
+        });
+    }, 1000 * 60 * 5);
 });
