@@ -1,27 +1,38 @@
-import { config } from 'dotenv';
-import { existsSync } from 'fs';
-import { join } from 'path';
-import { env } from 'process';
+// import { config } from 'dotenv';
+// import { existsSync } from 'fs';
+// import { join } from 'path';
+// import { env } from 'process';
 
-const envDir = join(env.PWD || __dirname, `/.env`);
-if (existsSync(envDir)) {
-    config({ path: envDir });
-} else {
-    // 로컬버전 - 운영 환경에서는 빌드시 자동으로 .env 파일을 생성함.
-    config({
-        path: join(env.PWD || __dirname, `/src/env/.env.${env.NODE_ENV}`),
+// const envDir = join(env.PWD || __dirname, `/.env`);
+// if (existsSync(envDir)) {
+//     config({ path: envDir });
+// } else {
+//     // 로컬버전 - 운영 환경에서는 빌드시 자동으로 .env 파일을 생성함.
+//     config({
+//         path: join(env.PWD || __dirname, `/src/env/.env.${env.NODE_ENV}`),
+//     });
+// }
+
+import client from 'utils/socketClient';
+
+client.on('connect', () => {
+    console.log('connect');
+});
+client.on('disconnect', () => {
+    console.log('disconnect');
+});
+client.on('error', err => {
+    console.log('error', err);
+});
+client
+    .on('status', (...args) => {
+        console.log('status', args);
+    })
+    .on('message', (...args) => {
+        console.log('message', args);
     });
-}
 
-import client from 'utils/redisBroadcast';
-
-client.on('new', msg => {
-    console.log('REDIS] message', msg);
-});
-
-client.emit('new', {
-    test: 0,
-});
+client.emit('status', 'test');
 
 // import ChatServer from 'utils/chat/server';
 

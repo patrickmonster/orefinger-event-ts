@@ -1,7 +1,6 @@
 import AutoLoad from '@fastify/autoload';
 import helmet from '@fastify/helmet';
 import fastify from 'fastify';
-import { addServerRequest, bootTime } from 'utils/serverState';
 
 import { config } from 'dotenv';
 import { existsSync } from 'fs';
@@ -10,10 +9,6 @@ import { env } from 'process';
 
 import { ajvFilePlugin } from '@fastify/multipart';
 import Multipart from '@fastify/sensible';
-
-import { fork } from 'child_process';
-
-import 'utils/procesTuning';
 
 const envDir = join(env.PWD || __dirname, `/.env`);
 if (existsSync(envDir)) {
@@ -28,7 +23,9 @@ if (existsSync(envDir)) {
 //////////////////////////////////////////////////////////////////////
 // 환경변수
 
-import { createECSState } from 'utils/ECS';
+import socket from 'components/socketPrivate';
+import 'utils/procesTuning';
+import { addServerRequest, bootTime } from 'utils/serverState';
 
 const server = fastify({
     // logger: env.NODE_ENV != 'prod'
@@ -65,38 +62,15 @@ server.listen({ port: 3000, host: '::' }, (err, address) => {
     const time = Date.now() - bootTime;
     console.log(`Server started in  ${Math.floor(time / 1000)} (${time}ms)`);
     console.log(`Server listening at ${address}`);
-
-    createECSState().then(isECS => {
-        console.log(`ECS: ${isECS}`);
-        isECS && startSubtask('/task.js');
-        isECS && startSubtask('/chzzkChat.js');
-    });
 });
 
-/**
- * 보조 서비스를 시작함
- * @param target
- */
-const startSubtask = (target: `/${string}`) => {
-    const { ECS_ID, ECS_REVISION } = process.env;
-    // node file.js ${ECS_ID}
-    const child = fork(__dirname + target, [`${ECS_ID}`, `${ECS_REVISION}`]);
-    child.on('close', (code: number) => {
-        stopSubtask(target, code);
-    });
-    process.on('SIGINT', child.kill);
-};
+server.ready(err => {
+    if (err) throw err;
+});
 
-/**
- * 서비스가 강제 종료되면, 다시 시작합니다.
- * @param code
- */
-const stopSubtask = (target: `/${string}`, code: number) => {
-    if (code !== 0) {
-        console.error(`task.js exited with code ${code}`);
-        startSubtask(target);
-    }
-};
+server.addHook('onClose', async () => {
+    socket.close();
+});
 
 //////////////////////////////////////////////////////////////////////
 // 프로세서 모듈

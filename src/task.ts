@@ -1,15 +1,24 @@
+import { ecsSelect } from 'controllers/log';
+import { deleteNotice } from 'controllers/notice';
+import { NoticeBat } from 'interfaces/notice';
+
+import { BaseTask } from 'utils/baseTask';
+import { openApi } from 'utils/discordApiInstance';
+
+const [, file, ECS_ID, ECS_REVISION] = process.argv;
+// GET ecs state
+if (!ECS_ID) {
+    console.log('ECS_ID is not defined');
+    process.exit(0);
+}
+
+import 'utils/procesTuning';
+
 import { getLiveMessage as afreeca } from 'components/afreecaUser';
 import { getLiveMessage as chzzk } from 'components/chzzkUser';
 import { getVod, getChannelVideos as laftel } from 'components/laftelUser';
 import { sendChannels } from 'components/notice';
 import { getChannelVideos as youtube } from 'components/youtubeUser';
-import { ecsSelect } from 'controllers/log';
-import { deleteNotice } from 'controllers/notice';
-import { NoticeBat } from 'interfaces/notice';
-import { BaseTask } from 'utils/baseTask';
-import { openApi } from 'utils/discordApiInstance';
-
-import 'utils/procesTuning';
 
 /**
  * 알림 작업 스레드 입니다.
@@ -128,28 +137,19 @@ message : ${e?.response?.data ? JSON.stringify(e.response.data) : ''}
     }),
 };
 
-const [, file, ECS_ID, ...argv] = process.argv;
+console.log(`ECS: ${ECS_ID}`);
 
-console.log('argv', argv);
+ecsSelect(undefined, ECS_ID).then(async ([{ idx, revision, family }]) => {
+    process.env.ECS_ID = ECS_ID;
+    process.env.ECS_REVISION = revision;
+    process.env.ECS_FAMILY = family;
+    process.env.ECS_PK = `${idx}`;
 
-// GET ecs state
-if (ECS_ID) {
-    console.log(`ECS: ${ECS_ID}`);
-
-    ecsSelect(undefined, ECS_ID).then(async ([{ idx, revision, family }]) => {
-        process.env.ECS_ID = ECS_ID;
-        process.env.ECS_REVISION = revision;
-        process.env.ECS_FAMILY = family;
-        process.env.ECS_PK = `${idx}`;
-
-        for (const task of Object.values(tasks)) {
-            task.on('log', (...args) => console.log(`[${idx}]`, ...args));
-            task.on('error', (...args) => console.error(`[${idx}]`, ...args));
-            task.changeTaskCount(revision, idx);
-            task.start();
-        }
-    });
-} else {
-    console.log('ECS_ID is not defined');
-}
+    for (const task of Object.values(tasks)) {
+        task.on('log', (...args) => console.log(`[${idx}]`, ...args));
+        task.on('error', (...args) => console.error(`[${idx}]`, ...args));
+        task.changeTaskCount(revision, idx);
+        task.start();
+    }
+});
 // GET ecs state
