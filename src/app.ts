@@ -23,7 +23,9 @@ if (existsSync(envDir)) {
 //////////////////////////////////////////////////////////////////////
 // 환경변수
 
+import { fork } from 'child_process';
 import socket from 'components/socketPrivate';
+import { createECSState } from 'utils/ECS';
 import 'utils/procesTuning';
 import { addServerRequest, bootTime } from 'utils/serverState';
 
@@ -62,6 +64,57 @@ server.listen({ port: 3000, host: '::' }, (err, address) => {
     const time = Date.now() - bootTime;
     console.log(`Server started in  ${Math.floor(time / 1000)} (${time}ms)`);
     console.log(`Server listening at ${address}`);
+    createECSState().then(isECS => {
+        console.log(`ECS: ${isECS}`);
+        if (isECS) {
+            startSubtask('/task.js');
+            startSubtask('/chzzkChat.js');
+
+            socket.emit('ready', {
+                time: Math.floor(time / 1000),
+                count: 0,
+                userCount: 0,
+                revision: process.env.ECS_REVISION,
+                pk: process.env.ECS_PK,
+            });
+        }
+    });
+});
+
+
+/**
+ * 보조 서비스를 시작함
+ * @param target
+ */
+const startSubtask = (target: `/${string}`) => {
+    const { ECS_ID, ECS_REVISION } = process.env;
+    // node file.js ${ECS_ID}
+    const child = fork(__dirname + target, [`${ECS_ID}`, `${ECS_REVISION}`]);
+    child.on('close', (code: number) => {
+        stopSubtask(target, code);
+    });
+    process.on('SIGINT', child.kill);
+};
+
+/**
+ * 서비스가 강제 종료되면, 다시 시작합니다.
+ * @param code
+ */
+const stopSubtask = (target: `/${string}`, code: number) => {
+    if (code !== 0) {
+        console.error(`task.js exited with code ${code}`);
+        startSubtask(target);
+    }
+};
+
+
+
+server.ready(err => {
+    if (err) throw err;
+});
+
+server.addHook('onClose', async () => {
+    socket.close();
 });
 
 server.ready(err => {
