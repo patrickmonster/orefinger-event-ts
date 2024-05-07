@@ -33,3 +33,6 @@ export const LiveState = (state: 'change' | 'offline' | 'online', target: 'chzzk
 export const Chat = (data: { state: 'leave' | 'join' | 'change' | 'message'; target: 'ecs' | 'state'; data: any }) => {
     socket.emit('chat', data);
 };
+export const ECSState = (data: { state: 'user'; revision: string; data: any }) => {
+    socket.emit('state', data);
+};

@@ -3,9 +3,10 @@
  */
 
 import axios from 'axios';
+
+import socket from 'components/socketPrivate';
 import { ecsSet } from 'controllers/log';
 import { ECStask } from 'interfaces/ecs';
-
 /**
  * ECS 컨테이너 정보를 불러옵니다.
  */
@@ -44,14 +45,12 @@ const serverECS: {
     };
 } = {};
 
-/**
- * ECS 정보를 수신합니다
- * @returns ECS ID
- */
-// ECSStateSubscribe('channels', ({ id, count, userCount, revision }) => {
-//     if (revision !== process.env.ECS_REVISION) return;
-//     serverECS[id] = { count, userCount };
-// });
+// ECS 정보를 수신합니다
+socket.on('state', (data: any) => {
+    const { count, userCount, id, revision } = data;
+    if (revision !== process.env.ECS_REVISION) return;
+    serverECS[id] = { count, userCount };
+});
 
 /**
  * ECS 에서 가장 적은 공간을 찾아서 반환합니다.

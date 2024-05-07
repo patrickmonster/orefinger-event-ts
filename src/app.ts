@@ -81,7 +81,6 @@ server.listen({ port: 3000, host: '::' }, (err, address) => {
     });
 });
 
-
 /**
  * 보조 서비스를 시작함
  * @param target
@@ -106,8 +105,6 @@ const stopSubtask = (target: `/${string}`, code: number) => {
         startSubtask(target);
     }
 };
-
-
 
 server.ready(err => {
     if (err) throw err;

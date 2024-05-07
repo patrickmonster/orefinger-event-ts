@@ -137,8 +137,6 @@ message : ${e?.response?.data ? JSON.stringify(e.response.data) : ''}
     }),
 };
 
-console.log(`ECS: ${ECS_ID}`);
-
 ecsSelect(undefined, ECS_ID).then(async ([{ idx, revision, family }]) => {
     process.env.ECS_ID = ECS_ID;
     process.env.ECS_REVISION = revision;
