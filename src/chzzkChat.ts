@@ -19,9 +19,9 @@ if (!ECS_ID) {
     process.exit(0);
 }
 
+import client from 'components/socket/socketClient';
 import { getECSSpaceId } from 'utils/ECS';
 import { createInterval } from 'utils/inteval';
-import { Chat, ECSState } from 'utils/socketClient';
 
 const server = new ChatServer<ChzzkContent>({
     nidAuth: process.env.NID_AUTH,
@@ -162,10 +162,8 @@ server.on('reconnect', channelId => {
     });
 });
 server.on('close', channelId => {
-    Chat({
-        state: 'leave',
-        target: 'ecs',
-        data: { channelId },
+    client.emit('leve', {
+        channelId,
     });
 });
 server.on('online', message => {
@@ -205,14 +203,11 @@ ecsSelect(ECS_REVISION).then(tasks => {
     /**
      * ECS 정보를 발신합니다
      */
-    createInterval(() => {
-        ECSState({
-            state: 'user',
-            revision: ECS_REVISION,
-            data: {
-                ...server.serverState,
-                id: ECS_ID,
-            },
+    createInterval(1000 * 60 * 3, () => {
+        client.emit('state', {
+            ...server.serverState,
+            id: process.env.ECS_ID,
+            revision: process.env.ECS_REVISION,
         });
-    }, 1000 * 60 * 5);
+    });
 });

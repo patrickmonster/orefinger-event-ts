@@ -4,7 +4,7 @@
 
 import axios from 'axios';
 
-import socket from 'components/socketPrivate';
+import socket from 'components/socket/socketServer';
 import { ecsSet } from 'controllers/log';
 import { ECStask } from 'interfaces/ecs';
 /**

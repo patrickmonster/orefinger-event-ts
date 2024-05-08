@@ -1,4 +1,3 @@
-import { ecsSelect } from 'controllers/log';
 import { deleteNotice } from 'controllers/notice';
 import { NoticeBat } from 'interfaces/notice';
 
@@ -137,17 +136,20 @@ message : ${e?.response?.data ? JSON.stringify(e.response.data) : ''}
     }),
 };
 
-ecsSelect(undefined, ECS_ID).then(async ([{ idx, revision, family }]) => {
-    process.env.ECS_ID = ECS_ID;
+import socketClient from 'components/socket/socketClient';
+
+socketClient.on('init', data => {
+    const { id, revision, family, pk } = data;
+
+    process.env.ECS_ID = id;
     process.env.ECS_REVISION = revision;
     process.env.ECS_FAMILY = family;
-    process.env.ECS_PK = `${idx}`;
+    process.env.ECS_PK = pk;
 
     for (const task of Object.values(tasks)) {
-        task.on('log', (...args) => console.log(`[${idx}]`, ...args));
-        task.on('error', (...args) => console.error(`[${idx}]`, ...args));
-        task.changeTaskCount(revision, idx);
+        task.on('log', (...args) => console.log(`[${pk}]`, ...args));
+        task.on('error', (...args) => console.error(`[${pk}]`, ...args));
+        task.changeTaskCount(revision, pk);
         task.start();
     }
 });
-// GET ecs state

@@ -64,7 +64,7 @@ export default class ChatServer<
             await sleep(1000); // 1초 대기
         });
 
-        createInterval(() => {
+        createInterval(1000 * 60 * 30, () => {
             this.servers.forEach(server => {
                 if (server.isEdit) {
                     // 명령어 업데이트
@@ -84,7 +84,7 @@ export default class ChatServer<
                     server.isEdit = false;
                 }
             });
-        }, 1000 * 60 * 30);
+        });
     }
 
     get api() {
