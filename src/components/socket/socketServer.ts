@@ -36,11 +36,11 @@ server.on('connection', client => {
             }
         })
         .on('offline', data => {
-            // 현재 서바가 해당 채널을 가지고 있는지 유무 확인이 어렵기 때문에, 모든 서버로 방사합니다.
+            // 현재 서버가 해당 채널을 가지고 있는지 유무 확인이 어렵기 때문에, 모든 서버로 방사합니다.
             LIVE_STATE.serverSideEmit('offline', data);
         })
         .on('change', data => {
-            // 현재 서바가 해당 채널을 가지고 있는지 유무 확인이 어렵기 때문에, 모든 서버로 방사합니다.
+            // 현재 서버가 해당 채널을 가지고 있는지 유무 확인이 어렵기 때문에, 모든 서버로 방사합니다.
             LIVE_STATE.serverSideEmit('change', data);
         });
 
@@ -71,8 +71,8 @@ LIVE_STATE.on('online', (data, freeServer) => {
         server.emit('change', data);
     });
 
-ECS.on('new', client => {
-    console.log('new ECS connected');
+ECS.on('new', ({ id, revision, family, pk }) => {
+    console.log('New ECS connected ::', { id, revision, family, pk });
 });
 
 const serverECS: {
