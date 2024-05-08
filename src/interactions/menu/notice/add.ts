@@ -1,10 +1,10 @@
 import { MessageMenuInteraction } from 'interactions/message';
 
-import { getAfreecabeUser } from 'components/afreecaUser';
-import { getChzzkUser } from 'components/chzzkUser';
-import { getChannelVideos as getLaftel, getLaftelVod } from 'components/laftelUser';
 import { getNoticeByType, getNoticeDetailByEmbed } from 'components/notice';
-import { getChannelVideos as getYoutube, getYoutubeUser } from 'components/youtubeUser';
+import { getAfreecabeUser } from 'components/user/afreeca';
+import { getChzzkUser } from 'components/user/chzzk';
+import { getChannelVideos as getLaftel, getLaftelVod } from 'components/user/laftel';
+import { getChannelVideos as getYoutube, getYoutubeUser } from 'components/user/youtube';
 /**
  *
  * 가이드 호출 - 디비처리용

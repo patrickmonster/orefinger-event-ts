@@ -7,7 +7,7 @@ export let lastServerRequset = 0;
 let serverRequset = 0;
 export const addServerRequest = () => serverRequset++;
 
-createInterval(() => {
+createInterval(1000 * 60, () => {
     lastServerRequset = serverRequset;
     serverRequset = 0;
-}, 1000 * 60);
+});

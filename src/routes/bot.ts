@@ -9,7 +9,7 @@ export default async (fastify: FastifyInstance, opts: any) => {
     let autocomp: any = null;
 
     fastify.server.on('listening', () => {
-        console.log('onListen');
+        console.log('onListen :: Load interactions');
 
         app = require('interactions/app').default;
         autocomp = require('interactions/autocomp').default;

@@ -9,8 +9,8 @@ import {
 import { APIChatInputApplicationCommandInteractionData } from 'plugins/discord';
 import { getChzzkAPI } from 'utils/naverApiInstance';
 
-import { searchAfreecabeUser } from 'components/afreecaUser';
-import { searchChzzkUser } from 'components/chzzkUser';
+import { searchAfreecabeUser } from 'components/user/afreeca';
+import { searchChzzkUser } from 'components/user/chzzk';
 
 const chzzk = getChzzkAPI('v1');
 
