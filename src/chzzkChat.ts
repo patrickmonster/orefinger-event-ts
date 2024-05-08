@@ -1,6 +1,5 @@
 import ChatServer from 'utils/chat/server';
 
-import { ecsSelect } from 'controllers/log';
 import { Content as ChzzkContent } from 'interfaces/API/Chzzk';
 
 import 'utils/procesTuning';
@@ -19,8 +18,8 @@ if (!ECS_ID) {
     process.exit(0);
 }
 
-import client from 'components/socket/socketClient';
-import { getECSSpaceId } from 'utils/ECS';
+import client, { isInit } from 'components/socket/socketClient';
+import { ChatState } from 'components/socket/socketServer';
 import { createInterval } from 'utils/inteval';
 
 const server = new ChatServer<ChzzkContent>({
@@ -148,17 +147,13 @@ server.on('message', chat => {
 });
 
 server.on('join', channelId => {
-    Chat({
-        state: 'join',
-        target: 'ecs',
-        data: { channelId },
+    client.emit('join', {
+        channelId,
     });
 });
 server.on('reconnect', channelId => {
-    Chat({
-        state: 'change',
-        target: 'ecs',
-        data: { channelId },
+    client.emit('reconnect', {
+        channelId,
     });
 });
 server.on('close', channelId => {
@@ -166,43 +161,29 @@ server.on('close', channelId => {
         channelId,
     });
 });
-server.on('online', message => {
-    const { state, target, ...data } = message;
 
-    switch (state) {
-        case 'change': {
-            server.setServerState(data.channelId, data);
-            break;
-        }
-        case 'offline': {
-            server.removeServer(data.channelId);
-            break;
-        }
-        case 'online': {
-            const { chatChannelId, channel } = data as ChzzkContent;
-            const { channelId } = channel;
-            const processId = getECSSpaceId();
-            if (processId == process.env.ECS_PK) {
-                server.addServer(channelId, chatChannelId);
-                server.setServerState(channelId, data);
-            }
-            break;
-        }
+///////////////////////////////////////////////////////////////////////////////
+
+client.on('online', data => {
+    const { chatChannelId, channel } = data as ChzzkContent;
+    const { channelId } = channel;
+    const processId = ChatState.getECSSpaceId();
+    if (processId == process.env.ECS_PK) {
+        server.addServer(channelId, chatChannelId);
+        server.setServerState(channelId, data);
     }
 });
 
-ecsSelect(ECS_REVISION).then(tasks => {
-    if (!tasks.length) return;
-    const task = tasks.find(task => `${task.id}` === ECS_ID);
-    process.env.ECS_ID = ECS_ID;
-    process.env.ECS_REVISION = ECS_REVISION;
-    process.env.ECS_FAMILY = `${task?.family}`;
-    process.env.ECS_PK = `${task?.idx}`;
-    process.env.ECS_ROWNUM = `${task?.rownum}`;
+client.on('offline', ({ channelId }) => {
+    server.removeServer(channelId);
+});
 
-    /**
-     * ECS 정보를 발신합니다
-     */
+client.on('leave', ({ channelId }) => {
+    server.removeServer(channelId);
+});
+
+// 데이터가 로딩전이면 작업
+if (isInit())
     createInterval(1000 * 60 * 3, () => {
         client.emit('state', {
             ...server.serverState,
@@ -210,4 +191,13 @@ ecsSelect(ECS_REVISION).then(tasks => {
             revision: process.env.ECS_REVISION,
         });
     });
-});
+else
+    client.on('init', data => {
+        createInterval(1000 * 60 * 3, () => {
+            client.emit('state', {
+                ...server.serverState,
+                id: process.env.ECS_ID,
+                revision: process.env.ECS_REVISION,
+            });
+        });
+    });

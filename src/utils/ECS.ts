@@ -4,7 +4,6 @@
 
 import axios from 'axios';
 
-import socket from 'components/socket/socketServer';
 import { ecsSet } from 'controllers/log';
 import { ECStask } from 'interfaces/ecs';
 /**
@@ -36,55 +35,4 @@ export const createECSState = async () => {
         console.log('ECS_CONTAINER_METADATA_URI is not defined');
         return false;
     }
-};
-
-const serverECS: {
-    [key: string]: {
-        count: number;
-        userCount: number;
-    };
-} = {};
-
-// ECS 정보를 수신합니다
-socket.on('state', (data: any) => {
-    const { count, userCount, id, revision } = data;
-    if (revision !== process.env.ECS_REVISION) return;
-    serverECS[id] = { count, userCount };
-});
-
-/**
- * ECS 에서 가장 적은 공간을 찾아서 반환합니다.
- * @returns
- */
-export const getECSSpaceId = () => {
-    // ECS 정보를 불러옵니다.
-    const list = Object.keys(serverECS).map(key => {
-        return {
-            id: key,
-            ...serverECS[key],
-        };
-    });
-
-    const target = list.reduce(
-        (prev, curr) => {
-            if (prev.userCount > curr.userCount) return curr;
-            return prev;
-        },
-        { count: 9999999, userCount: 9999999, id: '' }
-    );
-
-    if (target.id != '') return target.id;
-    else return process.env.ECS_PK;
-};
-
-export const totalECS = () => {
-    return Object.keys(serverECS).reduce((prev, curr) => {
-        return prev + serverECS[curr].count;
-    }, 0);
-};
-
-export const totalECSUser = () => {
-    return Object.keys(serverECS).reduce((prev, curr) => {
-        return prev + serverECS[curr].userCount;
-    }, 0);
 };

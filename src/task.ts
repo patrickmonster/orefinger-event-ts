@@ -4,20 +4,13 @@ import { NoticeBat } from 'interfaces/notice';
 import { BaseTask } from 'utils/baseTask';
 import { openApi } from 'utils/discordApiInstance';
 
-const [, file, ECS_ID, ECS_REVISION] = process.argv;
-// GET ecs state
-if (!ECS_ID) {
-    console.log('ECS_ID is not defined');
-    process.exit(0);
-}
-
 import 'utils/procesTuning';
 
-import { getLiveMessage as afreeca } from 'components/afreecaUser';
-import { getLiveMessage as chzzk } from 'components/chzzkUser';
-import { getVod, getChannelVideos as laftel } from 'components/laftelUser';
 import { sendChannels } from 'components/notice';
-import { getChannelVideos as youtube } from 'components/youtubeUser';
+import { getLiveMessage as afreeca } from 'components/user/afreeca';
+import { getLiveMessage as chzzk } from 'components/user/chzzk';
+import { getVod, getChannelVideos as laftel } from 'components/user/laftel';
+import { getChannelVideos as youtube } from 'components/user/youtube';
 
 /**
  * 알림 작업 스레드 입니다.
@@ -136,20 +129,27 @@ message : ${e?.response?.data ? JSON.stringify(e.response.data) : ''}
     }),
 };
 
-import socketClient from 'components/socket/socketClient';
+import socketClient, { isInit } from 'components/socket/socketClient';
+import { ParseInt } from 'utils/object';
 
-socketClient.on('init', data => {
-    const { id, revision, family, pk } = data;
+if (isInit())
+    socketClient.on('init', data => {
+        console.log('TASK INIT :: ', data);
 
-    process.env.ECS_ID = id;
-    process.env.ECS_REVISION = revision;
-    process.env.ECS_FAMILY = family;
-    process.env.ECS_PK = pk;
+        const { id, revision, family, pk } = data;
 
+        process.env.ECS_ID = id;
+        process.env.ECS_REVISION = revision;
+        process.env.ECS_FAMILY = family;
+        process.env.ECS_PK = pk;
+
+        for (const task of Object.values(tasks)) {
+            task.changeTaskCount(`${process.env.ECS_REVISION}`, ParseInt(`${process.env.ECS_PK}`));
+            task.start();
+        }
+    });
+else
     for (const task of Object.values(tasks)) {
-        task.on('log', (...args) => console.log(`[${pk}]`, ...args));
-        task.on('error', (...args) => console.error(`[${pk}]`, ...args));
-        task.changeTaskCount(revision, pk);
+        task.changeTaskCount(`${process.env.ECS_REVISION}`, ParseInt(`${process.env.ECS_PK}`));
         task.start();
     }
-});
