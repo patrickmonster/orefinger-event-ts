@@ -24,7 +24,7 @@ if (existsSync(envDir)) {
 // 환경변수
 
 import { fork } from 'child_process';
-import socket from 'components/socketPrivate';
+import socket, { ECS } from 'components/socket/socketServer';
 import { createECSState } from 'utils/ECS';
 import 'utils/procesTuning';
 import { addServerRequest, bootTime } from 'utils/serverState';
@@ -64,21 +64,29 @@ server.listen({ port: 3000, host: '::' }, (err, address) => {
     const time = Date.now() - bootTime;
     console.log(`Server started in  ${Math.floor(time / 1000)} (${time}ms)`);
     console.log(`Server listening at ${address}`);
-    createECSState().then(isECS => {
-        console.log(`ECS: ${isECS}`);
-        if (isECS) {
-            startSubtask('/task.js');
-            startSubtask('/chzzkChat.js');
+});
 
-            socket.emit('ready', {
-                time: Math.floor(time / 1000),
-                count: 0,
-                userCount: 0,
-                revision: process.env.ECS_REVISION,
-                pk: process.env.ECS_PK,
-            });
-        }
-    });
+server.addHook('onClose', async () => {
+    socket.close();
+});
+
+//////////////////////////////////////////////////////////////////////
+// 프로세서 모듈
+
+createECSState().then(isECS => {
+    console.log(`ECS: ${isECS}`);
+    if (isECS) {
+        startSubtask('/task.js');
+        startSubtask('/chzzkChat.js');
+
+        ECS.serverSideEmit('new', {
+            // ECS 서버가 시작되었음을 알림
+            id: process.env.ECS_ID,
+            revision: process.env.ECS_REVISION,
+            family: process.env.ECS_FAMILY,
+            pk: process.env.ECS_PK,
+        });
+    }
 });
 
 /**
@@ -105,22 +113,3 @@ const stopSubtask = (target: `/${string}`, code: number) => {
         startSubtask(target);
     }
 };
-
-server.ready(err => {
-    if (err) throw err;
-});
-
-server.addHook('onClose', async () => {
-    socket.close();
-});
-
-server.ready(err => {
-    if (err) throw err;
-});
-
-server.addHook('onClose', async () => {
-    socket.close();
-});
-
-//////////////////////////////////////////////////////////////////////
-// 프로세서 모듈

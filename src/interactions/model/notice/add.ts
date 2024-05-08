@@ -1,7 +1,7 @@
-import { searchAfreecabeUser } from 'components/afreecaUser';
-import { getChzzkUser, isChzzkHash, searchChzzkUser } from 'components/chzzkUser';
 import { getNoticeDetailByEmbed } from 'components/notice';
-import { searchYoutubeUser } from 'components/youtubeUser';
+import { searchAfreecabeUser } from 'components/user/afreeca';
+import { getChzzkUser, isChzzkHash, searchChzzkUser } from 'components/user/chzzk';
+import { searchYoutubeUser } from 'components/user/youtube';
 import { MessageMenuInteraction } from 'interactions/message';
 import {
     createActionRow,

@@ -9,7 +9,7 @@
 
 const loops: Array<NodeJS.Timeout> = [];
 
-export const createInterval = (fn: () => void, time: number) => {
+export const createInterval = (time: number, fn: () => void) => {
     const loop = setInterval(fn, time);
     loops.push(loop);
     return loop;
