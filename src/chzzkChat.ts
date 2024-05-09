@@ -192,7 +192,7 @@ client.on(CLIENT_EVENT.chatMove, pid => {
 const sendState = () => {
     client.emit(CLIENT_EVENT.chatState, {
         ...server.serverState,
-        id: process.env.ECS_ID,
+        idx: process.env.ECS_PK,
         revision: process.env.ECS_REVISION,
     });
 };
