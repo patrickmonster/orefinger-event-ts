@@ -2,6 +2,9 @@ import ChatServer from 'utils/chat/server';
 
 import { Content as ChzzkContent } from 'interfaces/API/Chzzk';
 
+import client from 'components/socket/socketClient';
+import { CLIENT_EVENT } from 'components/socket/socketInterface';
+import { createInterval } from 'utils/inteval';
 import 'utils/procesTuning';
 
 /**
@@ -13,15 +16,6 @@ const [, file, ECS_ID, ECS_REVISION] = process.argv;
 
 // 봇 접두사
 const prefix = '@';
-
-if (!ECS_ID) {
-    console.log('ECS_ID is not defined');
-    process.exit(0);
-}
-
-import client from 'components/socket/socketClient';
-import { CLIENT_EVENT } from 'components/socket/socketInterface';
-import { createInterval } from 'utils/inteval';
 
 const server = new ChatServer<ChzzkContent>({
     nidAuth: process.env.NID_AUTH,
@@ -161,16 +155,22 @@ server.on('close', channelId => {
 ///////////////////////////////////////////////////////////////////////////////
 
 // 채팅방 입장 명령
-client.on(CLIENT_EVENT.chatJoin, data => {
-    const { chatChannelId, channel } = data as ChzzkContent;
-    const { channelId } = channel;
+client.on(CLIENT_EVENT.chatJoin, ({ noticeId, hashId, liveStatus }) => {
+    const { chatChannelId } = liveStatus as ChzzkContent;
 
-    server.addServer(channelId, chatChannelId);
-    server.setServerState(channelId, data);
+    server.addServer(hashId, chatChannelId);
+    server.setServerState(hashId, liveStatus);
+});
+
+// 채팅방 변경 명령
+client.on(CLIENT_EVENT.chatChange, ({ noticeId, hashId, liveStatus }) => {
+    const { chatChannelId } = liveStatus as ChzzkContent;
+    server.updateChannel(hashId, chatChannelId);
+    server.setServerState(hashId, liveStatus);
 });
 
 // 채팅방 퇴장 명령
-client.on(CLIENT_EVENT.chatLeave, ({ channelId }) => {
+client.on(CLIENT_EVENT.chatLeave, channelId => {
     server.removeServer(channelId);
 });
 
