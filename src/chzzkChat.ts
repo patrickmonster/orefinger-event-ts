@@ -20,6 +20,7 @@ if (!ECS_ID) {
 }
 
 import client from 'components/socket/socketClient';
+import { CLIENT_EVENT } from 'components/socket/socketInterface';
 import { ChatState } from 'components/socket/socketServer';
 import { createInterval } from 'utils/inteval';
 
@@ -146,18 +147,13 @@ server.on('message', chat => {
 });
 
 server.on('join', channelId => {
-    client.emit('chatJoin', {
+    client.emit(CLIENT_EVENT.chatConnect, {
         channelId,
     });
     sendState();
 });
-server.on('reconnect', channelId => {
-    client.emit('chatReconnect', {
-        channelId,
-    });
-});
 server.on('close', channelId => {
-    client.emit('chatLeave', {
+    client.emit(CLIENT_EVENT.chatDisconnect, {
         channelId,
     });
     sendState();
@@ -165,7 +161,8 @@ server.on('close', channelId => {
 
 ///////////////////////////////////////////////////////////////////////////////
 
-client.on('online', data => {
+// 채팅방 입장 명령
+client.on(CLIENT_EVENT.chatJoin, data => {
     const { chatChannelId, channel } = data as ChzzkContent;
     const { channelId } = channel;
     const processId = ChatState.getECSSpaceId();
@@ -175,26 +172,25 @@ client.on('online', data => {
     }
 });
 
-client.on('offline', ({ channelId }) => {
-    server.removeServer(channelId);
-});
-
-client.on('leave', ({ channelId }) => {
+// 채팅방 퇴장 명령
+client.on(CLIENT_EVENT.chatLeave, ({ channelId }) => {
     server.removeServer(channelId);
 });
 
 // 채팅방 이동 (채팅방 이동시, 채팅방 정보를 전달합니다.)
-client.on('move', pid => {
+client.on(CLIENT_EVENT.chatMove, pid => {
+    if (!pid) return;
     for (const chatServer of server.serverList) {
         const { chatChannelId } = chatServer;
         const data = server.getChannelState(chatChannelId);
 
-        if (data) client.emit('chatChange', data);
+        // 온라인 이벤트로, 신규 서버에 전달합니다
+        if (data) client.emit(CLIENT_EVENT.liveOnline, data, pid);
     }
 });
 
 const sendState = () => {
-    client.emit('chatState', {
+    client.emit(CLIENT_EVENT.chatState, {
         ...server.serverState,
         id: process.env.ECS_ID,
         revision: process.env.ECS_REVISION,
