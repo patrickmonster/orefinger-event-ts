@@ -7,10 +7,13 @@ import { openApi } from 'utils/discordApiInstance';
 import 'utils/procesTuning';
 
 import { sendChannels } from 'components/notice';
+import socketClient, { isInit } from 'components/socket/socketClient';
 import { getLiveMessage as afreeca } from 'components/user/afreeca';
 import { getLiveMessage as chzzk } from 'components/user/chzzk';
 import { getVod, getChannelVideos as laftel } from 'components/user/laftel';
 import { getChannelVideos as youtube } from 'components/user/youtube';
+
+import { ParseInt } from 'utils/object';
 
 /**
  * 알림 작업 스레드 입니다.
@@ -128,9 +131,6 @@ message : ${e?.response?.data ? JSON.stringify(e.response.data) : ''}
         }
     }),
 };
-
-import socketClient, { isInit } from 'components/socket/socketClient';
-import { ParseInt } from 'utils/object';
 
 if (isInit())
     socketClient.on('init', data => {
