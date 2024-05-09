@@ -3,12 +3,14 @@ import { createSubscribe } from 'utils/token';
 
 import auth from './auth';
 import bot from './bot';
+import chzzk from './redirect';
 import user from './user';
 
 export default async (fastify: FastifyInstance, opts: any) => {
     fastify.register(auth);
     fastify.register(user);
     fastify.register(bot);
+    fastify.register(chzzk);
 
     fastify.get('/ping', { schema: { hide: true } }, async (req, res) => 'pong');
     fastify.get('/', { schema: { hide: true } }, (q, r) => r.redirect('https://orefinger.click'));

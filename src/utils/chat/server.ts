@@ -281,6 +281,8 @@ export default class ChatServer<
                     else return `ERROR] Notfound feat command 'target' - \${feat url}`;
                     break;
                 case 'post':
+                    // r.orefinger.click
+                    // https://r.orefinger.click/l/chzzk/9351394
                     break;
                 default:
                 //
