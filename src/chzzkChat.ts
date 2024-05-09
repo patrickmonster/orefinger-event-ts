@@ -10,6 +10,7 @@ import 'utils/procesTuning';
  */
 
 const [, file, ECS_ID, ECS_REVISION] = process.argv;
+
 // 봇 접두사
 const prefix = '@';
 
@@ -18,7 +19,7 @@ if (!ECS_ID) {
     process.exit(0);
 }
 
-import client, { isInit } from 'components/socket/socketClient';
+import client from 'components/socket/socketClient';
 import { ChatState } from 'components/socket/socketServer';
 import { createInterval } from 'utils/inteval';
 
@@ -126,9 +127,7 @@ server.on('message', chat => {
                 break;
             }
             case `${prefix}h`: {
-                chat.reply(
-                    `a [c] [a] ADD / d [c] - DELETE / l - LIST / s - SAVE / r - RELOAD / h - HELP / server - SERVER`
-                );
+                chat.reply(`a [c] [a] ADD / d [c] - DELETE / l - LIST / s - SAVE / r - RELOAD / h - HELP`);
                 break;
             }
             case `${prefix}server`: {
@@ -147,19 +146,21 @@ server.on('message', chat => {
 });
 
 server.on('join', channelId => {
-    client.emit('join', {
+    client.emit('chatJoin', {
         channelId,
     });
+    sendState();
 });
 server.on('reconnect', channelId => {
-    client.emit('reconnect', {
+    client.emit('chatReconnect', {
         channelId,
     });
 });
 server.on('close', channelId => {
-    client.emit('leve', {
+    client.emit('chatLeave', {
         channelId,
     });
+    sendState();
 });
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -182,22 +183,23 @@ client.on('leave', ({ channelId }) => {
     server.removeServer(channelId);
 });
 
+// 채팅방 이동 (채팅방 이동시, 채팅방 정보를 전달합니다.)
+client.on('move', pid => {
+    for (const chatServer of server.serverList) {
+        const { chatChannelId } = chatServer;
+        const data = server.getChannelState(chatChannelId);
+
+        if (data) client.emit('chatChange', data);
+    }
+});
+
+const sendState = () => {
+    client.emit('chatState', {
+        ...server.serverState,
+        id: process.env.ECS_ID,
+        revision: process.env.ECS_REVISION,
+    });
+};
+
 // 데이터가 로딩전이면 작업
-if (isInit())
-    createInterval(1000 * 60 * 3, () => {
-        client.emit('state', {
-            ...server.serverState,
-            id: process.env.ECS_ID,
-            revision: process.env.ECS_REVISION,
-        });
-    });
-else
-    client.on('init', data => {
-        createInterval(1000 * 60 * 3, () => {
-            client.emit('state', {
-                ...server.serverState,
-                id: process.env.ECS_ID,
-                revision: process.env.ECS_REVISION,
-            });
-        });
-    });
+createInterval(1000 * 60 * 3, sendState);
