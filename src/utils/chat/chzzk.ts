@@ -319,7 +319,7 @@ export default class ChzzkWebSocket<T extends ChatUser = ChatUser, C extends Com
      *  - 채널이 업데이트 된 경우, 소캣을 새로 연결합니다.
      */
     updateChannel(cid: string, token: string) {
-        if (this.defaultHeader?.cid == cid) {
+        if (this.defaultHeader?.cid != cid) {
             this.defaultHeader = {
                 cid,
                 svcid: 'game',

@@ -36,7 +36,7 @@ server.on('connection', client => {
                 const freeServer = ChatState.getECSSpaceId();
                 // 본 서버가 부하가 많은 경우, 모든 서버로 방사 합니다.
                 if (freeServer == process.env.ECS_PK) {
-                    server.emit('online', data);
+                    server.emit(CLIENT_EVENT.chatJoin, data);
                 } else {
                     // ISSU. 각 서버에서 확인하면, 중복으로 실행 되는 경우가 더러 있어, 수정
                     LIVE_STATE.serverSideEmit(LIVE_EVENT.online, data, freeServer);
@@ -66,7 +66,7 @@ server.on('connection', client => {
 LIVE_STATE.on(LIVE_EVENT.online, (data, freeServer) => {
     // 현재 방사된 데이터가 현재의 서버인지 확인 합니다.
     if (freeServer == process.env.ECS_PK) {
-        server.emit(CLIENT_EVENT.chatJoin, data);
+        server.emit(CLIENT_EVENT.chatJoin, data, freeServer);
     }
 })
     .on(LIVE_EVENT.offline, ({ noticeId, hashId, liveStatus }) => {
