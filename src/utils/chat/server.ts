@@ -333,6 +333,10 @@ export default class ChatServer<
         if (this.servers.has(roomId)) this.state.set(roomId, liveStatus);
     }
 
+    getState(roomId: string) {
+        return this.state.get(roomId);
+    }
+
     send(roomId: string, message: string) {
         const server = this.servers.get(roomId);
         if (server) {
