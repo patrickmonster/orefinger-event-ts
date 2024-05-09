@@ -280,6 +280,8 @@ export default class ChatServer<
                     if (target) axios.post(appendUrlHttp(target), { feat: target });
                     else return `ERROR] Notfound feat command 'target' - \${feat url}`;
                     break;
+                case 'post':
+                    break;
                 default:
                 //
             }

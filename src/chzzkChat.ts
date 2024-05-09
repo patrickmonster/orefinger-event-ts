@@ -21,7 +21,6 @@ if (!ECS_ID) {
 
 import client from 'components/socket/socketClient';
 import { CLIENT_EVENT } from 'components/socket/socketInterface';
-import { ChatState } from 'components/socket/socketServer';
 import { createInterval } from 'utils/inteval';
 
 const server = new ChatServer<ChzzkContent>({
@@ -165,11 +164,9 @@ server.on('close', channelId => {
 client.on(CLIENT_EVENT.chatJoin, data => {
     const { chatChannelId, channel } = data as ChzzkContent;
     const { channelId } = channel;
-    const processId = ChatState.getECSSpaceId();
-    if (processId == process.env.ECS_PK) {
-        server.addServer(channelId, chatChannelId);
-        server.setServerState(channelId, data);
-    }
+
+    server.addServer(channelId, chatChannelId);
+    server.setServerState(channelId, data);
 });
 
 // 채팅방 퇴장 명령
