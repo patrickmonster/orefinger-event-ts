@@ -182,7 +182,7 @@ client.on(CLIENT_EVENT.chatMove, pid => {
     if (!pid) return;
     for (const chatServer of server.serverList) {
         const { chatChannelId } = chatServer;
-        const data = server.getChannelState(chatChannelId);
+        const data = server.getState(chatChannelId);
 
         // 온라인 이벤트로, 신규 서버에 전달합니다
         if (data) client.emit(CLIENT_EVENT.liveOnline, data, pid);
