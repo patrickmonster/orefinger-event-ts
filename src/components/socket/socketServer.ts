@@ -35,7 +35,7 @@ server.on('connection', client => {
                 // 현재 ECS 여유로운 서버가 현재 ECS 서버인지 확인합니다.
                 const freeServer = ChatState.getECSSpaceId();
                 // 본 서버가 부하가 많은 경우, 모든 서버로 방사 합니다.
-                if (freeServer == process.env.ECS_ID) {
+                if (freeServer == process.env.ECS_PK) {
                     server.emit('online', data);
                 } else {
                     // ISSU. 각 서버에서 확인하면, 중복으로 실행 되는 경우가 더러 있어, 수정
@@ -53,10 +53,10 @@ server.on('connection', client => {
     // Chat State
     client
         .on(CLIENT_EVENT.chatState, data => {
-            CHAT.serverSideEmit(CHAT_EVENT.state, data, process.env.ECS_ID);
+            CHAT.serverSideEmit(CHAT_EVENT.state, data, process.env.ECS_PK);
         })
         .on(CLIENT_EVENT.chatConnect, data => {
-            CHAT.serverSideEmit(CHAT_EVENT.join, data, process.env.ECS_ID);
+            CHAT.serverSideEmit(CHAT_EVENT.join, data, process.env.ECS_PK);
         });
 });
 
@@ -65,7 +65,7 @@ server.on('connection', client => {
  */
 LIVE_STATE.on(LIVE_EVENT.online, (data, freeServer) => {
     // 현재 방사된 데이터가 현재의 서버인지 확인 합니다.
-    if (freeServer == process.env.ECS_ID) {
+    if (freeServer == process.env.ECS_PK) {
         server.emit(CLIENT_EVENT.chatJoin, data);
     }
 })
@@ -87,13 +87,13 @@ ECS.on('new', async ({ id, revision, family, pk }) => {
         servers = list;
     } else {
         // 현재 버전이 오래된 버전임을 확인함
-        const target = list.find(item => item.id == id);
-        const thisServer = servers.find(item => item.id == process.env.ECS_ID);
+        const target = list.find(item => item.idx == pk);
+        const thisServer = servers.find(item => item.idx == process.env.ECS_PK);
         if (!target || !thisServer) return;
 
         if (target.rownum == thisServer.rownum) {
             // 현재 서버가 가장 오래된 서버인 경우, 이사를 합니다.
-            server.emit(CLIENT_EVENT.chatMove, id);
+            server.emit(CLIENT_EVENT.chatMove, pk);
         }
     }
 });
@@ -102,17 +102,17 @@ ECS.on('new', async ({ id, revision, family, pk }) => {
  * 채팅 정보를 전달합니다.
  */
 CHAT.on(CHAT_EVENT.state, data => {
-    const { count, userCount, id, revision } = data;
+    const { count, userCount, idx, revision } = data;
     if (revision !== process.env.ECS_REVISION) return;
-    serverECS[id] = { count, userCount };
+    serverECS[idx] = { count, userCount };
 })
     .on(CHAT_EVENT.join, (data, pid) => {
-        if (pid == process.env.ECS_ID) return;
+        if (pid == process.env.ECS_PK) return;
         // 외부 서버가 채팅방에 접속한 경우, 현재 서버에 연결된 채널의 연결을 해지합니다 (중복 제거)
         server.emit(CLIENT_EVENT.chatLeave, data);
     })
     .on(CHAT_EVENT.change, (data, pid) => {
-        if (pid != process.env.ECS_ID) return;
+        if (pid != process.env.ECS_PK) return;
         server.emit(CLIENT_EVENT.liveOnline, data);
     });
 
