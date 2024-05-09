@@ -155,18 +155,21 @@ server.on('close', channelId => {
 ///////////////////////////////////////////////////////////////////////////////
 
 // 채팅방 입장 명령
-client.on(CLIENT_EVENT.chatJoin, ({ noticeId, hashId, liveStatus }) => {
+client.on(CLIENT_EVENT.chatJoin, ({ noticeId, hashId, liveStatus }, freeServer) => {
     const { chatChannelId } = liveStatus as ChzzkContent;
-
-    server.addServer(hashId, chatChannelId);
-    server.setServerState(hashId, liveStatus);
+    if (freeServer == process.env.ECS_PK) {
+        server.addServer(hashId, chatChannelId);
+        server.setServerState(hashId, liveStatus);
+    }
 });
 
 // 채팅방 변경 명령
-client.on(CLIENT_EVENT.chatChange, ({ noticeId, hashId, liveStatus }) => {
+client.on(CLIENT_EVENT.chatChange, ({ noticeId, hashId, liveStatus }, freeServer) => {
     const { chatChannelId } = liveStatus as ChzzkContent;
-    server.updateChannel(hashId, chatChannelId);
-    server.setServerState(hashId, liveStatus);
+    if (freeServer == process.env.ECS_PK) {
+        server.updateChannel(hashId, chatChannelId);
+        server.setServerState(hashId, liveStatus);
+    }
 });
 
 // 채팅방 퇴장 명령
