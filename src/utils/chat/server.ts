@@ -121,6 +121,9 @@ export default class ChatServer<
     addServer(roomId: string, chatChannelId?: string, callback?: Function) {
         if (this.servers.has(roomId)) return 0;
         if (this.servers.size > 60000) return -1; // 서버 수 제한
+
+        console.log('CHAT SERVER ADD ::', roomId, chatChannelId);
+
         this.queue.add(async () => {
             if (!chatChannelId)
                 chatChannelId = await this._api
@@ -165,6 +168,7 @@ export default class ChatServer<
             this.loadCommand(roomId).catch(console.error);
 
             this.emit('join', roomId, chatChannelId);
+            console.log('CHAT SERVER JOIN ::', roomId, chatChannelId);
 
             await server.connect();
             await sleep(100); // 1초 대기
