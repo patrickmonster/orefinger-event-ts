@@ -46,7 +46,7 @@ server.on('connection', client => {
         .on(CLIENT_EVENT.liveOffline, data => {
             LIVE_STATE.serverSideEmit(LIVE_EVENT.offline, data);
         })
-        .on(CLIENT_EVENT.chatChange, data => {
+        .on(CLIENT_EVENT.liveChange, data => {
             LIVE_STATE.serverSideEmit(LIVE_EVENT.change, data);
         });
 
@@ -55,8 +55,8 @@ server.on('connection', client => {
         .on(CLIENT_EVENT.chatState, data => {
             CHAT.serverSideEmit(CHAT_EVENT.state, data, process.env.ECS_PK);
         })
-        .on(CLIENT_EVENT.chatConnect, data => {
-            CHAT.serverSideEmit(CHAT_EVENT.join, data, process.env.ECS_PK);
+        .on(CLIENT_EVENT.chatConnect, ({ channelId }) => {
+            CHAT.serverSideEmit(CHAT_EVENT.join, { channelId }, process.env.ECS_PK);
         });
 });
 
@@ -69,8 +69,8 @@ LIVE_STATE.on(LIVE_EVENT.online, (data, freeServer) => {
         server.emit(CLIENT_EVENT.chatJoin, data);
     }
 })
-    .on(LIVE_EVENT.offline, data => {
-        server.emit(CLIENT_EVENT.chatLeave, data);
+    .on(LIVE_EVENT.offline, ({ noticeId, hashId, liveStatus }) => {
+        server.emit(CLIENT_EVENT.chatLeave, hashId);
     })
     .on(LIVE_EVENT.change, data => {
         server.emit(CLIENT_EVENT.chatChange, data);
@@ -106,10 +106,10 @@ CHAT.on(CHAT_EVENT.state, data => {
     if (revision !== process.env.ECS_REVISION) return;
     serverECS[idx] = { count, userCount };
 })
-    .on(CHAT_EVENT.join, (data, pid) => {
+    .on(CHAT_EVENT.join, ({ channelId }, pid) => {
         if (pid == process.env.ECS_PK) return;
         // 외부 서버가 채팅방에 접속한 경우, 현재 서버에 연결된 채널의 연결을 해지합니다 (중복 제거)
-        server.emit(CLIENT_EVENT.chatLeave, data);
+        server.emit(CLIENT_EVENT.chatLeave, { channelId });
     })
     .on(CHAT_EVENT.change, (data, pid) => {
         if (pid != process.env.ECS_PK) return;
