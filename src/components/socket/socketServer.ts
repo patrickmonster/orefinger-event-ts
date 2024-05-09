@@ -1,8 +1,8 @@
 import { createAdapter } from '@socket.io/redis-adapter';
+import { CHAT_EVENT, CLIENT_EVENT, LIVE_EVENT } from 'components/socket/socketInterface';
 import { ecsSelect } from 'controllers/log';
 import { Redis } from 'ioredis';
 import { Server } from 'socket.io';
-import { CHAT_EVENT, LIVE_EVENT } from './socketInterface';
 
 const pubClient = new Redis(`${process.env.REDIS_URL}`);
 const subClient = pubClient.duplicate();
@@ -27,40 +27,36 @@ server.on('connection', client => {
 
     // LiveState
     client
-        .on('liveOnline', data => {
-            // 현재 ECS 여유로운 서버가 현재 ECS 서버인지 확인합니다.
-            const freeServer = ChatState.getECSSpaceId();
-            // 본 서버가 부하가 많은 경우, 모든 서버로 방사 합니다.
-            if (freeServer == process.env.ECS_ID) {
-                server.emit('online', data);
+        .on(CLIENT_EVENT.liveOnline, (data, pid) => {
+            if (pid) {
+                // 특정 서버로 방사합니다. (서버가 교체되는 경우 사용)
+                LIVE_STATE.serverSideEmit(LIVE_EVENT.online, data, pid);
             } else {
-                // ISSU. 각 서버에서 확인하면, 중복으로 실행 되는 경우가 더러 있어, 수정
-                LIVE_STATE.serverSideEmit(LIVE_EVENT.online, data, freeServer);
+                // 현재 ECS 여유로운 서버가 현재 ECS 서버인지 확인합니다.
+                const freeServer = ChatState.getECSSpaceId();
+                // 본 서버가 부하가 많은 경우, 모든 서버로 방사 합니다.
+                if (freeServer == process.env.ECS_ID) {
+                    server.emit('online', data);
+                } else {
+                    // ISSU. 각 서버에서 확인하면, 중복으로 실행 되는 경우가 더러 있어, 수정
+                    LIVE_STATE.serverSideEmit(LIVE_EVENT.online, data, freeServer);
+                }
             }
         })
-        .on('liveOffline', data => {
-            // 현재 서버가 해당 채널을 가지고 있는지 유무 확인이 어렵기 때문에, 모든 서버로 방사합니다.
+        .on(CLIENT_EVENT.liveOffline, data => {
             LIVE_STATE.serverSideEmit(LIVE_EVENT.offline, data);
         })
-        .on('liveChange', data => {
-            // 현재 서버가 해당 채널을 가지고 있는지 유무 확인이 어렵기 때문에, 모든 서버로 방사합니다.
+        .on(CLIENT_EVENT.chatChange, data => {
             LIVE_STATE.serverSideEmit(LIVE_EVENT.change, data);
         });
 
     // Chat State
     client
-        .on('chatState', data => {
+        .on(CLIENT_EVENT.chatState, data => {
             CHAT.serverSideEmit(CHAT_EVENT.state, data, process.env.ECS_ID);
         })
-        .on('chatJoin', data => {
+        .on(CLIENT_EVENT.chatConnect, data => {
             CHAT.serverSideEmit(CHAT_EVENT.join, data, process.env.ECS_ID);
-        })
-        .on('chatChange', data => {
-            const freeServer = ChatState.getECSSpaceId();
-            CHAT.serverSideEmit(CHAT_EVENT.change, data, freeServer);
-        })
-        .on('chatLeave', data => {
-            CHAT.serverSideEmit(CHAT_EVENT.leave, data, process.env.ECS_ID);
         });
 });
 
@@ -70,14 +66,14 @@ server.on('connection', client => {
 LIVE_STATE.on(LIVE_EVENT.online, (data, freeServer) => {
     // 현재 방사된 데이터가 현재의 서버인지 확인 합니다.
     if (freeServer == process.env.ECS_ID) {
-        server.emit('online', data);
+        server.emit(CLIENT_EVENT.chatJoin, data);
     }
 })
     .on(LIVE_EVENT.offline, data => {
-        server.emit('offline', data);
+        server.emit(CLIENT_EVENT.chatLeave, data);
     })
     .on(LIVE_EVENT.change, data => {
-        server.emit('change', data);
+        server.emit(CLIENT_EVENT.chatChange, data);
     });
 
 let servers: any[] = [];
@@ -97,7 +93,7 @@ ECS.on('new', async ({ id, revision, family, pk }) => {
 
         if (target.rownum == thisServer.rownum) {
             // 현재 서버가 가장 오래된 서버인 경우, 이사를 합니다.
-            server.emit('move', id);
+            server.emit(CLIENT_EVENT.chatMove, id);
         }
     }
 });
@@ -113,11 +109,11 @@ CHAT.on(CHAT_EVENT.state, data => {
     .on(CHAT_EVENT.join, (data, pid) => {
         if (pid == process.env.ECS_ID) return;
         // 외부 서버가 채팅방에 접속한 경우, 현재 서버에 연결된 채널의 연결을 해지합니다 (중복 제거)
-        server.emit('leave', data);
+        server.emit(CLIENT_EVENT.chatLeave, data);
     })
     .on(CHAT_EVENT.change, (data, pid) => {
         if (pid != process.env.ECS_ID) return;
-        server.emit('online', data);
+        server.emit(CLIENT_EVENT.liveOnline, data);
     });
 
 //////////////////////////////////////////////////////////////////////////
