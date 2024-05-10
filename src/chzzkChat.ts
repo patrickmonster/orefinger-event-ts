@@ -31,7 +31,7 @@ server.on('message', chat => {
     } = chat;
     const client = server.getServer(streamingChannelId);
     if (!client) return;
-    const [userCommand, ...args] = message.split(' ');
+    const [userCommand, ...args] = `${message}`.split(' ');
 
     const command = client.commands.find(({ command }) => command.toUpperCase() === userCommand.trim().toUpperCase());
 
