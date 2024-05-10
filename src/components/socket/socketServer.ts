@@ -77,7 +77,7 @@ ECS.on('new', async ({ id, revision, family, pk }) => {
     const list = await ecsSelect(revision);
     // 새로운 버전의 ECS
     if (revision == process.env.ECS_REVISION) {
-        serverECS[id] = { count: 0, userCount: 0 };
+        serverECS[pk] = { count: 0, userCount: 0 };
         servers = list;
     } else {
         // 현재 버전이 오래된 버전임을 확인함
