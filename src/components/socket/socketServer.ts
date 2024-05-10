@@ -28,19 +28,13 @@ server.on('connection', client => {
     // LiveState
     client
         .on(CLIENT_EVENT.liveOnline, (data, pid) => {
-            if (pid) {
-                // 특정 서버로 방사합니다. (서버가 교체되는 경우 사용)
-                LIVE_STATE.serverSideEmit(LIVE_EVENT.online, data, pid);
+            const targetId = pid || ChatState.getECSSpaceId();
+            if (targetId == process.env.ECS_PK) {
+                // 현재 서버에 방송을 합니다.
+                server.emit(CLIENT_EVENT.chatJoin, data, process.env.ECS_PK);
             } else {
-                // 현재 ECS 여유로운 서버가 현재 ECS 서버인지 확인합니다.
-                const freeServer = ChatState.getECSSpaceId();
-                // 본 서버가 부하가 많은 경우, 모든 서버로 방사 합니다.
-                if (freeServer == process.env.ECS_PK) {
-                    server.emit(CLIENT_EVENT.chatJoin, data);
-                } else {
-                    // ISSU. 각 서버에서 확인하면, 중복으로 실행 되는 경우가 더러 있어, 수정
-                    LIVE_STATE.serverSideEmit(LIVE_EVENT.online, data, freeServer);
-                }
+                // 다른 서버에 방송을 합니다.
+                LIVE_STATE.serverSideEmit(LIVE_EVENT.online, data, targetId);
             }
         })
         .on(CLIENT_EVENT.liveOffline, data => {
@@ -98,13 +92,16 @@ ECS.on('new', async ({ id, revision, family, pk }) => {
     }
 });
 
+// ce66b73c250f43719d7f473a3f387058
+
 /**
  * 채팅 정보를 전달합니다.
  */
 CHAT.on(CHAT_EVENT.state, data => {
     const { count, userCount, idx, revision } = data;
-    if (revision !== process.env.ECS_REVISION) return;
-    serverECS[idx] = { count, userCount };
+    if (revision == process.env.ECS_REVISION) {
+        serverECS[idx] = { count, userCount };
+    }
 })
     .on(CHAT_EVENT.join, ({ channelId }, pid) => {
         if (pid == process.env.ECS_PK) return;
