@@ -30,8 +30,8 @@ server.on('message', chat => {
         extras: { streamingChannelId },
     } = chat;
     const client = server.getServer(streamingChannelId);
-    if (!client) return;
-    const [userCommand, ...args] = `${message}`.split(' ');
+    if (!client || !message) return;
+    const [userCommand, ...args] = message.split(' ');
 
     const command = client.commands.find(({ command }) => command.toUpperCase() === userCommand.trim().toUpperCase());
 
@@ -182,7 +182,7 @@ client.on(CLIENT_EVENT.chatMove, pid => {
     if (!pid) return;
     for (const chatServer of server.serverList) {
         const { chatChannelId } = chatServer;
-        const data = server.getState(chatChannelId);
+        const data = server.getChannelState(chatChannelId);
 
         // 온라인 이벤트로, 신규 서버에 전달합니다
         if (data) client.emit(CLIENT_EVENT.liveOnline, data, pid);
