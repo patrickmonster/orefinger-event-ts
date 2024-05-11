@@ -44,6 +44,7 @@ server.on('message', chat => {
 
         switch (userCommand) {
             case `${prefix}a`:
+            case `${prefix}A`:
             case `${prefix}add`: {
                 const [question, ...answer] = args;
                 const command = question.trim();
@@ -67,6 +68,7 @@ server.on('message', chat => {
                 break;
             }
             case `${prefix}s`:
+            case `${prefix}S`:
             case `${prefix}save`: {
                 chat.reply(`명령어를 저장중...`);
                 Promise.all([server.saveCommand(streamingChannelId), server.saveUser(streamingChannelId)]).then(() => {
@@ -75,8 +77,8 @@ server.on('message', chat => {
                 break;
             }
             case `${prefix}d`:
-            case `${prefix}delete`:
-            case `${prefix}remove`: {
+            case `${prefix}D`:
+            case `${prefix}delete`: {
                 const [question] = args;
 
                 if (!question) {
@@ -95,6 +97,7 @@ server.on('message', chat => {
                 break;
             }
             case `${prefix}l`:
+            case `${prefix}L`:
             case `${prefix}list`: {
                 chat.reply(
                     client.commands
@@ -105,6 +108,7 @@ server.on('message', chat => {
                 break;
             }
             case `${prefix}r`:
+            case `${prefix}R`:
             case `${prefix}reload`: {
                 chat.reply('명령어를 다시 불러옵니다... 적용까지 1분...');
                 Promise.all([server.loadUser(streamingChannelId), server.loadCommand(streamingChannelId)])
@@ -117,11 +121,16 @@ server.on('message', chat => {
                 break;
             }
             case `${prefix}help`: {
-                chat.reply(`https://orefinger.notion.site/Chzzk-Bata-abe6b265f0e74356b300af8fbe76d0cc`);
+                chat.reply(`https://r.orefinger.click/help?t=bot`);
                 break;
             }
-            case `${prefix}h`: {
+            case `${prefix}h`:
+            case `${prefix}H`: {
                 chat.reply(`a [c] [a] ADD / d [c] - DELETE / l - LIST / s - SAVE / r - RELOAD / h - HELP`);
+                break;
+            }
+            case `${prefix}인사`: {
+                chat.reply(`안녕하세요! 저는 디스코드에서 방송알림을 전송하고 있어요...! 🎉`);
                 break;
             }
             case `${prefix}server`: {
