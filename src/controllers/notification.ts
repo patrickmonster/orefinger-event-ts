@@ -146,7 +146,10 @@ LIMIT 30
     `
     );
 
-export const selectNotice = async (page: Paging, { type, hash }: { type?: number; hash?: string }) =>
+export const selectNotice = async (
+    page: Paging,
+    { type, hash, noticeId }: { type?: number; hash?: string; noticeId?: string }
+) =>
     selectPaging<{
         notice_id: number;
         hash_id: string;
@@ -174,6 +177,7 @@ SELECT
 FROM v_notice vn
 WHERE 1=1
 ${calTo('AND vn.notice_type = ?', type)}
+${calLikeTo('AND vn.notice_id = ?', noticeId)}
 ${calLikeTo('AND vn.hash_id like ?', hash)}
         `,
         page
