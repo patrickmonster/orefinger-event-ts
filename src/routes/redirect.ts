@@ -1,7 +1,6 @@
 import { FastifyInstance } from 'fastify';
 
 export default async (fastify: FastifyInstance, opts: any) => {
-    // http://localhost:3000/link/chzzk/9351394
     fastify.get<{
         Params: { postId: string; target: string };
         Querystring: { hashId?: string };
@@ -21,6 +20,16 @@ export default async (fastify: FastifyInstance, opts: any) => {
                 return res.code(404).send({ error: 'Not Found' });
         }
     });
-};
 
-// https://r.orefinger.click/chzzk/9351394
+    fastify.get<{
+        Querystring: { t?: string };
+    }>('/help', { schema: { hide: true } }, (q, r) => {
+        if (!q.query.t) return r.redirect(301, `https://orefinger.notion.site/`);
+        switch (q.query.t) {
+            case 'bot':
+                return r.redirect(301, `https://orefinger.notion.site/Chzzk-Bata-abe6b265f0e74356b300af8fbe76d0cc`);
+            default:
+                return r.code(404).send({ error: 'Not Found' });
+        }
+    });
+};
