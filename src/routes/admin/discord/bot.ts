@@ -2,10 +2,38 @@ import { FastifyInstance } from 'fastify';
 
 import axios from 'axios';
 import socket from 'components/socket/socketClient';
-import { CLIENT_EVENT } from 'components/socket/socketInterface';
+import { CHAT_EVENT, CLIENT_EVENT } from 'components/socket/socketInterface';
 import { selectNotice } from 'controllers/notification';
 
+import { CHAT } from 'components/socket/socketServer';
+
 export default async (fastify: FastifyInstance, opts: any) => {
+    fastify.post<{
+        Body: {
+            key: string;
+            session: string;
+        };
+    }>(
+        '/bot/chzzk',
+        {
+            onRequest: [fastify.masterkey],
+            schema: {
+                security: [{ Master: [] }],
+                description: '키 변경',
+                tags: ['Admin'],
+                deprecated: false,
+            },
+        },
+        (req, reply) => {
+            //
+            CHAT.emit(CHAT_EVENT.auth, {
+                nidAuth: req.body.key,
+                nidSession: req.body.session,
+            });
+
+            return { success: true };
+        }
+    );
     fastify.get<{
         Params: { noticeId: string };
     }>(
@@ -15,7 +43,7 @@ export default async (fastify: FastifyInstance, opts: any) => {
             schema: {
                 security: [{ Master: [] }],
                 description: '채팅에 강제 입장',
-                tags: ['Main'],
+                tags: ['Admin'],
                 deprecated: false,
             },
         },
