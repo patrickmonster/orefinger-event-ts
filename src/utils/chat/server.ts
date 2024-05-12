@@ -85,6 +85,9 @@ export default class ChatServer<
 
     setAuth(auth: string, session: string) {
         this._api.setAuth(auth, session);
+        if (this.queue.isPaused) {
+            this.queue.start();
+        }
     }
 
     init(options?: ChatServerOption<C>) {
