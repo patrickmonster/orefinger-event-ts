@@ -18,19 +18,7 @@ const [, file, ECS_ID, ECS_REVISION] = process.argv;
 // 봇 접두사
 const prefix = '@';
 
-const server = new ChatServer<ChzzkContent>({
-    concurrency: 1,
-});
-
-authTypes(true).then(types => {
-    const type = types.find(({ auth_type }) => auth_type == 13);
-
-    if (!type) return;
-
-    console.log('SET AUTH', type.scope, type.client_sc);
-
-    server.setAuth(type.scope, type.client_sc);
-});
+const server = new ChatServer<ChzzkContent>();
 
 server.on('message', chat => {
     const {
@@ -208,7 +196,7 @@ client.on(CLIENT_EVENT.chatMove, pid => {
 });
 
 client.on(CLIENT_EVENT.chatAuth, async (nidAuth, nidSession) => {
-    server.setAuth(nidAuth, nidSession);
+    server.init(nidAuth, nidSession);
 
     console.log('SET AUTH', nidAuth, nidSession);
 
@@ -225,6 +213,17 @@ const sendState = () => {
     });
     // redis
 };
+
+setTimeout(() => {
+    authTypes(true).then(types => {
+        const type = types.find(({ auth_type }) => auth_type == 13);
+        if (!type) return;
+
+        console.log('SET AUTH', type.scope, type.client_sc);
+
+        server.init(type.scope, type.client_sc);
+    });
+}, 1000 * 10);
 
 // 데이터가 로딩전이면 작업
 createInterval(1000 * 60 * 3, sendState);

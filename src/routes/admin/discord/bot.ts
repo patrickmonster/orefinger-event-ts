@@ -52,7 +52,7 @@ export default async (fastify: FastifyInstance, opts: any) => {
 
             const {
                 list: [notice],
-            } = await selectNotice({ page: 1, limit: 1 }, { noticeId });
+            } = await selectNotice({ page: 1, limit: 1 }, { noticeId, type: 4 });
 
             if (!notice) {
                 return { success: false, message: '채널이 등록되지 않았습니다!' };
