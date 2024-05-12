@@ -58,12 +58,6 @@ export default class ChatServer<
         this._api = new ChzzkAPI(options);
         this.queue = new PQueue({ concurrency: options?.concurrency || 1 });
 
-        this.queue.add(async () => {
-            const user = await this._api.user();
-            this.uid = user?.userIdHash;
-            await sleep(1000); // 1초 대기
-        });
-
         createInterval(1000 * 60 * 30, () => {
             this.servers.forEach(server => {
                 if (server.isEdit) {
@@ -85,6 +79,25 @@ export default class ChatServer<
                 }
             });
         });
+
+        this.init(options);
+    }
+
+    setAuth(auth: string, session: string) {
+        this._api.setAuth(auth, session);
+    }
+
+    init(options?: ChatServerOption<C>) {
+        if (options?.nidAuth && options?.nidSession) {
+            this.queue.add(async () => {
+                const user = await this._api.user();
+                this.uid = user?.userIdHash;
+                await sleep(1000); // 1초 대기
+            });
+            this.queue.start();
+        } else {
+            this.queue.pause();
+        }
     }
 
     get api() {

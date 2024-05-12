@@ -84,12 +84,13 @@ export const authTypes = async (isAll?: boolean) =>
         auth_type: number;
         tag: string;
         tag_kr: string;
-        client_id: string;
         target: string;
+        scope: string;
+        client_id: string;
         client_sc: string;
     }>(
         `
-select auth_type, tag, tag_kr
+select auth_type, tag, tag_kr, scope
 ${isAll ? '' : '-- '}, client_id , target , client_sc
 from auth_type
 WHERE 1=1

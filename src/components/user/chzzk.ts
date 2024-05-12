@@ -17,7 +17,7 @@ import { KeyVal } from 'interfaces/text';
 import socketClient from 'components/socket/socketClient';
 import { CLIENT_EVENT } from 'components/socket/socketInterface';
 import { ENCRYPT_KEY, sha256 } from 'utils/cryptoPw';
-import { appendTextWing, createActionRow, createSuccessButton, createUrlButton } from 'utils/discord/component';
+import { createActionRow, createUrlButton } from 'utils/discord/component';
 import { ChzzkInterface, getChzzkAPI } from 'utils/naverApiInstance';
 import redis, { REDIS_KEY, saveRedis } from 'utils/redis';
 
@@ -297,9 +297,9 @@ export const getLiveMessage = async ({
             embeds: [convertVideoObject(liveStatus, name)],
             components: [
                 createActionRow(
-                    createSuccessButton(`notice attendance ${noticeId}`, {
-                        label: appendTextWing('📌출석체크\u3164', 8), // 크기보정
-                    }),
+                    // createSuccessButton(`notice attendance ${noticeId}`, {
+                    //     label: appendTextWing('📌출석체크\u3164', 8), // 크기보정
+                    // }),
                     createUrlButton(`https://chzzk.naver.com/live/${hashId}`, {
                         emoji: { id: '1218118186717937775' },
                     })

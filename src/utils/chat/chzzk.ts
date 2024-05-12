@@ -31,6 +31,11 @@ export class ChzzkAPI {
         this.nidSession = options?.nidSession;
     }
 
+    setAuth(nidAuth: string, nidSession: string) {
+        this.nidAuth = nidAuth;
+        this.nidSession = nidSession;
+    }
+
     get hasAuth() {
         return this.nidAuth && this.nidSession;
     }

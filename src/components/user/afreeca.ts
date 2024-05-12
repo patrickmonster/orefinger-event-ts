@@ -10,7 +10,7 @@ import { APIEmbed, APIMessage } from 'discord-api-types/v10';
 import { Content } from 'interfaces/API/Afreeca';
 import { NoticeBat } from 'interfaces/notice';
 import afreecaAPI from 'utils/afreecaApiInstance';
-import { appendTextWing, createActionRow, createSuccessButton, createUrlButton } from 'utils/discord/component';
+import { createActionRow, createUrlButton } from 'utils/discord/component';
 import { randomIntegerInRange } from 'utils/object';
 import redis, { REDIS_KEY, saveRedis } from 'utils/redis';
 
@@ -211,9 +211,9 @@ export const getLiveMessage = async ({ channels, notice_id, hash_id, message, na
             embeds: [embed],
             components: [
                 createActionRow(
-                    createSuccessButton(`notice attendance ${notice_id}`, {
-                        label: appendTextWing('📌출석체크\u3164', 9), // 크기보정
-                    }),
+                    // createSuccessButton(`notice attendance ${notice_id}`, {
+                    //     label: appendTextWing('📌출석체크\u3164', 9), // 크기보정
+                    // }),
                     createUrlButton(`${embed.url}`, {
                         emoji: { id: '1218859390988456027' },
                     })
