@@ -4,7 +4,7 @@ import EventEmitter from 'events';
 import PQueue from 'p-queue';
 
 import { selectChatUsers, selectCommand, upsertChatUser, upsertCommand } from 'controllers/chat/chzzk';
-import { ChatDonation, ChatMessage, ChatOption } from 'interfaces/chzzk/chat';
+import { ChatDonation, ChatMessage } from 'interfaces/chzzk/chat';
 
 import ChzzkChat, { ChatUser, ChzzkAPI, Command } from 'utils/chat/chzzk';
 import { getTimeDiff } from 'utils/day';
@@ -19,14 +19,6 @@ export type BaseChatMessage<C extends any> = (ChatDonation | ChatMessage) & {
     reply: (message: string) => void;
     commands: C[];
 };
-
-/**
- * 채팅 서버 옵션
- * @interface ChatServerOption
- */
-interface ChatServerOption<T> extends ChatOption {
-    concurrency?: number; // 동시에 생성할 수 있는 서버 수
-}
 
 /**
  * 채팅 서버 관리자
@@ -53,10 +45,10 @@ export default class ChatServer<
     private _api: ChzzkAPI;
     private uid?: string;
 
-    constructor(options?: ChatServerOption<C>) {
+    constructor() {
         super();
-        this._api = new ChzzkAPI(options);
-        this.queue = new PQueue({ concurrency: options?.concurrency || 1 });
+        this._api = new ChzzkAPI();
+        this.queue = new PQueue({ concurrency: 1, autoStart: false });
 
         createInterval(1000 * 60 * 30, () => {
             this.servers.forEach(server => {
@@ -80,27 +72,16 @@ export default class ChatServer<
             });
         });
 
-        this.init(options);
+        this.queue.add(async () => {
+            const user = await this._api.user();
+            this.uid = user?.userIdHash;
+            await sleep(1000); // 1초 대기
+        });
     }
 
-    setAuth(auth: string, session: string) {
+    init(auth: string, session: string) {
         this._api.setAuth(auth, session);
-        if (this.queue.isPaused) {
-            this.queue.start();
-        }
-    }
-
-    init(options?: ChatServerOption<C>) {
-        if (options?.nidAuth && options?.nidSession) {
-            this.queue.add(async () => {
-                const user = await this._api.user();
-                this.uid = user?.userIdHash;
-                await sleep(1000); // 1초 대기
-            });
-            this.queue.start();
-        } else {
-            this.queue.pause();
-        }
+        this.queue.start();
     }
 
     get api() {
