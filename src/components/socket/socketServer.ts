@@ -17,6 +17,9 @@ export const LIVE_STATE = server.of('/liveState');
 export const CHAT = server.of('/chat');
 export const ECS = server.of('/ecs');
 
+// 서버 이전이 확정된 경우, 이전할 PK를 저장합니다.
+let lastPK = 0;
+
 server.on('connection', client => {
     client.emit('init', {
         id: process.env.ECS_ID,
@@ -28,7 +31,7 @@ server.on('connection', client => {
     // LiveState
     client
         .on(CLIENT_EVENT.liveOnline, (data, pid) => {
-            const targetId = pid || ChatState.getECSSpaceId();
+            const targetId = lastPK || pid || ChatState.getECSSpaceId();
             if (targetId == process.env.ECS_PK) {
                 // 현재 서버에 방송을 합니다.
                 server.emit(CLIENT_EVENT.chatJoin, data, process.env.ECS_PK);
@@ -87,6 +90,8 @@ ECS.on('new', async ({ id, revision, family, pk }) => {
 
         if (target.rownum == thisServer.rownum) {
             // 현재 서버가 가장 오래된 서버인 경우, 이사를 합니다.
+            if (!pk) return;
+            lastPK = pk;
             server.emit(CLIENT_EVENT.chatMove, pk);
         }
     }
