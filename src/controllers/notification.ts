@@ -177,7 +177,7 @@ SELECT
 FROM v_notice vn
 WHERE 1=1
 ${calTo('AND vn.notice_type = ?', type)}
-${calLikeTo('AND vn.notice_id = ?', noticeId)}
+${calTo('AND vn.notice_id = ?', noticeId)}
 ${calLikeTo('AND vn.hash_id like ?', hash)}
         `,
         page
