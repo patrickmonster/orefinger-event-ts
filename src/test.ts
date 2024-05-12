@@ -22,11 +22,7 @@ import 'utils/procesTuning';
 // 봇 접두사
 const prefix = '@';
 
-const server = new ChatServer<ChzzkContent>({
-    nidAuth: process.env.NID_AUTH,
-    nidSession: process.env.NID_SECRET,
-    concurrency: 1,
-});
+const server = new ChatServer<ChzzkContent>();
 
 server.on('message', chat => {
     const {
