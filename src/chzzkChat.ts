@@ -27,6 +27,8 @@ authTypes(true).then(types => {
 
     if (!type) return;
 
+    console.log('SET AUTH', type.scope, type.client_sc);
+
     server.setAuth(type.scope, type.client_sc);
 });
 
@@ -207,6 +209,8 @@ client.on(CLIENT_EVENT.chatMove, pid => {
 
 client.on(CLIENT_EVENT.chatAuth, async (nidAuth, nidSession) => {
     server.setAuth(nidAuth, nidSession);
+
+    console.log('SET AUTH', nidAuth, nidSession);
 
     for (const chatServer of server.serverList) {
         await chatServer.reconnect();
