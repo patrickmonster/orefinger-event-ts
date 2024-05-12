@@ -116,6 +116,10 @@ CHAT.on(CHAT_EVENT.state, data => {
     .on(CHAT_EVENT.change, (data, pid) => {
         if (pid != process.env.ECS_PK) return;
         server.emit(CLIENT_EVENT.liveOnline, data);
+    })
+    .on(CHAT_EVENT.auth, ({ nidAuth, nidSession }) => {
+        if (!nidAuth || !nidSession) return;
+        server.emit(CLIENT_EVENT.chatAuth, nidAuth, nidSession);
     });
 
 //////////////////////////////////////////////////////////////////////////
