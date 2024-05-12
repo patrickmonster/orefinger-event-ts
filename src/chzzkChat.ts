@@ -4,6 +4,7 @@ import { Content as ChzzkContent } from 'interfaces/API/Chzzk';
 
 import client from 'components/socket/socketClient';
 import { CLIENT_EVENT } from 'components/socket/socketInterface';
+import { authTypes } from 'controllers/auth';
 import { createInterval } from 'utils/inteval';
 import 'utils/procesTuning';
 
@@ -18,9 +19,15 @@ const [, file, ECS_ID, ECS_REVISION] = process.argv;
 const prefix = '@';
 
 const server = new ChatServer<ChzzkContent>({
-    nidAuth: process.env.NID_AUTH,
-    nidSession: process.env.NID_SECRET,
     concurrency: 1,
+});
+
+authTypes(true).then(types => {
+    const type = types.find(({ auth_type }) => auth_type == 13);
+
+    if (!type) return;
+
+    server.setAuth(type.scope, type.client_sc);
 });
 
 server.on('message', chat => {
@@ -195,6 +202,14 @@ client.on(CLIENT_EVENT.chatMove, pid => {
 
         // 온라인 이벤트로, 신규 서버에 전달합니다
         if (data) client.emit(CLIENT_EVENT.liveOnline, data, pid);
+    }
+});
+
+client.on(CLIENT_EVENT.chatAuth, async (nidAuth, nidSession) => {
+    server.setAuth(nidAuth, nidSession);
+
+    for (const chatServer of server.serverList) {
+        await chatServer.reconnect();
     }
 });
 

@@ -17,6 +17,8 @@ export const CHAT_EVENT = {
     change: 'chatChange',
     reconnect: 'chatReconnect',
     state: 'chatState',
+
+    auth: 'chatAuth',
 };
 
 // 클라이언트 이벤트 - 내부전용
@@ -33,6 +35,7 @@ export const CLIENT_EVENT = {
     chatLeave: 'private-chatLeave',
     chatChange: 'private-chatChange',
     chatMove: 'private-chatMove', // 채팅방 이동명령
+    chatAuth: 'private-chatAuth', // 인증 수정
 
     // 채팅방 연결/해제
     chatConnect: 'private-chatConnect',
