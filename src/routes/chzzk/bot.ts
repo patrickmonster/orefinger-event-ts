@@ -7,7 +7,9 @@ export default async (fastify: FastifyInstance, opts: any) => {
     }>(
         '/bot/:hashId',
         {
+            onRequest: [fastify.authenticate],
             schema: {
+                security: [{ Bearer: [] }],
                 description: `명령어를 조회합니다.`,
                 tags: ['ChzzkBot', 'Chzzk'],
                 deprecated: false,
@@ -32,7 +34,9 @@ export default async (fastify: FastifyInstance, opts: any) => {
     }>(
         '/bot/:hashId',
         {
+            onRequest: [fastify.authenticate],
             schema: {
+                security: [{ Bearer: [] }],
                 description: `명령어를 조회합니다.`,
                 tags: ['ChzzkBot', 'Chzzk'],
                 deprecated: false,
@@ -67,7 +71,9 @@ export default async (fastify: FastifyInstance, opts: any) => {
     }>(
         '/bot/:hashId',
         {
+            onRequest: [fastify.authenticate],
             schema: {
+                security: [{ Bearer: [] }],
                 description: `명령어를 생성합니다.`,
                 tags: ['ChzzkBot', 'Chzzk'],
                 deprecated: false,
