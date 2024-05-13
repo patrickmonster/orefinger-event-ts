@@ -4,6 +4,7 @@ import { Content as ChzzkContent } from 'interfaces/API/Chzzk';
 
 import client from 'components/socket/socketClient';
 import { CLIENT_EVENT } from 'components/socket/socketInterface';
+import { authTypes } from 'controllers/auth';
 import { createInterval } from 'utils/inteval';
 import 'utils/procesTuning';
 
@@ -25,6 +26,7 @@ server.on('message', chat => {
         profile: { userRoleCode },
         extras: { streamingChannelId },
     } = chat;
+
     const client = server.getServer(streamingChannelId);
     if (!client || !message) return;
     const [userCommand, ...args] = message.split(' ');
@@ -213,20 +215,13 @@ const sendState = () => {
     // redis
 };
 
-setTimeout(() => {
-    server.init(
-        'p31VxTafuR6+r2XAxF0wq/YHzhuk4aQxTKKir3jfPhWXt5XUNQk4jiO/2JFjnCHs',
-        'AAABfVtd6qm+oLOX1xwAHdjjq0enjbjN0mmgc58+x+HGC6EEBdWTEf2tcFDjmGlADSOxJ1TjLfcWqx7QE2HMLZVDWUUn5MCyX5vBs7WeueDPIASt7ljOJsoits0Q7yZIEyyUxOY1/NaS4LfN1TNTuZjR6wO4HZbQHqo5DgGhFdjIDyUbavPbDEeRYjSJ7CUPgbd0lhxaP9w2UiqWjo+gY4dRBGiS8tVXQNSOem1BC8YHcqMFOrddwiNAus7QMFct2HgMc+kZpl7Zc8GIXysGSFyDNPkhAkOu//uccqIho7H/RH0FUJagp68QE8EoEI+rF4fyHGQhBM5e29X8mhx7KzrzRWqsgIW9u/n6BmtpnvYEFIPKnd0A9lo0vHPrHvj2uPVBch4ShRPdxMwpIQwnX/A4g/3QQ5JIol5v3YyMTXmDfQpTQWdsaBXS/r87g2tritPfVTLDg+pmf1nK/oZgaU0od3OwEt1EgLYbCUg1PFdhvFnNhHjlx7zlaVmuS1OcCrJnRA=='
-    );
-    // authTypes(true).then(types => {
-    //     const type = types.find(({ auth_type }) => auth_type == 13);
-    //     if (!type) return;
+authTypes(true, 13).then(([type]) => {
+    if (!type) return;
 
-    //     console.log('SET AUTH', type.scope, type.client_sc);
+    console.log('SET AUTH', type.scope, type.client_sc);
 
-    //     server.init(type.scope, type.client_sc);
-    // });
-}, 1000 * 10);
+    server.init(type.scope, type.client_sc);
+});
 
 // 데이터가 로딩전이면 작업
 createInterval(1000 * 60 * 3, sendState);

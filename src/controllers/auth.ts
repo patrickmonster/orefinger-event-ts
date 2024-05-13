@@ -79,7 +79,7 @@ WHERE \`type\` in (?) and user_id=?
     );
 };
 
-export const authTypes = async (isAll?: boolean) =>
+export const authTypes = async (isAll?: boolean, type?: number) =>
     await query<{
         auth_type: number;
         tag: string;
@@ -94,7 +94,8 @@ select auth_type, tag, tag_kr, scope
 ${isAll ? '' : '-- '}, client_id , target , client_sc
 from auth_type
 WHERE 1=1
-and use_yn ='Y'
+${calTo('AND auth_type = ?', type)}
+AND use_yn ='Y'
         `
     );
 
