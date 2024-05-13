@@ -141,6 +141,14 @@ export type SelectPagingResult<E> = {
 export const query = async <E>(query: string, ...params: any[]): Promise<ResqultQuery<E>> =>
     await getConnection(async (c: queryFunctionType) => c(query, ...params));
 
+export const upsert = async (pkKey: string, params: any): Promise<ResqultQuery<SqlInsertUpdate>> => {
+    const { [pkKey]: pk, ...pm } = params;
+
+    if (!pk) throw new Error('PK가 없습니다.');
+
+    return await query<SqlInsertUpdate>(`INSERT INTO auth SET ? ON DUPLICATE KEY UPDATE ?`, params, pm);
+};
+
 export const setLimit = (l: number) => (limit = l);
 
 // 페이징하여 조회

@@ -24,16 +24,15 @@ export default async (fastify: FastifyInstance, opts: any) => {
                 deprecated: false,
             },
         },
-        (req, reply) => {
-            //
+        async req => {
             CHAT.emit(CHAT_EVENT.auth, {
                 nidAuth: req.body.key,
                 nidSession: req.body.session,
             });
-
             return { success: true };
         }
     );
+
     fastify.get<{
         Params: { noticeId: string };
     }>(

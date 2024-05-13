@@ -17,6 +17,7 @@ import ChatServer from 'utils/chat/server';
 
 import { Content as ChzzkContent } from 'interfaces/API/Chzzk';
 
+import { authTypes } from 'controllers/auth';
 import 'utils/procesTuning';
 
 // 봇 접두사
@@ -149,6 +150,9 @@ server.on('message', chat => {
     }
 });
 
+server.on('message', ({ message, profile: { nickname }, extras: { streamingChannelId } }) => {
+    console.log(nickname, '::', message);
+});
 server.on('join', channelId => {
     console.log('join', channelId);
 });
@@ -158,4 +162,12 @@ server.on('close', channelId => {
 
 ///////////////////////////////////////////////////////////////////////////////
 
-server.addServer('e229d18df2edef8c9114ae6e8b20373a');
+server.addServer('394332d1459f7fb6b6e043ba4fccde69');
+
+authTypes(true, 13).then(([type]) => {
+    if (!type) return;
+
+    console.log('SET AUTH', type.scope, type.client_sc);
+
+    server.init(type.scope, type.client_sc);
+});

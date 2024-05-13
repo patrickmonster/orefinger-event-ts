@@ -1,5 +1,5 @@
 import { Snowflake } from 'discord-api-types/globals';
-import getConnection, { format, query } from 'utils/database';
+import getConnection, { SqlInsertUpdate, format, query } from 'utils/database';
 
 export interface ChatLog {
     message_id: Snowflake;
@@ -113,7 +113,7 @@ AND channel_id = ?
         channel_id
     );
 
-export const upsertCommand = async (
+export const upsertCommands = async (
     channel_id: string,
     ...commands: {
         command: string;
@@ -132,3 +132,23 @@ export const upsertCommand = async (
                 )}`
             );
     }, true);
+
+export const upsertCommand = async (
+    channel_id: string,
+    commands: {
+        command: string;
+        message: string;
+        type: number;
+    }
+) =>
+    query<SqlInsertUpdate>(
+        `INSERT INTO auth SET ? ON DUPLICATE KEY UPDATE ?`,
+        {
+            channel_id,
+            ...commands,
+        },
+        commands
+    );
+
+export const deleteCommand = async (channel_id: string, command: string) =>
+    query<SqlInsertUpdate>(`DELETE FROM chat_cmd WHERE channel_id=? AND command=?`, channel_id, command);
