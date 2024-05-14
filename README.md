@@ -11,7 +11,7 @@
 - NLB
 - RDS
 - Route 53
-- EC2 (Redis / )
+- EC2 (Redis)
 
 배포환경
 - gitaction
@@ -40,8 +40,6 @@
 - Feat : 새로운 기능 추가
 - Fix : 버그 수정
 - Docs : 문서 수정
-- Style : 코드 포맷팅, 세미콜론 등의 스타일 수정(코드 자체 수정 X)
-- Refactor : 프로덕션 코드 리팩토링
 - Test : 테스트 코드, 테스트 코드 리팩토링
 
 
@@ -59,7 +57,8 @@
   - 인증
 
 ## 이슈 트래킹
-
+- redis pub/sub server 
+- socket.io (redis-adapter)
 
 # 지원 플렛폼
 <img src="https://cdn.orefinger.click/upload/466950273928134666/557750f3-8109-473a-8c52-fce47fe215d8.png" width="20%" height="auto">
