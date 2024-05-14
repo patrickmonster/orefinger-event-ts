@@ -1,4 +1,11 @@
-import { deleteCommand, selectCommand, upsertCommand } from 'controllers/chat/chzzk';
+import {
+    deleteCommand,
+    selectChatAlias,
+    selectChatPermission,
+    selectCommand,
+    selectCommandType,
+    upsertCommand,
+} from 'controllers/chat/chzzk';
 import { FastifyInstance } from 'fastify';
 
 import { ENCRYPT_KEY, sha256 } from 'utils/cryptoPw';
@@ -18,8 +25,8 @@ export default async (fastify: FastifyInstance, opts: any) => {
             onRequest: [fastify.authenticate],
             schema: {
                 security: [{ Bearer: [] }],
-                description: `채널 권한을 업데이트 합니다.`,
-                summary: '권한업데이트',
+                description: `채널 권한 코드를 발급합니다.`,
+                summary: '권한코드 발급',
                 tags: ['ChzzkBot', 'Chzzk'],
                 deprecated: false,
                 params: {
@@ -45,11 +52,60 @@ export default async (fastify: FastifyInstance, opts: any) => {
     fastify.get<{
         Params: { hashId: string };
     }>(
+        '/bot/:hashId/permission',
+        {
+            schema: {
+                description: `채널 권한을 확인합니다.`,
+                summary: '권한확인',
+                tags: ['ChzzkBot', 'Chzzk'],
+                deprecated: false,
+                params: {
+                    type: 'object',
+                    required: ['hashId'],
+                    properties: {
+                        hashId: {
+                            type: 'string',
+                            description: '치지직 채널 아이디',
+                        },
+                    },
+                },
+            },
+        },
+        async req => await selectChatPermission(req.params.hashId)
+    );
+
+    fastify.get(
+        '/alias',
+        {
+            schema: {
+                description: `별칭을 조회합니다.`,
+                summary: '별칭 조회',
+                tags: ['ChzzkBot', 'Chzzk'],
+                deprecated: false,
+            },
+        },
+        async req => await selectChatAlias()
+    );
+
+    fastify.get<{}>(
+        '/commandType',
+        {
+            schema: {
+                description: `명령어 타입을 조회합니다.`,
+                summary: '명령어 타입 조회',
+                tags: ['ChzzkBot', 'Chzzk'],
+                deprecated: false,
+            },
+        },
+        async req => await selectCommandType()
+    );
+
+    fastify.get<{
+        Params: { hashId: string };
+    }>(
         '/bot/:hashId',
         {
-            onRequest: [fastify.authenticate],
             schema: {
-                security: [{ Bearer: [] }],
                 description: `명령어를 조회합니다.`,
                 summary: '명령어 조회',
                 tags: ['ChzzkBot', 'Chzzk'],

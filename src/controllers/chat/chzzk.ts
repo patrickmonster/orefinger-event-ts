@@ -1,5 +1,5 @@
 import { Snowflake } from 'discord-api-types/globals';
-import getConnection, { SqlInsertUpdate, format, query } from 'utils/database';
+import getConnection, { SqlInsertUpdate, calTo, format, query } from 'utils/database';
 
 export interface ChatLog {
     message_id: Snowflake;
@@ -106,11 +106,25 @@ SELECT
     cc.command
     , cc.message as answer
     , cc.type
+    , cc.use_yn
 FROM chat_cmd cc
 WHERE 1=1
 AND channel_id = ?
     `,
         channel_id
+    );
+
+export const selectCommandType = async () =>
+    query<{
+        type: number;
+        name: string;
+    }>(
+        `
+SELECT \`type\`, name
+FROM chat_cmd_type cct 
+WHERE 1=1
+AND use_yn = 'Y'
+    `
     );
 
 export const upsertCommands = async (
@@ -185,3 +199,42 @@ AND name = ?
         );
     });
 };
+
+export const selectChatPermission = async (channelId: string, user_id?: string) =>
+    query<{
+        permission: number;
+    }>(
+        `
+SELECT channel_id
+    , user_id
+    , \`type\`
+    , create_at
+FROM chat_permission
+WHERE 1=1
+${calTo('AND user_id = ?', user_id)}
+AND channel_id = ?
+        `,
+        channelId
+    );
+
+/**
+ * 채팅 별칭 조회
+ * @param channelId
+ * @param user_id
+ * @returns
+ */
+export const selectChatAlias = async () =>
+    query<{
+        permission: number;
+    }>(
+        `
+SELECT idx
+    , origin
+    , description
+    , create_at
+    , use_ym
+FROM discord.chat_alias
+WHERE 1=1
+AND use_ym = 'Y'
+        `
+    );
