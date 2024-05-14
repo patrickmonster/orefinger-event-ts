@@ -244,15 +244,7 @@ export default class ChatServer<
             [key: string]: any;
         } = {
             user: nickname,
-            userId: userIdHash,
-            streamer: liveStatus?.channel?.channelName,
-            streamerId: streamingChannelId,
             member: memberCount,
-            id,
-            channel: cid,
-            title: liveStatus?.liveTitle,
-            game: liveStatus?.liveCategoryValue,
-            gameValue: liveStatus?.liveCategoryValue,
 
             // TODO: Add more aliases
             pid: process.env.ECS_ID,
