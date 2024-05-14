@@ -45,7 +45,6 @@ server.on('message', chat => {
 
         switch (userCommand) {
             case `${prefix}`: {
-                // 명령어 리스트 https://r.orefinger.click/bot/572729aeb2631be6b2483adf083efee6
                 chat.reply(`명령어 리스트 https://r.orefinger.click/bot/${streamingChannelId}`);
                 break;
             }

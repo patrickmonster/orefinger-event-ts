@@ -156,7 +156,7 @@ export const upsertCommand = async (
     }
 ) =>
     query<SqlInsertUpdate>(
-        `INSERT INTO auth SET ? ON DUPLICATE KEY UPDATE ?`,
+        `INSERT INTO chat_cmd SET ? ON DUPLICATE KEY UPDATE ?`,
         {
             channel_id,
             ...commands,
@@ -202,7 +202,10 @@ AND name = ?
 
 export const selectChatPermission = async (channelId: string, user_id?: string) =>
     query<{
-        permission: number;
+        channel_id: string;
+        user_id: string;
+        type: number;
+        create_at: Date;
     }>(
         `
 SELECT channel_id

@@ -12,8 +12,10 @@ import { ENCRYPT_KEY, sha256 } from 'utils/cryptoPw';
 
 export default async (fastify: FastifyInstance, opts: any) => {
     // 치지직 유저의 권한을 확인합니다.
-    const hasPermission = async (userId: string) => {
-        //
+    const hasPermission = async (hashId: string, userId: string) => {
+        const [user] = await selectChatPermission(hashId, userId);
+
+        return user?.type !== 1;
     };
 
     // 해당 사용자 토큰을 발급 합니다.
@@ -87,7 +89,7 @@ export default async (fastify: FastifyInstance, opts: any) => {
         async req => await selectChatAlias()
     );
 
-    fastify.get<{}>(
+    fastify.get(
         '/commandType',
         {
             schema: {
@@ -160,12 +162,17 @@ export default async (fastify: FastifyInstance, opts: any) => {
                 },
             },
         },
-        async req => await deleteCommand(req.params.hashId, req.query.command)
+        async req => {
+            if (!hasPermission(req.params.hashId, req.user.id)) {
+                return { success: false, message: '권한이 없습니다.' };
+            }
+            return await deleteCommand(req.params.hashId, req.query.command);
+        }
     );
 
     fastify.post<{
         Params: { hashId: string };
-        Body: { command: string; message: string; type: number };
+        Body: { command: string; answer: string; type: number };
     }>(
         '/bot/:hashId',
         {
@@ -188,13 +195,13 @@ export default async (fastify: FastifyInstance, opts: any) => {
                 },
                 body: {
                     type: 'object',
-                    required: ['command', 'message'],
+                    required: ['command', 'answer', 'type'],
                     properties: {
                         command: {
                             type: 'string',
                             description: '명령어',
                         },
-                        message: {
+                        answer: {
                             type: 'string',
                             description: '응답',
                         },
@@ -209,9 +216,13 @@ export default async (fastify: FastifyInstance, opts: any) => {
         },
         async req => {
             const { hashId } = req.params;
-            const { command, message, type } = req.body;
+            const { command, answer, type } = req.body;
 
-            return await upsertCommand(hashId, { command, message, type });
+            if (!hasPermission(req.params.hashId, req.user.id)) {
+                return { success: false, message: '권한이 없습니다.' };
+            }
+
+            return await upsertCommand(hashId, { command, message: answer, type });
         }
     );
 };
