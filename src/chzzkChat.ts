@@ -4,8 +4,12 @@ import { Content as ChzzkContent } from 'interfaces/API/Chzzk';
 
 import client from 'components/socket/socketClient';
 import { CLIENT_EVENT } from 'components/socket/socketInterface';
+import { authTypes } from 'controllers/auth';
 import { createInterval } from 'utils/inteval';
 import 'utils/procesTuning';
+
+import { upsertChatPermission } from 'controllers/chat/chzzk';
+import { ENCRYPT_KEY, sha256 } from 'utils/cryptoPw';
 
 /**
  *
@@ -25,6 +29,7 @@ server.on('message', chat => {
         profile: { userRoleCode },
         extras: { streamingChannelId },
     } = chat;
+
     const client = server.getServer(streamingChannelId);
     if (!client || !message) return;
     const [userCommand, ...args] = message.split(' ');
@@ -39,6 +44,32 @@ server.on('message', chat => {
         }
 
         switch (userCommand) {
+            case `${prefix}`: {
+                chat.reply(`명령어 리스트 https://r.orefinger.click/bot/${streamingChannelId}`);
+                break;
+            }
+            case `${prefix}AUTH`: {
+                const [user, key] = args;
+                if (!key || !user) {
+                    chat.reply('인증키가 없어욧! - AUTH [인증키]');
+                    return;
+                }
+                const origin = sha256(`${user}:${streamingChannelId}`, ENCRYPT_KEY).replace(/[^a-zA-Z0-9]/g, '');
+                if (origin !== key) {
+                    chat.reply('초오오비상!! 누가 해킹하려고 해욧! (대충 인증키가 틀렸다는거에요)');
+                    return;
+                }
+
+                upsertChatPermission(user, streamingChannelId, userRoleCode)
+                    .then(() => {
+                        chat.reply('뿌뿌루 빰빰🎉 관리자가 등록되었어요!📌');
+                    })
+                    .catch(() => {
+                        chat.reply('앗...! 등록에 실패했어요! 관리자에게 문의해주세요!📌 (아마 코드가 없는거 같아요)');
+                    });
+
+                break;
+            }
             case `${prefix}a`:
             case `${prefix}A`:
             case `${prefix}add`: {
@@ -63,15 +94,6 @@ server.on('message', chat => {
                 chat.reply(`명령어가 ${idx != -1 ? '교체' : '추가'}되었습니다. - ${command}`);
                 break;
             }
-            case `${prefix}s`:
-            case `${prefix}S`:
-            case `${prefix}save`: {
-                chat.reply(`명령어를 저장중...`);
-                Promise.all([server.saveCommand(streamingChannelId), server.saveUser(streamingChannelId)]).then(() => {
-                    chat.reply(`명령어가 저장되었습니다. - ${streamingChannelId}`);
-                });
-                break;
-            }
             case `${prefix}d`:
             case `${prefix}D`:
             case `${prefix}delete`: {
@@ -92,37 +114,10 @@ server.on('message', chat => {
                 chat.reply(`명령어가 삭제되었습니다. - ${question}`);
                 break;
             }
-            case `${prefix}l`:
-            case `${prefix}L`:
-            case `${prefix}list`: {
-                chat.reply(
-                    client.commands
-                        .map(({ command }) => command)
-                        .join(', ')
-                        .slice(0, 2000)
-                );
-                break;
-            }
-            case `${prefix}r`:
-            case `${prefix}R`:
-            case `${prefix}reload`: {
-                chat.reply('명령어를 다시 불러옵니다... 적용까지 1분...');
-                Promise.all([server.loadUser(streamingChannelId), server.loadCommand(streamingChannelId)])
-                    .then(() => {
-                        chat.reply(`명령어를 다시 불러왔습니다.`);
-                    })
-                    .catch(() => {
-                        chat.reply(`Error :: Command Reload Failed. - 관리자에게 문의하세요.`);
-                    });
-                break;
-            }
-            case `${prefix}help`: {
-                chat.reply(`https://r.orefinger.click/help?t=bot`);
-                break;
-            }
             case `${prefix}h`:
-            case `${prefix}H`: {
-                chat.reply(`a [c] [a] ADD / d [c] - DELETE / l - LIST / s - SAVE / r - RELOAD / h - HELP`);
+            case `${prefix}H`:
+            case `${prefix}help`: {
+                chat.reply(`도움말 https://r.orefinger.click/help?t=bot`);
                 break;
             }
             case `${prefix}인사`: {
@@ -165,6 +160,13 @@ client.on(CLIENT_EVENT.chatJoin, ({ noticeId, hashId, liveStatus }, freeServer) 
     if (freeServer == process.env.ECS_PK) {
         server.addServer(hashId, chatChannelId);
         server.setServerState(hashId, liveStatus);
+    }
+});
+
+client.on(CLIENT_EVENT.chatUpdate, (hashId: string) => {
+    if (server.hasServer(hashId)) {
+        server.loadUser(hashId);
+        server.loadCommand(hashId);
     }
 });
 
@@ -213,20 +215,13 @@ const sendState = () => {
     // redis
 };
 
-setTimeout(() => {
-    server.init(
-        'p31VxTafuR6+r2XAxF0wq/YHzhuk4aQxTKKir3jfPhWXt5XUNQk4jiO/2JFjnCHs',
-        'AAABfVtd6qm+oLOX1xwAHdjjq0enjbjN0mmgc58+x+HGC6EEBdWTEf2tcFDjmGlADSOxJ1TjLfcWqx7QE2HMLZVDWUUn5MCyX5vBs7WeueDPIASt7ljOJsoits0Q7yZIEyyUxOY1/NaS4LfN1TNTuZjR6wO4HZbQHqo5DgGhFdjIDyUbavPbDEeRYjSJ7CUPgbd0lhxaP9w2UiqWjo+gY4dRBGiS8tVXQNSOem1BC8YHcqMFOrddwiNAus7QMFct2HgMc+kZpl7Zc8GIXysGSFyDNPkhAkOu//uccqIho7H/RH0FUJagp68QE8EoEI+rF4fyHGQhBM5e29X8mhx7KzrzRWqsgIW9u/n6BmtpnvYEFIPKnd0A9lo0vHPrHvj2uPVBch4ShRPdxMwpIQwnX/A4g/3QQ5JIol5v3YyMTXmDfQpTQWdsaBXS/r87g2tritPfVTLDg+pmf1nK/oZgaU0od3OwEt1EgLYbCUg1PFdhvFnNhHjlx7zlaVmuS1OcCrJnRA=='
-    );
-    // authTypes(true).then(types => {
-    //     const type = types.find(({ auth_type }) => auth_type == 13);
-    //     if (!type) return;
+authTypes(true, 13).then(([type]) => {
+    if (!type) return;
 
-    //     console.log('SET AUTH', type.scope, type.client_sc);
+    console.log('SET AUTH', type.scope, type.client_sc);
 
-    //     server.init(type.scope, type.client_sc);
-    // });
-}, 1000 * 10);
+    server.init(type.scope, type.client_sc);
+});
 
 // 데이터가 로딩전이면 작업
 createInterval(1000 * 60 * 3, sendState);

@@ -1,5 +1,5 @@
 import { Snowflake } from 'discord-api-types/globals';
-import getConnection, { format, query } from 'utils/database';
+import getConnection, { SqlInsertUpdate, calTo, format, query } from 'utils/database';
 
 export interface ChatLog {
     message_id: Snowflake;
@@ -106,6 +106,7 @@ SELECT
     cc.command
     , cc.message as answer
     , cc.type
+    , cc.use_yn
 FROM chat_cmd cc
 WHERE 1=1
 AND channel_id = ?
@@ -113,7 +114,20 @@ AND channel_id = ?
         channel_id
     );
 
-export const upsertCommand = async (
+export const selectCommandType = async () =>
+    query<{
+        type: number;
+        name: string;
+    }>(
+        `
+SELECT \`type\`, name
+FROM chat_cmd_type cct 
+WHERE 1=1
+AND use_yn = 'Y'
+    `
+    );
+
+export const upsertCommands = async (
     channel_id: string,
     ...commands: {
         command: string;
@@ -132,3 +146,98 @@ export const upsertCommand = async (
                 )}`
             );
     }, true);
+
+export const upsertCommand = async (
+    channel_id: string,
+    commands: {
+        command: string;
+        message: string;
+        type: number;
+    }
+) =>
+    query<SqlInsertUpdate>(
+        `INSERT INTO chat_cmd SET ? ON DUPLICATE KEY UPDATE ?`,
+        {
+            channel_id,
+            ...commands,
+        },
+        commands
+    );
+
+export const deleteCommand = async (channel_id: string, command: string) =>
+    query<SqlInsertUpdate>(`DELETE FROM chat_cmd WHERE channel_id=? AND command=?`, channel_id, command);
+
+export const upsertChatPermission = async (user_id: string, channel_id: string, permission: string) => {
+    getConnection(async query => {
+        const item = await query<{
+            idx: number;
+            name: string;
+        }>(
+            `
+SELECT \`type\` as key, name
+FROM chat_permission_type cpt
+WHERE 1=1
+AND name = ?
+        `,
+            permission
+        ).then(([row]) => row);
+
+        if (!item) {
+            return Promise.reject('권한이 없습니다.');
+        }
+
+        return await query(
+            'INSERT INTO chat_permission SET ? ON DUPLICATE KEY UPDATE ?, update_at=CURRENT_TIMESTAMP',
+            {
+                user_id,
+                channel_id,
+                permission: item.idx,
+            },
+            {
+                permission: item.idx,
+            }
+        );
+    });
+};
+
+export const selectChatPermission = async (channelId: string, user_id?: string) =>
+    query<{
+        channel_id: string;
+        user_id: string;
+        type: number;
+        create_at: Date;
+    }>(
+        `
+SELECT channel_id
+    , user_id
+    , \`type\`
+    , create_at
+FROM chat_permission
+WHERE 1=1
+${calTo('AND user_id = ?', user_id)}
+AND channel_id = ?
+        `,
+        channelId
+    );
+
+/**
+ * 채팅 별칭 조회
+ * @param channelId
+ * @param user_id
+ * @returns
+ */
+export const selectChatAlias = async () =>
+    query<{
+        permission: number;
+    }>(
+        `
+SELECT idx
+    , origin
+    , description
+    , create_at
+    , use_ym
+FROM discord.chat_alias
+WHERE 1=1
+AND use_ym = 'Y'
+        `
+    );

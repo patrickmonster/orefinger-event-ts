@@ -3,7 +3,7 @@ import axios from 'axios';
 import EventEmitter from 'events';
 import PQueue from 'p-queue';
 
-import { selectChatUsers, selectCommand, upsertChatUser, upsertCommand } from 'controllers/chat/chzzk';
+import { selectChatUsers, selectCommand, upsertChatUser, upsertCommands } from 'controllers/chat/chzzk';
 import { ChatDonation, ChatMessage } from 'interfaces/chzzk/chat';
 
 import ChzzkChat, { ChatUser, ChzzkAPI, Command } from 'utils/chat/chzzk';
@@ -56,7 +56,7 @@ export default class ChatServer<
                     // 명령어 업데이트
                     const commands = this.servers.get(server.roomId)?.commands;
                     if (commands) {
-                        upsertCommand(
+                        upsertCommands(
                             server.roomId,
                             ...commands.map(({ answer, command }) => {
                                 return {
@@ -191,7 +191,7 @@ export default class ChatServer<
     async saveCommand(roomId: String) {
         const commands = this.servers.get(roomId)?.commands;
         if (commands) {
-            await upsertCommand(
+            await upsertCommands(
                 roomId,
                 ...commands.map(({ answer, command }) => {
                     return {
@@ -244,15 +244,7 @@ export default class ChatServer<
             [key: string]: any;
         } = {
             user: nickname,
-            userId: userIdHash,
-            streamer: liveStatus?.channel?.channelName,
-            streamerId: streamingChannelId,
             member: memberCount,
-            id,
-            channel: cid,
-            title: liveStatus?.liveTitle,
-            game: liveStatus?.liveCategoryValue,
-            gameValue: liveStatus?.liveCategoryValue,
 
             // TODO: Add more aliases
             pid: process.env.ECS_ID,
@@ -304,6 +296,8 @@ export default class ChatServer<
             console.log('INVALID SERVER', roomId);
             return;
         }
+
+        // chat.profile.nickname
 
         this.emit('message', {
             ...chat,

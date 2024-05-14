@@ -299,7 +299,7 @@ export default class ChzzkWebSocket<T extends ChatUser = ChatUser, C extends Com
             cmd: ChatCmd.CONNECT,
             tid: 1,
         });
-        console.log('CONNECTED :: ', this.host, bdy);
+        console.log('CONNECTED :: ', this.host, JSON.stringify(bdy));
 
         this.emit('ready');
     }
