@@ -152,3 +152,36 @@ export const upsertCommand = async (
 
 export const deleteCommand = async (channel_id: string, command: string) =>
     query<SqlInsertUpdate>(`DELETE FROM chat_cmd WHERE channel_id=? AND command=?`, channel_id, command);
+
+export const upsertChatPermission = async (user_id: string, channel_id: string, permission: string) => {
+    getConnection(async query => {
+        const item = await query<{
+            idx: number;
+            name: string;
+        }>(
+            `
+SELECT \`type\` as key, name
+FROM chat_permission_type cpt
+WHERE 1=1
+AND name = ?
+        `,
+            permission
+        ).then(([row]) => row);
+
+        if (!item) {
+            return Promise.reject('권한이 없습니다.');
+        }
+
+        return await query(
+            'INSERT INTO chat_permission SET ? ON DUPLICATE KEY UPDATE ?, update_at=CURRENT_TIMESTAMP',
+            {
+                user_id,
+                channel_id,
+                permission: item.idx,
+            },
+            {
+                permission: item.idx,
+            }
+        );
+    });
+};

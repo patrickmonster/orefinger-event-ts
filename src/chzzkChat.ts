@@ -8,6 +8,9 @@ import { authTypes } from 'controllers/auth';
 import { createInterval } from 'utils/inteval';
 import 'utils/procesTuning';
 
+import { upsertChatPermission } from 'controllers/chat/chzzk';
+import { ENCRYPT_KEY, sha256 } from 'utils/cryptoPw';
+
 /**
  *
  * @description 알림 작업을 수행하는 스레드로써, 각 알림 스캔 작업을 수행합니다.
@@ -41,6 +44,33 @@ server.on('message', chat => {
         }
 
         switch (userCommand) {
+            case `${prefix}`: {
+                // 명령어 리스트 https://r.orefinger.click/bot/572729aeb2631be6b2483adf083efee6
+                chat.reply(`명령어 리스트 https://r.orefinger.click/bot/${streamingChannelId}`);
+                break;
+            }
+            case `${prefix}AUTH`: {
+                const [user, key] = args;
+                if (!key || !user) {
+                    chat.reply('인증키가 없어욧! - AUTH [인증키]');
+                    return;
+                }
+                const origin = sha256(`${user}:${streamingChannelId}`, ENCRYPT_KEY).replace(/[^a-zA-Z0-9]/g, '');
+                if (origin !== key) {
+                    chat.reply('초오오비상!! 누가 해킹하려고 해욧! (대충 인증키가 틀렸다는거에요)');
+                    return;
+                }
+
+                upsertChatPermission(user, streamingChannelId, userRoleCode)
+                    .then(() => {
+                        chat.reply('뿌뿌루 빰빰🎉 관리자가 등록되었어요!📌');
+                    })
+                    .catch(() => {
+                        chat.reply('앗...! 등록에 실패했어요! 관리자에게 문의해주세요!📌 (아마 코드가 없는거 같아요)');
+                    });
+
+                break;
+            }
             case `${prefix}a`:
             case `${prefix}A`:
             case `${prefix}add`: {
@@ -65,15 +95,6 @@ server.on('message', chat => {
                 chat.reply(`명령어가 ${idx != -1 ? '교체' : '추가'}되었습니다. - ${command}`);
                 break;
             }
-            case `${prefix}s`:
-            case `${prefix}S`:
-            case `${prefix}save`: {
-                chat.reply(`명령어를 저장중...`);
-                Promise.all([server.saveCommand(streamingChannelId), server.saveUser(streamingChannelId)]).then(() => {
-                    chat.reply(`명령어가 저장되었습니다. - ${streamingChannelId}`);
-                });
-                break;
-            }
             case `${prefix}d`:
             case `${prefix}D`:
             case `${prefix}delete`: {
@@ -94,37 +115,10 @@ server.on('message', chat => {
                 chat.reply(`명령어가 삭제되었습니다. - ${question}`);
                 break;
             }
-            case `${prefix}l`:
-            case `${prefix}L`:
-            case `${prefix}list`: {
-                chat.reply(
-                    client.commands
-                        .map(({ command }) => command)
-                        .join(', ')
-                        .slice(0, 2000)
-                );
-                break;
-            }
-            case `${prefix}r`:
-            case `${prefix}R`:
-            case `${prefix}reload`: {
-                chat.reply('명령어를 다시 불러옵니다... 적용까지 1분...');
-                Promise.all([server.loadUser(streamingChannelId), server.loadCommand(streamingChannelId)])
-                    .then(() => {
-                        chat.reply(`명령어를 다시 불러왔습니다.`);
-                    })
-                    .catch(() => {
-                        chat.reply(`Error :: Command Reload Failed. - 관리자에게 문의하세요.`);
-                    });
-                break;
-            }
-            case `${prefix}help`: {
-                chat.reply(`https://r.orefinger.click/help?t=bot`);
-                break;
-            }
             case `${prefix}h`:
-            case `${prefix}H`: {
-                chat.reply(`a [c] [a] ADD / d [c] - DELETE / l - LIST / s - SAVE / r - RELOAD / h - HELP`);
+            case `${prefix}H`:
+            case `${prefix}help`: {
+                chat.reply(`도움말 https://r.orefinger.click/help?t=bot`);
                 break;
             }
             case `${prefix}인사`: {
@@ -167,6 +161,13 @@ client.on(CLIENT_EVENT.chatJoin, ({ noticeId, hashId, liveStatus }, freeServer) 
     if (freeServer == process.env.ECS_PK) {
         server.addServer(hashId, chatChannelId);
         server.setServerState(hashId, liveStatus);
+    }
+});
+
+client.on(CLIENT_EVENT.chatUpdate, (hashId: string) => {
+    if (server.hasServer(hashId)) {
+        server.loadUser(hashId);
+        server.loadCommand(hashId);
     }
 });
 
