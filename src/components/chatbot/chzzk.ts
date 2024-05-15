@@ -1,4 +1,4 @@
-import { upsertChatPermission } from 'controllers/chat/chzzk';
+import { callCommand, upsertChatPermission } from 'controllers/chat/chzzk';
 import { ChatDonation, ChatMessage } from 'interfaces/chzzk/chat';
 import ChzzkChat from 'utils/chat/chzzk';
 import { ENCRYPT_KEY, sha256 } from 'utils/cryptoPw';
@@ -26,6 +26,7 @@ export default (client: ChzzkChat, chat: Chat) => {
 
     if (command) {
         chat.reply(command.answer);
+        callCommand(streamingChannelId, command.command).catch(() => {});
     } else {
         if (
             client.commands.length &&

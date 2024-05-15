@@ -241,3 +241,6 @@ WHERE 1=1
 AND use_ym = 'Y'
         `
     );
+
+export const callCommand = async (channel_id: string, command: string) =>
+    query('UPDATE chat_cmd SET count= count + 1 WHERE channel_id=? AND command=?', channel_id, command);
