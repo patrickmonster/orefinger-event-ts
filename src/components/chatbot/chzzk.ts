@@ -92,7 +92,7 @@ export default (client: ChzzkChat, chat: Chat) => {
             }
             case `${prefix}h`:
             case `${prefix}H`: {
-                chat.reply(`a [c] [a] ADD / d [c] - DELETE / l - LIST / s - SAVE / r - RELOAD / h - HELP`);
+                chat.reply(`d [c] - DELETE / l - LIST / r - RELOAD / h - HELP`);
                 break;
             }
             case `${prefix}인사`: {
