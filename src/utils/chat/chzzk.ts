@@ -104,6 +104,7 @@ interface ChzzkWebSocketOption {
     chatChannelId: string;
     liveChannelId: string;
     token: string;
+    extraToken: string;
     uid?: string;
 }
 
@@ -137,6 +138,7 @@ export default class ChzzkWebSocket<T extends ChatUser = ChatUser, C extends Com
     private uid?: string; // 유저 id
     private sid?: string; // 세션 id ( = chatSessionId )
     private token?: string; // 토큰
+    private extraToken?: string; // 추가 토큰
 
     // 기본 헤더
     private defaultHeader: {
@@ -151,6 +153,7 @@ export default class ChzzkWebSocket<T extends ChatUser = ChatUser, C extends Com
         super();
         this.option = option;
         this.token = option.token;
+        this.extraToken = option.extraToken;
         this.uid = option.uid;
 
         this.defaultHeader = {
@@ -295,7 +298,7 @@ export default class ChzzkWebSocket<T extends ChatUser = ChatUser, C extends Com
 
         this.sendRow({
             bdy,
-            retry: true,
+            // retry: true,
             cmd: ChatCmd.CONNECT,
             tid: 1,
         });
@@ -323,7 +326,7 @@ export default class ChzzkWebSocket<T extends ChatUser = ChatUser, C extends Com
      * 임시 코드 - 채널 정보를 업데이트 합니다.
      *  - 채널이 업데이트 된 경우, 소캣을 새로 연결합니다.
      */
-    updateChannel(cid: string, token: string) {
+    updateChannel(cid: string, token: string, extraToken: string) {
         if (this.defaultHeader?.cid != cid) {
             this.defaultHeader = {
                 cid,
@@ -332,6 +335,7 @@ export default class ChzzkWebSocket<T extends ChatUser = ChatUser, C extends Com
             };
 
             this.token = token;
+            this.extraToken = extraToken;
 
             this.reconnect();
         }
@@ -360,6 +364,7 @@ export default class ChzzkWebSocket<T extends ChatUser = ChatUser, C extends Com
         const extras = {
             chatType: 'STREAMING',
             emojis,
+            extraToken: this.extraToken,
             osType: 'PC',
             streamingChannelId: this.roomId,
         };
