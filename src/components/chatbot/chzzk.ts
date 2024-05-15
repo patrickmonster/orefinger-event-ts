@@ -1,4 +1,4 @@
-import { upsertChatPermission } from 'controllers/chat/chzzk';
+import { callCommand, upsertChatPermission } from 'controllers/chat/chzzk';
 import { ChatDonation, ChatMessage } from 'interfaces/chzzk/chat';
 import ChzzkChat from 'utils/chat/chzzk';
 import { ENCRYPT_KEY, sha256 } from 'utils/cryptoPw';
@@ -25,7 +25,10 @@ export default (client: ChzzkChat, chat: Chat) => {
     const command = client.commands.find(({ command }) => command.toUpperCase() === userCommand.trim().toUpperCase());
 
     if (command) {
-        chat.reply(command.answer);
+        const { answer, count } = command;
+        chat.reply(`${answer}`.replace(/\{count\}/g, `${count + 1}`));
+        command.count = count + 1;
+        callCommand(streamingChannelId, command.command).catch(() => {});
     } else {
         if (
             client.commands.length &&
@@ -92,7 +95,7 @@ export default (client: ChzzkChat, chat: Chat) => {
             }
             case `${prefix}h`:
             case `${prefix}H`: {
-                chat.reply(`a [c] [a] ADD / d [c] - DELETE / l - LIST / s - SAVE / r - RELOAD / h - HELP`);
+                chat.reply(`d [c] - DELETE / l - LIST / r - RELOAD / h - HELP`);
                 break;
             }
             case `${prefix}인사`: {
