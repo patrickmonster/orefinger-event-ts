@@ -116,6 +116,7 @@ export interface ChatUser {
 export interface Command {
     command: string;
     answer: string;
+    count: number;
 }
 
 /**

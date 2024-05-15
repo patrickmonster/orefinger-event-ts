@@ -25,7 +25,9 @@ export default (client: ChzzkChat, chat: Chat) => {
     const command = client.commands.find(({ command }) => command.toUpperCase() === userCommand.trim().toUpperCase());
 
     if (command) {
-        chat.reply(command.answer);
+        const { answer, count } = command;
+        chat.reply(`${answer}`.replace(/\{count\}/g, `${count + 1}`));
+        command.count = count + 1;
         callCommand(streamingChannelId, command.command).catch(() => {});
     } else {
         if (

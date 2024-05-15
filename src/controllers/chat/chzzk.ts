@@ -99,6 +99,7 @@ export const selectCommand = async (channel_id: string) =>
     query<{
         command: string;
         answer: string;
+        count: number;
         type: number;
     }>(
         `
@@ -106,6 +107,7 @@ SELECT
     cc.command
     , cc.message as answer
     , cc.type
+    , cc.count
     , cc.use_yn
 FROM chat_cmd cc
 WHERE 1=1
