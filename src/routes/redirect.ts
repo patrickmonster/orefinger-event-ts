@@ -1,4 +1,6 @@
+import { selectLink } from 'controllers/chat/chzzk';
 import { FastifyInstance } from 'fastify';
+import { ParseInt } from 'utils/object';
 
 export default async (fastify: FastifyInstance, opts: any) => {
     fastify.get<{
@@ -16,6 +18,12 @@ export default async (fastify: FastifyInstance, opts: any) => {
                     `https://chzzk.naver.com/${hashId ?? 'e229d18df2edef8c9114ae6e8b20373a'}/community/detail/${postId}`
                 );
             }
+            case '1': {
+                const link = await selectLink(ParseInt(postId));
+                if (!link) return res.code(404).send({ error: 'Not Found' });
+                else return res.redirect(301, link.url);
+            }
+
             default:
                 return res.code(404).send({ error: 'Not Found' });
         }
