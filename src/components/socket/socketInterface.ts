@@ -18,6 +18,8 @@ export const CHAT_EVENT = {
     reconnect: 'chatReconnect',
     state: 'chatState',
 
+    reload: 'chatReload',
+
     auth: 'chatAuth',
 };
 

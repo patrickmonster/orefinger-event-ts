@@ -97,8 +97,6 @@ ECS.on('new', async ({ id, revision, family, pk }) => {
     }
 });
 
-// ce66b73c250f43719d7f473a3f387058
-
 /**
  * 채팅 정보를 전달합니다.
  */
@@ -116,6 +114,9 @@ CHAT.on(CHAT_EVENT.state, data => {
     .on(CHAT_EVENT.change, (data, pid) => {
         if (pid != process.env.ECS_PK) return;
         server.emit(CLIENT_EVENT.liveOnline, data);
+    })
+    .on(CHAT_EVENT.reload, (hashId: string) => {
+        server.emit(CLIENT_EVENT.liveOnline, hashId);
     })
     .on(CHAT_EVENT.auth, ({ nidAuth, nidSession }) => {
         if (!nidAuth || !nidSession) return;

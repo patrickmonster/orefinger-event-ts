@@ -8,6 +8,8 @@ import {
 } from 'controllers/chat/chzzk';
 import { FastifyInstance } from 'fastify';
 
+import { CHAT_EVENT } from 'components/socket/socketInterface';
+import { CHAT } from 'components/socket/socketServer';
 import { ENCRYPT_KEY, sha256 } from 'utils/cryptoPw';
 
 export default async (fastify: FastifyInstance, opts: any) => {
@@ -166,6 +168,8 @@ export default async (fastify: FastifyInstance, opts: any) => {
             if (!hasPermission(req.params.hashId, req.user.id)) {
                 return { success: false, message: '권한이 없습니다.' };
             }
+
+            CHAT.emit(CHAT_EVENT.reload, req.params.hashId);
             return await deleteCommand(req.params.hashId, req.query.command);
         }
     );
@@ -222,6 +226,7 @@ export default async (fastify: FastifyInstance, opts: any) => {
                 return { success: false, message: '권한이 없습니다.' };
             }
 
+            CHAT.emit(CHAT_EVENT.reload, req.params.hashId);
             return await upsertCommand(hashId, { command, message: answer, type });
         }
     );

@@ -99,6 +99,7 @@ export const selectCommand = async (channel_id: string) =>
     query<{
         command: string;
         answer: string;
+        count: number;
         type: number;
     }>(
         `
@@ -106,6 +107,7 @@ SELECT
     cc.command
     , cc.message as answer
     , cc.type
+    , cc.count
     , cc.use_yn
 FROM chat_cmd cc
 WHERE 1=1
@@ -241,3 +243,6 @@ WHERE 1=1
 AND use_ym = 'Y'
         `
     );
+
+export const callCommand = async (channel_id: string, command: string) =>
+    query('UPDATE chat_cmd SET count= count + 1 WHERE channel_id=? AND command=?', channel_id, command);
