@@ -57,6 +57,25 @@ GROUP BY notice_id
         noticeType
     );
 
+export const selectLink = async (idx: number) =>
+    query<{
+        idx: number;
+        create_at: Date;
+        use_ym: 'Y' | 'N';
+        url: string;
+    }>(
+        `
+SELECT idx
+    , create_at
+    , use_ym
+    , url 
+FROM chat_link cl 
+WHERE 1=1
+AND idx = ?
+    `,
+        idx
+    ).then(([row]) => row);
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 export const selectChatUsers = async (roomId: string) =>
