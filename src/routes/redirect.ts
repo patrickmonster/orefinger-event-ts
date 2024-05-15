@@ -32,4 +32,10 @@ export default async (fastify: FastifyInstance, opts: any) => {
                 return r.code(404).send({ error: 'Not Found' });
         }
     });
+
+    fastify.get<{
+        Params: { channelId: string };
+    }>('/bot/:channelId', { schema: { hide: true, description: '명령어 리스트 바로가기' } }, (q, r) => {
+        return r.redirect(301, `https://orefinger.click/chzzk/bot/${q.params.channelId}`);
+    });
 };

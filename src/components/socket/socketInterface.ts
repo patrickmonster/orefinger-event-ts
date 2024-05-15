@@ -36,6 +36,7 @@ export const CLIENT_EVENT = {
     chatChange: 'private-chatChange',
     chatMove: 'private-chatMove', // 채팅방 이동명령
     chatAuth: 'private-chatAuth', // 인증 수정
+    chatUpdate: 'private-chatUpdate', // 인증 수정
 
     // 채팅방 연결/해제
     chatConnect: 'private-chatConnect',

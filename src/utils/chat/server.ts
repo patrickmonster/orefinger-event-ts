@@ -115,7 +115,7 @@ export default class ChatServer<
      * @param chatChannelId
      * @returns
      */
-    addServer(roomId: string, chatChannelId?: string, callback?: Function) {
+    addServer(roomId: string, chatChannelId?: string) {
         if (this.servers.has(roomId)) return 0;
         if (this.servers.size > 60000) return -1; // 서버 수 제한
 
@@ -140,7 +140,8 @@ export default class ChatServer<
                 //
                 chatChannelId,
                 liveChannelId: roomId,
-                token: token,
+                token: token.token,
+                extraToken: token.extraToken,
                 uid: this.uid,
             })
                 .on('chat', chat => this.onChat(roomId, chat))
@@ -217,14 +218,22 @@ export default class ChatServer<
 
     async updateChannel(roomId: string, chatChannelId: string) {
         const server = this.servers.get(roomId);
-        const token = await this.getToken(chatChannelId);
-        if (!server || !token) return;
+        const t = await this.getToken(chatChannelId);
+        if (!server || !t) return;
 
-        server.updateChannel(chatChannelId, token);
+        server.updateChannel(chatChannelId, `${t.token}`, `${t.extraToken}`);
     }
 
-    async getToken(chatChannelId: string): Promise<string> {
-        return await this.api.accessToken(chatChannelId).then(token => token.accessToken);
+    async getToken(chatChannelId: string): Promise<{
+        token: string;
+        extraToken: string;
+    }> {
+        return await this.api.accessToken(chatChannelId).then(token => {
+            return {
+                token: `${token?.accessToken}`,
+                extraToken: `${token?.extraToken}`,
+            };
+        });
     }
 
     //////////////////////////////////////////////////////////////////////
@@ -244,15 +253,7 @@ export default class ChatServer<
             [key: string]: any;
         } = {
             user: nickname,
-            userId: userIdHash,
-            streamer: liveStatus?.channel?.channelName,
-            streamerId: streamingChannelId,
             member: memberCount,
-            id,
-            channel: cid,
-            title: liveStatus?.liveTitle,
-            game: liveStatus?.liveCategoryValue,
-            gameValue: liveStatus?.liveCategoryValue,
 
             // TODO: Add more aliases
             pid: process.env.ECS_ID,
@@ -305,17 +306,15 @@ export default class ChatServer<
             return;
         }
 
-        // chat.profile.nickname
-
         this.emit('message', {
             ...chat,
+            server,
             commands: server.commands as C[],
             reply: (message: string) => {
                 try {
                     server.sendChat(this.convertSendCommand(chat, message));
                 } catch (e) {
                     console.error('Chat ERROR', e);
-                    return message;
                 }
             },
         });

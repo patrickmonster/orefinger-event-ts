@@ -8,142 +8,25 @@ import { authTypes } from 'controllers/auth';
 import { createInterval } from 'utils/inteval';
 import 'utils/procesTuning';
 
+import chzzkChatMessage from 'components/chatbot/chzzk';
+
 /**
  *
  * @description 알림 작업을 수행하는 스레드로써, 각 알림 스캔 작업을 수행합니다.
  */
-
-const [, file, ECS_ID, ECS_REVISION] = process.argv;
-
-// 봇 접두사
-const prefix = '@';
 
 const server = new ChatServer<ChzzkContent>();
 
 server.on('message', chat => {
     const {
         message,
-        profile: { userRoleCode },
         extras: { streamingChannelId },
     } = chat;
 
     const client = server.getServer(streamingChannelId);
     if (!client || !message) return;
-    const [userCommand, ...args] = message.split(' ');
 
-    const command = client.commands.find(({ command }) => command.toUpperCase() === userCommand.trim().toUpperCase());
-
-    if (command) {
-        chat.reply(command.answer);
-    } else {
-        if (!message.startsWith(prefix) || userRoleCode == 'common_user') {
-            if ('e229d18df2edef8c9114ae6e8b20373a' !== chat.profile.userIdHash) return;
-        }
-
-        switch (userCommand) {
-            case `${prefix}a`:
-            case `${prefix}A`:
-            case `${prefix}add`: {
-                const [question, ...answer] = args;
-                const command = question.trim();
-
-                if (!question || !answer.length) {
-                    chat.reply('명령어를 입력해주세요. - add [명령어] [응답]');
-                    return;
-                }
-
-                if (command.startsWith(prefix)) {
-                    chat.reply(`명령어는 접두사(${prefix})로 시작할 수 없습니다.`);
-                    return;
-                }
-
-                const idx = client.addCommand({
-                    answer: answer.join(' '),
-                    command,
-                });
-
-                chat.reply(`명령어가 ${idx != -1 ? '교체' : '추가'}되었습니다. - ${command}`);
-                break;
-            }
-            case `${prefix}s`:
-            case `${prefix}S`:
-            case `${prefix}save`: {
-                chat.reply(`명령어를 저장중...`);
-                Promise.all([server.saveCommand(streamingChannelId), server.saveUser(streamingChannelId)]).then(() => {
-                    chat.reply(`명령어가 저장되었습니다. - ${streamingChannelId}`);
-                });
-                break;
-            }
-            case `${prefix}d`:
-            case `${prefix}D`:
-            case `${prefix}delete`: {
-                const [question] = args;
-
-                if (!question) {
-                    chat.reply('명령어를 입력해주세요. - remove [명령어]');
-                    return;
-                }
-
-                const idx = client.commands.findIndex(({ command }) => command === question.trim());
-                if (idx === -1) {
-                    chat.reply('해당 명령어가 없습니다.');
-                    return;
-                }
-
-                client.commands.splice(idx, 1);
-                chat.reply(`명령어가 삭제되었습니다. - ${question}`);
-                break;
-            }
-            case `${prefix}l`:
-            case `${prefix}L`:
-            case `${prefix}list`: {
-                chat.reply(
-                    client.commands
-                        .map(({ command }) => command)
-                        .join(', ')
-                        .slice(0, 2000)
-                );
-                break;
-            }
-            case `${prefix}r`:
-            case `${prefix}R`:
-            case `${prefix}reload`: {
-                chat.reply('명령어를 다시 불러옵니다... 적용까지 1분...');
-                Promise.all([server.loadUser(streamingChannelId), server.loadCommand(streamingChannelId)])
-                    .then(() => {
-                        chat.reply(`명령어를 다시 불러왔습니다.`);
-                    })
-                    .catch(() => {
-                        chat.reply(`Error :: Command Reload Failed. - 관리자에게 문의하세요.`);
-                    });
-                break;
-            }
-            case `${prefix}help`: {
-                chat.reply(`https://r.orefinger.click/help?t=bot`);
-                break;
-            }
-            case `${prefix}h`:
-            case `${prefix}H`: {
-                chat.reply(`a [c] [a] ADD / d [c] - DELETE / l - LIST / s - SAVE / r - RELOAD / h - HELP`);
-                break;
-            }
-            case `${prefix}인사`: {
-                chat.reply(`안녕하세요! 저는 디스코드에서 방송알림을 전송하고 있어요...! 🎉`);
-                break;
-            }
-            case `${prefix}server`: {
-                const { count, userCount } = server.serverState;
-                chat.reply(
-                    `현재 서버 : ${process.env.ECS_PK} / 연결된 서버 : ${(count || 0).toLocaleString()} / ${(
-                        userCount || 0
-                    ).toLocaleString()}`
-                );
-                break;
-            }
-            default:
-                break;
-        }
-    }
+    chzzkChatMessage(client, chat);
 });
 
 server.on('join', channelId => {
@@ -167,6 +50,14 @@ client.on(CLIENT_EVENT.chatJoin, ({ noticeId, hashId, liveStatus }, freeServer) 
     if (freeServer == process.env.ECS_PK) {
         server.addServer(hashId, chatChannelId);
         server.setServerState(hashId, liveStatus);
+    }
+});
+
+// 채팅방 업데이트 명령
+client.on(CLIENT_EVENT.chatUpdate, (hashId: string) => {
+    if (server.hasServer(hashId)) {
+        server.loadUser(hashId);
+        server.loadCommand(hashId);
     }
 });
 
@@ -196,6 +87,10 @@ client.on(CLIENT_EVENT.chatMove, pid => {
     }
 });
 
+/**
+ * 채팅 서버 인증
+ *  - 세션이 변경된 경우, 원격으로 인증을 수행합니다.
+ */
 client.on(CLIENT_EVENT.chatAuth, async (nidAuth, nidSession) => {
     server.init(nidAuth, nidSession);
 
@@ -215,6 +110,9 @@ const sendState = () => {
     // redis
 };
 
+/**
+ * 인증 정보를 불러옵니다.
+ */
 authTypes(true, 13).then(([type]) => {
     if (!type) return;
 
@@ -223,5 +121,4 @@ authTypes(true, 13).then(([type]) => {
     server.init(type.scope, type.client_sc);
 });
 
-// 데이터가 로딩전이면 작업
 createInterval(1000 * 60 * 3, sendState);
