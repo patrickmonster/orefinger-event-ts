@@ -172,7 +172,7 @@ export const deleteCommand = async (channel_id: string, command: string) =>
 export const upsertChatPermission = async (user_id: string, channel_id: string, permission: string) => {
     getConnection(async query => {
         const item = await query<{
-            idx: number;
+            key: number;
             name: string;
         }>(
             `
@@ -193,10 +193,10 @@ AND name = ?
             {
                 user_id,
                 channel_id,
-                permission: item.idx,
+                permission: item.key,
             },
             {
-                permission: item.idx,
+                permission: item.key,
             }
         );
     });
