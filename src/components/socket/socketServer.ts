@@ -116,7 +116,7 @@ CHAT.on(CHAT_EVENT.state, data => {
         server.emit(CLIENT_EVENT.liveOnline, data);
     })
     .on(CHAT_EVENT.reload, (hashId: string) => {
-        server.emit(CLIENT_EVENT.liveOnline, hashId);
+        server.emit(CLIENT_EVENT.chatUpdate, hashId);
     })
     .on(CHAT_EVENT.auth, ({ nidAuth, nidSession }) => {
         if (!nidAuth || !nidSession) return;
