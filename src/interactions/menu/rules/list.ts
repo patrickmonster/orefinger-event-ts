@@ -52,7 +52,7 @@ export const exec = async (interaction: MessageMenuInteraction) => {
                     ],
                     true
                 ),
-                createRoleSelectMenu('rules', {
+                createRoleSelectMenu(`rules edit ${auth_type}`, {
                     default_values: [
                         {
                             id: role.role_id,
