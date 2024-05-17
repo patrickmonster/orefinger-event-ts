@@ -191,11 +191,11 @@ export const deleteCommand = async (channel_id: string, command: string) =>
 export const upsertChatPermission = async (user_id: string, channel_id: string, permission: string) => {
     getConnection(async query => {
         const item = await query<{
-            key: number;
+            k: number;
             name: string;
         }>(
             `
-SELECT \`type\` as key, name
+SELECT \`type\` as k, name
 FROM chat_permission_type cpt
 WHERE 1=1
 AND name = ?
@@ -208,14 +208,14 @@ AND name = ?
         }
 
         return await query(
-            'INSERT INTO chat_permission SET ? ON DUPLICATE KEY UPDATE ?, update_at=CURRENT_TIMESTAMP',
+            'INSERT INTO chat_permission SET ? ON DUPLICATE KEY UPDATE ?',
             {
                 user_id,
                 channel_id,
-                permission: item.key,
+                type: item.k,
             },
             {
-                permission: item.key,
+                type: item.k,
             }
         );
     });
