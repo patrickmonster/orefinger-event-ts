@@ -1,5 +1,6 @@
 import { FastifyInstance } from 'fastify';
 
+import { liveStateTotal } from 'controllers/log';
 import { getTotal, getUser } from 'controllers/main';
 import { REDIS_KEY, catchRedis } from 'utils/redis';
 
@@ -15,6 +16,19 @@ export default async (fastify: FastifyInstance, opts: any) => {
             },
         },
         async req => await catchRedis(REDIS_KEY.API.MAIN_TOTAL, getTotal, 60 * 10)
+    );
+
+    fastify.get(
+        '/notice',
+        {
+            schema: {
+                description: '통계 정보를 조회 합니다',
+                summary: '통계 정보 조회',
+                tags: ['Main'],
+                deprecated: false,
+            },
+        },
+        async req => await catchRedis(REDIS_KEY.API.MAIN_NOTICE, liveStateTotal, 60 * 10)
     );
 
     fastify.get<{

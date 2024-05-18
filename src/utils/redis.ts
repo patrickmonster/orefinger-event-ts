@@ -87,6 +87,7 @@ export const REDIS_KEY = {
         ATTACH_LIVE: (liveId: string | number, id: string) => `api:attach:live:${liveId}:${id}`,
         CHZZK_POST: (id: string) => `api:chzzk:post:${id}`,
         MAIN_TOTAL: 'api:main:total',
+        MAIN_NOTICE: 'api:main:notice',
     },
     DISCORD: {
         GUILD_CHANNELS: (id: string) => `discord:channels:${id}`,
