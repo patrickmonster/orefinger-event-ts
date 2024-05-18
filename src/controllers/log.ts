@@ -84,3 +84,25 @@ FROM (
 WHERE 1=1
 AND t < 1000
     `).then(([res]) => res);
+
+export const liveStateTotal = async () =>
+    query<{ time: number; notice_type: number; notice_type_tag: string }>(`
+SELECT 
+	avg(t) AS time
+	, notice_type
+	, notice_type_tag
+FROM (
+	SELECT 
+	    TIMESTAMPDIFF(SECOND, live_at, nl.create_at) AS t
+	    , vn.notice_type 
+	    , vn.notice_type_tag
+	FROM v_notice vn
+	LEFT JOIN notice_live nl
+		ON nl.notice_id = vn.notice_id 
+	WHERE 1=1
+	AND live_at IS NOT NULL
+) A
+WHERE 1=1
+AND t < 1000
+GROUP BY notice_type
+    `);
