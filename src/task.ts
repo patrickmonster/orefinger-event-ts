@@ -112,7 +112,9 @@ ${name} - 방영이 종료되었습니다
             if (e) {
                 // 서비스 차단
                 console.error('서비스 차단', e);
+
                 if (e.response) {
+                    if ( e?.response?.data && e.response.data?.code === 403) {
                     openApi.post(`${process.env.WEB_HOOK_URL}`, {
                         embeds: [
                             {
