@@ -114,20 +114,21 @@ ${name} - 방영이 종료되었습니다
                 console.error('서비스 차단', e);
 
                 if (e.response) {
-                    if ( e?.response?.data && e.response.data?.code === 403) {
-                    openApi.post(`${process.env.WEB_HOOK_URL}`, {
-                        embeds: [
-                            {
-                                title: '서비스 차단 으로 인한 스캔 거부',
-                                description: `
+                    if (e?.response?.data && e.response.data?.code === 403) {
+                        openApi.post(`${process.env.WEB_HOOK_URL}`, {
+                            embeds: [
+                                {
+                                    title: '서비스 차단 으로 인한 스캔 거부',
+                                    description: `
 task : ${item.notice_id}
 hash : ${item.hash_id}
 message : ${e?.response?.data ? JSON.stringify(e.response.data) : ''}
                                 `,
-                                color: 0xff0000,
-                            },
-                        ],
-                    });
+                                    color: 0xff0000,
+                                },
+                            ],
+                        });
+                    }
                 }
             }
         }
