@@ -9,6 +9,7 @@ import { createInterval } from 'utils/inteval';
 import 'utils/procesTuning';
 
 import chzzkChatMessage from 'components/chatbot/chzzk';
+import { saveRedis } from 'utils/redis';
 
 /**
  *
@@ -107,6 +108,13 @@ const sendState = () => {
         idx: process.env.ECS_PK,
         revision: process.env.ECS_REVISION,
     });
+
+    for (const chatServer of server.serverList) {
+        const { chatChannelId } = chatServer;
+        const data = server.getState(chatChannelId);
+
+        saveRedis(`CHAT:STATE:${process.env.ECS_PK}:${chatChannelId}`, data, 60 * 60);
+    }
     // redis
 };
 
