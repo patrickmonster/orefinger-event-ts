@@ -49,7 +49,7 @@ server.on('close', channelId => {
 client.on(CLIENT_EVENT.chatJoin, ({ noticeId, hashId, liveStatus }, freeServer) => {
     const { chatChannelId } = liveStatus as ChzzkContent;
     if (freeServer == process.env.ECS_PK) {
-        server.addServer(hashId, chatChannelId);
+        server.addServer(hashId);
         server.setServerState(hashId, liveStatus);
     }
 });
@@ -115,7 +115,6 @@ const sendState = () => {
 
         saveRedis(`CHAT:STATE:${process.env.ECS_PK}:${chatChannelId}`, data, 60 * 60);
     }
-    // redis
 };
 
 /**

@@ -1,4 +1,5 @@
 import EventEmitter from 'events';
+import { Content as ChzzkContent } from 'interfaces/API/Chzzk';
 import { ChatCmd, ChatMessage, ChatOption, ChatType } from 'interfaces/chzzk/chat';
 import WebSocket, { MessageEvent } from 'isomorphic-ws';
 import { getContentAllias } from 'utils/object';
@@ -74,7 +75,7 @@ export class ChzzkAPI {
         return data?.content ?? null;
     }
 
-    async status(liveChannelId: string) {
+    async status(liveChannelId: string): Promise<ChzzkContent> {
         return await this.fetch(`/polling/v2/channels/${liveChannelId}/live-status`).then(({ content }) => {
             if (!content) return null;
             const { livePollingStatusJson, ...result } = content;

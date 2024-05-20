@@ -6,6 +6,8 @@ import PQueue from 'p-queue';
 import { selectChatUsers, selectCommand, upsertChatUser, upsertCommands } from 'controllers/chat/chzzk';
 import { ChatDonation, ChatMessage } from 'interfaces/chzzk/chat';
 
+import { Content as ChzzkContent } from 'interfaces/API/Chzzk';
+
 import ChzzkChat, { ChatUser, ChzzkAPI, Command } from 'utils/chat/chzzk';
 import { getTimeDiff } from 'utils/day';
 import { createInterval } from 'utils/inteval';
@@ -27,12 +29,7 @@ export type BaseChatMessage<C extends any> = (ChatDonation | ChatMessage) & {
  *
  */
 export default class ChatServer<
-    T extends {
-        liveTitle: string;
-        liveCategoryValue: string;
-        openDate: string;
-        channel: { channelName: string };
-    } = any,
+    T extends ChzzkContent = any,
     U extends ChatUser & {
         point: number;
     } = any,
@@ -115,21 +112,19 @@ export default class ChatServer<
      * @param chatChannelId
      * @returns
      */
-    addServer(roomId: string, chatChannelId?: string) {
+    addServer(roomId: string) {
         if (this.servers.has(roomId)) return 0;
         if (this.servers.size > 60000) return -1; // 서버 수 제한
-
-        console.log('CHAT SERVER ADD ::', roomId, chatChannelId);
+        console.log('CHAT SERVER ADD ::', roomId);
 
         this.queue.add(async () => {
-            if (!chatChannelId)
-                chatChannelId = await this._api
-                    .status(roomId)
-                    .then(status => status?.chatChannelId)
-                    .catch(e => {
-                        console.error('ERROR', e);
-                        return '';
-                    });
+            const status = await this.getChannelState(roomId).catch(e => {
+                console.error('ERROR', e);
+                return '';
+            });
+
+            if (!status) return console.error('INVALID CHAT CHANNEL ID', roomId);
+            const { chatChannelId } = status as T;
             if (!chatChannelId) {
                 console.error('INVALID CHAT CHANNEL ID', roomId);
                 return;
@@ -137,7 +132,6 @@ export default class ChatServer<
 
             const token = await this.getToken(chatChannelId);
             const server = new ChzzkChat<U, C>({
-                //
                 chatChannelId,
                 liveChannelId: roomId,
                 token: token.token,
@@ -167,11 +161,9 @@ export default class ChatServer<
 
             this.emit('join', roomId, chatChannelId);
             console.log('CHAT SERVER JOIN ::', roomId, chatChannelId);
-
             await server.connect();
             await sleep(100); // 1초 대기
         });
-
         return this.queue.size;
     }
 
@@ -213,7 +205,9 @@ export default class ChatServer<
     }
 
     async getChannelState(roomId: string): Promise<T> {
-        return await this.api.status(roomId);
+        const status = await this.api.status(roomId);
+        this.state.set(roomId, status as T);
+        return status as T;
     }
 
     async updateChannel(roomId: string, chatChannelId: string) {
