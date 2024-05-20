@@ -46,28 +46,20 @@ server.on('close', channelId => {
 ///////////////////////////////////////////////////////////////////////////////
 
 // 채팅방 입장 명령
-client.on(CLIENT_EVENT.chatJoin, ({ noticeId, hashId, liveStatus }, freeServer) => {
-    const { chatChannelId } = liveStatus as ChzzkContent;
+client.on(CLIENT_EVENT.chatJoin, (noticeId, freeServer) => {
     if (freeServer == process.env.ECS_PK) {
-        server.addServer(hashId);
-        server.setServerState(hashId, liveStatus);
+        //
     }
 });
 
 // 채팅방 업데이트 명령
-client.on(CLIENT_EVENT.chatUpdate, (hashId: string) => {
-    if (server.hasServer(hashId)) {
-        server.loadUser(hashId);
-        server.loadCommand(hashId);
-    }
-});
+client.on(CLIENT_EVENT.chatUpdate, noticeId => {});
 
 // 채팅방 변경 명령
-client.on(CLIENT_EVENT.chatChange, ({ noticeId, hashId, liveStatus }, freeServer) => {
-    const { chatChannelId } = liveStatus as ChzzkContent;
+client.on(CLIENT_EVENT.chatChange, (noticeId, freeServer) => {
     if (freeServer == process.env.ECS_PK) {
-        server.updateChannel(hashId, chatChannelId);
-        server.setServerState(hashId, liveStatus);
+        // server.updateChannel(hashId, chatChannelId);
+        // server.setServerState(hashId, liveStatus);
     }
 });
 
@@ -80,11 +72,6 @@ client.on(CLIENT_EVENT.chatLeave, channelId => {
 client.on(CLIENT_EVENT.chatMove, pid => {
     if (!pid) return;
     for (const chatServer of server.serverList) {
-        const { chatChannelId } = chatServer;
-        const data = server.getState(chatChannelId);
-
-        // 온라인 이벤트로, 신규 서버에 전달합니다
-        if (data) client.emit(CLIENT_EVENT.liveOnline, data, pid);
     }
 });
 

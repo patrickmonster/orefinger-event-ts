@@ -250,6 +250,8 @@ export const getChannelLive = async (noticeId: number, hashId: string, liveId: s
                             hashId,
                             liveStatus: content,
                         });
+
+                        await saveRedis(REDIS_KEY.API.CHZZK_LIVE_STATE(`${noticeId}`), content, 60 * 60 * 12);
                         return reject(null);
                     }
                 } else if (content && content.status == 'CLOSE') {
@@ -285,21 +287,13 @@ export const getLiveMessage = async ({
 }: NoticeBat) => {
     const liveStatus = await getChannelLive(noticeId, hashId, id);
     if (liveStatus && liveStatus.status === 'OPEN') {
-        socketClient.emit(CLIENT_EVENT.liveOnline, {
-            noticeId,
-            hashId,
-            liveStatus,
-        });
-
+        socketClient.emit(CLIENT_EVENT.liveOnline, noticeId);
         // online
         const messages = await sendChannels(channels, {
             content: message,
             embeds: [convertVideoObject(liveStatus, name)],
             components: [
                 createActionRow(
-                    // createSuccessButton(`notice attendance ${noticeId}`, {
-                    //     label: appendTextWing('📌출석체크\u3164', 8), // 크기보정
-                    // }),
                     createUrlButton(`https://chzzk.naver.com/live/${hashId}`, {
                         emoji: { id: '1218118186717937775' },
                     })
@@ -313,12 +307,9 @@ export const getLiveMessage = async ({
             60 * 60 * 24 // 12시간
         );
     } else if (liveStatus && liveStatus.status == 'CLOSE') {
-        socketClient.emit(CLIENT_EVENT.liveOffline, {
-            noticeId,
-            hashId,
-            liveStatus,
-        });
+        socketClient.emit(CLIENT_EVENT.liveOffline, noticeId);
     }
+    if (liveStatus) saveRedis(REDIS_KEY.API.CHZZK_LIVE_STATE(`${noticeId}`), liveStatus, 60 * 60 * 12).catch(() => {});
     return liveStatus;
 };
 

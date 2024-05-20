@@ -86,6 +86,7 @@ export const REDIS_KEY = {
         SEARCH_USER: (id: string) => `api:search:user:${id}`,
         ATTACH_LIVE: (liveId: string | number, id: string) => `api:attach:live:${liveId}:${id}`,
         CHZZK_POST: (id: string) => `api:chzzk:post:${id}`,
+        CHZZK_LIVE_STATE: (id: string) => `api:chzzk:live:state:${id}`,
         MAIN_TOTAL: 'api:main:total',
         MAIN_NOTICE: 'api:main:notice',
     },
