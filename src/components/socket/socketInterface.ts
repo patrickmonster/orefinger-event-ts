@@ -1,26 +1,26 @@
 export const LIVE_EVENT = {
-    online: 'liveOnline.v1',
-    offline: 'liveOffline.v1',
-    change: 'liveChange.v1',
+    online: 'liveOnline',
+    offline: 'liveOffline',
+    change: 'liveChange',
 };
 
 export const ECS_EVENT = {
-    new: 'ecsNew.v1',
-    state: 'ecsState.v1',
-    join: 'ecsJoin.v1',
-    leave: 'ecsLeave.v1',
+    new: 'ecsNew',
+    state: 'ecsState',
+    join: 'ecsJoin',
+    leave: 'ecsLeave',
 };
 
 export const CHAT_EVENT = {
-    join: 'chatJoin.v1',
-    leave: 'chatLeave.v1',
-    change: 'chatChange.v1',
-    reconnect: 'chatReconnect.v1',
-    state: 'chatState.v1',
+    join: 'chatJoin',
+    leave: 'chatLeave',
+    change: 'chatChange',
+    reconnect: 'chatReconnect',
+    state: 'chatState',
 
-    reload: 'chatReload.v1',
+    reload: 'chatReload',
 
-    auth: 'chatAuth.v1',
+    auth: 'chatAuth',
 };
 
 // 클라이언트 이벤트 - 내부전용
