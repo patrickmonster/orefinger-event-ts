@@ -28,16 +28,12 @@ server.on('message', chat => {
     chzzkChatMessage(client, chat);
 });
 
-server.on('join', channelId => {
-    client.emit(CLIENT_EVENT.chatConnect, {
-        channelId,
-    });
+server.on('join', noticeId => {
+    client.emit(CLIENT_EVENT.chatConnect, noticeId);
     sendState();
 });
-server.on('close', channelId => {
-    client.emit(CLIENT_EVENT.chatDisconnect, {
-        channelId,
-    });
+server.on('close', noticeId => {
+    client.emit(CLIENT_EVENT.chatDisconnect, noticeId);
     sendState();
 });
 
