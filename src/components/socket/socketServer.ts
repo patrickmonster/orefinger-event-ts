@@ -11,7 +11,12 @@ subClient.subscribe('liveState', 'chat');
 
 const server = new Server(3001);
 
-server.adapter(createAdapter(pubClient, subClient, { key: 'orefinger' }));
+server.adapter(
+    createAdapter(pubClient, subClient, {
+        key: 'orefinger',
+        // publishOnSpecificResponseChannel
+    })
+);
 
 export const LIVE_STATE = server.of('/liveState');
 export const CHAT = server.of('/chat');
