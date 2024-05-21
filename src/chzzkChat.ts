@@ -7,7 +7,6 @@ import { createInterval } from 'utils/inteval';
 import 'utils/procesTuning';
 
 import chzzkChatMessage from 'components/chatbot/chzzk';
-import { saveRedis } from 'utils/redis';
 
 /**
  *
@@ -44,10 +43,8 @@ server.on('close', channelId => {
 ///////////////////////////////////////////////////////////////////////////////
 
 // 채팅방 입장 명령
-client.on(CLIENT_EVENT.chatJoin, (noticeId, freeServer) => {
-    if (freeServer == process.env.ECS_PK) {
-        server.join(noticeId);
-    }
+client.on(CLIENT_EVENT.chatJoin, noticeId => {
+    server.join(noticeId);
 });
 
 // api 에서 수정한 경우 명령어를 다시 불러옵니다
@@ -57,9 +54,7 @@ client.on(CLIENT_EVENT.chatUpdate, noticeId => {
 
 // 라이브 상태가 변경되었을때
 client.on(CLIENT_EVENT.chatChange, (noticeId, freeServer) => {
-    if (freeServer == process.env.ECS_PK) {
-        server.update(noticeId);
-    }
+    server.update(noticeId);
 });
 
 // 채팅방 퇴장 명령
@@ -96,12 +91,12 @@ const sendState = () => {
         revision: process.env.ECS_REVISION,
     });
 
-    for (const chatServer of server.serverList) {
-        const { chatChannelId } = chatServer;
-        const data = server.getState(chatChannelId);
+    // for (const chatServer of server.serverList) {
+    //     const { chatChannelId } = chatServer;
+    //     const data = server.getState(chatChannelId);
 
-        saveRedis(`CHAT:STATE:${process.env.ECS_PK}:${chatChannelId}`, data, 60 * 60);
-    }
+    //     saveRedis(`CHAT:STATE:${process.env.ECS_PK}:${chatChannelId}`, data, 60 * 60);
+    // }
 };
 
 /**
