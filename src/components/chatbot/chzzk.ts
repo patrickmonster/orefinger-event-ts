@@ -26,7 +26,7 @@ export default (client: ChzzkChat, chat: Chat) => {
 
     if (command) {
         const { answer, count } = command;
-        chat.reply(`${answer}`.replace(/\{count\}/g, `${count + 1}`));
+        chat.reply(`${answer}`.replace(/\{count\}/gi, `${count + 1}`));
         command.count = count + 1;
         callCommand(streamingChannelId, command.command).catch(() => {});
     } else {

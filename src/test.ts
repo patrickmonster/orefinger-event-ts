@@ -16,12 +16,13 @@ if (existsSync(envDir)) {
 import chzzkChatMessage from 'components/chatbot/chzzk';
 import ChatServer from 'utils/chat/server';
 
-import { Content as ChzzkContent } from 'interfaces/API/Chzzk';
-
 import { authTypes } from 'controllers/auth';
+import { ChzzkAPI } from 'utils/chat/chzzk';
 import 'utils/procesTuning';
 
-const server = new ChatServer<ChzzkContent>();
+const server = new ChatServer();
+
+const api = new ChzzkAPI();
 
 server.on('message', chat => {
     const {
@@ -48,9 +49,13 @@ server.on('close', channelId => {
     console.log('close', channelId);
 });
 
+// api.status('e229d18df2edef8c9114ae6e8b20373a').then(data => {
+//     data.channelId = 'e229d18df2edef8c9114ae6e8b20373a';
+//     cacheRedis(REDIS_KEY.API.CHZZK_LIVE_STATE('588'), data, 60 * 60 * 24 * 7);
+// });
 ///////////////////////////////////////////////////////////////////////////////
 
-server.addServer('e229d18df2edef8c9114ae6e8b20373a');
+server.join('588');
 
 authTypes(true, 13).then(([type]) => {
     if (!type) return;

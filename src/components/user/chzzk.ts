@@ -19,7 +19,7 @@ import { CLIENT_EVENT } from 'components/socket/socketInterface';
 import { ENCRYPT_KEY, sha256 } from 'utils/cryptoPw';
 import { createActionRow, createUrlButton } from 'utils/discord/component';
 import { ChzzkInterface, getChzzkAPI } from 'utils/naverApiInstance';
-import redis, { REDIS_KEY, saveRedis } from 'utils/redis';
+import redis, { REDIS_KEY, cacheRedis, saveRedis } from 'utils/redis';
 
 const chzzk = getChzzkAPI('v1');
 
@@ -232,6 +232,11 @@ export const getChannelLive = async (noticeId: number, hashId: string, liveId: s
                 const { content } = data;
                 // 콘텐츠의 라이브 id 가 없거나, 라이브 id 가 같으면 무시
                 if (!content?.liveId || content.liveId === liveId) return reject(null);
+
+                // 화질 정보는 제거함 (불필요)
+                if ('livePlaybackJson' in content) delete content.livePlaybackJson;
+                content.channelId = hashId;
+
                 // 라이브가 진행중인 경우
                 if (content && content.status === 'OPEN') {
                     // 이전에 라이브 정보가 있었다면, 라이브 정보를 업데이트 ( 마감 )
@@ -250,6 +255,9 @@ export const getChannelLive = async (noticeId: number, hashId: string, liveId: s
                             hashId,
                             liveStatus: content,
                         });
+
+                        // 라이브 정보를 캐시합니다
+                        await cacheRedis(REDIS_KEY.API.CHZZK_LIVE_STATE(`${noticeId}`), content, 60 * 60 * 12);
                         return reject(null);
                     }
                 } else if (content && content.status == 'CLOSE') {
@@ -260,6 +268,11 @@ export const getChannelLive = async (noticeId: number, hashId: string, liveId: s
                         const { changedRows } = await updateLiveEvents(noticeId);
                         if (changedRows == 0) return reject(null);
                     } else return reject(null); // 이미 처리된 알림
+                }
+
+                // 라이브 정보를 캐시합니다
+                if (content) {
+                    cacheRedis(REDIS_KEY.API.CHZZK_LIVE_STATE(`${noticeId}`), content, 60 * 60 * 12).catch(() => {});
                 }
                 return resolve(content as Content);
             })
@@ -285,21 +298,13 @@ export const getLiveMessage = async ({
 }: NoticeBat) => {
     const liveStatus = await getChannelLive(noticeId, hashId, id);
     if (liveStatus && liveStatus.status === 'OPEN') {
-        socketClient.emit(CLIENT_EVENT.liveOnline, {
-            noticeId,
-            hashId,
-            liveStatus,
-        });
-
+        socketClient.emit(CLIENT_EVENT.liveOnline, noticeId);
         // online
         const messages = await sendChannels(channels, {
             content: message,
             embeds: [convertVideoObject(liveStatus, name)],
             components: [
                 createActionRow(
-                    // createSuccessButton(`notice attendance ${noticeId}`, {
-                    //     label: appendTextWing('📌출석체크\u3164', 8), // 크기보정
-                    // }),
                     createUrlButton(`https://chzzk.naver.com/live/${hashId}`, {
                         emoji: { id: '1218118186717937775' },
                     })
@@ -313,11 +318,7 @@ export const getLiveMessage = async ({
             60 * 60 * 24 // 12시간
         );
     } else if (liveStatus && liveStatus.status == 'CLOSE') {
-        socketClient.emit(CLIENT_EVENT.liveOffline, {
-            noticeId,
-            hashId,
-            liveStatus,
-        });
+        socketClient.emit(CLIENT_EVENT.liveOffline, noticeId);
     }
     return liveStatus;
 };
