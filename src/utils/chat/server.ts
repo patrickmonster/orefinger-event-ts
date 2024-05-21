@@ -1,15 +1,15 @@
 import { String } from 'aws-sdk/clients/cloudtrail';
-import axios from 'axios';
 import EventEmitter from 'events';
 import PQueue from 'p-queue';
 
 import { selectChatUsers, selectCommand, upsertChatUser, upsertCommands } from 'controllers/chat/chzzk';
 import { ChatDonation, ChatMessage } from 'interfaces/chzzk/chat';
 
+import { Content as ChzzkContent } from 'interfaces/API/Chzzk';
+
 import ChzzkChat, { ChatUser, ChzzkAPI, Command } from 'utils/chat/chzzk';
-import { getTimeDiff } from 'utils/day';
 import { createInterval } from 'utils/inteval';
-import { appendUrlHttp } from 'utils/object';
+import { REDIS_KEY, loadRedis } from 'utils/redis';
 import sleep from 'utils/sleep';
 
 export interface ChatMessageT extends ChatMessage {}
@@ -27,20 +27,16 @@ export type BaseChatMessage<C extends any> = (ChatDonation | ChatMessage) & {
  *
  */
 export default class ChatServer<
-    T extends {
-        liveTitle: string;
-        liveCategoryValue: string;
-        openDate: string;
-        channel: { channelName: string };
-    } = any,
     U extends ChatUser & {
         point: number;
     } = any,
     C extends Command & { type: number } = any
 > extends EventEmitter {
+    private hashId = new Map<string, string>(); // 라이브 상태
+    private state = new Map<string, ChzzkContent>(); // 라이브 상태
     private servers = new Map<string, ChzzkChat>(); // 서버 목록
-    private state = new Map<string, T>(); // 라이브 상태
-    private queue: PQueue; // 동시 실행 가능한 서버 수
+
+    private queue: PQueue; // 동기화 큐
 
     private _api: ChzzkAPI;
     private uid?: string;
@@ -88,6 +84,10 @@ export default class ChatServer<
         return this._api;
     }
 
+    get noticeIds() {
+        return this.hashId.keys();
+    }
+
     get serverState() {
         let total = 0;
         for (const server of this.servers.values()) {
@@ -110,26 +110,83 @@ export default class ChatServer<
     //////////////////////////////////////////////////////////////////////
 
     /**
+     * 채널 정보 불러오기
+     * @param noticeId
+     * @returns
+     */
+    private async getChannelData(noticeId: string): Promise<ChzzkContent | null> {
+        const data = await loadRedis<ChzzkContent>(REDIS_KEY.API.CHZZK_LIVE_STATE(noticeId));
+        if (data) {
+            this.state.set(noticeId, data);
+        }
+        return data;
+    }
+
+    /**
+     * 채팅 서버 추가
+     * @param noticeId
+     * @returns
+     */
+    async join(noticeId: string) {
+        // redis 에서 채널 정보를 불러옵니다.
+        const data = await this.getChannelData(noticeId);
+        if (data) {
+            const { channelId, chatChannelId } = data as ChzzkContent;
+            if (!this.hashId.has(noticeId)) {
+                this.hashId.set(noticeId, channelId);
+                return this.addServer(channelId, chatChannelId);
+            } else {
+                this.updateServer(channelId, chatChannelId);
+            }
+        }
+        return -1;
+    }
+
+    async update(noticeId: string) {
+        const data = await this.getChannelData(noticeId);
+        if (data) {
+            const { channelId, chatChannelId } = data as ChzzkContent;
+            this.updateServer(channelId, chatChannelId);
+        }
+    }
+
+    async reload(noticeId: string) {
+        const channelId = this.hashId.get(noticeId);
+        if (channelId) {
+            this.loadUser(channelId).catch(console.error);
+            this.loadCommand(channelId).catch(console.error);
+        }
+    }
+
+    remove(noticeId: string) {
+        const channelId = this.hashId.get(noticeId);
+        if (channelId) {
+            this.removeServer(channelId);
+            this.hashId.delete(noticeId);
+        }
+    }
+
+    private updateServer(roomId: string, chatChannelId: string) {
+        if (!this.servers.has(roomId)) return -1;
+        this.queue.add(async () => {
+            const token = await this.getToken(chatChannelId);
+            const server = this.servers.get(roomId);
+            if (server && token) server.updateChannel(chatChannelId, `${token.token}`, `${token.extraToken}`);
+        });
+    }
+
+    /**
      * 채팅 서버 추가
      * @param roomId
      * @param chatChannelId
      * @returns
      */
-    addServer(roomId: string, chatChannelId?: string) {
+    private addServer(roomId: string, chatChannelId: string) {
         if (this.servers.has(roomId)) return 0;
         if (this.servers.size > 60000) return -1; // 서버 수 제한
-
-        console.log('CHAT SERVER ADD ::', roomId, chatChannelId);
+        console.log('CHAT SERVER ADD ::', roomId);
 
         this.queue.add(async () => {
-            if (!chatChannelId)
-                chatChannelId = await this._api
-                    .status(roomId)
-                    .then(status => status?.chatChannelId)
-                    .catch(e => {
-                        console.error('ERROR', e);
-                        return '';
-                    });
             if (!chatChannelId) {
                 console.error('INVALID CHAT CHANNEL ID', roomId);
                 return;
@@ -137,7 +194,6 @@ export default class ChatServer<
 
             const token = await this.getToken(chatChannelId);
             const server = new ChzzkChat<U, C>({
-                //
                 chatChannelId,
                 liveChannelId: roomId,
                 token: token.token,
@@ -167,29 +223,27 @@ export default class ChatServer<
 
             this.emit('join', roomId, chatChannelId);
             console.log('CHAT SERVER JOIN ::', roomId, chatChannelId);
-
             await server.connect();
             await sleep(100); // 1초 대기
         });
-
         return this.queue.size;
     }
 
-    async saveUser(roomId: String) {
+    private async saveUser(roomId: String) {
         const users = this.servers.get(roomId)?.users;
         if (users) {
             upsertChatUser(...users).catch(console.error);
         }
     }
 
-    async loadUser(roomId: string) {
+    private async loadUser(roomId: string) {
         const server = this.servers.get(roomId);
         if (server) {
             server.users = (await selectChatUsers(roomId)) as U[];
         }
     }
 
-    async saveCommand(roomId: String) {
+    private async saveCommand(roomId: String) {
         const commands = this.servers.get(roomId)?.commands;
         if (commands) {
             await upsertCommands(
@@ -205,23 +259,18 @@ export default class ChatServer<
         }
     }
 
-    async loadCommand(roomId: string) {
+    private async loadCommand(roomId: string) {
         const server = this.servers.get(roomId);
         if (server) {
             server.commands = await selectCommand(roomId);
         }
     }
 
-    async getChannelState(roomId: string): Promise<T> {
-        return await this.api.status(roomId);
-    }
-
-    async updateChannel(roomId: string, chatChannelId: string) {
-        const server = this.servers.get(roomId);
-        const t = await this.getToken(chatChannelId);
-        if (!server || !t) return;
-
-        server.updateChannel(chatChannelId, `${t.token}`, `${t.extraToken}`);
+    async reconnect(noticeId: string) {
+        const server = this.servers.get(noticeId);
+        if (server) {
+            server.reconnect();
+        }
     }
 
     async getToken(chatChannelId: string): Promise<{
@@ -256,42 +305,18 @@ export default class ChatServer<
             member: memberCount,
 
             // TODO: Add more aliases
-            pid: process.env.ECS_ID,
+            pid: process.env.ECS_ID || 'LOCAL',
             count: (this.getServer(streamingChannelId)?.chatSize || 1).toLocaleString(),
         };
 
-        return message.replace(/\{([^\}])\}/gi, (match, name) => alias[name] || match);
+        return message.replace(/\{([^\}]+)\}/gi, (match, name) => {
+            console.log('match', match, name);
+            return alias[name] || match;
+        });
     }
 
     static CommandBlock = /\$\{([^\}^ ]+) ?([^\}^ ]+)?\}/gi;
 
-    /**
-     * 명령어 블럭 처리
-     * @param chat
-     */
-    private async convertCommandBlock(chat: ChatMessage | ChatDonation, message: string) {
-        const tmp = `${message}`;
-        let match;
-        // ChatServer.CommandBlock.test(tmp)
-        while ((match = ChatServer.CommandBlock.exec(message))) {
-            const [, command, target] = match;
-            switch (command) {
-                case 'uptime':
-                    return getTimeDiff(target);
-                case 'feat':
-                    if (target) axios.post(appendUrlHttp(target), { feat: target });
-                    else return `ERROR] Notfound feat command 'target' - \${feat url}`;
-                    break;
-                case 'post':
-                    // r.orefinger.click
-                    // https://r.orefinger.click/l/chzzk/9351394
-                    break;
-                default:
-                //
-            }
-        }
-        return tmp;
-    }
     /**
      * 채팅 메세지 튜닝
      * @param roomId
@@ -322,15 +347,6 @@ export default class ChatServer<
 
     //////////////////////////////////////////////////////////////////////
 
-    /**
-     * 라이브 상태 업데이트
-     * @param roomId
-     * @param liveStatus
-     */
-    updateLiveState(roomId: string, liveStatus: any) {
-        if (this.servers.has(roomId)) this.state.set(roomId, liveStatus);
-    }
-
     getState(roomId: string) {
         return this.state.get(roomId);
     }
@@ -352,22 +368,12 @@ export default class ChatServer<
         return this.servers.has(roomId);
     }
 
-    setServerState(roomId: string, state: T) {
-        this.state.set(roomId, state);
-    }
-
     removeServer(roomId: string) {
         const server = this.servers.get(roomId);
         if (server) {
             server.disconnect();
             this.servers.delete(roomId);
         }
-    }
-
-    moveServer(roomId: string) {
-        const state = this.state.get(roomId);
-        if (state) this.removeServer(roomId);
-        return state;
     }
 
     getServer(roomId: string) {

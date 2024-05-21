@@ -1,7 +1,5 @@
 import ChatServer from 'utils/chat/server';
 
-import { Content as ChzzkContent } from 'interfaces/API/Chzzk';
-
 import client from 'components/socket/socketClient';
 import { CLIENT_EVENT } from 'components/socket/socketInterface';
 import { authTypes } from 'controllers/auth';
@@ -16,7 +14,7 @@ import { saveRedis } from 'utils/redis';
  * @description 알림 작업을 수행하는 스레드로써, 각 알림 스캔 작업을 수행합니다.
  */
 
-const server = new ChatServer<ChzzkContent>();
+const server = new ChatServer();
 
 server.on('message', chat => {
     const {
@@ -46,45 +44,34 @@ server.on('close', channelId => {
 ///////////////////////////////////////////////////////////////////////////////
 
 // 채팅방 입장 명령
-client.on(CLIENT_EVENT.chatJoin, ({ noticeId, hashId, liveStatus }, freeServer) => {
-    const { chatChannelId } = liveStatus as ChzzkContent;
+client.on(CLIENT_EVENT.chatJoin, (noticeId, freeServer) => {
     if (freeServer == process.env.ECS_PK) {
-        server.addServer(hashId, chatChannelId);
-        server.setServerState(hashId, liveStatus);
+        server.join(noticeId);
     }
 });
 
-// 채팅방 업데이트 명령
-client.on(CLIENT_EVENT.chatUpdate, (hashId: string) => {
-    if (server.hasServer(hashId)) {
-        server.loadUser(hashId);
-        server.loadCommand(hashId);
-    }
+// api 에서 수정한 경우 명령어를 다시 불러옵니다
+client.on(CLIENT_EVENT.chatUpdate, noticeId => {
+    server.reload(noticeId);
 });
 
-// 채팅방 변경 명령
-client.on(CLIENT_EVENT.chatChange, ({ noticeId, hashId, liveStatus }, freeServer) => {
-    const { chatChannelId } = liveStatus as ChzzkContent;
+// 라이브 상태가 변경되었을때
+client.on(CLIENT_EVENT.chatChange, (noticeId, freeServer) => {
     if (freeServer == process.env.ECS_PK) {
-        server.updateChannel(hashId, chatChannelId);
-        server.setServerState(hashId, liveStatus);
+        server.update(noticeId);
     }
 });
 
 // 채팅방 퇴장 명령
-client.on(CLIENT_EVENT.chatLeave, channelId => {
-    server.removeServer(channelId);
+client.on(CLIENT_EVENT.chatLeave, noticeId => {
+    server.remove(noticeId);
 });
 
 // 채팅방 이동 (채팅방 이동시, 채팅방 정보를 전달합니다.)
 client.on(CLIENT_EVENT.chatMove, pid => {
     if (!pid) return;
-    for (const chatServer of server.serverList) {
-        const { chatChannelId } = chatServer;
-        const data = server.getState(chatChannelId);
-
-        // 온라인 이벤트로, 신규 서버에 전달합니다
-        if (data) client.emit(CLIENT_EVENT.liveOnline, data, pid);
+    for (const noticeId of server.noticeIds) {
+        client.emit(CLIENT_EVENT.liveOnline, noticeId, pid);
     }
 });
 
@@ -115,7 +102,6 @@ const sendState = () => {
 
         saveRedis(`CHAT:STATE:${process.env.ECS_PK}:${chatChannelId}`, data, 60 * 60);
     }
-    // redis
 };
 
 /**

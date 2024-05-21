@@ -30,47 +30,47 @@ server.on('connection', client => {
 
     // LiveState
     client
-        .on(CLIENT_EVENT.liveOnline, (data, pid) => {
+        .on(CLIENT_EVENT.liveOnline, (noticeId, pid) => {
             const targetId = lastPK || pid || ChatState.getECSSpaceId();
             if (targetId == process.env.ECS_PK) {
                 // 현재 서버에 방송을 합니다.
-                server.emit(CLIENT_EVENT.chatJoin, data, process.env.ECS_PK);
+                server.emit(CLIENT_EVENT.chatJoin, noticeId, process.env.ECS_PK);
             } else {
                 // 다른 서버에 방송을 합니다.
-                LIVE_STATE.serverSideEmit(LIVE_EVENT.online, data, targetId);
+                LIVE_STATE.serverSideEmit(LIVE_EVENT.online, noticeId, targetId);
             }
         })
-        .on(CLIENT_EVENT.liveOffline, data => {
-            LIVE_STATE.serverSideEmit(LIVE_EVENT.offline, data);
+        .on(CLIENT_EVENT.liveOffline, noticeId => {
+            LIVE_STATE.serverSideEmit(LIVE_EVENT.offline, noticeId);
         })
-        .on(CLIENT_EVENT.liveChange, data => {
-            LIVE_STATE.serverSideEmit(LIVE_EVENT.change, data);
+        .on(CLIENT_EVENT.liveChange, noticeId => {
+            LIVE_STATE.serverSideEmit(LIVE_EVENT.change, noticeId);
         });
 
     // Chat State
     client
-        .on(CLIENT_EVENT.chatState, data => {
-            CHAT.serverSideEmit(CHAT_EVENT.state, data, process.env.ECS_PK);
+        .on(CLIENT_EVENT.chatState, noticeId => {
+            CHAT.serverSideEmit(CHAT_EVENT.state, noticeId, process.env.ECS_PK);
         })
-        .on(CLIENT_EVENT.chatConnect, ({ channelId }) => {
-            CHAT.serverSideEmit(CHAT_EVENT.join, { channelId }, process.env.ECS_PK);
+        .on(CLIENT_EVENT.chatConnect, noticeId => {
+            CHAT.serverSideEmit(CHAT_EVENT.join, noticeId, process.env.ECS_PK);
         });
 });
 
 /**
  * 라이브 상태를 전달합니다.
  */
-LIVE_STATE.on(LIVE_EVENT.online, (data, freeServer) => {
+LIVE_STATE.on(LIVE_EVENT.online, (noticeId, freeServer) => {
     // 현재 방사된 데이터가 현재의 서버인지 확인 합니다.
     if (freeServer == process.env.ECS_PK) {
-        server.emit(CLIENT_EVENT.chatJoin, data, freeServer);
+        server.emit(CLIENT_EVENT.chatJoin, noticeId, freeServer);
     }
 })
-    .on(LIVE_EVENT.offline, ({ noticeId, hashId, liveStatus }) => {
-        server.emit(CLIENT_EVENT.chatLeave, hashId);
+    .on(LIVE_EVENT.offline, noticeId => {
+        server.emit(CLIENT_EVENT.chatLeave, noticeId);
     })
-    .on(LIVE_EVENT.change, data => {
-        server.emit(CLIENT_EVENT.chatChange, data);
+    .on(LIVE_EVENT.change, noticeId => {
+        server.emit(CLIENT_EVENT.chatChange, noticeId);
     });
 
 let servers: any[] = [];

@@ -47,6 +47,7 @@ export interface Content {
     openDate: string;
     closeDate: null;
     adult: boolean;
+    channelId: string;
     chatChannelId: string;
     categoryType: null;
     liveCategory: string;
@@ -64,6 +65,6 @@ export interface Content {
     };
     livePollingStatusJson?: string;
     p2pQuality?: any[];
-    livePlaybackJson?: string;
+    // livePlaybackJson?: string;
     userAdultStatus: null;
 }
