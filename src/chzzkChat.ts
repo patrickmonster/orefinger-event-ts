@@ -44,7 +44,8 @@ server.on('close', channelId => {
 ///////////////////////////////////////////////////////////////////////////////
 
 // 채팅방 입장 명령
-client.on(CLIENT_EVENT.chatJoin, noticeId => {
+client.on(CLIENT_EVENT.chatJoin, (noticeId, pid) => {
+    if (pid != process.env.ECS_PK) return;
     server.join(noticeId);
 });
 
@@ -54,7 +55,8 @@ client.on(CLIENT_EVENT.chatUpdate, noticeId => {
 });
 
 // 라이브 상태가 변경되었을때
-client.on(CLIENT_EVENT.chatChange, (noticeId, freeServer) => {
+client.on(CLIENT_EVENT.chatChange, (noticeId, pid) => {
+    if (pid != process.env.ECS_PK) return;
     server.update(noticeId);
 });
 
