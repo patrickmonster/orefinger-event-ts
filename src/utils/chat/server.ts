@@ -227,7 +227,7 @@ export default class ChatServer<
             this.emit('join', noticeId, roomId, chatChannelId);
             console.log('CHAT SERVER JOIN ::', roomId, chatChannelId);
             await server.connect();
-            await sleep(100); // 1초 대기
+            await sleep(1000); // 1초 대기
         });
         return this.queue.size;
     }
