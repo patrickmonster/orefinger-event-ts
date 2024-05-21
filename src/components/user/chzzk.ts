@@ -250,12 +250,7 @@ export const getChannelLive = async (noticeId: number, hashId: string, liveId: s
 
                     if (liveId != '0') {
                         // 기존 라이브 정보가 있었다면 ( 라이브 교체 )
-                        socketClient.emit(CLIENT_EVENT.liveChange, {
-                            noticeId,
-                            hashId,
-                            liveStatus: content,
-                        });
-
+                        socketClient.emit(CLIENT_EVENT.liveChange, noticeId);
                         // 라이브 정보를 캐시합니다
                         await cacheRedis(REDIS_KEY.API.CHZZK_LIVE_STATE(`${noticeId}`), content, 60 * 60 * 12);
                         return reject(null);

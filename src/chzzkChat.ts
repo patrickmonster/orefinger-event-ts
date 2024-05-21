@@ -7,6 +7,7 @@ import { createInterval } from 'utils/inteval';
 import 'utils/procesTuning';
 
 import chzzkChatMessage from 'components/chatbot/chzzk';
+import { cacheRedis } from 'utils/redis';
 
 /**
  *
@@ -91,12 +92,12 @@ const sendState = () => {
         revision: process.env.ECS_REVISION,
     });
 
-    // for (const chatServer of server.serverList) {
-    //     const { chatChannelId } = chatServer;
-    //     const data = server.getState(chatChannelId);
+    const list = [];
+    for (const id of server.noticeIds) {
+        list.push(id);
+    }
 
-    //     saveRedis(`CHAT:STATE:${process.env.ECS_PK}:${chatChannelId}`, data, 60 * 60);
-    // }
+    cacheRedis(`CHAT:STATE:${process.env.ECS_PK}`, list, 60 * 60 * 1);
 };
 
 /**
