@@ -28,16 +28,12 @@ server.on('message', chat => {
     chzzkChatMessage(client, chat);
 });
 
-server.on('join', channelId => {
-    client.emit(CLIENT_EVENT.chatConnect, {
-        channelId,
-    });
+server.on('join', noticeId => {
+    client.emit(CLIENT_EVENT.chatConnect, noticeId);
     sendState();
 });
-server.on('close', channelId => {
-    client.emit(CLIENT_EVENT.chatDisconnect, {
-        channelId,
-    });
+server.on('close', noticeId => {
+    client.emit(CLIENT_EVENT.chatDisconnect, noticeId);
     sendState();
 });
 
@@ -56,12 +52,12 @@ client.on(CLIENT_EVENT.chatUpdate, noticeId => {
 
 // 라이브 상태가 변경되었을때
 client.on(CLIENT_EVENT.chatChange, (noticeId, pid) => {
-    if (pid != process.env.ECS_PK) return;
     server.update(noticeId);
 });
 
 // 채팅방 퇴장 명령
-client.on(CLIENT_EVENT.chatLeave, noticeId => {
+client.on(CLIENT_EVENT.chatLeave, (noticeId, pid) => {
+    if (pid && pid != process.env.ECS_PK) return;
     server.remove(noticeId);
 });
 
