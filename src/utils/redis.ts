@@ -34,11 +34,11 @@ process.on('SIGINT', function () {
 
 export default client;
 
-const cacheKey = (key: string) => `cache:${key}`;
-
 export const saveRedis = (key: string, value: any, expire = 60 * 60 * 1) => {
     return client.set(key, JSON.stringify(value), 'EX', expire);
 };
+
+const cacheKey = (key: string) => `cache:${key}`;
 
 export const cacheRedis = (key: string, value: any, expire = 60 * 60 * 1) => {
     return client.set(cacheKey(key), JSON.stringify(value), 'EX', expire);

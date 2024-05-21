@@ -32,7 +32,7 @@ export default class ChatServer<
     } = any,
     C extends Command & { type: number } = any
 > extends EventEmitter {
-    private hashId = new Map<string, string>(); // 라이브 상태
+    private hashId = new Map<string, string>(); // 알림 ID -> 채널 ID
     private state = new Map<string, ChzzkContent>(); // 라이브 상태
     private servers = new Map<string, ChzzkChat>(); // 서버 목록
 
