@@ -189,18 +189,18 @@ const changeMessage = async (notice_id: number, content: Content) => {
             const time = dayjs(closeDate).add(-9, 'h');
 
             embed.description += `~ <t:${time.unix()}:R>`;
-            embed.fields?.push(
-                {
-                    name: '시청자',
-                    value: `${concurrentUserCount.toLocaleString()}명`,
-                    inline: true,
-                },
-                {
-                    name: '방문자',
-                    value: `${accumulateCount.toLocaleString()}명`,
-                    inline: true,
-                }
-            );
+            // embed.fields?.push(
+            //     {
+            //         name: '시청자',
+            //         value: `${concurrentUserCount.toLocaleString()}명`,
+            //         inline: true,
+            //     },
+            //     {
+            //         name: '방문자',
+            //         value: `${accumulateCount.toLocaleString()}명`,
+            //         inline: true,
+            //     }
+            // );
             embed.timestamp = time.format();
             messageEdit(message.channel_id, id, {
                 ...message,
