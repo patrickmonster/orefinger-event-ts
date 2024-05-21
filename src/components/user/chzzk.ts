@@ -19,7 +19,7 @@ import { CLIENT_EVENT } from 'components/socket/socketInterface';
 import { ENCRYPT_KEY, sha256 } from 'utils/cryptoPw';
 import { createActionRow, createUrlButton } from 'utils/discord/component';
 import { ChzzkInterface, getChzzkAPI } from 'utils/naverApiInstance';
-import redis, { REDIS_KEY, saveRedis } from 'utils/redis';
+import redis, { REDIS_KEY, cacheRedis, saveRedis } from 'utils/redis';
 
 const chzzk = getChzzkAPI('v1');
 
@@ -232,6 +232,11 @@ export const getChannelLive = async (noticeId: number, hashId: string, liveId: s
                 const { content } = data;
                 // 콘텐츠의 라이브 id 가 없거나, 라이브 id 가 같으면 무시
                 if (!content?.liveId || content.liveId === liveId) return reject(null);
+
+                // 화질 정보는 제거함 (불필요)
+                if ('livePlaybackJson' in content) delete content.livePlaybackJson;
+                content.channelId = hashId;
+
                 // 라이브가 진행중인 경우
                 if (content && content.status === 'OPEN') {
                     // 이전에 라이브 정보가 있었다면, 라이브 정보를 업데이트 ( 마감 )
@@ -251,7 +256,8 @@ export const getChannelLive = async (noticeId: number, hashId: string, liveId: s
                             liveStatus: content,
                         });
 
-                        await saveRedis(REDIS_KEY.API.CHZZK_LIVE_STATE(`${noticeId}`), content, 60 * 60 * 12);
+                        // 라이브 정보를 캐시합니다
+                        await cacheRedis(REDIS_KEY.API.CHZZK_LIVE_STATE(`${noticeId}`), content, 60 * 60 * 12);
                         return reject(null);
                     }
                 } else if (content && content.status == 'CLOSE') {
@@ -262,6 +268,11 @@ export const getChannelLive = async (noticeId: number, hashId: string, liveId: s
                         const { changedRows } = await updateLiveEvents(noticeId);
                         if (changedRows == 0) return reject(null);
                     } else return reject(null); // 이미 처리된 알림
+                }
+
+                // 라이브 정보를 캐시합니다
+                if (content) {
+                    cacheRedis(REDIS_KEY.API.CHZZK_LIVE_STATE(`${noticeId}`), content, 60 * 60 * 12).catch(() => {});
                 }
                 return resolve(content as Content);
             })
@@ -309,7 +320,6 @@ export const getLiveMessage = async ({
     } else if (liveStatus && liveStatus.status == 'CLOSE') {
         socketClient.emit(CLIENT_EVENT.liveOffline, noticeId);
     }
-    if (liveStatus) saveRedis(REDIS_KEY.API.CHZZK_LIVE_STATE(`${noticeId}`), liveStatus, 60 * 60 * 12).catch(() => {});
     return liveStatus;
 };
 

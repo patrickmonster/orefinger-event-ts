@@ -34,9 +34,21 @@ process.on('SIGINT', function () {
 
 export default client;
 
+const cacheKey = (key: string) => `cache:${key}`;
+
 export const saveRedis = (key: string, value: any, expire = 60 * 60 * 1) => {
-    // console.log('REDIS] saveRedis', key, value);
     return client.set(key, JSON.stringify(value), 'EX', expire);
+};
+
+export const cacheRedis = (key: string, value: any, expire = 60 * 60 * 1) => {
+    return client.set(cacheKey(key), JSON.stringify(value), 'EX', expire);
+};
+
+export const loadRedis = async <T>(key: string) => {
+    const data = await client.get(cacheKey(key));
+    if (!data) return null;
+
+    return JSON.parse(data) as T;
 };
 
 export const catchRedis = async <T>(key: string, callback: () => Promise<T>, expire = 60 * 60 * 1) => {
