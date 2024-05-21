@@ -111,17 +111,17 @@ CHAT.on(CHAT_EVENT.state, data => {
         serverECS[idx] = { count, userCount };
     }
 })
-    .on(CHAT_EVENT.join, ({ channelId }, pid) => {
+    .on(CHAT_EVENT.join, (noticeId, pid) => {
         if (pid == process.env.ECS_PK) return;
         // 외부 서버가 채팅방에 접속한 경우, 현재 서버에 연결된 채널의 연결을 해지합니다 (중복 제거)
-        server.emit(CLIENT_EVENT.chatLeave, { channelId });
+        server.emit(CLIENT_EVENT.chatLeave, noticeId);
     })
     .on(CHAT_EVENT.change, (data, pid) => {
         if (pid != process.env.ECS_PK) return;
         server.emit(CLIENT_EVENT.liveOnline, data);
     })
-    .on(CHAT_EVENT.reload, (hashId: string) => {
-        server.emit(CLIENT_EVENT.chatUpdate, hashId);
+    .on(CHAT_EVENT.reload, (noticeId: string) => {
+        server.emit(CLIENT_EVENT.chatUpdate, noticeId);
     })
     .on(CHAT_EVENT.auth, ({ nidAuth, nidSession }) => {
         if (!nidAuth || !nidSession) return;

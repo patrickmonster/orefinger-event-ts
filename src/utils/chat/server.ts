@@ -33,6 +33,7 @@ export default class ChatServer<
     C extends Command & { type: number } = any
 > extends EventEmitter {
     private hashId = new Map<string, string>(); // 알림 ID -> 채널 ID
+    private liveId = new Map<string, string>(); // 알림 ID -> 채널 ID
     private state = new Map<string, ChzzkContent>(); // 라이브 상태
     private servers = new Map<string, ChzzkChat>(); // 서버 목록
 
@@ -134,6 +135,7 @@ export default class ChatServer<
             const { channelId, chatChannelId } = data as ChzzkContent;
             if (!this.hashId.has(noticeId)) {
                 this.hashId.set(noticeId, channelId);
+                this.liveId.set(channelId, noticeId);
                 return this.addServer(channelId, chatChannelId);
             } else {
                 this.updateServer(channelId, chatChannelId);
@@ -191,6 +193,7 @@ export default class ChatServer<
                 console.error('INVALID CHAT CHANNEL ID', roomId);
                 return;
             }
+            const noticeId = this.liveId.get(roomId);
 
             const token = await this.getToken(chatChannelId);
             const server = new ChzzkChat<U, C>({
@@ -202,14 +205,14 @@ export default class ChatServer<
             })
                 .on('chat', chat => this.onChat(roomId, chat))
                 .on('donation', chat => this.onChat(roomId, chat))
-                .on('recnnect', () => this.emit('reconnect', roomId, chatChannelId))
+                .on('recnnect', () => this.emit('reconnect', noticeId, roomId, chatChannelId))
                 .on('close', () => {
-                    console.log('DISCONNECTED FROM CHAT SERVER', roomId, chatChannelId);
+                    console.log('DISCONNECTED FROM CHAT SERVER', noticeId, roomId, chatChannelId);
 
                     this.saveUser(roomId).catch(console.error);
                     this.saveCommand(roomId).catch(console.error);
 
-                    this.emit('close', roomId, chatChannelId);
+                    this.emit('close', noticeId, roomId, chatChannelId);
                     this.servers.delete(roomId);
                 })
                 .on('ready', () => {
@@ -221,7 +224,7 @@ export default class ChatServer<
             this.loadUser(roomId).catch(console.error);
             this.loadCommand(roomId).catch(console.error);
 
-            this.emit('join', roomId, chatChannelId);
+            this.emit('join', noticeId, roomId, chatChannelId);
             console.log('CHAT SERVER JOIN ::', roomId, chatChannelId);
             await server.connect();
             await sleep(100); // 1초 대기
