@@ -52,12 +52,12 @@ client.on(CLIENT_EVENT.chatUpdate, noticeId => {
 
 // 라이브 상태가 변경되었을때
 client.on(CLIENT_EVENT.chatChange, (noticeId, pid) => {
-    if (pid != process.env.ECS_PK) return;
     server.update(noticeId);
 });
 
 // 채팅방 퇴장 명령
-client.on(CLIENT_EVENT.chatLeave, noticeId => {
+client.on(CLIENT_EVENT.chatLeave, (noticeId, pid) => {
+    if (pid && pid != process.env.ECS_PK) return;
     server.remove(noticeId);
 });
 
