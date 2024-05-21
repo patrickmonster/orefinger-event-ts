@@ -150,6 +150,14 @@ export default class ChatServer<
         }
     }
 
+    async reload(noticeId: string) {
+        const channelId = this.hashId.get(noticeId);
+        if (channelId) {
+            this.loadUser(channelId).catch(console.error);
+            this.loadCommand(channelId).catch(console.error);
+        }
+    }
+
     remove(noticeId: string) {
         const channelId = this.hashId.get(noticeId);
         if (channelId) {

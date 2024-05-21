@@ -50,26 +50,26 @@ client.on(CLIENT_EVENT.chatJoin, (noticeId, freeServer) => {
     }
 });
 
-// 채팅방 업데이트 명령
+// api 에서 수정한 경우 명령어를 다시 불러옵니다
 client.on(CLIENT_EVENT.chatUpdate, noticeId => {
-    server.update(noticeId);
+    server.reload(noticeId);
 });
 
-// 채팅방 변경 명령
+// 라이브 상태가 변경되었을때
 client.on(CLIENT_EVENT.chatChange, (noticeId, freeServer) => {
     if (freeServer == process.env.ECS_PK) {
+        server.update(noticeId);
     }
 });
 
 // 채팅방 퇴장 명령
-client.on(CLIENT_EVENT.chatLeave, channelId => {
-    server.removeServer(channelId);
+client.on(CLIENT_EVENT.chatLeave, noticeId => {
+    server.remove(noticeId);
 });
 
 // 채팅방 이동 (채팅방 이동시, 채팅방 정보를 전달합니다.)
 client.on(CLIENT_EVENT.chatMove, pid => {
     if (!pid) return;
-
     for (const noticeId of server.noticeIds) {
         client.emit(CLIENT_EVENT.liveOnline, noticeId, pid);
     }
