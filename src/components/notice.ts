@@ -1,4 +1,4 @@
-import { NoticeId, selectNoticeDtilByEmbed, upsertAttach, upsertNotice } from 'controllers/notice';
+import { NoticeId, deleteNoticeChannel, selectNoticeDtilByEmbed, upsertAttach, upsertNotice } from 'controllers/notice';
 import { ChannelType } from 'discord-api-types/v10';
 import { NoticeChannel } from 'interfaces/notice';
 import {
@@ -93,7 +93,7 @@ export const getNoticeByType = async (
  */
 export const sendChannels = async (channels: NoticeChannel[], message: RESTPostAPIChannelMessage) => {
     const messages: APIMessage[] = [];
-    for (const { channel_id, avatar_url, url, username } of channels) {
+    for (const { channel_id, avatar_url, url, username, notice_id } of channels) {
         if (url) {
             // 훅 발송
             const [embed] = message.embeds || [];
@@ -109,7 +109,14 @@ export const sendChannels = async (channels: NoticeChannel[], message: RESTPostA
                                 'https://cdn.orefinger.click/post/466950273928134666/d2d0cc31-a00e-414a-aee9-60b2227ce42c.png'),
                     },
                 })
-                .catch(ERROR)) as APIMessage;
+                .catch(e => {
+                    ERROR(e);
+                    if ([50013, 10003].includes(e.code)) {
+                        deleteNoticeChannel(notice_id, channel_id).catch(e => {
+                            ERROR('DeleteChannel', e);
+                        });
+                    }
+                })) as APIMessage;
 
             const id = originMessage?.id;
 
@@ -117,7 +124,13 @@ export const sendChannels = async (channels: NoticeChannel[], message: RESTPostA
                 messages.push(originMessage);
             }
         } else {
-            const originMessage = await messageCreate(channel_id, message).catch(ERROR);
+            const originMessage = await messageCreate(channel_id, message).catch(e => {
+                if ([10003 /* , 50013 */].includes(e.code)) {
+                    deleteNoticeChannel(notice_id, channel_id).catch(e => {
+                        ERROR('DeleteChannel', e);
+                    });
+                } else ERROR(e);
+            });
 
             const id = originMessage?.id;
 
