@@ -14,7 +14,6 @@ const server = new Server(3001);
 server.adapter(
     createAdapter(pubClient, subClient, {
         key: 'orefinger',
-        // publishOnSpecificResponseChannel
     })
 );
 
@@ -26,11 +25,13 @@ export const ECS = server.of('/ecs');
 let lastPK = 0;
 
 server.on('connection', client => {
-    client.emit('init', {
-        id: process.env.ECS_ID,
-        revision: process.env.ECS_REVISION,
-        family: process.env.ECS_FAMILY,
-        pk: process.env.ECS_PK,
+    client.on('requestInit', () => {
+        client.emit('init', {
+            id: process.env.ECS_ID,
+            revision: process.env.ECS_REVISION,
+            family: process.env.ECS_FAMILY,
+            pk: process.env.ECS_PK,
+        });
     });
 
     // LiveState
