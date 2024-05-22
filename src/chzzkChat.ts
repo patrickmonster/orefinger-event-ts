@@ -7,7 +7,7 @@ import { createInterval } from 'utils/inteval';
 import 'utils/procesTuning';
 
 import chzzkChatMessage from 'components/chatbot/chzzk';
-import { cacheRedis } from 'utils/redis';
+import { cacheRedis, setServerState } from 'utils/redis';
 
 /**
  *
@@ -91,18 +91,15 @@ client.on(CLIENT_EVENT.chatAuth, async (nidAuth, nidSession) => {
 });
 
 const sendState = () => {
-    client.emit(CLIENT_EVENT.chatState, {
-        ...server.serverState,
-        idx: ENV.ECS_PK,
-        revision: process.env.ECS_REVISION,
-    });
+    const { count } = server.serverState;
 
     const list = [];
     for (const id of server.noticeIds) {
         list.push(id);
     }
 
-    cacheRedis(`CHAT:STATE:${ENV.ECS_PK}`, list, 60 * 60 * 1);
+    setServerState(count).catch(console.error);
+    cacheRedis(`chat:state:${ENV.ECS_PK}`, list, 60 * 60 * 1); // 기록용 ( 외부 확인 )
 };
 
 /**

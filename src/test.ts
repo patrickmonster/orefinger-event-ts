@@ -13,54 +13,66 @@ if (existsSync(envDir)) {
     });
 }
 
-import chzzkChatMessage from 'components/chatbot/chzzk';
-import ChatServer from 'utils/chat/server';
+import client from 'utils/redis';
 
-import { authTypes } from 'controllers/auth';
-import { ChzzkAPI } from 'utils/chat/chzzk';
-import 'utils/procesTuning';
+client.keys('cache:api:chzzk:live:state:*', async (err, keys) => {
+    console.log('?', keys);
 
-const server = new ChatServer();
-
-const api = new ChzzkAPI();
-
-server.on('message', chat => {
-    const {
-        message,
-        extras: { streamingChannelId },
-    } = chat;
-
-    const client = server.getServer(streamingChannelId);
-    if (!client || !message) return;
-
-    try {
-        chzzkChatMessage(client, chat);
-    } catch (e) {}
+    if (err) return;
+    if (keys) {
+        const data = await client.mget(keys);
+        console.log(data);
+    }
 });
 
-// server.on('message', ({ message, profile: { nickname }, extras: { streamingChannelId } }) => {
-//     console.log(nickname, '::', message);
+// import chzzkChatMessage from 'components/chatbot/chzzk';
+// import ChatServer from 'utils/chat/server';
+
+// import { authTypes } from 'controllers/auth';
+// import { ChzzkAPI } from 'utils/chat/chzzk';
+// import 'utils/procesTuning';
+
+// const server = new ChatServer();
+
+// const api = new ChzzkAPI();
+
+// server.on('message', chat => {
+//     const {
+//         message,
+//         extras: { streamingChannelId },
+//     } = chat;
+
+//     const client = server.getServer(streamingChannelId);
+//     if (!client || !message) return;
+
+//     try {
+//         chzzkChatMessage(client, chat);
+//     } catch (e) {}
 // });
 
-server.on('join', channelId => {
-    console.log('join', channelId);
-});
-server.on('close', channelId => {
-    console.log('close', channelId);
-});
+// // server.on('message', ({ message, profile: { nickname }, extras: { streamingChannelId } }) => {
+// //     console.log(nickname, '::', message);
+// // });
 
-// api.status('e229d18df2edef8c9114ae6e8b20373a').then(data => {
-//     data.channelId = 'e229d18df2edef8c9114ae6e8b20373a';
-//     cacheRedis(REDIS_KEY.API.CHZZK_LIVE_STATE('588'), data, 60 * 60 * 24 * 7);
+// server.on('join', channelId => {
+//     console.log('join', channelId);
 // });
-///////////////////////////////////////////////////////////////////////////////
+// server.on('close', channelId => {
+//     console.log('close', channelId);
+// });
 
-server.join('588');
+// // api.status('e229d18df2edef8c9114ae6e8b20373a').then(data => {
+// //     data.channelId = 'e229d18df2edef8c9114ae6e8b20373a';
+// //     cacheRedis(REDIS_KEY.API.CHZZK_LIVE_STATE('588'), data, 60 * 60 * 24 * 7);
+// // });
+// ///////////////////////////////////////////////////////////////////////////////
 
-authTypes(true, 13).then(([type]) => {
-    if (!type) return;
+// server.join('588');
 
-    console.log('SET AUTH', type.scope, type.client_sc);
+// authTypes(true, 13).then(([type]) => {
+//     if (!type) return;
 
-    server.init(type.scope, type.client_sc);
-});
+//     console.log('SET AUTH', type.scope, type.client_sc);
+
+//     server.init(type.scope, type.client_sc);
+// });

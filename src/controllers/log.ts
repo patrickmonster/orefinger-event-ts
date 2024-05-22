@@ -16,6 +16,23 @@ export const ecsSet = async (id: string, revision: string, family: string) =>
         family,
     });
 
+export const ecsRevisionList = async (...revisions: number[]) =>
+    query<{
+        idxs: number[];
+        revision: string;
+    }>(
+        `
+SELECT 
+	JSON_ARRAYAGG(
+	 	idx
+	) AS idxs
+	, revision
+FROM task t
+${calTo('WHERE t.revision IN (?)', revisions)}
+GROUP BY revision 
+    `
+    );
+
 export const ecsSelect = async (revision?: string, id?: string) =>
     query<{
         idx: number;
