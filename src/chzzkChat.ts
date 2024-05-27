@@ -111,8 +111,11 @@ authTypes(true, 13).then(([type]) => {
     console.log('SET AUTH', type.scope, type.client_sc);
 
     server.init(type.scope, type.client_sc);
-
     if (!ENV.ECS_PK) client.emit('requestInit');
 });
 
 createInterval(1000 * 60 * 3, sendState);
+createInterval(1000 * 60 * 60, () => {
+    // 1시간마다 서버 상태를 갱신합니다.
+    client.emit('requestInit');
+});
