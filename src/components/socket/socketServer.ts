@@ -38,13 +38,7 @@ server.on('connection', client => {
     client
         .on(CLIENT_EVENT.liveOnline, (noticeId, pid) => {
             const targetId = lastPK || pid || getServerState();
-            if (targetId == process.env.ECS_PK) {
-                // 현재 서버에 방송을 합니다.
-                server.emit(CLIENT_EVENT.chatJoin, noticeId, process.env.ECS_PK);
-            } else {
-                // 다른 서버에 방송을 합니다.
-                LIVE_STATE.serverSideEmit(LIVE_EVENT.online, noticeId, targetId);
-            }
+            server.emit(CLIENT_EVENT.chatJoin, noticeId, targetId);
         })
         .on(CLIENT_EVENT.liveOffline, noticeId => {
             // LIVE_STATE.serverSideEmit(LIVE_EVENT.offline, noticeId);
@@ -103,9 +97,9 @@ CHAT
         // 외부 서버가 채팅방에 접속한 경우, 현재 서버에 연결된 채널의 연결을 해지합니다 (중복 제거)
         server.emit(CLIENT_EVENT.chatLeave, noticeId, pid);
     })
-    .on(CHAT_EVENT.change, (data, pid) => {
+    .on(CHAT_EVENT.change, (noticeId, pid) => {
         if (pid != process.env.ECS_PK) return;
-        server.emit(CLIENT_EVENT.liveOnline, data);
+        server.emit(CLIENT_EVENT.liveOnline, noticeId);
     })
     .on(CHAT_EVENT.reload, (noticeId: string) => {
         server.emit(CLIENT_EVENT.chatUpdate, noticeId);

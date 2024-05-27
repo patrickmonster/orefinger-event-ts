@@ -88,7 +88,7 @@ export const getServerState = async () => {
         { user: 999999, revision: process.env.ECS_REVISION, id: process.env.ECS_PK }
     );
 
-    return id;
+    return id || process.env.ECS_PK;
 };
 
 /**

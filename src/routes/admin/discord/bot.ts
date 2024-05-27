@@ -1,7 +1,7 @@
 import { FastifyInstance } from 'fastify';
 
 import axios from 'axios';
-import socket from 'components/socket/socketClient';
+import client from 'components/socket/socketClient';
 import { CHAT_EVENT, CLIENT_EVENT } from 'components/socket/socketInterface';
 import { selectNotice } from 'controllers/notification';
 
@@ -70,11 +70,7 @@ export default async (fastify: FastifyInstance, opts: any) => {
                 return { success: false, message: '채널이 존재하지 않습니다!' };
             }
 
-            socket.emit(CLIENT_EVENT.liveOnline, {
-                noticeId,
-                hashId: notice.hash_id,
-                liveStatus: data.liveStatus,
-            });
+            client.emit(CLIENT_EVENT.liveOnline, noticeId);
 
             return { success: true };
         }
