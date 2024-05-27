@@ -40,6 +40,7 @@ export const getAuthbordeList = async (guild: string, auth_type?: number | strin
         tag: string;
         tag_kr: string;
         guild_id: string;
+        nick_name: string;
         type: number;
         role_id: string;
         embed_id: string;
@@ -53,6 +54,7 @@ SELECT
     , at2.tag
     , at2.tag_kr
     , ab.guild_id
+    , ab.nick_name
     , ab.\`type\`
     , ab.role_id
     , ab.embed_id

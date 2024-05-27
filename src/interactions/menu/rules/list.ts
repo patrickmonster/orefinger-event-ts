@@ -9,6 +9,7 @@ import {
     createDangerButton,
     createPrimaryButton,
     createRoleSelectMenu,
+    createSecondaryButton,
     createSuccessButton,
 } from 'utils/discord/component';
 
@@ -45,6 +46,9 @@ export const exec = async (interaction: MessageMenuInteraction) => {
                         }),
                         createSuccessButton(`${id} reload`, {
                             label: '새로고침',
+                        }),
+                        createSecondaryButton(`${id} nick`, {
+                            label: '닉네임 형식 변경',
                         }),
                         createDangerButton(`${id} delete`, {
                             label: '삭제',

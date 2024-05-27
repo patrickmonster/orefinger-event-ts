@@ -5,7 +5,12 @@ import { selectEmbedUserBaseEditByModel, selectEmbedUserDtilByEmbed, upsertEmbed
 import { messageCreate } from 'components/discord';
 import { selectEmbed } from 'components/embed/userDtail';
 import { getAuthbordeList } from 'controllers/guild/authDashbord';
-import { createActionRow, createPrimaryButton } from 'utils/discord/component';
+import {
+    createActionRow,
+    createPrimaryButton,
+    createTextParagraphInput,
+    createTextShortInput,
+} from 'utils/discord/component';
 /**
  *
  * 온라인 알림 이벤트 등록
@@ -49,6 +54,36 @@ export const exec = async (interaction: MessageInteraction, auth_id: string, tar
         }
         case 'reload': {
             await selectEmbed(interaction, embed_id);
+            break;
+        }
+        case 'nick': {
+            const { nick_name } = bord;
+            interaction.model({
+                custom_id: `rules nick ${auth_id}`,
+                title: '닉네임 형식 변경',
+                components: [
+                    createTextShortInput('nick', {
+                        label: '닉네임',
+                        placeholder: '{target}]{nick}',
+                        value: nick_name || '{target}]{nick}',
+                        max_length: 100,
+                        min_length: 1,
+                        required: true,
+                    }),
+                    createTextParagraphInput('tmp', {
+                        label: '닉네임 예시',
+                        value: `
+예시) {target}]{nick}
+예시2) 시청자] {nick}
+예시3) {nick} 트수
+
+{target} : 인증 대상 플렛폼
+{nick} : 사용자 닉네임
+(최대 30자 까지 가능합니다.)
+                        `,
+                    }),
+                ],
+            });
             break;
         }
         case 'edit': {
