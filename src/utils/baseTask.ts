@@ -11,6 +11,8 @@ interface TaskOptions {
 
     sleep?: number;
     timmer?: number; // 분단위
+
+    loopTime?: number; // 루프 시간
 }
 
 export class BaseTask extends EventEmitter {
@@ -25,10 +27,13 @@ export class BaseTask extends EventEmitter {
 
     taskEvent: TaskGetEvent | undefined;
 
-    constructor({ targetEvent, timmer }: TaskOptions) {
+    loopTime = 1000; // Cull down the request (1초)
+
+    constructor({ targetEvent, timmer, loopTime }: TaskOptions) {
         super();
         this.eventId = targetEvent;
         if (timmer) this.timmer = timmer;
+        if (loopTime) this.loopTime = loopTime;
 
         process.on('SIGINT', () => {
             this.stop();
@@ -134,7 +139,7 @@ export class BaseTask extends EventEmitter {
             if (!this.taskState) return; // 테스크 중지
             try {
                 this.emit('scan', task);
-                await sleep(1000); // Cull down the request (1초)
+                await sleep(this.loopTime); // Cull down the request (1초)
             } catch (e) {
                 this.emit('error', `Error: ${this.eventId}`, task.notice_id, task.hash_id);
             }

@@ -1,4 +1,3 @@
-import axios from 'axios';
 import dayjs from 'dayjs';
 import { APIEmbed, APIMessage } from 'discord-api-types/v10';
 import qs from 'querystring';
@@ -22,6 +21,7 @@ import { ChzzkInterface, getChzzkAPI } from 'utils/naverApiInstance';
 import redis, { REDIS_KEY, cacheRedis, saveRedis } from 'utils/redis';
 
 const chzzk = getChzzkAPI('v1');
+const chzzkV2 = getChzzkAPI('v2');
 
 const hashIdChzzk = new RegExp('^[a-zA-Z0-9]{32}$');
 
@@ -221,15 +221,14 @@ const changeMessage = async (notice_id: number, content: Content) => {
  */
 export const getChannelLive = async (noticeId: number, hashId: string, liveId: string | number) =>
     new Promise<Content | null>((resolve, reject) => {
-        axios
-            .get(`https://api.chzzk.naver.com/service/v2/channels/${hashId}/live-detail`, {
+        chzzkV2
+            .get<{ content: Content }>(`channels/${hashId}/live-detail`, {
                 headers: {
                     'User-Agent':
                         'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
                 },
             })
-            .then(async ({ data }) => {
-                const { content } = data;
+            .then(async ({ content }) => {
                 // 콘텐츠의 라이브 id 가 없거나, 라이브 id 가 같으면 무시
                 if (!content?.liveId || content.liveId === liveId) return reject(null);
 

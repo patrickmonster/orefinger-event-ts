@@ -1,4 +1,3 @@
-import { ChatState } from 'components/socket/socketServer';
 import { ecsTaskState, liveState } from 'controllers/log';
 import dayjs from 'dayjs';
 import { AppChatInputInteraction, SelectOptionType } from 'interactions/app';
@@ -21,7 +20,6 @@ export const exec = async (interaction: AppChatInputInteraction, selectOption: S
 - Total: ${total.toLocaleString()}
 - Request: ${lastServerRequset.toLocaleString()} req/m
 - Live Sendtime : ${time} sec
-- Chat : ${ChatState.totalECS().toLocaleString()} channel
 
 총 ${ids.length.toLocaleString()}개의 서버가 동작하고 있으며,
 각 서버당 ${Math.round(total / ids.length).toLocaleString()}개의 알림을 처리하고 있습니다.

@@ -5,6 +5,7 @@ export interface AuthBordPK {
 export interface AuthBord extends AuthBordPK {
     role_id: string;
     embed_id: string;
+    nick_name: string;
     use_yn: string;
     create_at: string;
     update_at: string;

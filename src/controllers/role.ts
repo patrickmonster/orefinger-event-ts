@@ -40,6 +40,7 @@ export const insertAuthRule = async (auth_id: string, guild_id: string, type: nu
             tag: string;
             tag_kr: string;
             guild_id: string;
+            nick_name: string;
             type: string;
             role_id: string;
             embed_id: string;
@@ -54,6 +55,7 @@ SELECT
     , at2.tag_kr
     , at2.use_yn
     , ab.guild_id
+    , ab.nick_name
     , ab.type
     , ab.role_id
     , ab.embed_id

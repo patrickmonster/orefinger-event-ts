@@ -1,13 +1,13 @@
 import ChatServer from 'utils/chat/server';
 
-import client from 'components/socket/socketClient';
+import client, { ENV } from 'components/socket/socketClient';
 import { CLIENT_EVENT } from 'components/socket/socketInterface';
 import { authTypes } from 'controllers/auth';
 import { createInterval } from 'utils/inteval';
 import 'utils/procesTuning';
 
 import chzzkChatMessage from 'components/chatbot/chzzk';
-import { cacheRedis } from 'utils/redis';
+import { cacheRedis, setServerState } from 'utils/redis';
 
 /**
  *
@@ -41,7 +41,14 @@ server.on('close', noticeId => {
 
 // 채팅방 입장 명령
 client.on(CLIENT_EVENT.chatJoin, (noticeId, pid) => {
-    if (pid != process.env.ECS_PK) return;
+    if (!ENV.ECS_PK) {
+        console.log('NOT ECS_PK', pid, ENV.ECS_PK);
+        return;
+    }
+
+    if (pid != ENV.ECS_PK) {
+        return;
+    }
     server.join(noticeId);
 });
 
@@ -57,7 +64,7 @@ client.on(CLIENT_EVENT.chatChange, (noticeId, pid) => {
 
 // 채팅방 퇴장 명령
 client.on(CLIENT_EVENT.chatLeave, (noticeId, pid) => {
-    if (pid && pid != process.env.ECS_PK) return;
+    if (pid && pid != ENV.ECS_PK) return;
     server.remove(noticeId);
 });
 
@@ -84,18 +91,15 @@ client.on(CLIENT_EVENT.chatAuth, async (nidAuth, nidSession) => {
 });
 
 const sendState = () => {
-    client.emit(CLIENT_EVENT.chatState, {
-        ...server.serverState,
-        idx: process.env.ECS_PK,
-        revision: process.env.ECS_REVISION,
-    });
+    const { count } = server.serverState;
 
     const list = [];
     for (const id of server.noticeIds) {
         list.push(id);
     }
 
-    cacheRedis(`CHAT:STATE:${process.env.ECS_PK}`, list, 60 * 60 * 1);
+    setServerState(count).catch(console.error);
+    cacheRedis(`chat:state:${ENV.ECS_PK}`, list, 60 * 60 * 1); // 기록용 ( 외부 확인 )
 };
 
 /**
@@ -107,6 +111,11 @@ authTypes(true, 13).then(([type]) => {
     console.log('SET AUTH', type.scope, type.client_sc);
 
     server.init(type.scope, type.client_sc);
+    if (!ENV.ECS_PK) client.emit('requestInit');
 });
 
 createInterval(1000 * 60 * 3, sendState);
+createInterval(1000 * 60 * 60, () => {
+    // 1시간마다 서버 상태를 갱신합니다.
+    client.emit('requestInit');
+});

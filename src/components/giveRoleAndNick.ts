@@ -97,7 +97,7 @@ export default async (interaction: IReply, { guild_id, auth_id, user_id, nick, t
 
     try {
         // 최신 인증 정보를 불러옴
-        const { role_id, tag_kr, affectedRows } = await insertAuthRule(auth_id, guild_id, type);
+        const { role_id, tag_kr, affectedRows, nick_name } = await insertAuthRule(auth_id, guild_id, type);
 
         const { roles, nick: originNick } = user;
         if (!role_id) {
@@ -108,7 +108,17 @@ export default async (interaction: IReply, { guild_id, auth_id, user_id, nick, t
             });
         }
         const hasRole = roles.includes(role_id);
-        const changeNick = `${tag_kr}]${nick}`;
+        // const changeNick = `${tag_kr}]${nick}`;
+        const changeNick = nick_name.replace(/\{([^\}]+)\}/gi, (match: string, p1: string) => {
+            switch (p1) {
+                case 'nick':
+                    return nick;
+                case 'target':
+                    return tag_kr;
+                default:
+                    return match;
+            }
+        });
 
         if (!hasRole) {
             try {
@@ -130,6 +140,8 @@ export default async (interaction: IReply, { guild_id, auth_id, user_id, nick, t
             try {
                 await changeNickname(guild_id, auth_id, changeNick);
             } catch (e: any) {
+                console.log('ERROR', e);
+
                 return interaction.reply({
                     embeds: [
                         errorEmbed('DISCORDAPI', {

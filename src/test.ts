@@ -2,7 +2,6 @@ import { config } from 'dotenv';
 import { existsSync } from 'fs';
 import { join } from 'path';
 import { env } from 'process';
-
 const envDir = join(env.PWD || __dirname, `/.env`);
 if (existsSync(envDir)) {
     config({ path: envDir });
@@ -13,54 +12,40 @@ if (existsSync(envDir)) {
     });
 }
 
-import chzzkChatMessage from 'components/chatbot/chzzk';
-import ChatServer from 'utils/chat/server';
+import { Content } from 'interfaces/API/Chzzk';
+import { NoticeBat } from 'interfaces/notice';
+import { BaseTask } from 'utils/baseTask';
+import { getChzzkAPI } from 'utils/naverApiInstance';
 
-import { authTypes } from 'controllers/auth';
-import { ChzzkAPI } from 'utils/chat/chzzk';
-import 'utils/procesTuning';
+const chzzkV2 = getChzzkAPI('v2');
 
-const server = new ChatServer();
+let count = 0;
 
-const api = new ChzzkAPI();
+let bootTime = Date.now();
 
-server.on('message', chat => {
-    const {
-        message,
-        extras: { streamingChannelId },
-    } = chat;
+const task = new BaseTask({ targetEvent: 4, timmer: 100, loopTime: 300 }).on('scan', async (item: NoticeBat) => {
+    const { channels, notice_id: noticeId, hash_id: hashId, message, name, id } = item;
+    await chzzkV2
+        .get<{ content: Content }>(`channels/${hashId}/live-detail`, {
+            headers: {
+                'User-Agent':
+                    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+            },
+        })
+        .then(async ({ content }) => {
+            // 콘텐츠의 라이브 id 가 없거나, 라이브 id 가 같으면 무시
+            const time = Date.now() - bootTime;
+            console.log(count++, `${Math.floor(time / 1000)} (${time}ms)`, noticeId, content.liveId, id);
+        })
+        .catch(e => {
+            if (e.response) {
+                if (e?.response?.data && e.response.data?.code === 403) {
+                    console.log('서비스 차단', e);
+                }
+            }
+        });
 
-    const client = server.getServer(streamingChannelId);
-    if (!client || !message) return;
-
-    try {
-        chzzkChatMessage(client, chat);
-    } catch (e) {}
+    bootTime = Date.now();
 });
 
-// server.on('message', ({ message, profile: { nickname }, extras: { streamingChannelId } }) => {
-//     console.log(nickname, '::', message);
-// });
-
-server.on('join', channelId => {
-    console.log('join', channelId);
-});
-server.on('close', channelId => {
-    console.log('close', channelId);
-});
-
-// api.status('e229d18df2edef8c9114ae6e8b20373a').then(data => {
-//     data.channelId = 'e229d18df2edef8c9114ae6e8b20373a';
-//     cacheRedis(REDIS_KEY.API.CHZZK_LIVE_STATE('588'), data, 60 * 60 * 24 * 7);
-// });
-///////////////////////////////////////////////////////////////////////////////
-
-server.join('588');
-
-authTypes(true, 13).then(([type]) => {
-    if (!type) return;
-
-    console.log('SET AUTH', type.scope, type.client_sc);
-
-    server.init(type.scope, type.client_sc);
-});
+task.start();

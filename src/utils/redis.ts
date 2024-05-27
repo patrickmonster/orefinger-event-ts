@@ -1,4 +1,4 @@
-import { ECSState, ECSStateMessage, LiveState, LiveStateMessage } from 'interfaces/redis';
+import { ECSState, LiveState } from 'interfaces/redis';
 import Redis from 'ioredis';
 
 // const client = createClient({
@@ -66,30 +66,46 @@ export const catchRedis = async <T>(key: string, callback: () => Promise<T>, exp
 
 ////////////////////////////////////////////////////////////////////////////////////////
 
-const publish = async (channel: string, message: string) => {
-    client.publish(channel, message).catch(console.error);
-};
+interface State {
+    revision: string;
+    id: string;
+    user: number;
+}
 
-export const LiveStatePublish = async (state: LiveState, message: LiveStateMessage) => {
-    publish(
-        REDIS_KEY.SUBSCRIBE.LIVE_STATE(state),
-        JSON.stringify({
-            ...message,
-            id: process.env.ECS_PK,
-        })
+export const getServerState = async () => {
+    const keys = await client.keys(cacheKey(`chat:${process.env.ECS_REVISION}:*`));
+
+    if (!keys || keys.length < 0) {
+        return process.env.ECS_PK;
+    }
+
+    const datas = (await client.mget(keys)) as string[];
+    const { id } = datas.reduce(
+        (prev, curr) => {
+            const data = JSON.parse(curr) as State;
+            return prev.user > data.user ? data : prev;
+        },
+        { user: 999999, revision: process.env.ECS_REVISION, id: process.env.ECS_PK }
     );
+
+    return id;
 };
 
-export const ECSStatePublish = async (state: ECSState, message: ECSStateMessage) => {
-    publish(
-        REDIS_KEY.SUBSCRIBE.ECS_CHAT_STATE(state),
-        JSON.stringify({
-            ...message,
+/**
+ * 서버에 현 상태를 저장함
+ * @param state
+ * @returns
+ */
+export const setServerState = async (userCount: number) =>
+    cacheRedis(
+        `chat:${process.env.ECS_REVISION}:${process.env.ECS_PK}`,
+        {
+            user: userCount,
             revision: process.env.ECS_REVISION,
             id: process.env.ECS_PK,
-        })
-    );
-};
+        },
+        60 * 60 * 1
+    ); // 1시간
 
 export type QueryKey = string | number;
 
