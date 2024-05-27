@@ -64,7 +64,7 @@ client.on(CLIENT_EVENT.chatChange, (noticeId, pid) => {
 
 // 채팅방 퇴장 명령
 client.on(CLIENT_EVENT.chatLeave, (noticeId, pid) => {
-    if (pid && pid != ENV.ECS_PK) return;
+    if (pid && pid === ENV.ECS_PK) return;
     server.remove(noticeId);
 });
 
