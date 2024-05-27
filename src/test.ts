@@ -12,26 +12,40 @@ if (existsSync(envDir)) {
     });
 }
 
-import { getLiveMessage as chzzk } from 'components/user/chzzk';
+import { Content } from 'interfaces/API/Chzzk';
 import { NoticeBat } from 'interfaces/notice';
 import { BaseTask } from 'utils/baseTask';
+import { getChzzkAPI } from 'utils/naverApiInstance';
 
-const task = new BaseTask({ targetEvent: 4, timmer: 100, loopTime: 500 }).on('scan', async (item: NoticeBat) => {
-    try {
-        const liveStatus = await chzzk(item);
+const chzzkV2 = getChzzkAPI('v2');
 
-        if (liveStatus) {
-            process.send?.({
-                type: 'liveCangeChzzk',
-                data: {
-                    liveStatus,
-                },
-            });
-        }
-    } catch (e: any) {
-        if (e) {
-            // 서비스 차단
-            console.error('서비스 차단', e);
-        }
-    }
+let count = 0;
+
+let bootTime = Date.now();
+
+const task = new BaseTask({ targetEvent: 4, timmer: 100, loopTime: 300 }).on('scan', async (item: NoticeBat) => {
+    const { channels, notice_id: noticeId, hash_id: hashId, message, name, id } = item;
+    await chzzkV2
+        .get<{ content: Content }>(`channels/${hashId}/live-detail`, {
+            headers: {
+                'User-Agent':
+                    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+            },
+        })
+        .then(async ({ content }) => {
+            // 콘텐츠의 라이브 id 가 없거나, 라이브 id 가 같으면 무시
+            const time = Date.now() - bootTime;
+            console.log(count++, `${Math.floor(time / 1000)} (${time}ms)`, noticeId, content.liveId, id);
+        })
+        .catch(e => {
+            if (e.response) {
+                if (e?.response?.data && e.response.data?.code === 403) {
+                    console.log('서비스 차단', e);
+                }
+            }
+        });
+
+    bootTime = Date.now();
 });
+
+task.start();

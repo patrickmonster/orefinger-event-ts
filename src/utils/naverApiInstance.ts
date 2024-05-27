@@ -38,7 +38,7 @@ export const getChzzkAPI = (version: string, target?: 'service' | 'polling') => 
         apis[version] = axios.create({ baseURL: `https://api.chzzk.naver.com/${target || 'service'}/${version}/` });
         apis[version].interceptors.response.use(
             ({ data, config }) => {
-                console.log(`CHZZK API(${version}) ::`, data, config);
+                // console.log(`CHZZK API(${version}) ::`, data, config);
                 return data;
             }, // 데이터 변환
             async error => {

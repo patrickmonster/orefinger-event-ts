@@ -96,7 +96,7 @@ ${name} - 방영이 종료되었습니다
             await afreeca(item);
         } catch (e) {}
     }),
-    chzzk: new BaseTask({ targetEvent: 4, timmer: 100, loopTime: 500 }).on('scan', async (item: NoticeBat) => {
+    chzzk: new BaseTask({ targetEvent: 4, timmer: 100, loopTime: 300 }).on('scan', async (item: NoticeBat) => {
         try {
             const liveStatus = await chzzk(item);
 
