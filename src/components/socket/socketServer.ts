@@ -60,7 +60,8 @@ server.on('connection', client => {
             CHAT.serverSideEmit(CHAT_EVENT.state, noticeId, process.env.ECS_PK);
         })
         .on(CLIENT_EVENT.chatConnect, noticeId => {
-            CHAT.serverSideEmit(CHAT_EVENT.join, noticeId, process.env.ECS_PK);
+            // server emit 을 하면 모든 클러스터의 클라이언트가 수신함.
+            server.emit(CLIENT_EVENT.chatLeave, noticeId, process.env.ECS_PK);
         });
 });
 
