@@ -1,49 +1,23 @@
-export const LIVE_EVENT = {
-    online: 'liveOnline',
-    offline: 'liveOffline',
-    change: 'liveChange',
-};
-
-export const ECS_EVENT = {
-    new: 'ecsNew',
-    state: 'ecsState',
-    join: 'ecsJoin',
-    leave: 'ecsLeave',
-};
-
-export const CHAT_EVENT = {
-    join: 'chatJoin',
-    leave: 'chatLeave',
-    change: 'chatChange',
-    reconnect: 'chatReconnect',
-    state: 'chatState',
-
-    reload: 'chatReload',
-
-    auth: 'chatAuth',
-};
-
-// 클라이언트 이벤트 - 내부전용
+// 클라이언트 -> 서버
 export const CLIENT_EVENT = {
-    init: 'private-init',
+    liveOn: 'liveOn',
+    liveOff: 'liveOff',
+    liveStatus: 'liveStatus',
 
-    // 라이브 명령
-    liveOnline: 'private-liveOnline',
-    liveOffline: 'private-liveOffline',
-    liveChange: 'private-liveChange',
+    requestInit: 'requestInit',
 
-    // Chat 명령
-    chatJoin: 'private-chatJoin',
-    chatLeave: 'private-chatLeave',
-    chatChange: 'private-chatChange',
-    chatMove: 'private-chatMove', // 채팅방 이동명령
-    chatAuth: 'private-chatAuth', // 인증 수정
-    chatUpdate: 'private-chatUpdate', // 인증 수정
-
-    // 채팅방 연결/해제
-    chatConnect: 'private-chatConnect',
-    chatDisconnect: 'private-chatDisconnect',
-
-    // 채팅방 상태
-    chatState: 'private-chatState',
+    chatJoin: 'chatJoin',
+    chatLeave: 'chatLeave',
 };
+
+// 서버 -> 클라이언트
+export const SERVER_EVENT = {
+    chatJoin: 'chatJoin', // 채팅방 입장 명령
+    chatLeave: 'chatLeave',
+    chatChange: 'chatChange',
+
+    chatReload: 'chatReload',
+};
+
+// 서버측 이벤트
+export const SERVER_SIDE_EVENT = {};

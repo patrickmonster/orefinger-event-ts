@@ -144,7 +144,7 @@ export default class ChatServer<
         return -1;
     }
 
-    async update(noticeId: string) {
+    async change(noticeId: string) {
         const data = await this.getChannelData(noticeId);
         if (data) {
             const { channelId, chatChannelId } = data as ChzzkContent;
@@ -160,7 +160,7 @@ export default class ChatServer<
         }
     }
 
-    remove(noticeId: string) {
+    leave(noticeId: string) {
         const channelId = this.hashId.get(noticeId);
         if (channelId) {
             this.removeServer(channelId);

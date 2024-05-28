@@ -1,11 +1,7 @@
 import { FastifyInstance } from 'fastify';
 
 import axios from 'axios';
-import client from 'components/socket/socketClient';
-import { CHAT_EVENT, CLIENT_EVENT } from 'components/socket/socketInterface';
 import { selectNotice } from 'controllers/notification';
-
-import { CHAT } from 'components/socket/socketServer';
 
 export default async (fastify: FastifyInstance, opts: any) => {
     fastify.post<{
@@ -25,10 +21,10 @@ export default async (fastify: FastifyInstance, opts: any) => {
             },
         },
         async req => {
-            CHAT.emit(CHAT_EVENT.auth, {
-                nidAuth: req.body.key,
-                nidSession: req.body.session,
-            });
+            // CHAT.emit(CHAT_EVENT.auth, {
+            //     nidAuth: req.body.key,
+            //     nidSession: req.body.session,
+            // });
             return { success: true };
         }
     );
@@ -70,7 +66,7 @@ export default async (fastify: FastifyInstance, opts: any) => {
                 return { success: false, message: '채널이 존재하지 않습니다!' };
             }
 
-            client.emit(CLIENT_EVENT.liveOnline, noticeId);
+            // client.emit(CLIENT_EVENT.liveOnline, noticeId);
 
             return { success: true };
         }
