@@ -24,7 +24,7 @@ if (existsSync(envDir)) {
 // 환경변수
 
 import { fork } from 'child_process';
-import { close } from 'components/socket/socketServer';
+import { close, serverSideEmit } from 'components/socket/socketServer';
 import { createECSState } from 'utils/ECS';
 import 'utils/procesTuning';
 import { addServerRequest, bootTime } from 'utils/serverState';
@@ -79,6 +79,8 @@ createECSState().then(isECS => {
         startSubtask('/task.js');
         startSubtask('/chzzkChat.js');
     }
+
+    serverSideEmit('ADD', { pid: process.env.ECS_PK, revision: process.env.ECS_REVISION });
 });
 
 /**

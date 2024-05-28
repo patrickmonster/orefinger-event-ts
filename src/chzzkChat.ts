@@ -1,12 +1,12 @@
 import ChatServer from 'utils/chat/server';
 
-import { ENV, addEvent, clientEmit } from 'components/socket/socketClient';
+import { addEvent, clientEmit } from 'components/socket/socketClient';
 import { authTypes } from 'controllers/auth';
 import { createInterval } from 'utils/inteval';
 import 'utils/procesTuning';
 
 import chzzkChatMessage from 'components/chatbot/chzzk';
-import { cacheRedis, setServerState } from 'utils/redis';
+import { cacheRedis, loadRedis, setServerState } from 'utils/redis';
 
 /**
  *
@@ -30,14 +30,15 @@ server.on('join', noticeId => {
     clientEmit('chatJoin', noticeId);
     sendState();
 });
+
 server.on('close', noticeId => {
     clientEmit('chatLeave', noticeId);
     sendState();
 });
 
 addEvent('chatJoin', (noticeId, pid) => {
-    if (ENV.ECS_PK !== pid && process.env.ECS_PK !== pid) return;
-    console.log('JOIN SERVER ::', ENV, noticeId);
+    if (process.env.ECS_PK !== pid) return;
+    console.log('JOIN SERVER ::', process.env.ECS_PK, noticeId);
 
     server.join(noticeId);
 });
@@ -48,6 +49,20 @@ addEvent('chatLeave', noticeId => {
 
 addEvent('chatChange', noticeId => {
     server.change(noticeId);
+});
+
+// 인증 정보가 초기화 되었을 경우
+addEvent('auth', () => getAuth());
+
+addEvent('chatMoveServer', async (pid, target) => {
+    if (process.env.ECS_PK !== pid) return;
+
+    console.log('MOVE SERVER ::', pid, ' -> ', process.env.ECS_PK);
+
+    const list = await loadRedis<(number | string)[]>(`chat:state:${target}`);
+    if (!list) return;
+
+    for (const id of list) await server.join(`${id}`);
 });
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -61,7 +76,7 @@ const sendState = () => {
     }
 
     setServerState(count).catch(console.error);
-    cacheRedis(`chat:state:${ENV.ECS_PK}`, list, 60 * 60 * 1); // 기록용 ( 외부 확인 )
+    cacheRedis(`chat:state:${process.env.ECS_PK}`, list, 60 * 60 * 1); // 기록용 ( 외부 확인 )
 };
 
 /**
@@ -74,7 +89,7 @@ const getAuth = () => {
         console.log('SET AUTH', type.scope, type.client_sc);
 
         server.init(type.scope, type.client_sc);
-        if (!ENV.ECS_PK) clientEmit('requestInit');
+        if (!process.env.ECS_PK) clientEmit('requestInit');
     });
 };
 
@@ -84,5 +99,4 @@ createInterval(1000 * 60 * 3, sendState);
 createInterval(1000 * 60 * 60, () => {
     // 1시간마다 서버 상태를 갱신합니다.
     clientEmit('requestInit');
-    // getAuth();
 });
