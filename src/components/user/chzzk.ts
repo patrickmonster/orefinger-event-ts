@@ -13,11 +13,11 @@ import { ChannelData, Content } from 'interfaces/API/Chzzk';
 import { NoticeBat } from 'interfaces/notice';
 import { KeyVal } from 'interfaces/text';
 
-import { clientEmit } from 'components/socket/socketClient';
+import { serverEmit } from 'components/socket/socketServer';
 import { ENCRYPT_KEY, sha256 } from 'utils/cryptoPw';
 import { createActionRow, createUrlButton } from 'utils/discord/component';
 import { ChzzkInterface, getChzzkAPI } from 'utils/naverApiInstance';
-import redis, { REDIS_KEY, cacheRedis, saveRedis } from 'utils/redis';
+import redis, { REDIS_KEY, cacheRedis, getFreeChatServer, saveRedis } from 'utils/redis';
 
 const chzzk = getChzzkAPI('v1');
 const chzzkV2 = getChzzkAPI('v2');
@@ -242,7 +242,8 @@ export const getChannelLive = async (noticeId: number, hashId: string, liveId: s
 
                     if (liveId != '0') {
                         // 기존 라이브 정보가 있었다면 ( 라이브 교체 )
-                        clientEmit('liveStatus', noticeId);
+                        // clientEmit('liveStatus', noticeId);
+                        serverEmit('chatReload', noticeId);
                         // 라이브 정보를 캐시합니다
                         await cacheRedis(REDIS_KEY.API.CHZZK_LIVE_STATE(`${noticeId}`), content, 60 * 60 * 12);
                         return reject(null);
@@ -285,7 +286,6 @@ export const getLiveMessage = async ({
 }: NoticeBat) => {
     const liveStatus = await getChannelLive(noticeId, hashId, id);
     if (liveStatus && liveStatus.status === 'OPEN') {
-        clientEmit('liveOn', noticeId);
         const messages = await sendChannels(channels, {
             content: message,
             embeds: [convertVideoObject(liveStatus, name)],
@@ -303,8 +303,10 @@ export const getLiveMessage = async ({
             messages,
             60 * 60 * 24 // 12시간
         );
+
+        serverEmit('chatJoin', noticeId, await getFreeChatServer());
     } else if (liveStatus && liveStatus.status == 'CLOSE') {
-        clientEmit('liveOff', noticeId);
+        serverEmit('chatLeave', noticeId);
     }
     return liveStatus;
 };
