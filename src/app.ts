@@ -24,7 +24,7 @@ if (existsSync(envDir)) {
 // 환경변수
 
 import { fork } from 'child_process';
-import socket from 'components/socket/socketServer';
+import { close } from 'components/socket/socketServer';
 import { createECSState } from 'utils/ECS';
 import 'utils/procesTuning';
 import { addServerRequest, bootTime } from 'utils/serverState';
@@ -67,7 +67,7 @@ server.listen({ port: 3000, host: '::' }, (err, address) => {
 });
 
 server.addHook('onClose', async () => {
-    socket.close();
+    close();
 });
 
 //////////////////////////////////////////////////////////////////////

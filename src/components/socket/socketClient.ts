@@ -1,4 +1,5 @@
 import Client from 'socket.io-client';
+import { CLIENT_EVENT, SERVER_EVENT } from './socketInterface';
 
 const socket = Client(`http://localhost:3001`);
 
@@ -37,8 +38,14 @@ socket
 
 socket.emit('requestInit');
 
-export const isInit = () => init;
+export const clientEmit = (event: keyof typeof CLIENT_EVENT, ...args: any[]) => {
+    socket.emit(event, ...args);
+};
 
-export default socket;
+export const addEvent = (event: keyof typeof SERVER_EVENT, callback: (...args: any[]) => void) => {
+    socket.on(event, callback);
+};
+
+export const isInit = () => init;
 
 ////////////////////////////////////////////////////////////////////////////////////////

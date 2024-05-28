@@ -89,13 +89,15 @@ LIMIT 1
     `).then(([res]) => res);
 
 export const liveState = async () =>
-    query<{ time: number }>(`
+    query<{ time: number; c: number }>(`
 SELECT avg(t) AS time 
+    , COUNT(0) AS c 
 FROM (
     SELECT 
         TIMESTAMPDIFF(SECOND, live_at, create_at) AS t
     FROM notice_live nl 
     WHERE 1=1
+	AND create_at < DATE_ADD(NOW(), INTERVAL 3 MONTH)
     AND nl.live_at IS NOT NULL
 ) A
 WHERE 1=1

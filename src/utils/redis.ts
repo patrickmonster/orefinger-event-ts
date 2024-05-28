@@ -72,7 +72,7 @@ interface State {
     user: number;
 }
 
-export const getServerState = async () => {
+export const getFreeChatServer = async () => {
     const keys = await client.keys(cacheKey(`chat:${process.env.ECS_REVISION}:*`));
 
     if (!keys || keys.length < 0) {

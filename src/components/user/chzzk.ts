@@ -13,8 +13,7 @@ import { ChannelData, Content } from 'interfaces/API/Chzzk';
 import { NoticeBat } from 'interfaces/notice';
 import { KeyVal } from 'interfaces/text';
 
-import socketClient from 'components/socket/socketClient';
-import { CLIENT_EVENT } from 'components/socket/socketInterface';
+import { clientEmit } from 'components/socket/socketClient';
 import { ENCRYPT_KEY, sha256 } from 'utils/cryptoPw';
 import { createActionRow, createUrlButton } from 'utils/discord/component';
 import { ChzzkInterface, getChzzkAPI } from 'utils/naverApiInstance';
@@ -26,8 +25,6 @@ const chzzkV2 = getChzzkAPI('v2');
 const hashIdChzzk = new RegExp('^[a-zA-Z0-9]{32}$');
 
 export const isChzzkHash = (hashId: string): boolean => hashIdChzzk.test(hashId);
-
-// 라이브 상태 소켓
 
 /**
  * 치치직 인증 방식(임시)
@@ -110,6 +107,19 @@ export const getChzzkUser = async (chzzkHash: string, noticeType: number = 4): P
     }
 };
 
+type SearchInterface = ChzzkInterface<{
+    size: number;
+    page?: {
+        next: {
+            offset: number;
+        };
+    };
+    data: Array<{
+        live: any;
+        channel: ChannelData;
+    }>;
+}>;
+
 /**
  * 사용자 검색
  * @param keyword 검색어
@@ -130,25 +140,8 @@ export const searchChzzkUser = async (keyword: string): Promise<Array<KeyVal<str
     } catch (e) {
         const {
             content: { data },
-        } = await chzzk.get<
-            ChzzkInterface<{
-                size: number;
-                page?: {
-                    next: {
-                        offset: number;
-                    };
-                };
-                data: Array<{
-                    live: any;
-                    channel: ChannelData;
-                }>;
-            }>
-        >(
-            `/search/channels?${qs.stringify({
-                keyword: `${keyword}`,
-                offset: 0,
-                size: 12,
-            })}`,
+        } = await chzzk.get<SearchInterface>(
+            `/search/channels?${qs.stringify({ keyword: `${keyword}`, offset: 0, size: 12 })}`,
             {
                 headers: {
                     'Content-Type': 'application/json',
@@ -249,7 +242,7 @@ export const getChannelLive = async (noticeId: number, hashId: string, liveId: s
 
                     if (liveId != '0') {
                         // 기존 라이브 정보가 있었다면 ( 라이브 교체 )
-                        socketClient.emit(CLIENT_EVENT.liveChange, noticeId);
+                        clientEmit('liveStatus', noticeId);
                         // 라이브 정보를 캐시합니다
                         await cacheRedis(REDIS_KEY.API.CHZZK_LIVE_STATE(`${noticeId}`), content, 60 * 60 * 12);
                         return reject(null);
@@ -292,8 +285,7 @@ export const getLiveMessage = async ({
 }: NoticeBat) => {
     const liveStatus = await getChannelLive(noticeId, hashId, id);
     if (liveStatus && liveStatus.status === 'OPEN') {
-        socketClient.emit(CLIENT_EVENT.liveOnline, noticeId);
-        // online
+        clientEmit('liveOn', noticeId);
         const messages = await sendChannels(channels, {
             content: message,
             embeds: [convertVideoObject(liveStatus, name)],
@@ -312,7 +304,7 @@ export const getLiveMessage = async ({
             60 * 60 * 24 // 12시간
         );
     } else if (liveStatus && liveStatus.status == 'CLOSE') {
-        socketClient.emit(CLIENT_EVENT.liveOffline, noticeId);
+        clientEmit('liveOff', noticeId);
     }
     return liveStatus;
 };
