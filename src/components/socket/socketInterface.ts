@@ -19,7 +19,13 @@ export const SERVER_EVENT = {
     chatReload: 'chatReload',
 
     requestInit: 'requestInit',
+
+    auth: 'auth',
+    chatMoveServer: 'chatMoveServer',
 };
 
 // 서버측 이벤트
-export const SERVER_SIDE_EVENT = {};
+export const SERVER_SIDE_EVENT = {
+    echo: 'echo',
+    ADD: 'ADD', // 신규 서버 추가
+};
