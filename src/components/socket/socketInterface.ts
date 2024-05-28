@@ -17,6 +17,8 @@ export const SERVER_EVENT = {
     chatChange: 'chatChange',
 
     chatReload: 'chatReload',
+
+    requestInit: 'requestInit',
 };
 
 // 서버측 이벤트
