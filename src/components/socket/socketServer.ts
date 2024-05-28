@@ -39,6 +39,15 @@ server
                 serverEmit('chatChange', noticeId);
             });
 
+        // 현재 서버에 접속하면 이전 서버에게 나간다는 신호를 보냅니다.
+        socketClient
+            .on(CLIENT_EVENT.chatJoin, noticeId => {
+                serverEmit('chatLeave', noticeId, process.env.ECS_PK);
+            })
+            .on(CLIENT_EVENT.chatLeave, noticeId => {
+                // none
+            });
+
         socketClient.on('echo', (eventname, pid) => {
             server.serverSideEmit('echo', eventname, pid);
         });

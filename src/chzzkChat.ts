@@ -36,6 +36,7 @@ server.on('close', noticeId => {
     sendState();
 });
 
+/////////////////////////////////////////////////////////////////////
 addEvent('chatJoin', (noticeId, pid) => {
     if (process.env.ECS_PK !== pid) return;
     console.log('JOIN SERVER ::', process.env.ECS_PK, noticeId);
@@ -43,7 +44,8 @@ addEvent('chatJoin', (noticeId, pid) => {
     server.join(noticeId);
 });
 
-addEvent('chatLeave', noticeId => {
+addEvent('chatLeave', (noticeId, pid) => {
+    if (pid && pid == process.env.ECS_PK) return;
     server.leave(noticeId);
 });
 
