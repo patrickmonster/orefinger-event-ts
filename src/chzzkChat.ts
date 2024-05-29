@@ -28,8 +28,17 @@ server.on('message', chat => {
     chzzkChatMessage(client, chat);
 });
 
-server.on('join', noticeId => {
+server.on('join', (noticeId, streamingChannelId) => {
     clientEmit('chatJoin', noticeId);
+    const client = server.getServer(streamingChannelId);
+
+    if (client) {
+        const command = client.commands.filter(({ type }) => type === 2);
+
+        for (const item of command) {
+        }
+    }
+
     sendState();
 });
 

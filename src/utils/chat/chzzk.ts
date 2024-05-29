@@ -122,6 +122,8 @@ export interface Command {
     command: string;
     answer: string;
     count: number;
+
+    type: number;
 }
 
 /**

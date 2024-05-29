@@ -22,7 +22,9 @@ export default (client: ChzzkChat, chat: Chat) => {
     if (!client || !message) return;
     const [userCommand, ...args] = message.split(' ');
 
-    const command = client.commands.find(({ command }) => command.toUpperCase() === userCommand.trim().toUpperCase());
+    const command = client.commands
+        .filter(({ type }) => type === 1)
+        .find(({ command }) => command.toUpperCase() === userCommand.trim().toUpperCase());
 
     if (command) {
         const { answer, count } = command;
