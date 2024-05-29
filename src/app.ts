@@ -78,9 +78,9 @@ createECSState().then(isECS => {
     if (isECS) {
         startSubtask('/task.js');
         startSubtask('/chzzkChat.js');
-    }
 
-    serverSideEmit('ADD', { pid: process.env.ECS_PK, revision: process.env.ECS_REVISION });
+        serverSideEmit('ADD', { pid: process.env.ECS_PK, revision: process.env.ECS_REVISION });
+    }
 });
 
 /**

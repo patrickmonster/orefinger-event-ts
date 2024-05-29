@@ -77,9 +77,16 @@ export default class ChatServer<
     }
 
     init(auth: string, session: string) {
+        if (this._api.isMatched(auth, session)) return;
+
         this._api.setAuth(auth, session);
-        if (this.queue.isPaused) this.queue.start();
-        else {
+        if (this.queue.isPaused) {
+            this.queue.start();
+            this.emit('ready');
+        } else {
+            for (const server of this.servers.values()) {
+                server.reconnect();
+            }
         }
     }
 

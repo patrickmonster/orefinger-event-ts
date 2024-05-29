@@ -37,6 +37,10 @@ export class ChzzkAPI {
         this.nidSession = nidSession;
     }
 
+    isMatched(nidAuth: string, nidSession: string) {
+        return this.nidAuth == nidAuth && this.nidSession == nidSession;
+    }
+
     get hasAuth() {
         return this.nidAuth && this.nidSession;
     }
