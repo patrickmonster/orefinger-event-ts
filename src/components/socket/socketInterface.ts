@@ -28,4 +28,5 @@ export const SERVER_EVENT = {
 export const SERVER_SIDE_EVENT = {
     echo: 'echo',
     ADD: 'ADD', // 신규 서버 추가
+    auth: 'auth', // 인증 정보 변경
 };
