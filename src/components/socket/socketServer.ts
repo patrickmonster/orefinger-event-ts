@@ -54,6 +54,9 @@ server
 
         server.serverSideEmit('echo', 'client', process.env.ECS_PK);
     })
+    .on(SERVER_SIDE_EVENT.auth, () => {
+        serverEmit('auth');
+    })
     .on(SERVER_SIDE_EVENT.ADD, async ({ pid, revision }) => {
         // 서버가 추가되었을 때, 이벤트를 받습니다.
         if (isMoveServer) return; // 이동이 확정되었기 때문에 더 이상 이벤트를 받지 않습니다.

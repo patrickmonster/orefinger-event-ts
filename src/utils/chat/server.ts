@@ -78,7 +78,9 @@ export default class ChatServer<
 
     init(auth: string, session: string) {
         this._api.setAuth(auth, session);
-        this.queue.start();
+        if (this.queue.isPaused) this.queue.start();
+        else {
+        }
     }
 
     get api() {
@@ -157,6 +159,12 @@ export default class ChatServer<
         if (channelId) {
             this.loadUser(channelId).catch(console.error);
             this.loadCommand(channelId).catch(console.error);
+        }
+    }
+
+    async updates() {
+        for (const noticeId of this.hashId.keys()) {
+            await this.change(noticeId);
         }
     }
 
