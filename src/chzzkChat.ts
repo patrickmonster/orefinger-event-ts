@@ -6,6 +6,8 @@ import { createInterval } from 'utils/inteval';
 import 'utils/procesTuning';
 
 import chzzkChatMessage from 'components/chatbot/chzzk';
+import { ecsRevisionList } from 'controllers/log';
+import { ParseInt } from 'utils/object';
 import { cacheRedis, loadRedis, setServerState } from 'utils/redis';
 
 /**
@@ -36,6 +38,23 @@ server.on('close', noticeId => {
     sendState();
 });
 
+// 서버가 준비되었을 경우 최초 1회
+server.once('ready', async () => {
+    const revision = ParseInt(`${process.env.ECS_REVISION}`) - 1; // 이전버전
+
+    const list = await ecsRevisionList(revision, ParseInt(`${process.env.ECS_REVISION}`));
+    // 현재 서버와 이전 서버가 동일한 rownum을 가지고 있으면 이사를 합니다.
+    const newServer = list.findIndex(item => ParseInt(item.revision) == revision);
+    const thisServer = list.findIndex(item => item.revision == process.env.ECS_REVISION);
+
+    if (newServer == thisServer) {
+        const list = await loadRedis<(number | string)[]>(`chat:state:${revision}`);
+        if (!list) return;
+
+        for (const id of list) await server.join(`${id}`);
+    }
+});
+
 /////////////////////////////////////////////////////////////////////
 addEvent('chatJoin', (noticeId, pid) => {
     if (process.env.ECS_PK !== pid) return;
@@ -55,17 +74,6 @@ addEvent('chatChange', noticeId => {
 
 // 인증 정보가 초기화 되었을 경우
 addEvent('auth', () => getAuth());
-
-addEvent('chatMoveServer', async (pid, target) => {
-    if (process.env.ECS_PK !== pid) return;
-
-    console.log('MOVE SERVER ::', pid, ' -> ', process.env.ECS_PK);
-
-    const list = await loadRedis<(number | string)[]>(`chat:state:${target}`);
-    if (!list) return;
-
-    for (const id of list) await server.join(`${id}`);
-});
 
 ///////////////////////////////////////////////////////////////////////////////
 
