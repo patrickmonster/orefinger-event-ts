@@ -1,4 +1,4 @@
-import getConnection, { SqlInsertUpdate, YN, calTo, query, selectPaging } from 'utils/database';
+import getConnection, { SqlInsertUpdate, YN, calTo, query, selectPaging, tastTo } from 'utils/database';
 
 import {
     APIActionRowComponent,
@@ -179,7 +179,7 @@ export const selectComponentStyleList = async () =>
 SELECT style_idx AS label
     , CAST(tag AS CHAR) AS value
 FROM component_style cs 
-WHERE use_yn = 'Y'
+${tastTo("WHERE use_yn = 'Y'")}
            `
     );
 
@@ -193,7 +193,7 @@ SELECT CAST(ct.type AS CHAR) AS value
         component_id
     )}
 FROM component_type ct  
-WHERE use_yn = 'Y'
+${tastTo("WHERE use_yn = 'Y'")}
            `
     );
 
@@ -226,7 +226,8 @@ SELECT
     ) AS embed
 FROM component a
 LEFT JOIN component_type c ON a.type_idx = c.type_idx 
-LEFT JOIN component_style d ON a.style_id = d.style_idx AND d.use_yn ='Y'
+LEFT JOIN component_style d ON a.style_id = d.style_idx 
+    ${tastTo("AND use_yn = 'Y'")}
 WHERE a.component_id = ?
         `,
         ParseInt(component_id)
@@ -282,7 +283,7 @@ FROM (
     FROM component_action_row car
     LEFT JOIN component_action_row_connect carc 
         ON carc.component_row_id = car.component_id 
-        AND carc.use_yn = 'Y'
+        ${tastTo("AND carc.use_yn = 'Y'")}
     WHERE car.component_id = ?
     ORDER BY carc.sort_number 
     LIMIT 10
@@ -420,7 +421,7 @@ FROM (
     FROM component_action_row_connect carc 
     LEFT JOIN component c ON c.component_id = carc.component_id 
     WHERE component_row_id = ?
-    AND carc.use_yn = 'Y'
+    ${tastTo("AND carc.use_yn = 'Y'")}
 ) c
 LIMIT 5
     `,

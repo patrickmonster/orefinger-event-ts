@@ -2,7 +2,7 @@
 
 import { NoticeBat } from 'interfaces/notice';
 import { Paging } from 'interfaces/swagger';
-import { SqlInsertUpdate, calTo, query, selectPaging } from 'utils/database';
+import { SqlInsertUpdate, calTo, query, selectPaging, tastTo } from 'utils/database';
 
 type NoticeId = string | number;
 
@@ -237,7 +237,7 @@ FROM (
 	FROM v_notice vn
 	LEFT JOIN notice_channel nc using(notice_id)
 	WHERE vn.hash_id = ?
-	AND use_yn = 'Y'
+	${tastTo("AND use_yn = 'Y'")}
 ) A
 	`,
         hashId

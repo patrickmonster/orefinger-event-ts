@@ -16,8 +16,6 @@ const getServiceId = (channelId: string) =>
 export type ChzzkWebSocketType = typeof ChzzkWebSocket;
 export type ChzzkAPIType = typeof ChzzkAPI;
 
-type TaskPromise = (...data: any[]) => Promise<void>;
-
 /**
  * 치지직. api - 채팅 서버와 연결합니다. (Naver Streaming Chat)
  */

@@ -1,5 +1,5 @@
 import { Snowflake } from 'discord-api-types/globals';
-import getConnection, { SqlInsertUpdate, calTo, format, query } from 'utils/database';
+import getConnection, { SqlInsertUpdate, calTo, format, query, tastTo } from 'utils/database';
 
 export interface ChatLog {
     message_id: Snowflake;
@@ -146,7 +146,7 @@ export const selectCommandType = async () =>
 SELECT \`type\`, name
 FROM chat_cmd_type cct 
 WHERE 1=1
-AND use_yn = 'Y'
+${tastTo("AND use_yn = 'Y'")}
     `
     );
 

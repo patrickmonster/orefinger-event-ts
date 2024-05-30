@@ -1,5 +1,5 @@
 import { Paging } from 'interfaces/swagger';
-import { calLikeTo, calTo, query, selectPaging } from 'utils/database';
+import { calLikeTo, calTo, query, selectPaging, tastTo } from 'utils/database';
 
 export const selectType = async () => query(`SELECT notice_type_id, tag, use_yn, video_yn  FROM notice_type nt`);
 
@@ -45,7 +45,7 @@ where 1=1
 and auth_id = ?
 and vat.type = 2
 and t.key = 3 
-and use_yn = 'Y'
+${tastTo("AND use_yn = 'Y'")}
 and t.value in (?)
 order by t.idx
 `,

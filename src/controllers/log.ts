@@ -6,6 +6,7 @@ interface Message {
     channel_id: string;
     message: string;
 }
+
 export const CreateMessage = async (message: Message) =>
     query<SqlInsertUpdate>(`INSERT INTO message_log set ?`, message);
 
