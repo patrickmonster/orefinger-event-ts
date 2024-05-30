@@ -25,6 +25,8 @@ export class ChzzkAPI {
 
     private userProfile?: any;
 
+    private intervals = new Map<string, NodeJS.Timeout>();
+
     constructor(options?: ChatOption) {
         console.log('API', options);
 

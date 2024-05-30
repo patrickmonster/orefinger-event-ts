@@ -4,12 +4,14 @@ import {
     selectChatPermission,
     selectCommand,
     selectCommandType,
+    selectNoticeChannels,
     upsertCommand,
 } from 'controllers/chat/chzzk';
 import { FastifyInstance } from 'fastify';
 
 import { serverEmit } from 'components/socket/socketServer';
 import { ENCRYPT_KEY, sha256 } from 'utils/cryptoPw';
+import { REDIS_KEY, loadRedis } from 'utils/redis';
 
 export default async (fastify: FastifyInstance, opts: any) => {
     // 치지직 유저의 권한을 확인합니다.
@@ -49,6 +51,43 @@ export default async (fastify: FastifyInstance, opts: any) => {
             const key = sha256(`${id}:${req.params.hashId}`, ENCRYPT_KEY).replace(/[^a-zA-Z0-9]/g, '');
 
             return `@AUTH ${id} ${key}`;
+        }
+    );
+
+    fastify.get<{
+        Params: { hashId: string };
+    }>(
+        '/bot/:hashId/channel',
+        {
+            schema: {
+                description: `알림이 등록된 채널을 확인합니다.`,
+                summary: '알림채널확인',
+                tags: ['ChzzkBot', 'Chzzk'],
+                deprecated: false,
+                params: {
+                    type: 'object',
+                    required: ['hashId'],
+                    properties: {
+                        hashId: {
+                            type: 'string',
+                            description: '치지직 채널 아이디',
+                        },
+                    },
+                },
+            },
+        },
+        async req => {
+            const list = await selectNoticeChannels(req.params.hashId);
+            if (!list || !list.length) return {};
+
+            const notice_id = list[0].notice_id;
+            const data = await loadRedis<any>(REDIS_KEY.API.CHZZK_LIVE_STATE(`${notice_id}`));
+
+            return {
+                notice_id,
+                list,
+                data,
+            };
         }
     );
 
@@ -211,7 +250,7 @@ export default async (fastify: FastifyInstance, opts: any) => {
                         type: {
                             type: 'number',
                             description: '타입',
-                            enum: [1],
+                            enum: [1, 2],
                         },
                     },
                 },

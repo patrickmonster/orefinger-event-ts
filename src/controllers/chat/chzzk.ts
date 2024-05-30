@@ -120,6 +120,7 @@ export const selectCommand = async (channel_id: string) =>
         answer: string;
         count: number;
         type: number;
+        option: string | null;
     }>(
         `
 SELECT
@@ -128,6 +129,7 @@ SELECT
     , cc.type
     , cc.count
     , cc.use_yn
+    , cc.option
 FROM chat_cmd cc
 WHERE 1=1
 AND channel_id = ?
@@ -265,3 +267,27 @@ AND use_ym = 'Y'
 
 export const callCommand = async (channel_id: string, command: string) =>
     query('UPDATE chat_cmd SET count= count + 1 WHERE channel_id=? AND command=?', channel_id, command);
+
+export const selectNoticeChannels = (hashId: string) =>
+    query<{
+        notice_id: number;
+        hash_id: string;
+        channel_id: string;
+        guild_id: string;
+        url: string;
+    }>(
+        `
+SELECT 
+    notice_id 
+    , hash_id 
+    , nc.channel_id 
+    , nc.guild_id 
+    , CONCAT('https://discord.com/channels/', nc.guild_id, '/', nc.channel_id) AS url 
+FROM notice n 
+LEFT JOIN notice_channel nc using(notice_id)
+WHERE 1=1
+AND n.hash_id = ?
+AND nc.use_yn ='Y'
+        `,
+        hashId
+    );
