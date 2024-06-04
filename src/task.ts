@@ -6,7 +6,7 @@ import { openApi } from 'utils/discordApiInstance';
 
 import 'utils/procesTuning';
 
-import { sendChannels } from 'components/notice';
+import { sendChannels, sendMessageByChannels } from 'components/notice';
 import { addEvent, isInit } from 'components/socket/socketClient';
 import { getLiveMessage as afreeca } from 'components/user/afreeca';
 import { getLiveMessage as chzzk } from 'components/user/chzzk';
@@ -20,24 +20,32 @@ import { ParseInt } from 'utils/object';
  * @description 알림 작업을 수행하는 스레드로써, 각 알림 스캔 작업을 수행합니다.
  */
 const tasks = {
-    youtube: new BaseTask({ targetEvent: 2, timmer: 1000 * 60 }).on(
+    youtube: new BaseTask({ targetEvent: 2, timmer: 1000 * 60, loopTime: 2 * 1000 }).on(
         'scan',
         async ({ channels, notice_id, hash_id, message, name }: NoticeBat) => {
             try {
                 const { videos, channel_title } = await youtube(notice_id, hash_id);
                 for (const video of videos) {
-                    sendChannels(channels, {
-                        content: message,
-                        embeds: [
-                            {
-                                ...video,
-                                author: {
-                                    name: name || channel_title,
-                                    url: `https://www.youtube.com/channel/${hash_id}`,
-                                },
+                    sendMessageByChannels(
+                        channels.map(channel => ({
+                            ...channel,
+                            hook: {
+                                name: channel_title || '방송알리미',
                             },
-                        ],
-                    });
+                            message: {
+                                content: message,
+                                embeds: [
+                                    {
+                                        ...video,
+                                        author: {
+                                            name: name || channel_title,
+                                            url: `https://www.youtube.com/channel/${hash_id}`,
+                                        },
+                                    },
+                                ],
+                            },
+                        }))
+                    );
                 } // for
             } catch (e) {}
         }

@@ -147,6 +147,13 @@ interface ChannelObject {
     iosAppindexingLink: string;
     vanityChannelUrl: string;
 }
+
+// https://www.youtube.com/@ytnnews24/streams
+export const channelStreams = async (hashId: string) => {
+    const html = await fetch(`https://www.youtube.com/channel/${hashId}/streams`);
+    const match = html.match(/var ytInitialData = (.*)]}}};/)?.[1];
+};
+
 /**
  * https://www.youtube.com/channel/${hashId}/videos
  * @param hashId

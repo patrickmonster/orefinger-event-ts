@@ -20,6 +20,15 @@ export const exec = async (interaction: MessageInteraction, noticeId: string, mo
             });
             break;
         }
+        case 'hook': {
+            const model = await selectNoticeDetailEditByModel(noticeId);
+
+            interaction.model({
+                ...model,
+                custom_id: `notice edit ${noticeId}`,
+            });
+            break;
+        }
         case 'test': {
             interaction.differ({ ephemeral: true });
             if (!guild_id) {

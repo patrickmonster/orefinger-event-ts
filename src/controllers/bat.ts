@@ -137,8 +137,8 @@ FROM (
 			, vn.video_yn 
 			, if(
 				nc.webhook_id IS NULL,
-				json_object( 'channel_id', nc.channel_id, 'notice_id', nc.notice_id, 'guild_id', nc.guild_id ),
-				json_object( 'channel_id', nc.channel_id, 'notice_id', nc.notice_id, 'guild_id', nc.guild_id, 'url', nc.url, 'username', nc.username, 'avatar_url', nc.avatar_url )
+				json_object( 'channel_id', nc.channel_id, 'notice_id', nc.notice_id, 'guild_id', nc.guild_id, 'channel_type', 0 ),
+				json_object( 'channel_id', nc.channel_id, 'notice_id', nc.notice_id, 'guild_id', nc.guild_id, 'url', nc.url, 'username', nc.username, 'avatar_url', nc.avatar_url, 'channel_type', 1 )
 			) AS channel
 		FROM v_notice vn
 		INNER JOIN v_notice_channel_hook nc USING(notice_id)
@@ -192,8 +192,8 @@ FROM (
 			, vn.video_yn 
 			, if(
 				nc.webhook_id IS NULL,
-				json_object( 'channel_id', nc.channel_id, 'notice_id', nc.notice_id, 'guild_id', nc.guild_id ),
-				json_object( 'channel_id', nc.channel_id, 'notice_id', nc.notice_id, 'guild_id', nc.guild_id, 'url', nc.url, 'username', nc.username, 'avatar_url', nc.avatar_url )
+				json_object( 'channel_id', nc.channel_id, 'notice_id', nc.notice_id, 'guild_id', nc.guild_id, 'channel_type', 0 ),
+				json_object( 'channel_id', nc.channel_id, 'notice_id', nc.notice_id, 'guild_id', nc.guild_id, 'url', nc.url, 'username', nc.username, 'avatar_url', nc.avatar_url, 'channel_type', 1 )
 			) AS channel
 		FROM v_notice vn
 		INNER JOIN v_notice_channel_hook nc USING(notice_id)

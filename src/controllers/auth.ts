@@ -158,7 +158,7 @@ from auth_type at2
 left join auth_conntection ac on at2.auth_type = ac.type and ac.auth_id = ?
 left join auth_token at3 using(\`type\`, user_id) 
 where 1=1
-and use_yn ='Y'
+${tastTo("AND at2.use_yn = 'Y'")}
     `,
         user_id
     );

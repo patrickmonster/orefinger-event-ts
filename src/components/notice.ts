@@ -1,6 +1,5 @@
 import { NoticeId, deleteNoticeChannel, selectNoticeDtilByEmbed, upsertAttach, upsertNotice } from 'controllers/notice';
-import { ChannelType } from 'discord-api-types/v10';
-import { NoticeChannel } from 'interfaces/notice';
+import { ChannelType as ChannelMessageType, NoticeChannel, NoticeChannelHook } from 'interfaces/notice';
 import {
     appendTextWing,
     createActionRow,
@@ -11,7 +10,7 @@ import {
 } from 'utils/discord/component';
 import { editerComponent } from './systemComponent';
 
-import { APIMessage } from 'discord-api-types/v10';
+import { APIMessage, ChannelType } from 'discord-api-types/v10';
 
 import { upsertDiscordUserAndJWTToken } from 'controllers/auth';
 import { selectEventBat, selectNoticeGuildChannel } from 'controllers/bat';
@@ -40,14 +39,23 @@ export const getNoticeDetailByEmbed = async (noticeId: NoticeId, guildId: string
                 max_values: 1,
                 min_values: 0,
             }),
-            editerComponent(`notice channel ${noticeId}`, [], true),
-            createActionRow(
-                createSecondaryButton(`notice channel ${noticeId} test`, {
-                    label: '알림 권한 테스트',
-                    emoji: {
-                        name: '🔔',
-                    },
-                })
+            editerComponent(
+                `notice channel ${noticeId}`,
+                [
+                    createSecondaryButton(`notice channel ${noticeId} test`, {
+                        label: '알림권한테스트',
+                        emoji: {
+                            name: '🔔',
+                        },
+                    }),
+                    createSecondaryButton(`notice channel ${noticeId} hook`, {
+                        label: '알림프로필생성',
+                        emoji: {
+                            name: '👀',
+                        },
+                    }),
+                ],
+                true
             ),
         ],
     };
@@ -143,6 +151,57 @@ export const sendChannels = async (channels: NoticeChannel[], message: RESTPostA
     if (message.embeds?.length)
         openApi.post(`${process.env.WEB_HOOK_URL}`, {
             embeds: message.embeds,
+        });
+
+    return messages;
+};
+/**
+ * 각 채널 별로 메세지를 전송합니다
+ * @param channels
+ * @param message
+ */
+export const sendMessageByChannels = async (channels: NoticeChannelHook[]) => {
+    const messages: APIMessage[] = [];
+    for (const { channel_id, url, notice_id, hook, message, channel_type } of channels) {
+        let originMessage;
+        switch (channel_type) {
+            case ChannelMessageType.TEXT:
+                originMessage = await messageCreate(channel_id, message).catch(e => {
+                    if ([10003 /* , 50013 */].includes(e.code)) {
+                        deleteNoticeChannel(notice_id, channel_id).catch(e => {
+                            ERROR('DeleteChannel', e);
+                        });
+                    } else ERROR(e);
+                });
+                break;
+            case ChannelMessageType.WEBHOOK:
+                // 훅 발송
+                originMessage = (await discord
+                    .post(`/${url}`, {
+                        body: { ...message, ...hook },
+                    })
+                    .catch(e => {
+                        ERROR(e);
+                        if ([10003].includes(e.code)) {
+                            deleteNoticeChannel(notice_id, channel_id).catch(e => {
+                                ERROR('DeleteChannel', e);
+                            });
+                        }
+                    })) as APIMessage;
+
+                break;
+        }
+
+        const id = originMessage?.id;
+        if (id && originMessage) {
+            messages.push(originMessage);
+        }
+    }
+
+    if (messages[0].embeds?.length)
+        openApi.post(`${process.env.WEB_HOOK_URL}`, {
+            content: `${channels.length}개 채널에 알림이 전송되었습니다.`,
+            embeds: messages[0].embeds,
         });
 
     return messages;
