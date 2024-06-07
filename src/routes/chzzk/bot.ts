@@ -208,6 +208,8 @@ export default async (fastify: FastifyInstance, opts: any) => {
             }
 
             // CHAT.serverSideEmit(CHAT_EVENT.reload, req.params.hashId);
+            serverEmit('commandReload', req.params.hashId);
+
             return await deleteCommand(req.params.hashId, req.query.command);
         }
     );
@@ -265,7 +267,7 @@ export default async (fastify: FastifyInstance, opts: any) => {
             }
 
             // CHAT.serverSideEmit(CHAT_EVENT.reload, req.params.hashId);
-            serverEmit('chatReload', req.params.hashId);
+            serverEmit('commandReload', req.params.hashId);
             return await upsertCommand(hashId, { command, message: answer, type });
         }
     );

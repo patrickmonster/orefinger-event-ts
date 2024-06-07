@@ -22,6 +22,8 @@ export const SERVER_EVENT = {
 
     auth: 'auth',
     chatMoveServer: 'chatMoveServer',
+
+    commandReload: 'commandReload',
 };
 
 // 서버측 이벤트

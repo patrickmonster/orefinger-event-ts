@@ -81,6 +81,10 @@ addEvent('chatChange', noticeId => {
     server.change(noticeId);
 });
 
+addEvent('commandReload', noticeId => {
+    server.reload(noticeId);
+});
+
 // 인증 정보가 초기화 되었을 경우
 addEvent('auth', () => getAuth());
 
