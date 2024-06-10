@@ -77,7 +77,8 @@ createECSState().then(isECS => {
     console.log(`ECS: ${isECS}`);
     if (isECS) {
         startSubtask('/task.js');
-        startSubtask('/chzzkChat.js');
+        // - 서비스 중지 ( 현 서비스에 적합하지 않음 )
+        // startSubtask('/chzzkChat.js');
 
         serverSideEmit('ADD', { pid: process.env.ECS_PK, revision: process.env.ECS_REVISION });
     }
