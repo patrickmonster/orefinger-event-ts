@@ -1,6 +1,14 @@
 'use strict';
 import { AuthUser } from 'interfaces/auth';
-import getConnection, { SqlInsertUpdate, YN, calTo, query, queryFunctionType, selectPaging } from 'utils/database';
+import getConnection, {
+    SqlInsertUpdate,
+    YN,
+    calTo,
+    query,
+    queryFunctionType,
+    selectPaging,
+    tastTo,
+} from 'utils/database';
 
 import { APIUser } from 'discord-api-types/v10';
 import { Event } from 'interfaces/eventsub';
@@ -46,7 +54,7 @@ export const selectAuthType = async () =>
 SELECT auth_type, tag, tag_kr, create_at, use_yn, \`scope\`, client_id, target, client_sc, logout_url 
 FROM auth_type at2 
 WHERE 1=1
-AND use_yn = 'Y'
+${tastTo("AND use_yn = 'Y'")}
     `);
 
 export const userUpdate = async (event: Event) => {
@@ -150,7 +158,7 @@ from auth_type at2
 left join auth_conntection ac on at2.auth_type = ac.type and ac.auth_id = ?
 left join auth_token at3 using(\`type\`, user_id) 
 where 1=1
-and use_yn ='Y'
+${tastTo("AND at2.use_yn = 'Y'")}
     `,
         user_id
     );

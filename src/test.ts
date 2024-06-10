@@ -12,9 +12,11 @@ if (existsSync(envDir)) {
     });
 }
 
+import { convertVideoObject } from 'components/user/chzzk';
 import { Content } from 'interfaces/API/Chzzk';
 import { NoticeBat } from 'interfaces/notice';
 import { BaseTask } from 'utils/baseTask';
+import discord from 'utils/discordApiInstance';
 import { getChzzkAPI } from 'utils/naverApiInstance';
 
 const chzzkV2 = getChzzkAPI('v2');
@@ -23,8 +25,8 @@ let count = 0;
 
 let bootTime = Date.now();
 
-const task = new BaseTask({ targetEvent: 4, timmer: 100, loopTime: 300 }).on('scan', async (item: NoticeBat) => {
-    const { channels, notice_id: noticeId, hash_id: hashId, message, name, id } = item;
+const task = new BaseTask({ targetEvent: 4, timmer: 100, loopTime: 500 }).on('scan', async (item: NoticeBat) => {
+    const { hash_id: hashId } = item;
     await chzzkV2
         .get<{ content: Content }>(`channels/${hashId}/live-detail`, {
             headers: {
@@ -34,8 +36,25 @@ const task = new BaseTask({ targetEvent: 4, timmer: 100, loopTime: 300 }).on('sc
         })
         .then(async ({ content }) => {
             // 콘텐츠의 라이브 id 가 없거나, 라이브 id 가 같으면 무시
-            const time = Date.now() - bootTime;
-            console.log(count++, `${Math.floor(time / 1000)} (${time}ms)`, noticeId, content.liveId, id);
+            // https://discord.com/api
+            if (content && content.status === 'OPEN')
+                await discord
+                    .post(
+                        `/webhooks/1246986939949907989/5baTv1G6S6rQHJwvWlosUrjX_x-JleMfswtyTkI-G8XbNhpJYPdTqxUpldH0Zrx0LgRD`,
+                        {
+                            body: {
+                                content: '테스트',
+                                embeds: [convertVideoObject(content, hashId)],
+                                username: content.channel?.channelName || '방송알리미',
+                                avatar_url:
+                                    content.channel.channelImageUrl ||
+                                    'https://cdn.orefinger.click/post/466950273928134666/d2d0cc31-a00e-414a-aee9-60b2227ce42c.png',
+                            },
+                        }
+                    )
+                    .catch(e => {
+                        console.error('discord error', e);
+                    });
         })
         .catch(e => {
             if (e.response) {
@@ -44,8 +63,6 @@ const task = new BaseTask({ targetEvent: 4, timmer: 100, loopTime: 300 }).on('sc
                 }
             }
         });
-
-    bootTime = Date.now();
 });
 
 task.start();

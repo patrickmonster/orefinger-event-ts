@@ -3,7 +3,7 @@ import { APIEmbed, APIMessage } from 'discord-api-types/v10';
 import qs from 'querystring';
 
 import { messageEdit } from 'components/discord';
-import { sendChannels } from 'components/notice';
+import { sendChannels, sendMessageByChannels } from 'components/notice';
 
 import { auth } from 'controllers/auth';
 import { insertLiveEvents, updateLiveEvents } from 'controllers/bat';
@@ -286,17 +286,32 @@ export const getLiveMessage = async ({
 }: NoticeBat) => {
     const liveStatus = await getChannelLive(noticeId, hashId, id);
     if (liveStatus && liveStatus.status === 'OPEN') {
-        const messages = await sendChannels(channels, {
-            content: message,
-            embeds: [convertVideoObject(liveStatus, name)],
-            components: [
-                createActionRow(
-                    createUrlButton(`https://chzzk.naver.com/live/${hashId}`, {
-                        emoji: { id: '1218118186717937775' },
-                    })
-                ),
-            ],
-        });
+        const hook = {
+            name: liveStatus.channel?.channelName || '방송알리미',
+            avatar_url:
+                liveStatus.channel.channelImageUrl ||
+                'https://cdn.orefinger.click/post/466950273928134666/d2d0cc31-a00e-414a-aee9-60b2227ce42c.png',
+        };
+
+        const messages = sendMessageByChannels(
+            channels.map(channel => {
+                return {
+                    ...channel,
+                    message: {
+                        content: message,
+                        embeds: [convertVideoObject(liveStatus, name)],
+                        components: [
+                            createActionRow(
+                                createUrlButton(`https://chzzk.naver.com/live/${hashId}`, {
+                                    emoji: { id: '1218118186717937775' },
+                                })
+                            ),
+                        ],
+                    },
+                    hook,
+                };
+            })
+        );
 
         await saveRedis(
             REDIS_KEY.DISCORD.LAST_MESSAGE(`${noticeId}`),
@@ -316,7 +331,7 @@ export const getLiveMessage = async ({
  * @param videoObject
  * @returns APIEmbed
  */
-const convertVideoObject = (videoObject: Content, name?: string): APIEmbed => {
+export const convertVideoObject = (videoObject: Content, name?: string): APIEmbed => {
     const {
         liveTitle: title,
         liveImageUrl,
@@ -334,7 +349,8 @@ const convertVideoObject = (videoObject: Content, name?: string): APIEmbed => {
         image: { url: liveImageUrl?.replace('{type}', '1080') || '', height: 1080, width: 1920 },
         color: 0x0ffa3,
         thumbnail: channelImageUrl ? { url: channelImageUrl } : undefined,
-        fields: [{ name: categoryType || 'Game', value: `${game_name || 'LIVE'}` }],
+        fields: [{ name: '카테고리', value: `${game_name || 'LIVE'}` }],
+        // fields: [{ name: categoryType || 'Game', value: `${game_name || 'LIVE'}` }],
         footer: { text: name ?? channelName },
         timestamp: time.format(),
     };

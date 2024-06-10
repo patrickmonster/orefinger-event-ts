@@ -1,3 +1,5 @@
+import { RESTPostAPIChannelMessageJSONBody, RESTPostAPIChannelWebhookJSONBody } from 'discord-api-types/v10';
+
 export interface NoticeBat {
     notice_id: number;
     hash_id: string;
@@ -10,15 +12,28 @@ export interface NoticeBat {
 
     channels: Array<NoticeChannel>;
 }
+
+export enum ChannelType {
+    TEXT = 0,
+    WEBHOOK = 1,
+}
+
 export interface NoticeChannel {
     notice_id: number;
     guild_id: string;
     channel_id: string;
 
+    channel_type: ChannelType;
+
     // hook
     url?: string;
     username?: string;
     avatar_url?: string;
+}
+
+export interface NoticeChannelHook extends NoticeChannel {
+    hook: RESTPostAPIChannelWebhookJSONBody;
+    message: RESTPostAPIChannelMessageJSONBody;
 }
 
 export interface NoticeDetail {

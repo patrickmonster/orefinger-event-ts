@@ -5,6 +5,8 @@
  * @patrickmonster
  */
 
+import { tastTo } from 'utils/database';
+
 const SelectNoticeDashbord = `
 SELECT 
 	json_object( 'name', '🔔') AS emoji
@@ -12,7 +14,7 @@ SELECT
 	, tag AS label
 FROM notice_type nt 
 WHERE 1=1
-AND use_yn = 'Y'
+${tastTo('AND nt.use_yn = "Y"')}
 `;
 
 // 알림 상세 (7 번은 라프텔)

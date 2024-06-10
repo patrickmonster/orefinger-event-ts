@@ -2,7 +2,7 @@
 
 import { NoticeBat } from 'interfaces/notice';
 import { Paging } from 'interfaces/swagger';
-import { SqlInsertUpdate, calTo, query, selectPaging } from 'utils/database';
+import { SqlInsertUpdate, calTo, query, selectPaging, tastTo } from 'utils/database';
 
 type NoticeId = string | number;
 
@@ -137,8 +137,8 @@ FROM (
 			, vn.video_yn 
 			, if(
 				nc.webhook_id IS NULL,
-				json_object( 'channel_id', nc.channel_id, 'notice_id', nc.notice_id, 'guild_id', nc.guild_id ),
-				json_object( 'channel_id', nc.channel_id, 'notice_id', nc.notice_id, 'guild_id', nc.guild_id, 'url', nc.url, 'username', nc.username, 'avatar_url', nc.avatar_url )
+				json_object( 'channel_id', nc.channel_id, 'notice_id', nc.notice_id, 'guild_id', nc.guild_id, 'channel_type', 0 ),
+				json_object( 'channel_id', nc.channel_id, 'notice_id', nc.notice_id, 'guild_id', nc.guild_id, 'url', nc.url, 'username', nc.username, 'avatar_url', nc.avatar_url, 'channel_type', 1 )
 			) AS channel
 		FROM v_notice vn
 		INNER JOIN v_notice_channel_hook nc USING(notice_id)
@@ -192,8 +192,8 @@ FROM (
 			, vn.video_yn 
 			, if(
 				nc.webhook_id IS NULL,
-				json_object( 'channel_id', nc.channel_id, 'notice_id', nc.notice_id, 'guild_id', nc.guild_id ),
-				json_object( 'channel_id', nc.channel_id, 'notice_id', nc.notice_id, 'guild_id', nc.guild_id, 'url', nc.url, 'username', nc.username, 'avatar_url', nc.avatar_url )
+				json_object( 'channel_id', nc.channel_id, 'notice_id', nc.notice_id, 'guild_id', nc.guild_id, 'channel_type', 0 ),
+				json_object( 'channel_id', nc.channel_id, 'notice_id', nc.notice_id, 'guild_id', nc.guild_id, 'url', nc.url, 'username', nc.username, 'avatar_url', nc.avatar_url, 'channel_type', 1 )
 			) AS channel
 		FROM v_notice vn
 		INNER JOIN v_notice_channel_hook nc USING(notice_id)
@@ -237,7 +237,7 @@ FROM (
 	FROM v_notice vn
 	LEFT JOIN notice_channel nc using(notice_id)
 	WHERE vn.hash_id = ?
-	AND use_yn = 'Y'
+	${tastTo("AND use_yn = 'Y'")}
 ) A
 	`,
         hashId

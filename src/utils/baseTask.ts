@@ -103,7 +103,7 @@ export class BaseTask extends EventEmitter {
         // Local Task
         const { totalPage, list } = await selectEventBats(this.eventId, {
             page: idx,
-            limit: 100,
+            limit: 2000,
         });
         await this.scanTask(list); // 스캔 데이터
         if (totalPage <= idx) {

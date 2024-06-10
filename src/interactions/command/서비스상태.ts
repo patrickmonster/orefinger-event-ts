@@ -19,7 +19,7 @@ export const exec = async (interaction: AppChatInputInteraction, selectOption: S
 - Revision: ECS.${revision}
 - Total: ${total.toLocaleString()}
 - Request: ${lastServerRequset.toLocaleString()} req/m
-- Live Sendtime : ${time} sec (최근3달 ${c.toLocaleString()}건)
+- Live Sendtime : ${time} sec (최근3달 ${c.toLocaleString()}건 평균)
 
 총 ${ids.length.toLocaleString()}개의 서버가 동작하고 있으며,
 각 서버당 ${Math.round(total / ids.length).toLocaleString()}개의 알림을 처리하고 있습니다.

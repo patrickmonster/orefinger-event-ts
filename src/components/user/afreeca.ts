@@ -3,7 +3,7 @@ import dayjs from 'dayjs';
 import qs from 'querystring';
 
 import { messageEdit } from 'components/discord';
-import { sendChannels } from 'components/notice';
+import { sendMessageByChannels } from 'components/notice';
 import { insertLiveEvents, updateLiveEvents } from 'controllers/bat';
 import { upsertNotice } from 'controllers/notice';
 import { APIEmbed, APIMessage } from 'discord-api-types/v10';
@@ -200,26 +200,34 @@ const changeMessage = async (notice_id: number, content: any) => {
     }
 };
 
-export const getLiveMessage = async ({ channels, notice_id, hash_id, message, name, img_idx, id }: NoticeBat) => {
+export const getLiveMessage = async ({ channels, notice_id, hash_id, message, name, id }: NoticeBat) => {
     const liveStatus = await getChannelLive(notice_id, hash_id, id);
     if (liveStatus) {
         // online
         const embed = convertVideoObject(liveStatus, name);
 
-        const messages = await sendChannels(channels, {
-            content: message,
-            embeds: [embed],
-            components: [
-                createActionRow(
-                    // createSuccessButton(`notice attendance ${notice_id}`, {
-                    //     label: appendTextWing('📌출석체크\u3164', 9), // 크기보정
-                    // }),
-                    createUrlButton(`${embed.url}`, {
-                        emoji: { id: '1218859390988456027' },
-                    })
-                ),
-            ],
-        });
+        const messages = await sendMessageByChannels(
+            channels.map(channel => ({
+                ...channel,
+                hook: {
+                    name: name || '방송알리미',
+                    avatar:
+                        liveStatus.profile_image ||
+                        'https://cdn.orefinger.click/post/466950273928134666/d2d0cc31-a00e-414a-aee9-60b2227ce42c.png',
+                },
+                message: {
+                    content: message,
+                    embeds: [embed],
+                    components: [
+                        createActionRow(
+                            createUrlButton(`${embed.url}`, {
+                                emoji: { id: '1247013958842449993' },
+                            })
+                        ),
+                    ],
+                },
+            }))
+        );
 
         await saveRedis(REDIS_KEY.DISCORD.LAST_MESSAGE(`${notice_id}`), messages, 60 * 60 * 24);
     } else {

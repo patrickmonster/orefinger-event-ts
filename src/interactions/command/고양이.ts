@@ -12,7 +12,7 @@ export const exec = async (interaction: AppChatInputInteraction, selectOption: S
             {
                 image: { url: `${item.url}` },
                 footer: {
-                    text: 'From thecatapi API',
+                    text: 'From thecatapi',
                 },
             },
         ],

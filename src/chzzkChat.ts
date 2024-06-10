@@ -28,8 +28,17 @@ server.on('message', chat => {
     chzzkChatMessage(client, chat);
 });
 
-server.on('join', noticeId => {
+server.on('join', (noticeId, streamingChannelId) => {
     clientEmit('chatJoin', noticeId);
+    const client = server.getServer(streamingChannelId);
+
+    if (client) {
+        const command = client.commands.filter(({ type }) => type === 2);
+
+        for (const item of command) {
+        }
+    }
+
     sendState();
 });
 
@@ -70,6 +79,10 @@ addEvent('chatLeave', (noticeId, pid) => {
 
 addEvent('chatChange', noticeId => {
     server.change(noticeId);
+});
+
+addEvent('commandReload', noticeId => {
+    server.reload(noticeId);
 });
 
 // 인증 정보가 초기화 되었을 경우
