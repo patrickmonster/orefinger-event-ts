@@ -230,8 +230,6 @@ export const sendTestNotice = async (noticeId: string | number, guildId: string)
     let content: any = {};
     let embed: any = {};
 
-    console.log('????????????????', channel);
-
     const { hash_id, notice_type, name } = channel;
 
     switch (notice_type) {
