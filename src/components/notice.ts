@@ -55,7 +55,11 @@ export const getNoticeDetailByEmbed = async (noticeId: NoticeId, guildId: string
                     //     },
                     // }),
                 ],
-                true
+                true,
+                {
+                    copy: '알림 맨트 복사',
+                    edit: '알림 맨트 수정',
+                }
             ),
         ],
     };

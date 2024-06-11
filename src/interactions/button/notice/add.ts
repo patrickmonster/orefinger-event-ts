@@ -18,7 +18,7 @@ export const exec = async (interaction: MessageInteraction, noticeType: string) 
                 components: [
                     createTextShortInput(`value`, {
                         label: '채널명을 입력해주세요.',
-                        placeholder: 'youtubeId or 채널명',
+                        placeholder: '@채널명',
                         max_length: 50,
                         min_length: 1,
                         required: true,

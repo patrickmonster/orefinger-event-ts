@@ -168,11 +168,13 @@ export const selectPagingKey = async <T extends {}, E extends ButtonProps = {}>(
 export const editerComponent = (
     base_id: string,
     buttons: APIButtonComponent[],
-    noCopy?: boolean
+    noCopy?: boolean,
+    buttonLable?: { edit: string; copy: string }
 ): APIActionRowComponent<APIMessageActionRowComponent> => {
-    const components = [createPrimaryButton(`${base_id} edit`, { label: '수정' })];
+    if (!buttonLable) buttonLable = { edit: '수정', copy: '복사' };
+    const components = [createPrimaryButton(`${base_id} edit`, { label: buttonLable.edit })];
 
-    if (!noCopy) components.push(createPrimaryButton(`${base_id} copy`, { label: '복사' }));
+    if (!noCopy) components.push(createPrimaryButton(`${base_id} copy`, { label: buttonLable.copy }));
 
     return {
         type: ComponentType.ActionRow,
