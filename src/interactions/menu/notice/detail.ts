@@ -14,10 +14,10 @@ export const exec = async (interaction: MessageMenuInteraction) => {
 
     if (!guild_id) return;
 
-    const { embed, components } = await getNoticeDetailByEmbed(noticeId, guild_id);
+    const { embeds, components } = await getNoticeDetailByEmbed(noticeId, guild_id);
 
     interaction.reply({
-        embeds: [embed],
+        embeds,
         ephemeral: true,
         components,
     });

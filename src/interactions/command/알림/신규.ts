@@ -118,10 +118,10 @@ export const exec = async (interaction: AppChatInputInteraction, selectOption: S
 
     await deleteOrInsertNoticeChannels(noticeId, guild_id, [channel.id]);
 
-    const { embed, components } = await getNoticeDetailByEmbed(noticeId, guild_id);
+    const { embeds, components } = await getNoticeDetailByEmbed(noticeId, guild_id);
 
     interaction.reply({
-        embeds: [embed],
+        embeds,
         ephemeral: true,
         components,
     });

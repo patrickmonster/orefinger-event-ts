@@ -30,7 +30,7 @@ const getNoticeHashId = (guildId: string, noticeType: string | number) => `${gui
 export const getNoticeDetailByEmbed = async (noticeId: NoticeId, guildId: string) => {
     const { embed, channels } = await selectNoticeDtilByEmbed(noticeId, guildId);
     return {
-        embed,
+        embeds: [embed],
         components: [
             createChannelSelectMenu(`notice channel ${noticeId}`, {
                 placeholder: '알림을 받을 채널을 선택해주세요.',
