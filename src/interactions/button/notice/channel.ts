@@ -1,3 +1,4 @@
+import { getCardList } from 'components/billing';
 import { sendTestNotice } from 'components/notice';
 import { selectNoticeDetailEditByModel } from 'controllers/notice';
 import { MessageInteraction } from 'interactions/message';
@@ -9,7 +10,8 @@ import { createActionRow, createUrlButton } from 'utils/discord/component';
  * @param interaction
  */
 export const exec = async (interaction: MessageInteraction, noticeId: string, modeType: string) => {
-    const { guild_id } = interaction;
+    const { guild_id, user, member } = interaction;
+    const apiUser = member?.user || user;
     switch (modeType) {
         case 'edit': {
             const model = await selectNoticeDetailEditByModel(noticeId);
@@ -21,12 +23,16 @@ export const exec = async (interaction: MessageInteraction, noticeId: string, mo
             break;
         }
         case 'hook': {
-            const model = await selectNoticeDetailEditByModel(noticeId);
-
-            interaction.model({
-                ...model,
-                custom_id: `notice edit ${noticeId}`,
-            });
+            getCardList(`${apiUser?.id}`, `notice hook ${noticeId}`)
+                .then(card => {
+                    if (Array.isArray(card)) {
+                        interaction.reply({ components: card });
+                    } else {
+                    }
+                })
+                .catch(e => {
+                    const apiUser = member?.user || user;
+                });
             break;
         }
         case 'test': {

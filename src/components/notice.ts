@@ -48,12 +48,12 @@ export const getNoticeDetailByEmbed = async (noticeId: NoticeId, guildId: string
                             name: '🔔',
                         },
                     }),
-                    // createSecondaryButton(`notice channel ${noticeId} hook`, {
-                    //     label: '알림프로필생성',
-                    //     emoji: {
-                    //         name: '👀',
-                    //     },
-                    // }),
+                    createSecondaryButton(`notice channel ${noticeId} hook`, {
+                        label: '알림프로필생성',
+                        emoji: {
+                            name: '👀',
+                        },
+                    }),
                 ],
                 true,
                 {
