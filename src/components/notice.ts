@@ -43,7 +43,7 @@ export const getNoticeDetailByEmbed = async (noticeId: NoticeId, guildId: string
                 `notice channel ${noticeId}`,
                 [
                     createSecondaryButton(`notice channel ${noticeId} test`, {
-                        label: '알림권한테스트',
+                        label: '알림전송테스트',
                         emoji: {
                             name: '🔔',
                         },
@@ -123,11 +123,11 @@ export const sendChannels = async (channels: NoticeChannel[], message: RESTPostA
                 })
                 .catch(e => {
                     ERROR(e);
-                    if ([50013, 10003].includes(e.code)) {
-                        deleteNoticeChannel(notice_id, channel_id).catch(e => {
-                            ERROR('DeleteChannel', e);
-                        });
-                    }
+                    // if ([50013, 10003].includes(e.code)) {
+                    //     deleteNoticeChannel(notice_id, channel_id).catch(e => {
+                    //         ERROR('DeleteChannel', e);
+                    //     });
+                    // }
                 })) as APIMessage;
 
             const id = originMessage?.id;
@@ -137,11 +137,12 @@ export const sendChannels = async (channels: NoticeChannel[], message: RESTPostA
             }
         } else {
             const originMessage = await messageCreate(channel_id, message).catch(e => {
-                if ([10003 /* , 50013 */].includes(e.code)) {
-                    deleteNoticeChannel(notice_id, channel_id).catch(e => {
-                        ERROR('DeleteChannel', e);
-                    });
-                } else ERROR(e);
+                // if ([10003 /* , 50013 */].includes(e.code)) {
+                //     deleteNoticeChannel(notice_id, channel_id).catch(e => {
+                //         ERROR('DeleteChannel', e);
+                //     });
+                // } else
+                ERROR(e);
             });
 
             const id = originMessage?.id;
@@ -164,10 +165,12 @@ export const sendChannels = async (channels: NoticeChannel[], message: RESTPostA
  * @param channels
  * @param message
  */
-export const sendMessageByChannels = async (channels: NoticeChannelHook[]) => {
+export const sendMessageByChannels = async (channels: NoticeChannelHook[], isTest = false) => {
     const messages: APIMessage[] = [];
-    for (const { channel_id, url, notice_id, hook, message, channel_type } of channels) {
+    for (const { channel_id, url, notice_id, message, channel_type } of channels) {
         let originMessage;
+        console.log('sendMessageByChannels', channel_type);
+
         switch (channel_type) {
             case ChannelMessageType.TEXT:
                 originMessage = await messageCreate(channel_id, message).catch(e => {
@@ -180,29 +183,24 @@ export const sendMessageByChannels = async (channels: NoticeChannelHook[]) => {
                 break;
             case ChannelMessageType.WEBHOOK:
                 // 훅 발송
-                originMessage = (await discord
-                    .post(`/${url}`, {
-                        body: { ...message, ...hook },
-                    })
-                    .catch(e => {
-                        ERROR(e);
-                        if ([10003].includes(e.code)) {
-                            deleteNoticeChannel(notice_id, channel_id).catch(e => {
-                                ERROR('DeleteChannel', e);
-                            });
-                        }
-                    })) as APIMessage;
-
+                originMessage = await openApi.post<APIMessage>(`/${url}`, message).catch(e => {
+                    ERROR(e);
+                    if ([10003].includes(e.code)) {
+                        deleteNoticeChannel(notice_id, channel_id).catch(e => {
+                            ERROR('DeleteChannel', e);
+                        });
+                    }
+                });
                 break;
         }
 
-        const id = originMessage?.id;
-        if (id && originMessage) {
-            messages.push(originMessage);
-        }
+        // const id = originMessage?.id;
+        // if (id && originMessage) {
+        //     messages.push(originMessage);
+        // }
     }
 
-    if (messages[0].embeds?.length)
+    if (!isTest && messages[0].embeds?.length)
         openApi.post(`${process.env.WEB_HOOK_URL}`, {
             content: `${channels.length}개 채널에 알림이 전송되었습니다.`,
             embeds: messages[0].embeds,
@@ -211,6 +209,9 @@ export const sendMessageByChannels = async (channels: NoticeChannelHook[]) => {
     return messages;
 };
 
+import { convertVideoObject as convertAfreecaVideoObject, getLive as getAfreecaLive } from 'components/user/afreeca';
+import { convertVideoObject as convertChzzkVideoObject, getLive as getChzzkLive } from 'components/user/chzzk';
+
 /**
  * 테스트 메세지를 전송합니다
  * @param noticeId
@@ -218,36 +219,51 @@ export const sendMessageByChannels = async (channels: NoticeChannelHook[]) => {
  * @returns
  */
 export const sendTestNotice = async (noticeId: string | number, guildId: string) => {
-    const channels = await selectNoticeGuildChannel(noticeId, guildId);
+    const [channel] = await selectNoticeGuildChannel(noticeId, guildId);
 
-    if (!channels)
+    if (!channel)
         return {
             content: '알림이 존재하지 않습니다.',
             ephemeral: true,
         };
 
-    for (const { channel_id, notice_id, hash_id, notice_type, notice_type_tag, message, name, img_idx } of channels) {
-        messageCreate(channel_id, {
-            content: message,
-            embeds: [
-                {
-                    color: 0xffca52,
-                    title: notice_type_tag || '알림',
-                    description: '권한 테스트 알림입니다.',
-                    url: 'https://orefinger.click',
-                    author: {
-                        name: name || '방송알리미',
-                        icon_url: `https://cdn.orefinger.click/post/466950273928134666/d2d0cc31-a00e-414a-aee9-60b2227ce42c.png`,
-                    },
-                    image: {
-                        url: 'https://cdn.orefinger.click/post/466950273928134666/3ee49895-2ac5-48ba-a45c-5855a7d45ee1.png',
-                    },
-                    fields: [{ name: 'TEST', value: `테스트`, inline: true }],
-                    footer: { text: '제공. 방송알림' },
-                },
-            ],
-        });
+    let content: any = {};
+    let embed: any = {};
+
+    console.log('????????????????', channel);
+
+    const { hash_id, notice_type, name } = channel;
+
+    switch (notice_type) {
+        case 2: // 유튜브
+            // 지원안함
+            throw new Error('지원하지 않음');
+        case 4: // 치지직
+            content = await getChzzkLive(hash_id);
+            embed = convertChzzkVideoObject(content, name);
+            break;
+        case 5: // 아프리카 티비
+            content = await getAfreecaLive(hash_id);
+            embed = convertAfreecaVideoObject(content, name);
+            break;
     }
+
+    await sendMessageByChannels(
+        [
+            {
+                ...channel.channel,
+                message: {
+                    content: '알림 테스트 입니다!',
+                    embeds: [embed],
+                    username: content.channel?.channelName || '방송알리미',
+                    avatar_url:
+                        content.channel.channelImageUrl ||
+                        'https://cdn.orefinger.click/post/466950273928134666/d2d0cc31-a00e-414a-aee9-60b2227ce42c.png',
+                },
+            },
+        ],
+        true
+    );
 };
 
 /**
