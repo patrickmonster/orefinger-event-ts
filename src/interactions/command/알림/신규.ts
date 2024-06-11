@@ -71,7 +71,6 @@ export const exec = async (interaction: AppChatInputInteraction, selectOption: S
         case 'afreecatv.com':
             noticeId = await getAfreecabeUser(id);
             break;
-            n;
         case 'www.youtube.com':
             const list = await searchYoutubeUser(id);
             // 채널
