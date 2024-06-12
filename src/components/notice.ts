@@ -183,7 +183,7 @@ export const sendMessageByChannels = async (channels: NoticeChannelHook[], isTes
                 break;
             case ChannelMessageType.WEBHOOK:
                 // 훅 발송
-                originMessage = await openApi.post<APIMessage>(`/${url}`, message).catch(e => {
+                await openApi.post<APIMessage>(`/${url}`, message).catch(e => {
                     ERROR(e);
                     if ([10003].includes(e.code)) {
                         deleteNoticeChannel(notice_id, channel_id).catch(e => {
