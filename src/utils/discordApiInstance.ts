@@ -2,6 +2,7 @@
 import { REST } from '@discordjs/rest';
 import axios from 'axios';
 import { RESTPostAPIWebhookWithTokenJSONBody } from 'discord-api-types/v10';
+import { CustomInstance } from 'interfaces/API/Axios';
 import { RESTPostAPIChannelMessage } from 'plugins/discord';
 import sleep from 'utils/sleep';
 import imageBase64 from './imageBase64';
@@ -18,20 +19,23 @@ rest.on('invalidRequestWarning', invalidRequestInfo => {
 });
 
 export default rest;
-export const openApi = axios.create({
+export const openApi: CustomInstance = axios.create({
     baseURL: 'https://discord.com/api/', // discordTk
 });
 
-openApi.interceptors.response.use(null, async error => {
-    if (error.config && error.response && error.response.status === 429) {
-        console.log('Too Many Requests! Retrying...', error.config.url);
-        const { message, retry_after } = error.response.data;
-        await sleep(Math.ceil(retry_after / 1000) + 1);
-        return openApi(error.config);
+openApi.interceptors.response.use(
+    ({ data }) => data, // 데이터 변환
+    async error => {
+        if (error.config && error.response && error.response.status === 429) {
+            console.log('Too Many Requests! Retrying...', error.config.url);
+            const { message, retry_after } = error.response.data;
+            await sleep(Math.ceil(retry_after / 1000) + 1);
+            return openApi(error.config);
+        }
+        errorLog('AXIOS', error);
+        throw error;
     }
-    errorLog('AXIOS', error);
-    throw error;
-});
+);
 
 export type AttachFile = {
     name: string;
