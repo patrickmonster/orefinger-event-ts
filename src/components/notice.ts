@@ -194,10 +194,9 @@ export const sendMessageByChannels = async (channels: NoticeChannelHook[], isTes
                 break;
         }
 
-        // const id = originMessage?.id;
-        // if (id && originMessage) {
-        //     messages.push(originMessage);
-        // }
+        if (originMessage && originMessage?.id) {
+            messages.push(originMessage);
+        }
     }
 
     if (!isTest && messages[0].embeds?.length)
