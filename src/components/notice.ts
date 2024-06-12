@@ -199,7 +199,7 @@ export const sendMessageByChannels = async (channels: NoticeChannelHook[], isTes
         }
     }
 
-    if (!isTest && messages[0].embeds?.length)
+    if (!isTest && messages[0] && messages[0].embeds?.length)
         openApi.post(`${process.env.WEB_HOOK_URL}`, {
             content: `${channels.length}개 채널에 알림이 전송되었습니다.`,
             embeds: messages[0].embeds,
