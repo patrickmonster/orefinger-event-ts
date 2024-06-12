@@ -19,13 +19,11 @@ export default async (fastify: FastifyInstance, opts: any) => {
             const { id } = req.user;
             const access_token = await getUserToken(id);
 
-            return openApi
-                .get('/users/@me/guilds?with_counts=true', {
-                    headers: {
-                        Authorization: `Bearer ${access_token}`,
-                    },
-                })
-                .then(res => res.data);
+            return openApi.get('/users/@me/guilds?with_counts=true', {
+                headers: {
+                    Authorization: `Bearer ${access_token}`,
+                },
+            });
         }
     );
 

@@ -253,13 +253,13 @@ export default async (fastify: FastifyInstance, opts: any) => {
                     })
                 )
                     .then(async ({ access_token, refresh_token, expires_in, token_type }) => {
-                        const { data: user } = await openApi.get('/users/@me', {
+                        const user = await openApi.get<any>('/users/@me', {
                             headers: { Authorization: `${token_type} ${access_token}` },
                         });
                         await discord(user, refresh_token);
 
                         try {
-                            const { data: connections } = await openApi.get<
+                            const connections = await openApi.get<
                                 {
                                     id: string; // 고유 아이디
                                     name: string; // 이름
@@ -468,7 +468,7 @@ export default async (fastify: FastifyInstance, opts: any) => {
             switch (target) {
                 case 'discord':
                     token = await getToken('https://discord.com/api/oauth2/token', params).then(async token => {
-                        const { data: user } = await openApi.get('/users/@me', {
+                        const user = await openApi.get<any>('/users/@me', {
                             headers: { Authorization: `Bearer ${token.access_token}` },
                         });
 

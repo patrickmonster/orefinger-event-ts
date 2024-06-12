@@ -28,10 +28,26 @@ export const exec = async (interaction: MessageInteraction, noticeId: string, mo
                     if (Array.isArray(card)) {
                         interaction.reply({ components: card });
                     } else {
+                        // 카드가 한장있는경우
                     }
                 })
                 .catch(e => {
+                    // 카드가 없는경우
                     const apiUser = member?.user || user;
+
+                    interaction.reply({
+                        content: '부분 유료화 서비스 입니다. \n 하단 문서를 확인해 주세요',
+                        components: [
+                            createActionRow(
+                                createUrlButton('https://orefinger.notion.site/3c4e7f6b9a9b4e6b8d7a0b3d0e2d4c0b', {
+                                    label: '문서 확인',
+                                    emoji: {
+                                        name: '📌',
+                                    },
+                                })
+                            ),
+                        ],
+                    });
                 });
             break;
         }
