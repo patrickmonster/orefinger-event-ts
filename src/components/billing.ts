@@ -1,7 +1,9 @@
 import { auth } from 'controllers/auth';
-import { PaymentHidden, insertPayment } from 'controllers/paymont';
+import { PaymentHidden, insertPayment, selectCardList } from 'controllers/paymont';
 import { AuthorizationsCard, Card } from 'interfaces/toss';
+import moment from 'moment';
 import { ENCRYPT_KEY, encrypt, sha256 } from 'utils/cryptoPw';
+import menuComponentBuild from 'utils/menuComponentBuild';
 import toss from 'utils/tossApiInstance';
 
 type OrderState =
@@ -33,6 +35,32 @@ const getBillingState = (orderState: OrderState) => {
         default:
             return 0;
     }
+};
+
+export const getCardList = async (id: string, custom_id: string) => {
+    return selectCardList(id).then(card => {
+        switch (card.length) {
+            case 0:
+                throw new Error('Not found Card');
+            case 1:
+                return card[0];
+            default:
+                return menuComponentBuild(
+                    {
+                        custom_id,
+                        placeholder: '인증을 완료하실 계정을 선택 해 주세요!',
+                        disabled: false,
+                        max_values: 1,
+                        min_values: 1,
+                    },
+                    ...card.map(({ user_id, name, create_at }) => ({
+                        label: `${name}`,
+                        value: user_id,
+                        description: `${moment(create_at).format('YYYY년 MMM Do')} 등록됨`,
+                    }))
+                );
+        }
+    });
 };
 
 export const createCard = async (id: string, card: Card, isTest = false) => {

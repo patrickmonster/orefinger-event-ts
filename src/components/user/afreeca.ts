@@ -118,6 +118,9 @@ export const convertVideoObject = (videoObject: Content, name?: string): APIEmbe
     };
 };
 
+export const getLive = async (hashId: string) =>
+    afreecaAPI.get<Content>(`${hashId}/station`).then(async content => content);
+
 /**
  * 채널의 비디오 목록을 가져옵니다
  * @param noticeId
@@ -126,8 +129,7 @@ export const convertVideoObject = (videoObject: Content, name?: string): APIEmbe
  */
 export const getChannelLive = async (noticeId: number, hashId: string, lastId: string | number) =>
     new Promise<Content | null>((resolve, reject) => {
-        afreecaAPI
-            .get<Content>(`${hashId}/station`)
+        getLive(hashId)
             .then(async content => {
                 const {
                     broad, // 방송 정보
@@ -209,12 +211,6 @@ export const getLiveMessage = async ({ channels, notice_id, hash_id, message, na
         const messages = await sendMessageByChannels(
             channels.map(channel => ({
                 ...channel,
-                hook: {
-                    name: name || '방송알리미',
-                    avatar:
-                        liveStatus.profile_image ||
-                        'https://cdn.orefinger.click/post/466950273928134666/d2d0cc31-a00e-414a-aee9-60b2227ce42c.png',
-                },
                 message: {
                     content: message,
                     embeds: [embed],
@@ -225,6 +221,10 @@ export const getLiveMessage = async ({ channels, notice_id, hash_id, message, na
                             })
                         ),
                     ],
+                    username: name || '방송알리미',
+                    avatar_url:
+                        liveStatus.profile_image ||
+                        'https://cdn.orefinger.click/post/466950273928134666/d2d0cc31-a00e-414a-aee9-60b2227ce42c.png',
                 },
             }))
         );

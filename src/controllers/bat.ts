@@ -1,6 +1,6 @@
 // 배치용 쿼리
 
-import { NoticeBat } from 'interfaces/notice';
+import { NoticeBat, NoticeChannel } from 'interfaces/notice';
 import { Paging } from 'interfaces/swagger';
 import { SqlInsertUpdate, calTo, query, selectPaging, tastTo } from 'utils/database';
 
@@ -303,31 +303,24 @@ AND end_at IS NULL`,
 
 export const selectNoticeGuildChannel = (notice_id: number | string, guild_id: string) =>
     query<{
-        channel_id: string;
-        notice_id: string;
         hash_id: string;
         notice_type: number;
-        notice_type_tag: string;
-        message: string;
         name: string;
-        img_idx: number | null;
+        channel: NoticeChannel;
     }>(
         `
-SELECT 
-	nc.channel_id 
-	, nc.notice_id
-	, vn.hash_id
-	, vn.notice_type
-	, vn.notice_type_tag
-	, vn.message
-	, vn.name
-	, vn.img_idx 
-FROM notice_channel nc 
-INNER JOIN v_notice vn ON nc.notice_id = vn.notice_id 
-WHERE 1=1
-AND nc.notice_id = ?
+SELECT hash_id 
+	, notice_type 
+	, name
+	, if(
+		nc.webhook_id IS NULL,
+		json_object( 'channel_id', nc.channel_id, 'notice_id', nc.notice_id, 'guild_id', nc.guild_id, 'channel_type', 0 ),
+		json_object( 'channel_id', nc.channel_id, 'notice_id', nc.notice_id, 'guild_id', nc.guild_id, 'url', nc.url, 'username', nc.username, 'avatar_url', nc.avatar_url, 'channel_type', 1 )
+	) AS channel
+FROM v_notice vn
+INNER JOIN v_notice_channel_hook nc USING(notice_id)
+WHERE vn.notice_id = ?
 AND nc.guild_id = ?
-AND nc.use_yn = 'Y'
 		`,
         getNoticeId(notice_id),
         guild_id

@@ -1,4 +1,4 @@
-import { RESTPostAPIChannelMessageJSONBody, RESTPostAPIChannelWebhookJSONBody } from 'discord-api-types/v10';
+import { RESTPostAPIChannelMessageJSONBody, RESTPostAPIWebhookWithTokenJSONBody } from 'discord-api-types/v10';
 
 export interface NoticeBat {
     notice_id: number;
@@ -32,8 +32,7 @@ export interface NoticeChannel {
 }
 
 export interface NoticeChannelHook extends NoticeChannel {
-    hook: RESTPostAPIChannelWebhookJSONBody;
-    message: RESTPostAPIChannelMessageJSONBody;
+    message: RESTPostAPIChannelMessageJSONBody | RESTPostAPIWebhookWithTokenJSONBody;
 }
 
 export interface NoticeDetail {

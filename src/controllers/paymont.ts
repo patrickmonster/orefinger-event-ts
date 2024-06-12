@@ -50,3 +50,30 @@ export const insertPayment = async (payment: {
     order_state: number;
     amount: number;
 }) => query(`INSERT INTO discord.payment_order set ? `, payment);
+
+export const selectCardList = async (id: string) =>
+    query<{
+        user_id: string;
+        auth_id: string;
+        name: string;
+        avatar: string;
+        avatar_id: string;
+        is_session: 'Y' | 'N' | boolean;
+        create_at: string;
+        update_at: string;
+    }>(
+        `
+SELECT user_id
+	, auth_id
+	, name
+	, avatar
+	, avatar_id
+	, is_session -- 마지막 결제 요청이 유효한지
+	, create_at
+	, update_at 
+FROM v_auth_token vat 
+WHERE vat.\`type\` = 10
+AND vat.auth_id = ?
+        `,
+        id
+    );

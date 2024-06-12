@@ -207,6 +207,21 @@ const changeMessage = async (notice_id: number, content: Content) => {
 };
 
 /**
+ *
+ * @param hashId
+ * @returns
+ */
+export const getLive = async (hashId: string) =>
+    chzzkV2
+        .get<{ content: Content }>(`channels/${hashId}/live-detail`, {
+            headers: {
+                'User-Agent':
+                    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+            },
+        })
+        .then(async ({ content }) => content);
+
+/**
  * 채널의 비디오 목록을 가져옵니다
  * @param notice_ida
  * @param hashId
@@ -214,14 +229,8 @@ const changeMessage = async (notice_id: number, content: Content) => {
  */
 export const getChannelLive = async (noticeId: number, hashId: string, liveId: string | number) =>
     new Promise<Content | null>((resolve, reject) => {
-        chzzkV2
-            .get<{ content: Content }>(`channels/${hashId}/live-detail`, {
-                headers: {
-                    'User-Agent':
-                        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
-                },
-            })
-            .then(async ({ content }) => {
+        getLive(hashId)
+            .then(async content => {
                 // 콘텐츠의 라이브 id 가 없거나, 라이브 id 가 같으면 무시
                 if (!content?.liveId || content.liveId === liveId) return reject(null);
 
@@ -286,13 +295,6 @@ export const getLiveMessage = async ({
 }: NoticeBat) => {
     const liveStatus = await getChannelLive(noticeId, hashId, id);
     if (liveStatus && liveStatus.status === 'OPEN') {
-        const hook = {
-            name: liveStatus.channel?.channelName || '방송알리미',
-            avatar_url:
-                liveStatus.channel.channelImageUrl ||
-                'https://cdn.orefinger.click/post/466950273928134666/d2d0cc31-a00e-414a-aee9-60b2227ce42c.png',
-        };
-
         const messages = sendMessageByChannels(
             channels.map(channel => {
                 return {
@@ -307,8 +309,11 @@ export const getLiveMessage = async ({
                                 })
                             ),
                         ],
+                        username: liveStatus.channel?.channelName || '방송알리미',
+                        avatar_url:
+                            liveStatus.channel.channelImageUrl ||
+                            'https://cdn.orefinger.click/post/466950273928134666/d2d0cc31-a00e-414a-aee9-60b2227ce42c.png',
                     },
-                    hook,
                 };
             })
         );

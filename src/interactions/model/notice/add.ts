@@ -29,9 +29,9 @@ export const exec = async (interaction: MessageMenuInteraction, values: Record<s
         case '4': {
             // 직접 탐색
             if (isChzzkHash(keyword)) {
-                const { embed, components } = await getNoticeDetailByEmbed(await getChzzkUser(keyword), guild_id);
+                const { embeds, components } = await getNoticeDetailByEmbed(await getChzzkUser(keyword), guild_id);
                 return interaction.reply({
-                    embeds: [embed],
+                    embeds,
                     ephemeral: true,
                     components,
                 });
