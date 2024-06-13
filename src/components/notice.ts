@@ -34,7 +34,7 @@ export const getNoticeDetailByEmbed = async (noticeId: NoticeId, guildId: string
         components: [
             createChannelSelectMenu(`notice channel ${noticeId}`, {
                 placeholder: '알림을 받을 채널을 선택해주세요.',
-                channel_types: [ChannelType.GuildText],
+                channel_types: [ChannelType.GuildText, ChannelType.GuildAnnouncement],
                 default_values: channels,
                 max_values: 1,
                 min_values: 0,
