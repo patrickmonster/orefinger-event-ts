@@ -66,9 +66,12 @@ export const exec = async (interaction: MessageInteraction, typeId: string) => {
                     },
                 ],
                 components: createButtonArrays(
-                    createUrlButton(`https://orefinger.click/discord/jwt?code=${jwt}&target=${typeId}`, {
-                        label: `홈페이지에 접속하여 계정 연결하기`,
-                    })
+                    createUrlButton(
+                        `https://orefinger.click/discord/jwt?code=${jwt}&target=${typeId}&guild_id=${guild_id}`,
+                        {
+                            label: `홈페이지에 접속하여 계정 연결하기`,
+                        }
+                    )
                 ),
             });
         });
