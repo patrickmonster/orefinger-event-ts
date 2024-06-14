@@ -10,17 +10,21 @@ import {
     discord,
     selectAuthType,
     selectDiscordUserByJWTToken,
+    tokens,
     upsertDiscordUserAndJWTToken,
     userIds,
 } from 'controllers/auth';
-import discordApi, { openApi } from 'utils/discordApiInstance';
+import discordApi, { changeNickname, openApi } from 'utils/discordApiInstance';
 import { kakaoAPI } from 'utils/kakaoApiInstance';
 import { getChzzkPostComment, naverAPI } from 'utils/naverApiInstance';
 import twitch, { twitchAPI } from 'utils/twitchApiInstance';
 
-import { APIUser } from 'discord-api-types/v10';
+import { sendNoticeByBord } from 'components/notice';
+import { insertAuthRule } from 'controllers/role';
+import { APIGuildMember, APIUser } from 'discord-api-types/v10';
 import qs from 'querystring';
 import { ENCRYPT_KEY, sha256 } from 'utils/cryptoPw';
+import { ParseInt } from 'utils/object';
 
 export default async (fastify: FastifyInstance, opts: any) => {
     const types = await selectAuthType();
@@ -39,7 +43,7 @@ export default async (fastify: FastifyInstance, opts: any) => {
         $id: 'userId',
         type: 'string',
         description: '사용자 아이디',
-        enum: ['466950273928134666', '338368635103870977', '206100523621941248'],
+        enum: ['466950273928134666', '338368635103870977', '206100523621941248', '836072783280209961'],
     });
 
     fastify.addSchema({
@@ -146,6 +150,96 @@ export default async (fastify: FastifyInstance, opts: any) => {
             },
         },
         async req => await userIds(req.user.id)
+    );
+
+    fastify.get<{
+        Params: { type: number; guild_id: string };
+    }>(
+        '/auth/:type/roles/:guild_id',
+        {
+            onRequest: [fastify.authenticate],
+            schema: {
+                security: [{ Bearer: [] }],
+                description: '디스코드 사용자 인증 - 권한 정보',
+                tags: ['Auth'],
+                deprecated: false, // 비활성화
+                params: {
+                    type: 'object',
+                    required: ['type', 'guild_id'],
+                    additionalProperties: false,
+                    properties: {
+                        type: { type: 'number', description: '인증 타입' },
+                        guild_id: { type: 'string', description: '길드 아이디' },
+                    },
+                },
+            },
+        },
+        async req => {
+            const { type, guild_id } = req.params;
+            const { id } = req.user;
+
+            const [userData] = await tokens(id, type);
+            if (!userData) {
+                return { code: 1, message: '사용자 정보가 없습니다.' };
+            }
+
+            const { name, user_id } = userData;
+
+            try {
+                const user = (await discordApi.get(`/guilds/${guild_id}/members/${id}`)) as APIGuildMember;
+
+                if (!user) {
+                    return { code: 2, message: '사용자 정보가 없습니다.' };
+                }
+
+                const { role_id, tag_kr, affectedRows, nick_name } = await insertAuthRule(id, guild_id, ParseInt(type));
+                const { roles, nick: originNick } = user;
+
+                if (!role_id) {
+                    return { code: 3, message: '역할이 지정되지 않았습니다.' };
+                }
+
+                const hasRole = roles.includes(role_id);
+                const changeNick = nick_name.replace(/\{([^\}]+)\}/gi, (match: string, p1: string) => {
+                    switch (p1) {
+                        case 'nick':
+                            return name;
+                        case 'target':
+                            return tag_kr;
+                        default:
+                            return match;
+                    }
+                });
+
+                if (!hasRole) {
+                    try {
+                        await discordApi.put(`/guilds/${guild_id}/members/${id}/roles/${role_id}`);
+                    } catch (e: any) {
+                        return { code: 4, message: `ERROR - ${e.code}` };
+                    }
+                }
+
+                if (originNick != changeNick) {
+                    try {
+                        await changeNickname(guild_id, id, changeNick);
+                    } catch (e: any) {
+                        return { code: 5, message: `ERROR - ${e.code}` };
+                    }
+                }
+
+                if (affectedRows && affectedRows != 0) {
+                    sendNoticeByBord(guild_id || '0', `3_${type}`, {
+                        user: `${name}(${user_id}) - <@${id}> 님이 인증하셨습니다!`,
+                    });
+                }
+
+                return { code: 0, message: 'success' };
+            } catch (e) {
+                console.log(e);
+
+                return { code: 6, message: '알수 없는 오류' };
+            }
+        }
     );
 
     fastify.delete<{
