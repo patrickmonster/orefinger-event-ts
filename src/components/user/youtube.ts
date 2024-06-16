@@ -4,8 +4,10 @@ import redis, { REDIS_KEY, saveRedis } from 'utils/redis';
 
 import https from 'https';
 
+import { sendMessageByChannels } from 'components/notice';
 import { insertVideoEvents, selectVideoEvents } from 'controllers/bat';
 import { APIEmbed } from 'discord-api-types/v10';
+import { NoticeBat } from 'interfaces/notice';
 import qs from 'querystring';
 import { parseString } from 'xml2js';
 
@@ -147,13 +149,6 @@ interface ChannelObject {
     iosAppindexingLink: string;
     vanityChannelUrl: string;
 }
-
-// https://www.youtube.com/@ytnnews24/streams
-export const channelStreams = async (hashId: string) => {
-    const html = await fetch(`https://www.youtube.com/channel/${hashId}/streams`);
-    const match = html.match(/var ytInitialData = (.*)]}}};/)?.[1];
-};
-
 /**
  * https://www.youtube.com/channel/${hashId}/videos
  * @param hashId
@@ -184,9 +179,52 @@ export const channelVideos = async (hashId: string) => {
             results.push({
                 title: video.title.runs[0].text,
                 id: video.videoId,
-                publishedAt: video.publishedTimeText?.simpleText || '',
-                views: video.shortViewCountText.simpleText || '',
                 thumbnails: video.thumbnail.thumbnails,
+            });
+        }
+    } catch (err) {
+        console.log(err);
+    }
+
+    return {
+        channel,
+        videos: results,
+    };
+};
+
+/**
+ * https://www.youtube.com/channel/${hashId}/shorts
+ * @param hashId
+ * @returns { channel: ChannelObject, videos: any[] }
+ */
+export const channelShorts = async (hashId: string) => {
+    const html = await fetch(`https://www.youtube.com/channel/${hashId}/shorts`);
+    const match = html.match(/var ytInitialData = (.*)]}}};/)?.[1];
+
+    console.log('?', match);
+
+    if (!match) return {};
+
+    const { contents, metadata } = JSON.parse(match + ']}}}');
+    const shortTab = contents.twoColumnBrowseResultsRenderer.tabs.find((tab: any) =>
+        tab?.tabRenderer?.title?.match(/shorts|Shorts/i)
+    ); // 해당하는 탭의 데이터를 가져옵니다
+    const channel: ChannelObject = metadata.channelMetadataRenderer;
+
+    if (!shortTab) return {};
+    const results = [];
+
+    try {
+        const shorts = shortTab.tabRenderer.content.richGridRenderer?.contents?.slice(0, 5);
+        for (const data of shorts) {
+            const short = data?.richItemRenderer?.content?.reelItemRenderer;
+
+            if (!short) continue;
+
+            results.push({
+                title: short.headline,
+                id: short.videoId,
+                thumbnails: short.thumbnail.thumbnails,
             });
         }
     } catch (err) {
@@ -211,7 +249,7 @@ interface Thumbnails {
  * @returns
  */
 export const convertVideoObject = (video_object: any): APIEmbed => {
-    const { id, title, publishedAt, views, thumbnails } = video_object;
+    const { id, title, thumbnails } = video_object;
 
     return {
         title,
@@ -225,6 +263,40 @@ export const convertVideoObject = (video_object: any): APIEmbed => {
             text: '제공. Youtube',
         },
     };
+};
+
+export const getVideoMessage = async ({
+    channels,
+    notice_id: noticeId,
+    hash_id: hashId,
+    message,
+    name,
+    id,
+}: NoticeBat) => {
+    //
+    const { videos, channel_title } = await getChannelVideos(noticeId, hashId);
+    for (const video of videos) {
+        sendMessageByChannels(
+            channels.map(channel => ({
+                ...channel,
+                hook: {
+                    name: channel_title || '방송알리미',
+                },
+                message: {
+                    content: message,
+                    embeds: [
+                        {
+                            ...video,
+                            author: {
+                                name: name || channel_title,
+                                url: `https://www.youtube.com/channel/${hash_id}`,
+                            },
+                        },
+                    ],
+                },
+            }))
+        );
+    } // for
 };
 
 /**
