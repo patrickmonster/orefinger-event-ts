@@ -170,6 +170,7 @@ export const sendMessageByChannels = async (channels: NoticeChannelHook[], isTes
     const messages: OriginMessage[] = [];
     for (const { channel_id, url, notice_id, message, channel_type } of channels) {
         let originMessage;
+        let targetUrl = url;
         console.log('sendMessageByChannels', channel_type);
 
         switch (channel_type) {
@@ -184,7 +185,7 @@ export const sendMessageByChannels = async (channels: NoticeChannelHook[], isTes
                 break;
             case ChannelMessageType.WEBHOOK:
                 // 훅 발송
-                await openApi.post<APIMessage>(`/${url}`, message).catch(e => {
+                originMessage = await openApi.post<APIMessage>(`/${url}`, message).catch(e => {
                     ERROR(e);
                     if ([10003].includes(e.code)) {
                         deleteNoticeChannel(notice_id, channel_id).catch(e => {
@@ -197,6 +198,7 @@ export const sendMessageByChannels = async (channels: NoticeChannelHook[], isTes
 
         if (originMessage && originMessage?.id) {
             messages.push({
+                url: `${targetUrl || ''}`,
                 message: originMessage,
                 id: originMessage.id,
                 channel_type,

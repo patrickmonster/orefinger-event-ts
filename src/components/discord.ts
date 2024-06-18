@@ -15,8 +15,9 @@ import {
     RESTPostAPIChannelWebhookResult,
     RESTPostAPIGuildChannelJSONBody,
     RESTPostAPIGuildChannelResult,
+    RESTPostAPIWebhookWithTokenJSONBody,
 } from 'discord-api-types/v10';
-import discord from 'utils/discordApiInstance';
+import discord, { openApi } from 'utils/discordApiInstance';
 import { REDIS_KEY, catchRedis } from 'utils/redis';
 
 export type Attachment = {
@@ -137,6 +138,9 @@ export const messageDelete = async (channelId: string, messageId: string) =>
 
 export const messageEdit = async (channelId: string, messageId: string, body: RESTPostAPIChannelMessageJSONBody) =>
     discord.patch(`/channels/${channelId}/messages/${messageId}`, { body });
+
+export const messageHookEdit = async (url: string, messageId: string, body: RESTPostAPIWebhookWithTokenJSONBody) =>
+    openApi.patch(`/${url}/messages/${messageId}`, body);
 
 const discordRegex = /<[a]?:([\w|\d]+):(\d{17,19})>/im; // 맨션
 const emojiRegex = /:(\w+)(~\d)?:/gim; // 이모티콘

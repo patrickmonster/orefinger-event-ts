@@ -50,6 +50,7 @@ export interface NoticeDetail {
 }
 
 export interface OriginMessage {
+    url: string;
     message: APIMessage;
     id: string;
     channel_type: ChannelType;
