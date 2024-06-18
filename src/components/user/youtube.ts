@@ -201,8 +201,6 @@ export const channelShorts = async (hashId: string) => {
     const html = await fetch(`https://www.youtube.com/channel/${hashId}/shorts`);
     const match = html.match(/var ytInitialData = (.*)]}}};/)?.[1];
 
-    console.log('?', match);
-
     if (!match) return {};
 
     const { contents, metadata } = JSON.parse(match + ']}}}');
