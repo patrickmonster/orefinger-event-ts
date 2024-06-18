@@ -1,8 +1,8 @@
 import dayjs from 'dayjs';
-import { APIEmbed, APIMessage } from 'discord-api-types/v10';
+import { APIEmbed } from 'discord-api-types/v10';
 import qs from 'querystring';
 
-import { messageEdit } from 'components/discord';
+import { messageEdit, messageHookEdit } from 'components/discord';
 import { sendChannels, sendMessageByChannels } from 'components/notice';
 
 import { auth } from 'controllers/auth';
@@ -10,7 +10,7 @@ import { insertLiveEvents, updateLiveEvents } from 'controllers/bat';
 import { upsertNotice } from 'controllers/notice';
 
 import { ChannelData, Content } from 'interfaces/API/Chzzk';
-import { NoticeBat } from 'interfaces/notice';
+import { ChannelType, NoticeBat, OriginMessage } from 'interfaces/notice';
 import { KeyVal } from 'interfaces/text';
 
 import { serverEmit } from 'components/socket/socketServer';
@@ -174,20 +174,35 @@ const changeMessage = async (notice_id: number, content: Content) => {
 
     const messages = await redis.get(redisKey);
     if (messages) {
-        const { closeDate, concurrentUserCount, accumulateCount } = content;
-        for (const { id, message_reference, components, content, embeds, ...message } of JSON.parse(
-            messages
-        ) as APIMessage[]) {
+        const { closeDate } = content;
+        for (const {
+            id,
+            channel_type,
+            url,
+            message: { message_reference, components, content, embeds, ...message },
+        } of JSON.parse(messages) as OriginMessage[]) {
             const [embed] = embeds;
             const time = dayjs(closeDate).add(-9, 'h');
 
             embed.description += `~ <t:${time.unix()}:R>`;
             embed.timestamp = time.format();
-            messageEdit(message.channel_id, id, {
-                ...message,
-                embeds,
-                components: [],
-            }).catch(console.error);
+
+            switch (channel_type) {
+                case ChannelType.TEXT:
+                    messageEdit(message.channel_id, id, {
+                        ...message,
+                        embeds,
+                        components: [],
+                    }).catch(console.error);
+                    break;
+                case ChannelType.WEBHOOK:
+                    messageHookEdit(url, id, {
+                        ...message,
+                        embeds,
+                        components: [],
+                    }).catch(console.error);
+                    break;
+            }
 
             await redis.del(redisKey);
         }
