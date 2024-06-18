@@ -29,11 +29,9 @@ const tasks = {
                     sendMessageByChannels(
                         channels.map(channel => ({
                             ...channel,
-                            hook: {
-                                name: channel_title || '방송알리미',
-                            },
                             message: {
                                 content: message,
+                                username: channel_title || '방송알리미',
                                 embeds: [
                                     {
                                         ...video,
