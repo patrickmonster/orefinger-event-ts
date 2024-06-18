@@ -273,7 +273,6 @@ export const getVideoMessage = async ({
     name,
     id,
 }: NoticeBat) => {
-    //
     const { videos, channel_title } = await getChannelVideos(noticeId, hashId);
     for (const video of videos) {
         sendMessageByChannels(
@@ -311,14 +310,17 @@ export const getChannelVideos = async (noticeId: number, hashId: string) =>
         channel_title: string;
     }>(async (resolve, reject) => {
         const { channel, videos: entry } = await channelVideos(hashId);
+        const { channel: shortChannel, videos: shorts } = await channelShorts(hashId);
 
-        if (!entry?.length) return resolve({ videos: [], channel_title: '' });
+        if (!entry?.length && !shorts?.length) return resolve({ videos: [], channel_title: '' });
+
+        const originVideos = [...(entry || []), ...(shorts || [])];
         // 기존 비디오 목록을 가져옵니다
         const oldVideos = await selectVideoEvents(noticeId);
 
         const videos = [];
         try {
-            for (const video_object of entry) {
+            for (const video_object of originVideos) {
                 const { id, title } = video_object;
                 // 이미 등록된 비디오는 건너뜁니다 (중복 방지) / 이전 데이터 rss 용 필터
                 if (oldVideos.find(v => v.video_id === id)) continue;
@@ -330,7 +332,7 @@ export const getChannelVideos = async (noticeId: number, hashId: string) =>
                     continue;
                 }
             }
-            resolve({ videos, channel_title: channel.title });
+            resolve({ videos, channel_title: `${(channel || shortChannel)?.title}` });
         } catch (e) {
             reject(e);
         }
