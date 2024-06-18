@@ -289,7 +289,7 @@ export const getVideoMessage = async ({
                             ...video,
                             author: {
                                 name: name || channel_title,
-                                url: `https://www.youtube.com/channel/${hash_id}`,
+                                url: `https://www.youtube.com/channel/${hashId}`,
                             },
                         },
                     ],
