@@ -1,5 +1,5 @@
 import { NoticeId, deleteNoticeChannel, selectNoticeDtilByEmbed, upsertAttach, upsertNotice } from 'controllers/notice';
-import { ChannelType as ChannelMessageType, NoticeChannel, NoticeChannelHook } from 'interfaces/notice';
+import { ChannelType as ChannelMessageType, NoticeChannel, NoticeChannelHook, OriginMessage } from 'interfaces/notice';
 import {
     appendTextWing,
     createActionRow,
@@ -160,13 +160,14 @@ export const sendChannels = async (channels: NoticeChannel[], message: RESTPostA
 
     return messages;
 };
+
 /**
  * 각 채널 별로 메세지를 전송합니다
  * @param channels
  * @param message
  */
 export const sendMessageByChannels = async (channels: NoticeChannelHook[], isTest = false) => {
-    const messages: APIMessage[] = [];
+    const messages: OriginMessage[] = [];
     for (const { channel_id, url, notice_id, message, channel_type } of channels) {
         let originMessage;
         console.log('sendMessageByChannels', channel_type);
@@ -195,15 +196,21 @@ export const sendMessageByChannels = async (channels: NoticeChannelHook[], isTes
         }
 
         if (originMessage && originMessage?.id) {
-            messages.push(originMessage);
+            messages.push({
+                message: originMessage,
+                id: originMessage.id,
+                channel_type,
+            });
         }
     }
 
-    if (!isTest && messages[0] && messages[0].embeds?.length)
+    if (!isTest && messages[0]) {
+        const { embeds } = messages[0].message;
         openApi.post(`${process.env.WEB_HOOK_URL}`, {
             content: `${channels.length}개 채널에 알림이 전송되었습니다.`,
-            embeds: messages[0].embeds,
+            embeds: embeds,
         });
+    }
 
     return messages;
 };

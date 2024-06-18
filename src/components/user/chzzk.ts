@@ -182,18 +182,6 @@ const changeMessage = async (notice_id: number, content: Content) => {
             const time = dayjs(closeDate).add(-9, 'h');
 
             embed.description += `~ <t:${time.unix()}:R>`;
-            // embed.fields?.push(
-            //     {
-            //         name: '시청자',
-            //         value: `${concurrentUserCount.toLocaleString()}명`,
-            //         inline: true,
-            //     },
-            //     {
-            //         name: '방문자',
-            //         value: `${accumulateCount.toLocaleString()}명`,
-            //         inline: true,
-            //     }
-            // );
             embed.timestamp = time.format();
             messageEdit(message.channel_id, id, {
                 ...message,
@@ -295,7 +283,7 @@ export const getLiveMessage = async ({
 }: NoticeBat) => {
     const liveStatus = await getChannelLive(noticeId, hashId, id);
     if (liveStatus && liveStatus.status === 'OPEN') {
-        const messages = sendMessageByChannels(
+        const messages = await sendMessageByChannels(
             channels.map(channel => {
                 return {
                     ...channel,
