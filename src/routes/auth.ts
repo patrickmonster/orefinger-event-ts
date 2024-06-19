@@ -161,6 +161,7 @@ export default async (fastify: FastifyInstance, opts: any) => {
             schema: {
                 security: [{ Bearer: [] }],
                 description: '디스코드 사용자 인증 - 권한 정보',
+                summary: '길드 인증 요청',
                 tags: ['Auth'],
                 deprecated: false, // 비활성화
                 params: {

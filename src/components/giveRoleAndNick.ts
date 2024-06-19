@@ -169,7 +169,7 @@ export default async (interaction: IReply, { guild_id, auth_id, user_id, nick, t
         // 알림을 전송합니다 - 알림타입  3
         if (affectedRows && affectedRows != 0) {
             sendNoticeByBord(guild_id || '0', `3_${type}`, {
-                user: `${nick} - <@${auth_id}> 님이 인증하셨습니다!`,
+                user: `${nick}(${user_id}) - <@${auth_id}> 님이 인증하셨습니다!`,
             });
         }
     } catch (e) {
