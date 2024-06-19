@@ -1,4 +1,4 @@
-import { getNoticeDetailByEmbed } from 'components/notice';
+import { checkUserNoticeLimit, getNoticeDetailByEmbed } from 'components/notice';
 import { getAfreecabeUser } from 'components/user/afreeca';
 import { getChzzkUser } from 'components/user/chzzk';
 import { searchYoutubeUser } from 'components/user/youtube';
@@ -19,9 +19,10 @@ const StreamChannelRegex =
 
 // https://play.afreecatv.com/sikhye1004/null
 export const exec = async (interaction: AppChatInputInteraction, selectOption: SelectOptionType) => {
-    const { guild_id, channel } = interaction;
+    const { guild_id, channel, user, member } = interaction;
 
     if (!guild_id) return;
+    const userId = user?.id || member?.user.id;
 
     const url = selectOption.get('링크');
     const help = selectOption.get('help');
@@ -60,6 +61,10 @@ export const exec = async (interaction: AppChatInputInteraction, selectOption: S
     const [, , , domain, , id] = data;
 
     await interaction.differ({ ephemeral: true });
+
+    if (!(await checkUserNoticeLimit(interaction, `${userId}`))) {
+        return;
+    }
 
     let noticeId;
     switch (domain) {
@@ -115,7 +120,7 @@ export const exec = async (interaction: AppChatInputInteraction, selectOption: S
         });
     }
 
-    await deleteOrInsertNoticeChannels(noticeId, guild_id, [channel.id]);
+    await deleteOrInsertNoticeChannels(noticeId, guild_id, [channel.id], `${userId}`);
 
     const { embeds, components } = await getNoticeDetailByEmbed(noticeId, guild_id);
 
