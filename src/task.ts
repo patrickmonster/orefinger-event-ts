@@ -6,12 +6,12 @@ import { openApi } from 'utils/discordApiInstance';
 
 import 'utils/procesTuning';
 
-import { sendChannels, sendMessageByChannels } from 'components/notice';
+import { sendChannels } from 'components/notice';
 import { addEvent, isInit } from 'components/socket/socketClient';
 import { getLiveMessage as afreeca } from 'components/user/afreeca';
 import { getLiveMessage as chzzk } from 'components/user/chzzk';
 import { getVod, getChannelVideos as laftel } from 'components/user/laftel';
-import { getChannelVideos as youtube } from 'components/user/youtube';
+import { getVideoMessage as youtube } from 'components/user/youtube';
 
 import { ParseInt } from 'utils/object';
 
@@ -22,32 +22,8 @@ import { ParseInt } from 'utils/object';
 const tasks = {
     youtube: new BaseTask({ targetEvent: 2, timmer: 1000 * 60, loopTime: 2 * 1000 }).on(
         'scan',
-        async ({ channels, notice_id, hash_id, message, name }: NoticeBat) => {
-            try {
-                const { videos, channel_title } = await youtube(notice_id, hash_id);
-                for (const video of videos) {
-                    sendMessageByChannels(
-                        channels.map(channel => ({
-                            ...channel,
-                            hook: {
-                                name: channel_title || '방송알리미',
-                            },
-                            message: {
-                                content: message,
-                                embeds: [
-                                    {
-                                        ...video,
-                                        author: {
-                                            name: name || channel_title,
-                                            url: `https://www.youtube.com/channel/${hash_id}`,
-                                        },
-                                    },
-                                ],
-                            },
-                        }))
-                    );
-                } // for
-            } catch (e) {}
+        async (item: NoticeBat) => {
+            await youtube(item);
         }
     ),
     laftel: new BaseTask({ targetEvent: 7, timmer: 1000 * 60 * 20 }).on(
