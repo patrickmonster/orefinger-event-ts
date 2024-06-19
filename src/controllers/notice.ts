@@ -55,7 +55,44 @@ AND notice_id = ?
         ParseInt(notice_id)
     ).then(res => res[0]);
 
-export const deleteOrInsertNoticeChannels = async (notice_id: NoticeId, guild_id: string, channel_ids: string[]) =>
+/**
+ * 사용자의 등록한 알림 리스트를 불러옵니다.
+ * @param auth_id
+ * @returns
+ */
+export const selectNoticeRegisterChannels = async (auth_id: string) =>
+    query<{
+        channel_id: string;
+        notice_id: string;
+        guild_id: string;
+        create_at: string;
+        update_at: string;
+        create_user_id: string;
+        name: string;
+    }>(
+        `
+SELECT nc.channel_id
+	, nc.notice_id
+	, nc.guild_id
+	, nc.create_at
+	, nc.update_at
+	, nc.use_yn
+	, nc.create_user_id
+	, nd.name
+FROM notice_channel nc
+LEFT JOIN notice_detail nd USING(notice_id)
+WHERE nc.create_user_id = ?
+AND use_yn = 'Y'
+        `,
+        auth_id
+    );
+
+export const deleteOrInsertNoticeChannels = async (
+    notice_id: NoticeId,
+    guild_id: string,
+    channel_ids: string[],
+    auth_id: string
+) =>
     getConnection(async query => {
         await query(
             `
@@ -72,8 +109,8 @@ ${calTo(`AND channel_id NOT IN (?)`, channel_ids)}
         if (channel_ids && channel_ids.length)
             query(
                 `
-INSERT INTO notice_channel (notice_id, guild_id, channel_id, use_yn)
-VALUES ${channel_ids.map(channel_id => format('(?)', [[notice_id, guild_id, channel_id, 'Y']])).join(',')}
+INSERT INTO notice_channel (notice_id, guild_id, channel_id, use_yn, create_user_id)
+VALUES ${channel_ids.map(channel_id => format('(?)', [[notice_id, guild_id, channel_id, 'Y', auth_id]])).join(',')}
 ON DUPLICATE KEY UPDATE use_yn = 'Y', update_at=CURRENT_TIMESTAMP
             `
             );
