@@ -20,7 +20,7 @@ import { ParseInt } from 'utils/object';
  * @description 알림 작업을 수행하는 스레드로써, 각 알림 스캔 작업을 수행합니다.
  */
 const tasks = {
-    youtube: new BaseTask({ targetEvent: 2, timmer: 1000 * 60, loopTime: 2 * 1000 }).on(
+    youtube: new BaseTask({ targetEvent: 2, timmer: 1000 * 60, loopTime: 4 * 1000 }).on(
         'scan',
         async (item: NoticeBat) => {
             await youtube(item);
