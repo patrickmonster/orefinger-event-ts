@@ -1,4 +1,8 @@
-import { RESTPostAPIChannelMessageJSONBody, RESTPostAPIWebhookWithTokenJSONBody } from 'discord-api-types/v10';
+import {
+    APIMessage,
+    RESTPostAPIChannelMessageJSONBody,
+    RESTPostAPIWebhookWithTokenJSONBody,
+} from 'discord-api-types/v10';
 
 export interface NoticeBat {
     notice_id: number;
@@ -43,4 +47,11 @@ export interface NoticeDetail {
     name: string;
     message: string;
     // img_idx: number; /* 임시보류 */
+}
+
+export interface OriginMessage {
+    url: string;
+    message: APIMessage;
+    id: string;
+    channel_type: ChannelType;
 }

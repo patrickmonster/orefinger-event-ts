@@ -1,6 +1,6 @@
 import { MessageMenuInteraction } from 'interactions/message';
 
-import { getNoticeByType, getNoticeDetailByEmbed } from 'components/notice';
+import { checkUserNoticeLimit, getNoticeByType, getNoticeDetailByEmbed } from 'components/notice';
 import { getAfreecabeUser } from 'components/user/afreeca';
 import { getChzzkUser } from 'components/user/chzzk';
 import { getChannelVideos as getLaftel, getLaftelVod } from 'components/user/laftel';
@@ -14,13 +14,19 @@ export const exec = async (interaction: MessageMenuInteraction, noticeType: stri
     const {
         values: [hashId],
         guild_id,
+        user,
+        member,
     } = interaction;
 
     if (!guild_id) return;
+    await interaction.differ({ ephemeral: true });
 
     let noticeId: number | undefined;
+    const userId = user?.id || member?.user.id;
 
-    console.log('noticeType', noticeType, hashId);
+    if (!(await checkUserNoticeLimit(interaction, `${userId}`))) {
+        return;
+    }
 
     try {
         switch (noticeType) {

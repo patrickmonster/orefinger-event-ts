@@ -1,5 +1,12 @@
-import { NoticeId, deleteNoticeChannel, selectNoticeDtilByEmbed, upsertAttach, upsertNotice } from 'controllers/notice';
-import { ChannelType as ChannelMessageType, NoticeChannel, NoticeChannelHook } from 'interfaces/notice';
+import {
+    NoticeId,
+    deleteNoticeChannel,
+    selectNoticeDtilByEmbed,
+    selectNoticeRegisterChannels,
+    upsertAttach,
+    upsertNotice,
+} from 'controllers/notice';
+import { ChannelType as ChannelMessageType, NoticeChannel, NoticeChannelHook, OriginMessage } from 'interfaces/notice';
 import {
     appendTextWing,
     createActionRow,
@@ -15,7 +22,7 @@ import { APIMessage, ChannelType } from 'discord-api-types/v10';
 import { upsertDiscordUserAndJWTToken } from 'controllers/auth';
 import { selectEventBat, selectNoticeGuildChannel } from 'controllers/bat';
 import { getAttendanceAtLive } from 'controllers/notification';
-import { RESTPostAPIChannelMessage } from 'plugins/discord';
+import { IReply, RESTPostAPIChannelMessage } from 'plugins/discord';
 import createCalender from 'utils/createCalender';
 import discord, { openApi } from 'utils/discordApiInstance';
 import { ParseInt, convertMessage } from 'utils/object';
@@ -160,15 +167,17 @@ export const sendChannels = async (channels: NoticeChannel[], message: RESTPostA
 
     return messages;
 };
+
 /**
  * 각 채널 별로 메세지를 전송합니다
  * @param channels
  * @param message
  */
 export const sendMessageByChannels = async (channels: NoticeChannelHook[], isTest = false) => {
-    const messages: APIMessage[] = [];
+    const messages: OriginMessage[] = [];
     for (const { channel_id, url, notice_id, message, channel_type } of channels) {
         let originMessage;
+        let targetUrl = url;
         console.log('sendMessageByChannels', channel_type);
 
         switch (channel_type) {
@@ -183,7 +192,7 @@ export const sendMessageByChannels = async (channels: NoticeChannelHook[], isTes
                 break;
             case ChannelMessageType.WEBHOOK:
                 // 훅 발송
-                await openApi.post<APIMessage>(`/${url}`, message).catch(e => {
+                originMessage = await openApi.post<APIMessage>(`/${url}`, message).catch(e => {
                     ERROR(e);
                     if ([10003].includes(e.code)) {
                         deleteNoticeChannel(notice_id, channel_id).catch(e => {
@@ -195,15 +204,22 @@ export const sendMessageByChannels = async (channels: NoticeChannelHook[], isTes
         }
 
         if (originMessage && originMessage?.id) {
-            messages.push(originMessage);
+            messages.push({
+                url: `${targetUrl || ''}`,
+                message: originMessage,
+                id: originMessage.id,
+                channel_type,
+            });
         }
     }
 
-    if (!isTest && messages[0] && messages[0].embeds?.length)
+    if (!isTest && messages[0]) {
+        const { embeds } = messages[0].message;
         openApi.post(`${process.env.WEB_HOOK_URL}`, {
             content: `${channels.length}개 채널에 알림이 전송되었습니다.`,
-            embeds: messages[0].embeds,
+            embeds: embeds,
         });
+    }
 
     return messages;
 };
@@ -363,4 +379,37 @@ ${createCalender(new Date(), ...pin)}
             ),
         ],
     };
+};
+
+/**
+ * 알림 개수를 제한합니다
+ * @param interaction
+ * @param userId
+ * @returns
+ */
+export const checkUserNoticeLimit = async (interaction: IReply, userId: string) => {
+    // 예외 사용자
+    if (['466950273928134666'].includes(userId)) return true;
+
+    const oldList = await selectNoticeRegisterChannels(`${userId}`);
+
+    if (oldList.length >= 10) {
+        interaction.reply({
+            content: `
+# 알림은 최대 10개까지 등록 가능합니다.
+(등록을 남발하는 유저가 있어, 제한을 두게 되었습니다.)
+
+# 등록된 알림 리스트
+${oldList.map(({ channel_id, name }) => `${name} - <#${channel_id}>`).join('\n')}
+
+* 알림을 삭제하고 싶으시다면, 문의사항을 통해서 삭제 요청을 해주세요!
+* 직접 채널을 삭제 하셔도 됩니다.
+ - [문의사항](http://pf.kakao.com/_xnTkmG)
+            `,
+        });
+
+        return false;
+    }
+
+    return true;
 };
