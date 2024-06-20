@@ -21,7 +21,7 @@ export const exec = async (interaction: AppChatInputInteraction, selectOption: S
 방송알리미는 여러분의 방송을 조금 더 간편하게 등록 가능하도록
 "알림 신규" 기능을 추가로 제공하고 있습니다.
 
-\`/알림 신규 링크:url\` 명령어를 통해 플렛폼 알림을 등록 할 수 있습니다.
+\`/알림 신규 링크:url\` 명령어를 통해 플랫폼 알림을 등록 할 수 있습니다.
 
 - 치지직: https://chzzk.naver.com/...
 - 아프리카: https://[bj,play,www].afreecatv.com/...

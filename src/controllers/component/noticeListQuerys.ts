@@ -31,8 +31,22 @@ WHERE notice_type = ?
 AND (guild_id = ? OR notice_type = 7)
 GROUP BY nc.notice_id 
 `;
+// 알림 상세 (7 번은 라프텔)
+const SelectNoticeDashbordByGuildId = `
+SELECT 
+	JSON_OBJECT( 'name', IF(  SUM(IF(nc.use_yn = 'Y', 1,0)) >= 1, '🔴','⚫')) AS emoji
+	, CAST(nc.notice_id AS CHAR) AS value
+    , IFNULL(nd.name, '지정되지 않음')  AS label
+    , CONCAT(nd.message) AS  description
+FROM notice_channel nc 
+INNER JOIN notice n USING(notice_id)
+INNER JOIN notice_detail nd using(notice_id)
+WHERE (guild_id = ? OR notice_type = 7)
+GROUP BY nc.notice_id 
+`;
 
 export default {
     SelectNoticeDashbord,
     SelectNoticeDashbordByNoticeId,
+    SelectNoticeDashbordByGuildId,
 };
