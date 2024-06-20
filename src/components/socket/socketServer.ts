@@ -61,7 +61,7 @@ server
         // 서버가 추가되었을 때, 이벤트를 받습니다.
         if (isMoveServer) return; // 이동이 확정되었기 때문에 더 이상 이벤트를 받지 않습니다.
 
-        if (revision !== process.env.ECS_REVISION) {
+        if (process.env.ECS_REVISION && revision !== process.env.ECS_REVISION) {
             // 버전 정보를 불러옴
             const list = await ecsRevisionList(revision, ParseInt(`${process.env.ECS_REVISION}`));
             // 현재 서버와 이전 서버가 동일한 rownum을 가지고 있으면 이사를 합니다.
