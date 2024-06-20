@@ -65,7 +65,7 @@
 - chzzkChat.ts
   - 치지직 채팅 통신용 봇
 
-# 지원 플렛폼
+# 지원 플랫폼
 <img src="https://cdn.orefinger.click/upload/466950273928134666/557750f3-8109-473a-8c52-fce47fe215d8.png" width="20%" height="auto">
 <img src="https://cdn.orefinger.click/upload/466950273928134666/50a2f3e9-8281-4d8a-bf05-9a3d626cc2a4.jpg" width="20%" height="auto">
 <img src="https://cdn.orefinger.click/post/466950273928134666/042375ef-c2d6-4b00-83b7-7353239b78de.png" width="20%" height="auto">

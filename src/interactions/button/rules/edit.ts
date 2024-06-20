@@ -77,7 +77,7 @@ export const exec = async (interaction: MessageInteraction, auth_id: string, tar
 예시2) 시청자] {nick}
 예시3) {nick} 트수
 
-{target} : 인증 대상 플렛폼
+{target} : 인증 대상 플랫폼
 {nick} : 사용자 닉네임
 (최대 30자 까지 가능합니다.)
                         `,
