@@ -252,7 +252,7 @@ export const convertVideoObject = (video_object: any): APIEmbed => {
     return {
         title,
         url: `https://www.youtube.com/watch?v=${id}`,
-        color: 0xf00,
+        color: 0xf40001,
         image: thumbnails.reduce((prev: Thumbnails, curr: Thumbnails) => (prev.width > curr.width ? prev : curr)),
         footer: {
             text: '제공. Youtube',
