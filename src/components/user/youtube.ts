@@ -220,7 +220,7 @@ export const channelShorts = async (hashId: string) => {
             if (!short) continue;
 
             results.push({
-                title: short.headline,
+                title: short.headline.simpleText,
                 id: short.videoId,
                 thumbnails: short.thumbnail.thumbnails,
             });
