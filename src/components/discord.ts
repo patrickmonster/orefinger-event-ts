@@ -4,9 +4,9 @@ import { channelUpsert } from 'controllers/channel';
 import { upsertWebhook } from 'controllers/guild/webhook';
 import { CreateMessage } from 'controllers/log';
 import {
+    ChannelType,
     RESTGetAPIChannelResult,
     RESTGetAPIChannelWebhooksResult,
-    RESTGetAPIGuildChannelsResult,
     RESTGetAPIGuildEmojisResult,
     RESTGetAPIGuildResult,
     RESTGetAPIUserResult,
@@ -17,6 +17,7 @@ import {
     RESTPostAPIGuildChannelResult,
     RESTPostAPIWebhookWithTokenJSONBody,
 } from 'discord-api-types/v10';
+import { APIGuildChannel, APIGuildChannelWithChildren } from 'interfaces/API/Discord';
 import discord, { openApi } from 'utils/discordApiInstance';
 import { REDIS_KEY, catchRedis } from 'utils/redis';
 
@@ -44,18 +45,18 @@ export const getGuild = async (guildId: string): Promise<RESTGetAPIGuildResult> 
         60 * 30 // 30분
     );
 
-export const getGuildChannels = async (guildId: string): Promise<RESTGetAPIGuildChannelsResult> =>
+export const getGuildChannels = async (guildId: string): Promise<APIGuildChannel[]> =>
     catchRedis(
         REDIS_KEY.DISCORD.GUILD_CHANNELS(guildId),
-        async () => await getDiscord<RESTGetAPIGuildChannelsResult>(`/guilds/${guildId}/channels`),
-        60 * 30 // 30분
+        async () => await getDiscord<APIGuildChannel[]>(`/guilds/${guildId}/channels`),
+        60 * 5 // 5분
     );
 
 export const getChannel = async (channelId: string): Promise<RESTGetAPIChannelResult> =>
     catchRedis(
         REDIS_KEY.DISCORD.CHANNELS(channelId),
         async () => await getDiscord<RESTGetAPIChannelResult>(`/channels/${channelId}`),
-        60 * 30 // 30분
+        60 * 5 // 5분
     );
 
 export const getMemtions = async (guildId: string): Promise<RESTGetAPIGuildEmojisResult> =>
@@ -179,4 +180,50 @@ export const castMessage = async (guildId: string, message: string, isSendMessag
             return `:${name}${idx > 0 ? '~' + idx : ''}:`;
         });
     }
+};
+
+/**
+ * 길드 채널 리스트 가이드 생성
+ * @param guildId
+ * @returns
+ */
+export const createChannelListGuide = async (guildId: string) => {
+    const channels = await getGuildChannels(guildId);
+
+    const message = channels
+        .reduce((prev, curr) => {
+            if (curr.type === ChannelType.GuildCategory) {
+                prev.push({
+                    ...curr,
+                    children: channels.filter(channel => channel.parent_id === curr.id),
+                });
+            } else {
+                if (!curr.parent_id)
+                    prev.push({
+                        ...curr,
+                    });
+            }
+            return prev;
+        }, [] as APIGuildChannelWithChildren[])
+        .sort((a, b) => {
+            if (a.type === ChannelType.GuildCategory && b.type !== ChannelType.GuildCategory) return 1;
+            else return a.position - b.position;
+        })
+        .reduce((prev, curr) => {
+            if ('children' in curr) {
+                prev += `\n# ${curr.name}\n`;
+                for (const channel of curr.children) {
+                    prev += `  <#${channel.id}>\n`;
+                    if ('topic' in channel && channel.topic) prev += `  ${channel.topic}\n`;
+                    else prev += '\n';
+                }
+            } else {
+                prev += `<#${curr.id}>\n`;
+                if ('topic' in curr && curr.topic) prev += `  ${curr.topic}\n`;
+                else prev += '\n';
+            }
+            return prev;
+        }, '' as string);
+
+    return message;
 };
