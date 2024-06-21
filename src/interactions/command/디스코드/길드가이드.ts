@@ -3,7 +3,7 @@ import { AppChatInputInteraction, SelectOptionType } from 'interactions/app';
 import { createChatinputCommand } from 'utils/discord/component';
 
 export const exec = async (interaction: AppChatInputInteraction, selectOption: SelectOptionType) => {
-    await interaction.differ({ ephemeral: true });
+    await interaction.differ({ ephemeral: false });
 
     const { guild_id } = interaction;
     if (!guild_id)
@@ -13,8 +13,25 @@ export const exec = async (interaction: AppChatInputInteraction, selectOption: S
         });
 
     const content = await createChannelListGuide(guild_id);
-    interaction.reply({
-        content,
+    await interaction.reply({ content });
+
+    await interaction.follow({
+        ephemeral: true,
+        embeds: [
+            {
+                title: '채널리스트 가이드',
+                description: `
+채널리스트 가이드를 생성하였습니다.
+
+\`마우스 우측 - 복사하기\` 를 이용하여
+원하는 곳에 붙여넣기 해주세요.
+                `,
+                color: 0x00ff00,
+                image: {
+                    url: 'https://cdn.orefinger.click/upload/466950273928134666/e458ca06-5014-45da-9e80-4bba885cf980.png',
+                },
+            },
+        ],
     });
 };
 
