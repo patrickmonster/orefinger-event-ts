@@ -40,6 +40,7 @@ FROM v_auth_token vat
 WHERE 1=1
 AND vat.type IN (11, 10)
 AND vat.auth_id = ?
+${userId ? 'AND vat.user_id = ?' : ''}
     `,
         authId
     );
