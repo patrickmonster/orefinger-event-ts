@@ -56,7 +56,7 @@ export const getNoticeDetailByEmbed = async (noticeId: NoticeId, guildId: string
                         },
                     }),
                     // createSecondaryButton(`notice channel ${noticeId} hook`, {
-                    //     label: '알림프로필생성',
+                    //     label: '알림프로필생성 * 유료상품',
                     //     emoji: {
                     //         name: '👀',
                     //     },
