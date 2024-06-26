@@ -81,7 +81,7 @@ export const createPayment = async (authId: string, values: Record<string, strin
 
     const expiry = card_expiry.match(CardEpireDateRegex);
     if (expiry === null) {
-        return { error: '유효기간을 정확히 입력해주세요.' };
+        return false;
     }
 
     const [, month, , year] = expiry;
