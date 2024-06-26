@@ -1,4 +1,4 @@
-import { query } from 'utils/database';
+import { calTo, query } from 'utils/database';
 
 export interface Payment {
     type: number;
@@ -40,7 +40,7 @@ FROM v_auth_token vat
 WHERE 1=1
 AND vat.type IN (11, 10)
 AND vat.auth_id = ?
-${userId ? 'AND vat.user_id = ?' : ''}
+${calTo('AND vat.user_id = ?', userId)}
     `,
         authId
     );
