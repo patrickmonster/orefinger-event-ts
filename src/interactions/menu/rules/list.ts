@@ -44,7 +44,7 @@ export const exec = async (interaction: MessageMenuInteraction) => {
                         createSuccessButton(`${id} print`, {
                             label: '출력하기',
                         }),
-                        createSuccessButton(`${id} reload`, {
+                        createPrimaryButton(`${id} reload`, {
                             label: '새로고침',
                         }),
                         createSecondaryButton(`${id} nick`, {
@@ -55,6 +55,11 @@ export const exec = async (interaction: MessageMenuInteraction) => {
                         }),
                     ],
                     true
+                ),
+                createActionRow(
+                    createPrimaryButton(`${id} notice`, {
+                        label: '알림설정',
+                    })
                 ),
                 createRoleSelectMenu(`rules edit ${auth_type}`, {
                     default_values: [
