@@ -270,7 +270,7 @@ export const sendTestNotice = async (noticeId: string | number, guildId: string)
                     embeds: [embed],
                     username: content.channel?.channelName || '방송알리미',
                     avatar_url:
-                        content.channel.channelImageUrl ||
+                        content.channel?.channelImageUrl ||
                         'https://cdn.orefinger.click/post/466950273928134666/d2d0cc31-a00e-414a-aee9-60b2227ce42c.png',
                 },
             },
