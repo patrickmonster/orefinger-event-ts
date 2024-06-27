@@ -99,20 +99,32 @@ export const searchAfreecabeUser = async (keyword: string): Promise<Array<{ name
  * @returns
  */
 export const convertVideoObject = (videoObject: Content, name?: string): APIEmbed => {
+    console.log(videoObject);
+
     const {
-        broad: { broad_title: title, broad_no, user_id },
+        broad,
         station: { user_nick: channelName, broad_start },
         profile_image: channelImageUrl,
     } = videoObject;
     const time = dayjs(broad_start).add(-9, 'h');
 
+    let title = '방송 정보가 없습니다!';
+    let no = 0;
+    let id = '';
+    if (broad) {
+        const { broad_title, broad_no, user_id } = broad;
+        title = broad_title;
+        no = broad_no;
+        id = user_id;
+    }
+
     return {
         title: title || 'LIVE ON',
         description: `<t:${time.unix()}:R>`,
-        url: `https://play.afreecatv.com/${user_id}/${broad_no}`,
+        url: `https://play.afreecatv.com/${id}/${no}`,
         color: 0x0746af,
         thumbnail: { url: channelImageUrl.startsWith('http') ? channelImageUrl : `https:${channelImageUrl}` },
-        image: { url: `https://liveimg.afreecatv.com/m/${broad_no}?${randomIntegerInRange(100, 999)}` },
+        image: { url: `https://liveimg.afreecatv.com/m/${no}?${randomIntegerInRange(100, 999)}` },
         footer: { text: name ?? channelName },
         timestamp: time.format(),
     };
