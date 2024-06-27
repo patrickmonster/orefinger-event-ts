@@ -179,6 +179,8 @@ export const getChannelLive = async (noticeId: number, hashId: string, lastId: s
                             return reject(null);
                         }
                     }
+
+                    return resolve(null);
                 }
                 resolve(content);
             })
