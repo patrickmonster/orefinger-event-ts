@@ -4,7 +4,9 @@ import { selectEmbedUserBaseEditByModel, selectEmbedUserDtilByEmbed, upsertEmbed
 
 import { messageCreate } from 'components/discord';
 import { selectEmbed } from 'components/embed/userDtail';
+import { getNoticeByType, getNoticeDetailByEmbed } from 'components/notice';
 import { getAuthbordeList } from 'controllers/guild/authDashbord';
+import { deleteOrInsertNoticeChannels } from 'controllers/notice';
 import {
     createActionRow,
     createPrimaryButton,
@@ -16,11 +18,12 @@ import {
  * 온라인 알림 이벤트 등록
  * @param interaction
  */
-export const exec = async (interaction: MessageInteraction, auth_id: string, target: string) => {
-    const { guild_id, channel } = interaction;
+export const exec = async (interaction: MessageInteraction, auth_type: string, target: string) => {
+    const { guild_id, channel, user, member } = interaction;
     if (!guild_id) return;
-    const [bord] = await getAuthbordeList(guild_id, auth_id);
-    const { embed_id, auth_type, tag_kr } = bord;
+    const userId = user?.id || member?.user.id;
+    const [bord] = await getAuthbordeList(guild_id, auth_type);
+    const { embed_id, tag_kr } = bord;
 
     switch (target) {
         case 'print': {
@@ -52,6 +55,31 @@ export const exec = async (interaction: MessageInteraction, auth_id: string, tar
                 });
             break;
         }
+        case 'notice': {
+            // 3 : 인증 알림
+            //
+            const noticeId = await getNoticeByType(guild_id || '0', `3_${auth_type}`, {
+                message: `{user}\n New user! 📌`,
+                name: '인증알리미',
+            });
+            if (noticeId) {
+                await deleteOrInsertNoticeChannels(noticeId, guild_id, [channel.id], `${userId}`);
+
+                const { embeds, components } = await getNoticeDetailByEmbed(noticeId, guild_id);
+
+                interaction.reply({
+                    embeds,
+                    ephemeral: true,
+                    components,
+                });
+            } else {
+                interaction.reply({
+                    content: '사용자를 찾을 수 없습니다.',
+                });
+            }
+
+            break;
+        }
         case 'reload': {
             await selectEmbed(interaction, embed_id);
             break;
@@ -59,7 +87,7 @@ export const exec = async (interaction: MessageInteraction, auth_id: string, tar
         case 'nick': {
             const { nick_name } = bord;
             interaction.model({
-                custom_id: `rules nick ${auth_id}`,
+                custom_id: `rules nick ${auth_type}`,
                 title: '닉네임 형식 변경',
                 components: [
                     createTextShortInput('nick', {

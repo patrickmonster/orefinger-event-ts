@@ -84,14 +84,16 @@ export const createCard = async (id: string, card: Card, isTest = false) => {
         isTest ? 'toss.test' : 'toss',
         id,
         {
-            id: cardKey,
-            username: iv,
+            id: cardKey, // 단방향 암호화 카드 번호
+            username: iv, // 1회용 단일 인증 암호
             discriminator: cardName,
-            email: content,
+            email: content, // 양뱡향 암호호된 카드 번호
             avatar: user.mId,
         },
         user.billingKey
     );
+
+    return cardKey;
 };
 
 export const billing = async (amount: number, orderName: string, item: PaymentHidden<true>) => {
@@ -99,6 +101,14 @@ export const billing = async (amount: number, orderName: string, item: PaymentHi
 
     const data = await toss.post<{
         status: OrderState;
+        receipt: { url: string };
+        orderId: string;
+        orderName: string;
+
+        currency: string;
+        suppliedAmount: number;
+        vat: number;
+        totalAmount: number;
     }>(`billing/${item.refresh_token}`, {
         amount,
         customerKey: item.auth_id,

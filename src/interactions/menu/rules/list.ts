@@ -42,19 +42,24 @@ export const exec = async (interaction: MessageMenuInteraction) => {
                     id,
                     [
                         createSuccessButton(`${id} print`, {
-                            label: '출력하기',
+                            label: '데시보드 출력하기',
                         }),
-                        createSuccessButton(`${id} reload`, {
-                            label: '새로고침',
+                        createPrimaryButton(`${id} reload`, {
+                            label: '미리보기 새로고침',
                         }),
                         createSecondaryButton(`${id} nick`, {
                             label: '닉네임 형식 변경',
                         }),
                         createDangerButton(`${id} delete`, {
-                            label: '삭제',
+                            label: '데시보드 삭제',
                         }),
                     ],
                     true
+                ),
+                createActionRow(
+                    createPrimaryButton(`${id} notice`, {
+                        label: '인증 알림 설정(사용자가 인증시 최초 1회 출력합니다)',
+                    })
                 ),
                 createRoleSelectMenu(`rules edit ${auth_type}`, {
                     default_values: [
