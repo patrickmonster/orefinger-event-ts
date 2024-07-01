@@ -216,7 +216,7 @@ export const sendMessageByChannels = async (channels: NoticeChannelHook[], isTes
     if (!isTest && messages[0]) {
         const { embeds } = messages[0].message;
         openApi.post(`${process.env.WEB_HOOK_URL}`, {
-            content: `${channels.length}개 채널에 알림이 전송되었습니다.`,
+            content: `${channels[0].notice_id}]${channels.length}개 채널에 알림이 전송되었습니다.`,
             embeds: embeds,
         });
     }
