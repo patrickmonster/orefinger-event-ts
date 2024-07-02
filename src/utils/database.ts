@@ -167,7 +167,7 @@ export const selectPaging = async <E>(
             page <= 0 ? 0 : page * size,
             size,
         ]);
-        sqlLogger(query, [`${page} /${size}`, ...params], rows);
+        sqlLogger(query, params, [`${page} /${size}`, ...rows]);
         const cnt = await connect
             .query<({ total: number } & RowDataPacket)[]>(`SELECT COUNT(1) AS total FROM (\n${query}\n) A`, params)
             .then(([[rows]]) => rows.total);
