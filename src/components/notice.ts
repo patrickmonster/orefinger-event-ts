@@ -27,7 +27,7 @@ import createCalender from 'utils/createCalender';
 import discord, { openApi } from 'utils/discordApiInstance';
 import { ParseInt, convertMessage } from 'utils/object';
 import { catchRedis } from 'utils/redis';
-import { getUser, messageCreate } from './discord';
+import { getUser, messageCreate, postDiscordMessage } from './discord';
 
 const ERROR = (...e: any) => {
     console.error(__filename, ' Error: ', ...e);
@@ -192,7 +192,7 @@ export const sendMessageByChannels = async (channels: NoticeChannelHook[], isTes
                 break;
             case ChannelMessageType.WEBHOOK:
                 // 훅 발송
-                originMessage = await openApi.post<APIMessage>(`/${url}`, message).catch(e => {
+                originMessage = await postDiscordMessage(`/${url}`, message).catch(e => {
                     ERROR(e);
                     if ([10003].includes(e.code)) {
                         deleteNoticeChannel(notice_id, channel_id).catch(e => {

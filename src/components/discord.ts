@@ -124,13 +124,18 @@ export const channelCreate = async (guild_id: string, data: RESTPostAPIGuildChan
 };
 
 export const messageCreate = async (channel_id: string, body: RESTPostAPIChannelMessageJSONBody) =>
-    postDiscord<RESTPostAPIChannelMessageResult>(`/channels/${channel_id}/messages`, { body }).then(async res => {
+    await postDiscordMessage(`/channels/${channel_id}/messages`, body);
+
+export const messageHookCreate = async (hook_id: string, token: string, body: RESTPostAPIWebhookWithTokenJSONBody) =>
+    await postDiscordMessage(`/${hook_id}/${token}`, body);
+
+export const postDiscordMessage = async (url: `/${string}`, body: RESTPostAPIChannelMessageJSONBody) =>
+    await postDiscord<RESTPostAPIChannelMessageResult>(url, { body }).then(async res => {
         CreateMessage({
-            channel_id,
+            channel_id: res.channel_id,
             message_id: res.id,
             message: JSON.stringify(body),
         }).catch(() => {});
-
         return res;
     });
 
