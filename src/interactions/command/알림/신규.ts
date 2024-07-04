@@ -62,7 +62,7 @@ export const exec = async (interaction: AppChatInputInteraction, selectOption: S
 
     await interaction.differ({ ephemeral: true });
 
-    if (!(await checkUserNoticeLimit(interaction, `${userId}`))) {
+    if (!(await checkUserNoticeLimit(interaction, `${userId}`, guild_id))) {
         return;
     }
 
