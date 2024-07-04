@@ -387,14 +387,10 @@ ${createCalender(new Date(), ...pin)}
  * @param userId
  * @returns
  */
-export const checkUserNoticeLimit = async (
-    interaction: IReply,
-    userId: string,
-    guild_id?: string
-): Promise<boolean> => {
+export const checkUserNoticeLimit = async (interaction: IReply, userId: string, guild_id: string): Promise<boolean> => {
     // 예외 사용자
     if (['466950273928134666'].includes(userId)) return true;
-
+    const { approximate_member_count, region } = await getGuild(guild_id);
     const oldList = await selectNoticeRegisterChannels(`${userId}`);
 
     if (oldList.length >= 10) {
@@ -415,8 +411,7 @@ ${oldList.map(({ channel_id, name }) => `${name} - <#${channel_id}>`).join('\n')
         return false;
     }
 
-    if (oldList.length > 2 && guild_id) {
-        const { approximate_member_count } = await getGuild(guild_id);
+    if (oldList.length > 2) {
         if ((approximate_member_count || 1) < 10) {
             interaction.reply({
                 content: `
@@ -439,6 +434,27 @@ ${oldList.map(({ channel_id, name }) => `${name} - <#${channel_id}>`).join('\n')
             });
             return false;
         }
+    }
+
+    if (['hongkong'].includes(region)) {
+        interaction.reply({
+            content: `
+# 지역 차단으로 인한 알림 등록 제한
+해당 서버는 차단된 지역으로, 알림 등록이 불가능합니다.
+
+해당 지역의 무분별한 서비스 남용 및 악용으로 인하여,
+국내의 스트리머 분들이 불편을 격는 경우가 있어, 
+해당 지역은 알림 등록이 제한되어 있습니다.
+
+# 由於區域封鎖而限制通知註冊
+此伺服器位於封鎖區域，因此無法註冊通知。
+
+由於該地區肆意濫用和濫用服務，
+國內主播有時會遇到不便，
+通知註冊在此區域受到限制。
+            `,
+        });
+        return false;
     }
 
     return true;

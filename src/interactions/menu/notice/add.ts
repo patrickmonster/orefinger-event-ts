@@ -24,7 +24,7 @@ export const exec = async (interaction: MessageMenuInteraction, noticeType: stri
     let noticeId: number | undefined;
     const userId = user?.id || member?.user.id;
 
-    if (!(await checkUserNoticeLimit(interaction, `${userId}`))) {
+    if (!(await checkUserNoticeLimit(interaction, `${userId}`, guild_id))) {
         return;
     }
 
