@@ -27,7 +27,7 @@ import createCalender from 'utils/createCalender';
 import discord, { openApi } from 'utils/discordApiInstance';
 import { ParseInt, convertMessage } from 'utils/object';
 import { catchRedis } from 'utils/redis';
-import { getUser, messageCreate, postDiscordMessage } from './discord';
+import { getGuild, getUser, messageCreate, postDiscordMessage } from './discord';
 
 const ERROR = (...e: any) => {
     console.error(__filename, ' Error: ', ...e);
@@ -387,10 +387,10 @@ ${createCalender(new Date(), ...pin)}
  * @param userId
  * @returns
  */
-export const checkUserNoticeLimit = async (interaction: IReply, userId: string) => {
+export const checkUserNoticeLimit = async (interaction: IReply, userId: string, guild_id: string): Promise<boolean> => {
     // 예외 사용자
     if (['466950273928134666'].includes(userId)) return true;
-
+    const { approximate_member_count, region } = await getGuild(guild_id);
     const oldList = await selectNoticeRegisterChannels(`${userId}`);
 
     if (oldList.length >= 10) {
@@ -408,6 +408,52 @@ ${oldList.map(({ channel_id, name }) => `${name} - <#${channel_id}>`).join('\n')
             `,
         });
 
+        return false;
+    }
+
+    if (oldList.length > 2) {
+        if ((approximate_member_count || 1) < 10) {
+            interaction.reply({
+                content: `
+현재 채널은 개인 서버로 확인이 되어, 알림 등록이 원활하게 진행되지 않습니다.
+
+# 알림 남용등록 및 개인 서버 알림 등록 제한
+"개인서버"로 지정하여 알림만을 사용하기 위하여
+알림 채널을 20개 이상 등록하는 경우가 과다하여, 기존의 이용중인 스트리머 분들께도 영향이 있어
+최소인원을 두어, 2인 이하 채널은 알림 등록이 제한되어 있습니다.
+
+10명 이상이 서버내에 존재해야 등록이 가능하며,
+인원이 10인 이상인 경우, 다시 시도해주세요.
+- 과다 알림이 등록되어, 추후 길드 인원이 10인 이하로 확인이 된 경우, 경고없이 알림을 삭제 할 수 있습니다.
+
+* 알림을 삭제하고 싶으시다면, 문의사항을 통해서 삭제 요청을 해주세요!
+* 직접 채널을 삭제 하셔도 됩니다.
+- [문의사항](http://pf.kakao.com/_xnTkmG)
+- [관련문서](https://orefinger.notion.site/1ea5f6c7170f41bd9cc7671e513f28b2)
+                `,
+            });
+            return false;
+        }
+    }
+
+    if (['hongkong'].includes(region)) {
+        interaction.reply({
+            content: `
+# 지역 차단으로 인한 알림 등록 제한
+해당 서버는 차단된 지역으로, 알림 등록이 불가능합니다.
+
+해당 지역의 무분별한 서비스 남용 및 악용으로 인하여,
+국내의 스트리머 분들이 불편을 격는 경우가 있어, 
+해당 지역은 알림 등록이 제한되어 있습니다.
+
+# 由於區域封鎖而限制通知註冊
+此伺服器位於封鎖區域，因此無法註冊通知。
+
+由於該地區肆意濫用和濫用服務，
+國內主播有時會遇到不便，
+通知註冊在此區域受到限制。
+            `,
+        });
         return false;
     }
 

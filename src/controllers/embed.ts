@@ -1,4 +1,4 @@
-import { calTo, query, selectPaging, SqlInsertUpdate } from 'utils/database';
+import getConnection, { calTo, query, selectPaging, SqlInsertUpdate } from 'utils/database';
 
 import { APIEmbed, APIModalInteractionResponseCallbackData } from 'discord-api-types/v10';
 import { EmbedCreate, EmbedUser } from 'interfaces/embed';
@@ -175,3 +175,64 @@ WHERE a.embed_id = ?
     ).then(res => res[0]);
 
 // ========================================================================================================
+
+/**
+ * 메세지에 포함된 임베드를 조회합니다.
+ * @param postId
+ * @returns
+ */
+export const selectPostByEmbedUser = async (postId: string, idx = 1) =>
+    getConnection(async query => {
+        const embed = query<{
+            post_id: number;
+            tag: string;
+            hash_id: `mp-${string}-${string}`;
+            message_id: number;
+            embed_id: number;
+            message: string;
+            embed: APIEmbed;
+            create_user: string;
+            update_user: string;
+            create_at: string;
+            update_at: string;
+        }>(
+            `
+SELECT
+	vmp.post_id
+	, vmp.tag
+	, CONCAT('mp-', vmue.message_id, '-', vmue.embed_id)  AS hash_id
+	, vmp.message_id 
+	, vmue.embed_id
+	, vmue.message
+	, vmue.embed
+	, vmp.create_user
+	, vmp.update_user
+	, vmp.create_at
+	, vmp.update_at
+FROM v_message_post vmp 
+INNER JOIN v_message_user_embed vmue USING(message_id)
+WHERE vmp.post = ?
+ORDER BY vmp.order ASC
+LIMIT ?, 1
+        `,
+            postId,
+            idx - 1
+        ).then(res => res[0]);
+
+        const count = query<{
+            rownum: number;
+            message_id: number;
+            use_yn: 'Y' | 'N';
+            order: number;
+        }>(`
+SELECT @rownum := @rownum + 1 AS rownum
+	, message_id
+	, use_yn
+	, \`order\`
+FROM message_post_connect mpc, (SELECT @rownum := 0) r
+WHERE use_yn = 'Y'
+ORDER BY \`order\` ASC
+        `);
+
+        return { embed, count };
+    });
