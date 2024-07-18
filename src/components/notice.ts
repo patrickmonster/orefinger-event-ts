@@ -183,7 +183,7 @@ export const sendMessageByChannels = async (channels: NoticeChannelHook[], isTes
         switch (channel_type) {
             case ChannelMessageType.TEXT:
                 originMessage = await messageCreate(channel_id, message).catch(e => {
-                    if ([10003 /* , 50013 */].includes(e.code)) {
+                    if ([10003, 50001 /* , 50013 */].includes(e.code)) {
                         deleteNoticeChannel(notice_id, channel_id).catch(e => {
                             ERROR('DeleteChannel', e);
                         });
@@ -194,7 +194,7 @@ export const sendMessageByChannels = async (channels: NoticeChannelHook[], isTes
                 // 훅 발송
                 originMessage = await postDiscordMessage(`/${url}`, message).catch(e => {
                     ERROR(e);
-                    if ([10003].includes(e.code)) {
+                    if ([10003, 50001].includes(e.code)) {
                         deleteNoticeChannel(notice_id, channel_id).catch(e => {
                             ERROR('DeleteChannel', e);
                         });

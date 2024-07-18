@@ -27,7 +27,7 @@ import { fork } from 'child_process';
 import { close, serverSideEmit } from 'components/socket/socketServer';
 import { createECSState } from 'utils/ECS';
 import 'utils/procesTuning';
-import { addServerRequest, bootTime } from 'utils/serverState';
+import { addServerRequest } from 'utils/serverState';
 
 const server = fastify({
     // logger: env.NODE_ENV != 'prod'
@@ -60,9 +60,7 @@ server.listen({ port: 3000, host: '::' }, (err, address) => {
         console.error(err);
         process.exit(1);
     }
-
-    const time = Date.now() - bootTime;
-    console.log(`Server started in  ${Math.floor(time / 1000)} (${time}ms)`);
+    console.log(`Server started in  ${process.uptime()}s`);
     console.log(`Server listening at ${address}`);
 });
 
