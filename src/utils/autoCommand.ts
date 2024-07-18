@@ -124,10 +124,19 @@ export default (
         file: i.file,
     })); // 트리 직열화
 
+    const root = modulePath.replace(process.cwd(), '');
+
     option.isLog &&
         console.log(
-            `AutoCommand] ${modulePath.replace(process.cwd(), '')}`,
-            `[\n${modules.map(i => `\t${i.name}\t: ${i.file.replace(process.cwd(), '')}`).join(',\n ')}\n]`
+            `AutoCommand] ${root}`,
+            `[\n${modules
+                .map(
+                    i =>
+                        `\t${i.name}${Array.from({ length: 30 - i.name.length }, (_, i) => ' ').join(
+                            ''
+                        )}: ${i.file.replace(modulePath, '')}`
+                )
+                .join(',\n ')}\n]`
         );
 
     return [modules, list];
