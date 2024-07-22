@@ -3,7 +3,7 @@ import { APIEmbed } from 'discord-api-types/v10';
 import qs from 'querystring';
 
 import { messageEdit, messageHookEdit } from 'components/discord';
-import { sendChannels, sendMessageByChannels } from 'components/notice';
+import { sendMessageByChannels } from 'components/notice';
 
 import { auth } from 'controllers/auth';
 import { insertLiveEvents, updateLiveEvents } from 'controllers/bat';
@@ -286,7 +286,7 @@ export const getChannelLive = async (noticeId: number, hashId: string, liveId: s
  * @returns
  * @see getChannelLive
  * @see convertVideoObject
- * @see sendChannels
+ * @see sendMessageByChannels
  */
 export const getLiveMessage = async ({
     channels,

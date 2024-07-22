@@ -52,7 +52,12 @@ const util = {
         const out: Modules[] = [];
 
         if (files.length === 0) return out;
-        options?.isLog && console.log('AutoCommand] ScanDir', `[${files.join(', ')}]`);
+        // options?.isLog &&
+        //     console.log(
+        //         'AutoCommand]',
+        //         modulePath.replace(process.cwd(), ''),
+        //         `[${files.map(s => `${s}`.replace(/(\.ts|\.js)/, '')).join(', ')}]`
+        //     );
 
         for (const file of files) {
             const filePath = join(modulePath, file);
@@ -119,7 +124,20 @@ export default (
         file: i.file,
     })); // 트리 직열화
 
-    option.isLog && console.log('AutoCommand] Loading commands', `[${modules.map(i => i.name).join(', ')}]`);
+    const root = modulePath.replace(process.cwd(), '');
+
+    option.isLog &&
+        console.log(
+            `AutoCommand] ${root}`,
+            `[\n${modules
+                .map(
+                    i =>
+                        `\t${i.name}${Array.from({ length: 30 - i.name.length }, (_, i) => ' ').join(
+                            ''
+                        )}: ${i.file.replace(modulePath, '')}`
+                )
+                .join(',\n ')}\n]`
+        );
 
     return [modules, list];
 };
