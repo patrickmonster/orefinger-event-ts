@@ -120,6 +120,7 @@ export const REDIS_KEY = {
     },
     DISCORD: {
         GUILD_CHANNELS: (id: string) => `discord:channels:${id}`,
+        GUILD_INVITES: (id: string) => `discord:invites:${id}`,
         CHANNELS: (id: string) => `discord:channel:${id}`,
         GUILD_EMOJIS: (id: string) => `discord:emojis:${id}`,
         GUILD_ROLES: (id: string) => `discord:roles:${id}`,

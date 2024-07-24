@@ -23,9 +23,7 @@ if (existsSync(envDir)) {
 //////////////////////////////////////////////////////////////////////
 // 환경변수
 
-import { fork } from 'child_process';
-import { close, serverSideEmit } from 'components/socket/socketServer';
-import { createECSState } from 'utils/ECS';
+import { close } from 'components/socket/socketServer';
 import 'utils/procesTuning';
 import { addServerRequest } from 'utils/serverState';
 
@@ -70,39 +68,3 @@ server.addHook('onClose', async () => {
 
 //////////////////////////////////////////////////////////////////////
 // 프로세서 모듈
-
-createECSState().then(isECS => {
-    console.log(`ECS: ${isECS}`);
-    if (isECS) {
-        startSubtask('/task.js');
-        // - 서비스 중지 ( 현 서비스에 적합하지 않음 )
-        // startSubtask('/chzzkChat.js');
-
-        serverSideEmit('ADD', { pid: process.env.ECS_PK, revision: process.env.ECS_REVISION });
-    }
-});
-
-/**
- * 보조 서비스를 시작함
- * @param target
- */
-const startSubtask = (target: `/${string}`) => {
-    const { ECS_ID, ECS_REVISION } = process.env;
-    // node file.js ${ECS_ID}
-    const child = fork(__dirname + target, [`${ECS_ID}`, `${ECS_REVISION}`]);
-    child.on('close', (code: number) => {
-        stopSubtask(target, code);
-    });
-    process.on('SIGINT', child.kill);
-};
-
-/**
- * 서비스가 강제 종료되면, 다시 시작합니다.
- * @param code
- */
-const stopSubtask = (target: `/${string}`, code: number) => {
-    if (code !== 0) {
-        console.error(`task.js exited with code ${code}`);
-        startSubtask(target);
-    }
-};

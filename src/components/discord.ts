@@ -52,6 +52,13 @@ export const getGuildChannels = async (guildId: string): Promise<APIGuildChannel
         60 * 5 // 5분
     );
 
+export const getGuildInvites = async (guildId: string): Promise<APIGuildChannel[]> =>
+    catchRedis(
+        REDIS_KEY.DISCORD.GUILD_INVITES(guildId),
+        async () => await getDiscord<APIGuildChannel[]>(`/guilds/${guildId}/invites`),
+        60 * 5 // 5분
+    );
+
 export const getChannel = async (channelId: string): Promise<RESTGetAPIChannelResult> =>
     catchRedis(
         REDIS_KEY.DISCORD.CHANNELS(channelId),
