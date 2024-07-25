@@ -63,30 +63,18 @@ ${calTo('AND t.id = ?', id)}
 export const ecsTaskState = async (noticeType?: 4 | 5) =>
     query<{
         total: number;
-        revision: string;
         ids: string[];
-        create_at: string;
     }>(`
-SELECT total
-	, B.revision
-	, B.ids
-	, B.create_at
-FROM (
-	SELECT count(1) AS total
-	FROM v_notice vn 
-    WHERE 1=1
-    ${calTo('AND vn.notice_type = ?', noticeType)} 
-) A
-LEFT JOIN (
-	SELECT 
-		revision
-		, JSON_ARRAYAGG(id) AS ids 
-		, create_at
-	FROM task t
-	GROUP BY t.revision
-	ORDER BY idx DESC
-) B ON 1=1
-LIMIT 1
+SELECT 
+    (
+        SELECT count(1) FROM v_notice_bat vnb
+        ${calTo('WHERE vnb.notice_type = ?', noticeType)}
+    ) AS total
+    , (
+        SELECT JSON_ARRAYAGG(server_id) FROM task2
+        WHERE update_at > now() - INTERVAL 5 MINUTE
+        ORDER BY create_at
+    ) AS ids
     `).then(([res]) => res);
 
 export const liveState = async () =>
