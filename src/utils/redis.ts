@@ -11,8 +11,6 @@ const client = new Redis(`${process.env.REDIS_URL}`, {
     enableAutoPipelining: true,
 });
 
-console.log('REDIS_URL', process.env.REDIS_URL);
-
 client.on('error', err => {});
 
 client.on('reconnecting', () => {
