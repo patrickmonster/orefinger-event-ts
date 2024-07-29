@@ -20,11 +20,11 @@
 
 주기능
 - Rest API (Fastify)
-- Task (Subprocess)
-  - youtube
-  - chzzk
-  - afreeca
-  - laftel
+- ~~Task (Subprocess)~~
+  - ~~youtube~~
+  - ~~chzzk~~
+  - ~~afreeca~~
+  - ~~laftel~~
 - ~~Twitch EventSub~~
   - ~~POST\] /twitch/event~~
   - ~~POST\] /event/twitch~~
@@ -37,10 +37,10 @@
 
 
 ## 커밋 메시지 컨벤션 💬
-- Feat : 새로운 기능 추가
+- Add : 새로운 기능 추가
 - Fix : 버그 수정
 - Docs : 문서 수정
-- Test : 테스트 코드, 테스트 코드 리팩토링
+- ~~Test : 테스트 코드, 테스트 코드 리팩토링~~
 
 
 ## Plugin
@@ -62,8 +62,8 @@
 
 
 ## 챗봇
-- chzzkChat.ts
-  - 치지직 채팅 통신용 봇
+- ~~chzzkChat.ts~~
+  - ~~치지직 채팅 통신용 봇~~
 
 # 지원 플랫폼
 <img src="https://cdn.orefinger.click/upload/466950273928134666/557750f3-8109-473a-8c52-fce47fe215d8.png" width="20%" height="auto">
