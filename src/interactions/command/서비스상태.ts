@@ -30,17 +30,21 @@ export const exec = async (interaction: AppChatInputInteraction, selectOption: S
                 description: `
 - Version: ${version}
 - EC2 Task: ${ids.length}개
+- Running : ${process.uptime()}sec
 - Live Sendtime : ${time} sec (최근3달 ${c.toLocaleString()}건 평균)
 - Total: ${notices.reduce((a, b) => a + b.cnt, 0).toLocaleString()}건
 ${notices.map(({ cnt, tag }) => `\t⌞ ${tag}: \t${cnt.toLocaleString()}건`).join('\n') || '- 알림이 없습니다.'}
 
+
 * 알림 종류별로 처리 속도가 상이할 수 있습니다.
 \`알림 처리 속도는 분당 ${(60 * ids.length).toLocaleString()}개 입니다.\`
+
+
                     `,
                 thumbnail: {
                     url: 'https://cdn.orefinger.click/post/466950273928134666/3ee49895-2ac5-48ba-a45c-5855a7d45ee1.png',
                 },
-                timestamp: dayjs(process.uptime()).add(-9, 'h').format(),
+                timestamp: dayjs().add(-9, 'h').format(),
             }),
         ],
     });
