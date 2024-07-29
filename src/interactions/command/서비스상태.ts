@@ -2,12 +2,26 @@ import { ecsTaskState, liveState } from 'controllers/log';
 import dayjs from 'dayjs';
 import { AppChatInputInteraction, SelectOptionType } from 'interactions/app';
 import { createChatinputCommand, createEmbed } from 'utils/discord/component';
+import { catchRedis } from 'utils/redis';
 
 const { version } = require('../../../package.json');
 
 export const exec = async (interaction: AppChatInputInteraction, selectOption: SelectOptionType) => {
-    const { ids, total } = await ecsTaskState();
-    const { time, c } = await liveState();
+    const { ids, time, c, notices } = await catchRedis(
+        'server:status',
+        async () => {
+            const { ids } = await ecsTaskState();
+            const { time, c, notices } = await liveState();
+
+            return {
+                ids,
+                time,
+                c,
+                notices,
+            };
+        },
+        60 * 60 * 1
+    );
 
     interaction.reply({
         embeds: [
@@ -15,9 +29,10 @@ export const exec = async (interaction: AppChatInputInteraction, selectOption: S
                 title: '현재 상태',
                 description: `
 - Version: ${version}
-- Total: ${total.toLocaleString()}
-- Live Sendtime : ${time} sec (최근3달 ${c.toLocaleString()}건 평균)
 - EC2 Task: ${ids.length}개
+- Live Sendtime : ${time} sec (최근3달 ${c.toLocaleString()}건 평균)
+- Total: ${notices.reduce((a, b) => a + b.cnt, 0).toLocaleString()}건
+${notices.map(({ cnt, tag }) => `\t⌞ ${tag}: \t${cnt.toLocaleString()}건`).join('\n') || '- 알림이 없습니다.'}
 
 * 알림 종류별로 처리 속도가 상이할 수 있습니다.
 \`알림 처리 속도는 분당 ${(60 * ids.length).toLocaleString()}개 입니다.\`

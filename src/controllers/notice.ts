@@ -168,7 +168,7 @@ export const updateNoticeChannelState = async (notice_id: NoticeId, channel_id: 
         notice_id
     );
 
-export const selectNoticeDetailEditByModel = async (notice_id: NoticeId) =>
+export const selectNoticeDetailEditByModel = async (notice_id: NoticeId, guildId: string) =>
     query<Omit<APIModalInteractionResponseCallbackData, 'custom_id'>>(
         `
 SELECT 
@@ -185,10 +185,12 @@ SELECT
             )
         )
     ) AS components
-FROM notice_detail nd 
+FROM notice_guild nd 
 WHERE notice_id = ?
+AND guild_id = ?
         `,
-        ParseInt(notice_id)
+        ParseInt(notice_id),
+        guildId
     ).then(res => res[0]);
 
 export const selectGetOAuth = async (guildId: string, typeId?: string | number) =>

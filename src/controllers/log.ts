@@ -1,4 +1,4 @@
-import { SqlInsertUpdate, calTo, query } from 'utils/database';
+import getConnection, { SqlInsertUpdate, calTo, query } from 'utils/database';
 import { ParseInt } from 'utils/object';
 
 interface Message {
@@ -65,20 +65,14 @@ export const ecsTaskState = async (noticeType?: 4 | 5) =>
         total: number;
         ids: string[];
     }>(`
-SELECT 
-    (
-        SELECT count(1) FROM v_notice_bat vnb
-        ${calTo('WHERE vnb.notice_type = ?', noticeType)}
-    ) AS total
-    , (
-        SELECT JSON_ARRAYAGG(server_id) FROM task2
-        WHERE update_at > now() - INTERVAL 5 MINUTE
-        ORDER BY create_at
-    ) AS ids
+SELECT JSON_ARRAYAGG(server_id) AS ids FROM task2
+WHERE update_at > now() - INTERVAL 5 MINUTE
+ORDER BY create_at
     `).then(([res]) => res);
 
 export const liveState = async () =>
-    query<{ time: number; c: number }>(`
+    getConnection(async query => {
+        const { time, c } = await query<{ time: number; c: number }>(`
 SELECT avg(t) AS time 
     , COUNT(0) AS c 
 FROM (
@@ -86,12 +80,25 @@ FROM (
         TIMESTAMPDIFF(SECOND, live_at, create_at) AS t
     FROM notice_live nl 
     WHERE 1=1
-	AND create_at < DATE_ADD(NOW(), INTERVAL 3 MONTH)
+    AND create_at < DATE_ADD(NOW(), INTERVAL 3 MONTH)
     AND nl.live_at IS NOT NULL
 ) A
 WHERE 1=1
 AND t < 1000
-    `).then(([res]) => res);
+        `).then(([res]) => res);
+        const notices = await query<{
+            cnt: number;
+            tag: string;
+        }>(`
+SELECT count(1) AS cnt
+	, nt.tag 
+FROM v_notice_bat vnb
+INNER JOIN notice_type nt ON nt.notice_type_id = vnb.notice_type
+GROUP BY notice_type
+        `);
+
+        return { time, c, notices };
+    });
 
 export const liveStateTotal = async () =>
     query<{ time: number; notice_type: number; notice_type_tag: string }>(`

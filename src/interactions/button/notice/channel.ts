@@ -11,9 +11,10 @@ import { createActionRow, createUrlButton } from 'utils/discord/component';
 export const exec = async (interaction: MessageInteraction, noticeId: string, modeType: string) => {
     const { guild_id, user, member } = interaction;
     const apiUser = member?.user || user;
+    if (!guild_id) return;
     switch (modeType) {
         case 'edit': {
-            const model = await selectNoticeDetailEditByModel(noticeId);
+            const model = await selectNoticeDetailEditByModel(noticeId, guild_id);
 
             interaction.model({
                 ...model,
