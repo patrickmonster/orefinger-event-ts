@@ -29,14 +29,8 @@ import { addServerRequest } from 'utils/serverState';
 
 const server = fastify({
     // logger: env.NODE_ENV != 'prod'
-    logger: {
-        transport: {
-            target: '@fastify/one-line-logger',
-        },
-    },
-    ajv: {
-        plugins: [ajvFilePlugin],
-    },
+    logger: { transport: { target: '@fastify/one-line-logger' } },
+    ajv: { plugins: [ajvFilePlugin] },
 });
 
 // 플러그인
