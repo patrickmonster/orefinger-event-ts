@@ -11,10 +11,10 @@ export default async (fastify: FastifyInstance, opts: any) => {
         {
             onRequest: [fastify.masterkey],
             schema: {
-                security: [{ Bearer: [] }],
+                security: [{ Master: [] }],
                 description: '훅을 생성합니다.',
                 summary: '훅 생성',
-                tags: ['Notice'],
+                tags: ['Admin'],
                 deprecated: false,
                 querystring: {
                     type: 'object',
