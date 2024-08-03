@@ -11,6 +11,31 @@ export default async (fastify: FastifyInstance, opts: any) => {
         {
             onRequest: [fastify.masterkey],
             schema: {
+                security: [{ Bearer: [] }],
+                description: '훅을 생성합니다.',
+                summary: '훅 생성',
+                tags: ['Notice'],
+                deprecated: false,
+                querystring: {
+                    type: 'object',
+                    required: ['name'],
+                    properties: {
+                        name: { type: 'string', description: '훅 이름' },
+                    },
+                },
+            },
+        },
+        async req => webhookCreate(req.params.channel, { name: req.query.name, auth_id: req.user.id }, 'Y')
+    );
+
+    fastify.post<{
+        Params: { channel: string; id: string };
+        Querystring: { name: string };
+    }>(
+        '/webhook/:channel/:id',
+        {
+            onRequest: [fastify.masterkey],
+            schema: {
                 security: [{ Master: [] }],
                 description: '훅을 생성합니다.',
                 summary: '훅 생성',
@@ -23,10 +48,18 @@ export default async (fastify: FastifyInstance, opts: any) => {
                         name: { type: 'string', description: '훅 이름' },
                     },
                 },
+                params: {
+                    type: 'object',
+                    required: ['channel', 'id'],
+                    properties: {
+                        channel: { type: 'string', description: '채널 ID' },
+                        id: { type: 'string', description: '소유자' },
+                    },
+                },
             },
         },
         async req =>
-            webhookCreate(req.params.channel, { name: req.query.name, auth_id: req.user.id }, 'Y').then(webhook => {
+            webhookCreate(req.params.channel, { name: req.query.name, auth_id: req.params.id }, 'Y').then(webhook => {
                 const { url } = webhook;
 
                 if (url) {
