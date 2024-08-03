@@ -1,3 +1,4 @@
+import axios from 'axios';
 import { webhookCreate } from 'components/discord';
 import { FastifyInstance } from 'fastify';
 
@@ -8,12 +9,12 @@ export default async (fastify: FastifyInstance, opts: any) => {
     }>(
         '/webhook/:channel',
         {
-            onRequest: [fastify.authenticate],
+            onRequest: [fastify.masterkey],
             schema: {
-                security: [{ Bearer: [] }],
+                security: [{ Master: [] }],
                 description: '훅을 생성합니다.',
                 summary: '훅 생성',
-                tags: ['Notice'],
+                tags: ['Admin'],
                 deprecated: false,
                 querystring: {
                     type: 'object',
@@ -24,6 +25,23 @@ export default async (fastify: FastifyInstance, opts: any) => {
                 },
             },
         },
-        async req => webhookCreate(req.params.channel, { name: req.query.name, auth_id: req.user.id })
+        async req =>
+            webhookCreate(req.params.channel, { name: req.query.name, auth_id: req.user.id }, 'Y').then(webhook => {
+                const { url } = webhook;
+
+                if (url) {
+                    axios.post(url, {
+                        content: `
+안녕~ 반가워~!
+
+어머나! 여기에 관리자가 왔다갔나봐요...!
+이제부터, 현재 프로필을 통해서 알림을 받을 수 있어요!
+(이거완전 러키알림잔앙 ( •̀ ω •́ )✧)
+                        `,
+                    });
+                }
+
+                return webhook;
+            })
     );
 };

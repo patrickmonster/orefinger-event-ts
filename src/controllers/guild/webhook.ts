@@ -40,6 +40,7 @@ export const upsertWebhook = async (
         name: string;
         img_idx: number;
         auth_id: string;
+        use_yn: 'Y' | 'N';
     }>
 ) =>
     query<SqlInsertUpdate>(

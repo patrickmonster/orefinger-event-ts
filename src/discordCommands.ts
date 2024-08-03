@@ -27,6 +27,7 @@ import {
 } from 'discord-api-types/v10';
 import { api } from 'interactions/app';
 import discord from 'utils/discordApiInstance';
+import { bigintConvert } from 'utils/object';
 
 const COM = {
     REGISTER_CMD: (commands: RESTPutAPIApplicationCommandsJSONBody): void => {
@@ -57,11 +58,8 @@ const COM = {
                 process.exit(1);
             });
     },
-    STRINGIFY: (value: any): string =>
-        JSON.stringify(value, (key: string, value: any) => (typeof value === 'bigint' ? value.toString() : value)),
+    STRINGIFY: (value: any): string => JSON.stringify(value, bigintConvert),
 };
-
-const bigintConvert = (key: string, value: any) => (typeof value === 'bigint' ? value.toString() : value);
 
 const loadFile = (path: string) => {
     const { default: file, isAdmin, default_member_permissions } = require(path);
