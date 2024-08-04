@@ -38,7 +38,7 @@ export default async (fastify: FastifyInstance, opts: any) => {
             schema: {
                 security: [{ Master: [] }],
                 description: '치지직 훅을 생성합니다.',
-                summary: '훅 생성',
+                summary: '치지직 훅 생성',
                 tags: ['Admin'],
                 deprecated: false,
                 params: {
@@ -51,12 +51,12 @@ export default async (fastify: FastifyInstance, opts: any) => {
                 },
             },
         },
-        async req => {
-            getLive(req.params.hash_id).then(content => {
+        async req =>
+            getLive(req.params.hash_id).then(async content => {
                 if ('livePlaybackJson' in content) delete content.livePlaybackJson;
                 const { channelName, channelImageUrl } = content.channel;
 
-                webhookCreate(
+                return await webhookCreate(
                     req.params.channel,
                     { name: channelName, auth_id: process.env.DISCORD_CLIENT_ID || '826484552029175808' },
                     'Y'
@@ -83,7 +83,6 @@ export default async (fastify: FastifyInstance, opts: any) => {
 
                     return webhook;
                 });
-            });
-        }
+            })
     );
 };
