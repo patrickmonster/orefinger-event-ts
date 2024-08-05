@@ -14,7 +14,9 @@ export const exec = async (interaction: AppChatInputInteraction, selectOption: S
         embeds: [
             {
                 title: '포인트 랭킹',
-                description: ranks.map(rank => `${rank.rnk}위: ${rank.name} - ${rank.point}`).join('\n'),
+                description: ranks
+                    .map(rank => `${rank.rnk.toLocaleString()}위: ${rank.name} - ${rank.point.toLocaleString()}`)
+                    .join('\n'),
             },
         ],
     });
