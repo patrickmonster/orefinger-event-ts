@@ -5,6 +5,7 @@ import errorEmbed from './errorEmbed';
 
 import { APIGuildMember } from 'discord-api-types/v10';
 import { sendNoticeByBord } from './notice';
+import { addPointUser } from './user/point';
 
 /**
  * 인증 인터페이스
@@ -103,7 +104,10 @@ export default async (interaction: IReply, { guild_id, auth_id, user_id, nick, t
         if (!role_id) {
             return interaction.reply({
                 embeds: [
-                    errorEmbed('ROLE_NOT_FOUND', { target: `auth-${auth_id}`, title: '역할이 지정되지 않았습니다!' }),
+                    errorEmbed('ROLE_NOT_FOUND', {
+                        target: `auth-${auth_id}`,
+                        title: '역할이 지정되지 않았습니다! - (해당 인증의 역할이 지정되지 않아, 작업이 취소됩니다...)',
+                    }),
                 ],
             });
         }
@@ -154,6 +158,9 @@ export default async (interaction: IReply, { guild_id, auth_id, user_id, nick, t
             }
         }
 
+        if (originNick != changeNick && !hasRole)
+            addPointUser(auth_id || '', 1000, `역할부여 포인트 지급 ${guild_id} - ${auth_id} `);
+
         interaction.reply({
             embeds: [
                 {
@@ -163,9 +170,6 @@ export default async (interaction: IReply, { guild_id, auth_id, user_id, nick, t
                 },
             ],
         });
-
-        console.log('SEND NOTICE ::', affectedRows);
-
         // 알림을 전송합니다 - 알림타입  3
         if (affectedRows && affectedRows != 0) {
             sendNoticeByBord(guild_id || '0', `3_${type}`, {

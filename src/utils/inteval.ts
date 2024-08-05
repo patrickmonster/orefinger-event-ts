@@ -23,4 +23,4 @@ export const clearIntervals = () => {
     });
 };
 
-process.on('SIGINT', clearIntervals);
+process.on('exit', clearIntervals);
