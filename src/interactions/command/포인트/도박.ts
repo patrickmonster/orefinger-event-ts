@@ -41,47 +41,46 @@ ${mount.toLocaleString()}점을 사용하여 게임을 시작합니다.
                 },
             ],
         })
-        .then(async () => {
-            await sleep(1000);
-            const number = Math.floor(Math.random() * 99) + 1; // 1 ~ 100
-            const result = number >= randomNumFloor;
+        .then(() =>
+            sleep(1000).then(async () => {
+                const number = Math.floor(Math.random() * 99) + 1; // 1 ~ 100
+                const result = number >= randomNumFloor;
 
-            const point = await await addPoint(
-                userId || '',
-                mount * (result ? 1 : -1),
-                `확률성 게임 ${result ? '+' : '-'}${mount.toLocaleString()}`
-            );
-            if (point < 0) {
-                return interaction.reply({
+                const point = await addPoint(
+                    userId || '',
+                    mount * (result ? 1 : -1),
+                    `확률성 게임 ${result ? '+' : '-'}${mount.toLocaleString()}`
+                );
+                if (point < 0) {
+                    return interaction.reply({
+                        ephemeral: true,
+                        content: `포인트가 부족합니다.`,
+                    });
+                }
+
+                interaction.reply({
                     ephemeral: true,
-                    content: `포인트가 부족합니다.`,
-                });
-            }
-
-            // concat('https://cdn.discordapp.com/avatars/', `at2`.`user_id`, '/', `at2`.`avatar`, '.png')
-
-            interaction.reply({
-                ephemeral: true,
-                embeds: [
-                    {
-                        title: `${result ? '성공' : '실패'} 하였습니다.`,
-                        description: `
-${mount.toLocaleString()}점 사용하여 게임 진행 하였습니다.
-확률: ${randomNumFloor}%
-
-게임 결과:
-${result ? '성공' : '실패'} ${result ? '+' : '-'}${mount.toLocaleString()}점
-                        `,
-                        footer: {
-                            text: `잔여 포인트 ${point.toLocaleString()}점`,
-                            icon_url: `https://cdn.discordapp.com/avatars/${userId}/${
-                                member?.avatar || user?.avatar || member?.user.avatar
-                            }.png`,
+                    embeds: [
+                        {
+                            title: `${result ? '성공' : '실패'} 하였습니다.`,
+                            description: `
+    ${mount.toLocaleString()}점 사용하여 게임 진행 하였습니다.
+    확률: ${randomNumFloor}%
+    
+    게임 결과:
+    ${result ? '성공' : '실패'} ${result ? '+' : '-'}${mount.toLocaleString()}점
+                            `,
+                            footer: {
+                                text: `잔여 포인트 ${point.toLocaleString()}점`,
+                                icon_url: `https://cdn.discordapp.com/avatars/${userId}/${
+                                    member?.avatar || user?.avatar || member?.user.avatar
+                                }.png`,
+                            },
                         },
-                    },
-                ],
-            });
-        });
+                    ],
+                });
+            })
+        );
 };
 
 const api = createChatinputCommand(
