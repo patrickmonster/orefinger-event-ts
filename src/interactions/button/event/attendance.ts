@@ -1,15 +1,15 @@
 import { MessageInteraction } from 'interactions/message';
 import { RESTPostAPIChannelMessage } from 'plugins/discord';
 
-import { getAdvertisement } from 'controllers/message';
 import { attendance } from 'controllers/twitch';
 
+import { addPoint } from 'controllers/point';
 import createCalender from 'utils/createCalender';
 import { createEmbed } from 'utils/discord/component';
 import redis, { saveRedis } from 'utils/redis';
 
-const selectMessage = async (broadcaster_user_id: string, user_id: string): Promise<RESTPostAPIChannelMessage> => {
-    const { is_success, list } = await attendance(user_id, broadcaster_user_id);
+const selectMessage = async (broadcaster_user_id: string, userId: string): Promise<RESTPostAPIChannelMessage> => {
+    const { is_success, list } = await attendance(userId, broadcaster_user_id);
 
     let count = 0;
 
@@ -17,6 +17,13 @@ const selectMessage = async (broadcaster_user_id: string, user_id: string): Prom
     for (const { attendance_time } of list) {
         if (attendance_time) count++;
         else break;
+    }
+
+    // 출석체크 성공시 포인트 적립
+    if (is_success) {
+        addPoint(userId || '', 100, `출석체크 ${broadcaster_user_id}`).catch(() => {
+            console.log('출석체크 포인트 적립 실패 ${broadcaster_user_id} - ${userId}');
+        });
     }
 
     const pin = list
@@ -60,7 +67,7 @@ export const exec = async (interaction: MessageInteraction, broadcaster_user_id:
 
     await interaction.differ({ ephemeral: true });
 
-    const advertisement = await getAdvertisement(game_id); // 광고 로딩
+    // const advertisement = await getAdvertisement(game_id); // 광고 로딩
     redis
         .get(redisId)
         .then(async data => {
@@ -70,14 +77,14 @@ export const exec = async (interaction: MessageInteraction, broadcaster_user_id:
                 saveRedis(redisId, message, 60 * 10); // 10분
             } else redis.expire(redisId, 60 * 10); // 연장
 
-            message.embeds?.push(advertisement);
+            // message.embeds?.push(advertisement);
             await interaction.reply(message);
         })
         .catch(err => {
             console.log(err);
             interaction.reply({
                 content: '처리 불가능한 상태.',
-                embeds: [advertisement],
+                // embeds: [advertisement],
             });
         });
 };
