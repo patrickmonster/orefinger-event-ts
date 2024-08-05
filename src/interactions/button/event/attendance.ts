@@ -3,7 +3,7 @@ import { RESTPostAPIChannelMessage } from 'plugins/discord';
 
 import { attendance } from 'controllers/twitch';
 
-import { addPoint } from 'controllers/point';
+import { addPointUser } from 'components/user/point';
 import createCalender from 'utils/createCalender';
 import { createEmbed } from 'utils/discord/component';
 import redis, { saveRedis } from 'utils/redis';
@@ -21,9 +21,7 @@ const selectMessage = async (broadcaster_user_id: string, userId: string): Promi
 
     // 출석체크 성공시 포인트 적립
     if (is_success) {
-        addPoint(userId || '', 100, `출석체크 ${broadcaster_user_id}`).catch(() => {
-            console.log('출석체크 포인트 적립 실패 ${broadcaster_user_id} - ${userId}');
-        });
+        addPointUser(userId || '', 100, `출석체크 ${broadcaster_user_id} - ${userId}`);
     }
 
     const pin = list

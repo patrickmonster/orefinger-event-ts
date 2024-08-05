@@ -64,11 +64,11 @@ ${mount.toLocaleString()}점을 사용하여 게임을 시작합니다.
                         {
                             title: `${result ? '성공' : '실패'} 하였습니다.`,
                             description: `
-    ${mount.toLocaleString()}점 사용하여 게임 진행 하였습니다.
-    확률: ${randomNumFloor}%
-    
-    게임 결과:
-    ${result ? '성공' : '실패'} ${result ? '+' : '-'}${mount.toLocaleString()}점
+${mount.toLocaleString()}점 사용하여 게임 진행 하였습니다.
+확률: ${randomNumFloor}%
+
+게임 결과:
+${result ? '성공' : '실패'} ${result ? '+' : '-'}${mount.toLocaleString()}점
                             `,
                             footer: {
                                 text: `잔여 포인트 ${point.toLocaleString()}점`,
