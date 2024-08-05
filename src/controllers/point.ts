@@ -55,3 +55,28 @@ limit 20
             logs,
         };
     });
+
+export const selectPointRanking = async (auth_id: string) =>
+    query<{
+        auth_id: string;
+        name: string;
+        point: number;
+        rnk: number;
+    }>(
+        `
+SELECT *
+FROM (
+	SELECT
+		ap.auth_id
+		, IFNULL(a.name, a.username) AS name
+		, \`point\`
+		, ROW_NUMBER() OVER(ORDER BY \`point\` DESC) AS rnk
+	FROM auth_point ap 
+	INNER JOIN auth a ON a.auth_id = ap.auth_id
+	WHERE ap.auth_id != '466950273928134666'
+) A
+WHERE rnk BETWEEN 1 AND 10
+OR ? = auth_id 
+        `,
+        auth_id
+    );
