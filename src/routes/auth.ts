@@ -23,8 +23,9 @@ import { sendNoticeByBord } from 'components/notice';
 import { insertAuthRule } from 'controllers/role';
 import { APIGuildMember, APIUser } from 'discord-api-types/v10';
 import qs from 'querystring';
+import { getAfreecaPostComment } from 'utils/afreecaApiInstance';
 import { ENCRYPT_KEY, sha256 } from 'utils/cryptoPw';
-import { ParseInt } from 'utils/object';
+import { appendUrlHttp, ParseInt } from 'utils/object';
 
 export default async (fastify: FastifyInstance, opts: any) => {
     const types = await selectAuthType();
@@ -436,6 +437,7 @@ export default async (fastify: FastifyInstance, opts: any) => {
     fastify.post<{
         Body: {
             hash: string;
+            type: number;
         };
     }>(
         '/auth/hash',
@@ -451,7 +453,10 @@ export default async (fastify: FastifyInstance, opts: any) => {
                     type: 'object',
                     required: ['hash'],
                     additionalProperties: false,
-                    properties: { hash: { type: 'string', description: '해시키' } },
+                    properties: {
+                        hash: { type: 'string', description: '해시키' },
+                        type: { type: 'number', description: '인증 타입' },
+                    },
                 },
             },
         },
@@ -463,36 +468,72 @@ export default async (fastify: FastifyInstance, opts: any) => {
                 return fastify.httpErrors.forbidden('잘못된 인증 정보 입니다.');
             }
 
-            const { data } = await getChzzkPostComment('9351394');
-            for (const { comment, user } of data) {
-                // 코맨트 내부에서 사용자 정보를 탐색
-                console.log(comment, user);
-                if (comment.content.includes(hashKeyId)) {
-                    try {
-                        await auth(
-                            'chzzk',
-                            id,
-                            {
-                                id: user.userIdHash,
-                                username: user.userNickname,
-                                discriminator: user.userNickname,
-                                email: '-',
-                                avatar: user.profileImageUrl,
-                            },
-                            hashKeyId
-                        );
-                        return {
-                            statusCode: 200,
-                            message: '인증 처리 되었습니다.',
-                            id: user.userIdHash,
-                        };
-                    } catch (e) {
-                        return fastify.httpErrors.forbidden('인증에 실패함');
+            switch (req.body.type || 13) {
+                case 13: {
+                    const { data } = await getChzzkPostComment('9351394');
+                    for (const { comment, user } of data) {
+                        // 코맨트 내부에서 사용자 정보를 탐색
+                        console.log(comment, user);
+                        if (comment.content.includes(hashKeyId)) {
+                            // 해시키가 포함된 코맨트를 찾음
+                            try {
+                                await auth(
+                                    'chzzk',
+                                    id,
+                                    {
+                                        id: user.userIdHash,
+                                        username: user.userNickname,
+                                        discriminator: user.userNickname,
+                                        email: '-',
+                                        avatar: user.profileImageUrl,
+                                    },
+                                    hashKeyId
+                                );
+                                return {
+                                    statusCode: 200,
+                                    message: '인증 처리 되었습니다.',
+                                    id: user.userIdHash,
+                                };
+                            } catch (e) {
+                                return fastify.httpErrors.forbidden('인증에 실패함');
+                            }
+                        }
+                    }
+
+                    break;
+                }
+                case 5: {
+                    const cmts = await getAfreecaPostComment('132495419');
+                    for (const { comment, user_nick, user_id, profile_image } of cmts) {
+                        // 코맨트 내부에서 사용자 정보를 탐색
+                        if (comment.includes(hashKeyId)) {
+                            // 해시키가 포함된 코맨트를 찾음
+                            try {
+                                await auth(
+                                    'afreecatv',
+                                    id,
+                                    {
+                                        id: user_id,
+                                        username: user_nick,
+                                        discriminator: user_nick,
+                                        email: '-',
+                                        avatar: appendUrlHttp(profile_image),
+                                    },
+                                    hashKeyId
+                                );
+                                return {
+                                    statusCode: 200,
+                                    message: '인증 처리 되었습니다.',
+                                    id: user_id,
+                                };
+                            } catch (e) {
+                                return fastify.httpErrors.forbidden('인증에 실패함');
+                            }
+                        }
                     }
                     break;
                 }
             }
-
             return fastify.httpErrors.forbidden('해시키가 포함된 코맨트를 찾을 수 없습니다.');
         }
     );
