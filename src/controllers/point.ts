@@ -89,7 +89,7 @@ FROM (
 	WHERE ap.auth_id != '466950273928134666'
     AND ap.guild_id = ?
 ) A
-WHERE rnk BETWEEN 1 AND 10
+WHERE rnk BETWEEN 1 AND 15
 OR ? = auth_id 
         `,
         guild_id,
