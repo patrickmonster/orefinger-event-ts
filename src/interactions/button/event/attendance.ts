@@ -44,7 +44,7 @@ const selectMessage = async (broadcaster_user_id: string, userId: string): Promi
 ===========================
 \`\`\`ansi
 ${createCalender(new Date(), ...pin)}
-\`\`\``,
+\`\`\`${is_success ? ' +100 포인트를 획득하셨습니다' : ''}`,
             }),
         ],
     };

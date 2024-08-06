@@ -165,7 +165,9 @@ export default async (interaction: IReply, { guild_id, auth_id, user_id, nick, t
             embeds: [
                 {
                     title: '인증 성공',
-                    description: `<@${auth_id}>\n성공적으로 인증이 완료 되었습니다.\n\n${tag_kr}]${nick}님 환영합니다.`,
+                    description: `<@${auth_id}>\n성공적으로 인증이 완료 되었습니다.\n\n${tag_kr}]${nick}님 환영합니다.${
+                        originNick != changeNick && !hasRole ? '\n\n1,000포인트가 지급되었습니다.' : ''
+                    }`,
                     color: 0x00ff00,
                 },
             ],
