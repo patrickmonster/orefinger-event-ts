@@ -4,6 +4,7 @@ import authTokenSelect from 'components/authTokenSelect';
 import giveRoleAndNick from 'components/giveRoleAndNick';
 import { upsertDiscordUserAndJWTToken } from 'controllers/auth';
 import { createButtonArrays, createUrlButton } from 'utils/discord/component';
+
 /**
  *
  * 인증 - OAuth2.0
@@ -52,7 +53,7 @@ export const exec = async (interaction: MessageInteraction, typeId: string) => {
                 content: `
 현재 로그인 정보가 없는 상태 입니다.
 
-권한을 부여받기 위해서는, "네이버" 계정 연결이 필요합니다.
+권한을 부여받기 위해서는 계정 연결이 필요합니다.
 하단의 버튼을 눌러, 홈페이지에 접속하여 계정 연결을 진행해 주세요!  
                 `,
                 embeds: [
