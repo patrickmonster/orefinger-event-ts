@@ -43,10 +43,15 @@ SELECT
     , point_old
     , message
     , create_at 
-FROM auth_point_log apl 
+FROM auth_point_log apl
 WHERE auth_id = ?
-AND apl.guild_id = ?
-limit 20
+AND apl.guild_id = IFNULL
+(
+    (SELECT guild_id FROM auth_point_guild apg WHERE ? = apg.guild_id LIMIT 1),
+    '00000000000000000000' 
+)
+ORDER BY create_at DESC 
+limit 15
             `,
             auth_id,
             guild_id
@@ -82,7 +87,7 @@ FROM (
 	FROM auth_point ap 
 	INNER JOIN auth a ON a.auth_id = ap.auth_id
 	WHERE ap.auth_id != '466950273928134666'
-    AND a.guild_id = ?
+    AND ap.guild_id = ?
 ) A
 WHERE rnk BETWEEN 1 AND 10
 OR ? = auth_id 
