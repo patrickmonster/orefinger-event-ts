@@ -472,8 +472,7 @@ export default async (fastify: FastifyInstance, opts: any) => {
                 case 13: {
                     const { data } = await getChzzkPostComment('9351394');
                     for (const { comment, user } of data) {
-                        // 코맨트 내부에서 사용자 정보를 탐색
-                        console.log(comment, user);
+                        // 코맨트 내부에서 사용자 정보를 탐
                         if (comment.content.includes(hashKeyId)) {
                             // 해시키가 포함된 코맨트를 찾음
                             try {
