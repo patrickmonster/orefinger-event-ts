@@ -1,6 +1,7 @@
+import { messageCreate } from 'components/discord';
 import { checkUserNoticeLimit, getNoticeDetailByEmbed } from 'components/notice';
 import { getAfreecabeUser } from 'components/user/afreeca';
-import { getChzzkUser } from 'components/user/chzzk';
+import { convertVideoObject, getLive as getChzzkLive, getChzzkUser } from 'components/user/chzzk';
 import { searchYoutubeUser } from 'components/user/youtube';
 import { deleteOrInsertNoticeChannels } from 'controllers/notice';
 import { ApplicationCommandOptionType } from 'discord-api-types/v10';
@@ -78,14 +79,82 @@ export const exec = async (interaction: AppChatInputInteraction, selectOption: S
 
     let noticeId;
     switch (domain) {
-        case 'chzzk.naver.com':
+        case 'chzzk.naver.com': {
             noticeId = await getChzzkUser(id);
+            const content = await getChzzkLive(id);
+            const { channelName, channelImageUrl } = content.channel;
+
+            messageCreate(channel.id, {
+                content: '@everyone 알림 테스트 입니다!',
+                embeds: [convertVideoObject(content, channelName)],
+            }).catch(e => {
+                switch (e.code) {
+                    case 50013: {
+                        setTimeout(() => {
+                            interaction.follow({
+                                content: `
+# 권한이 없어 알림을 보낼 수 없습니다!!!!
+## 해당 채널에 "방송알리미" 역활이 조금 부족한거 같아요....
+
+### 방송알리미가 현재 채널에 알림을 보내기 위해서는, 아래와 같은 권한이 필요합니다.
+1. 메세지 보내기
+2. 링크 첨부
+3. 모든 역할 맨션하기
+
+
+해당하는 역할이 없는 경우... 메세지를 보낼 수 없어요....! ㅠㅠ
+
+우선, 절차대로 알림을 등록할테니, 역할을 한번 더 확인해 주세요...! :)
+                                `,
+                            });
+                        }, 3000);
+                    }
+                }
+            });
             break;
+        }
         case 'play.afreecatv.com':
         case 'bj.afreecatv.com':
-        case 'afreecatv.com':
+        case 'afreecatv.com': {
             noticeId = await getAfreecabeUser(id);
+
+            messageCreate(channel.id, {
+                content: '@everyone 알림 테스트 입니다!',
+                embeds: [
+                    {
+                        title: '알림 테스트',
+                        description: '알림 테스트',
+                        image: {
+                            url: 'https://cdn.orefinger.click/upload/466950273928134666/82ef9304-d989-4da9-bbf0-b4b3eb70854a.jpg',
+                        },
+                    },
+                ],
+            }).catch(e => {
+                switch (e.code) {
+                    case 50013: {
+                        setTimeout(() => {
+                            interaction.follow({
+                                content: `
+# 권한이 없어 알림을 보낼 수 없습니다!!!!
+## 해당 채널에 "방송알리미" 역활이 조금 부족한거 같아요....
+
+### 방송알리미가 현재 채널에 알림을 보내기 위해서는, 아래와 같은 권한이 필요합니다.
+1. 메세지 보내기
+2. 링크 첨부
+3. 모든 역할 맨션하기
+
+
+해당하는 역할이 없는 경우... 메세지를 보낼 수 없어요....! ㅠㅠ
+
+우선, 절차대로 알림을 등록할테니, 역할을 한번 더 확인해 주세요...! :)
+                                `,
+                            });
+                        }, 3000);
+                    }
+                }
+            });
             break;
+        }
         case 'www.youtube.com':
             const list = await searchYoutubeUser(id);
             // 채널
