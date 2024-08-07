@@ -88,6 +88,7 @@ export const getNoticeByType = async (
     try {
         const hashId = getNoticeHashId(guildId, noticeType);
         const noticeId = await upsertNotice(
+            guildId,
             {
                 hash_id: hashId,
                 notice_type: ParseInt(noticeType),

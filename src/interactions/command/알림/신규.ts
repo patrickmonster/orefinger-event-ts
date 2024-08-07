@@ -79,12 +79,12 @@ export const exec = async (interaction: AppChatInputInteraction, selectOption: S
     let noticeId;
     switch (domain) {
         case 'chzzk.naver.com':
-            noticeId = await getChzzkUser(id);
+            noticeId = await getChzzkUser(guild_id, id);
             break;
         case 'play.afreecatv.com':
         case 'bj.afreecatv.com':
         case 'afreecatv.com':
-            noticeId = await getAfreecabeUser(id);
+            noticeId = await getAfreecabeUser(guild_id, id);
             break;
         case 'www.youtube.com':
             const list = await searchYoutubeUser(id);

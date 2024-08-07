@@ -116,7 +116,7 @@ ON DUPLICATE KEY UPDATE use_yn = 'Y', update_at=CURRENT_TIMESTAMP
             );
     }, true);
 
-export const upsertNotice = async (notiecData: Partial<NoticeDetail>, noChageOrigin?: boolean) =>
+export const upsertNotice = async (guildId: string, notiecData: Partial<NoticeDetail>, noChageOrigin?: boolean) =>
     getConnection(async query => {
         console.log('notiecData', notiecData);
         let id = notiecData.notice_id;
@@ -135,6 +135,7 @@ export const upsertNotice = async (notiecData: Partial<NoticeDetail>, noChageOri
         const props: any = [
             {
                 notice_id: id,
+                guild_id: guildId,
                 message: notiecData.message,
                 name: notiecData.name,
             },
@@ -144,10 +145,11 @@ export const upsertNotice = async (notiecData: Partial<NoticeDetail>, noChageOri
             props.push({
                 message: notiecData.message,
                 name: notiecData.name,
+                update_user_id: notiecData.update_user_id,
             });
 
         await query<SqlInsertUpdate>(
-            `INSERT IGNORE INTO notice_detail SET ? ${!noChageOrigin ? 'ON DUPLICATE KEY UPDATE ?' : ''}`,
+            `INSERT INTO  notice_guild SET ? ${!noChageOrigin ? 'ON DUPLICATE KEY UPDATE ?' : ''}`,
             ...props
         );
 

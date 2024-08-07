@@ -22,7 +22,7 @@ interface ChannelData {
     broad_no: string;
 }
 
-export const getAfreecabeUser = async (afreecaId: string) => {
+export const getAfreecabeUser = async (guildId: string, afreecaId: string) => {
     try {
         const { station } = await afreecaAPI.get<Content>(`${afreecaId}/station`);
         if (!station) {
@@ -31,6 +31,7 @@ export const getAfreecabeUser = async (afreecaId: string) => {
         }
 
         const noticeId = await upsertNotice(
+            guildId,
             {
                 hash_id: afreecaId,
                 notice_type: 5,

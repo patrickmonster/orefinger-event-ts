@@ -8,7 +8,7 @@ import laftel, { getLaftelVods } from 'utils/laftelApiInstance';
 
 export const getVod = async () => await catchRedis('laftel:vod', async () => await getLaftelVods(), 60 * 60 * 24);
 
-export const getLaftelVod = async (vodId: string | number) => {
+export const getLaftelVod = async (guildId: string, vodId: string | number) => {
     try {
         const vod = await getVod();
 
@@ -26,6 +26,7 @@ export const getLaftelVod = async (vodId: string | number) => {
 
         // 알림 등록
         const noticeId = await upsertNotice(
+            guildId,
             {
                 hash_id: `${vodInfo.id}`,
                 notice_type: 7,
