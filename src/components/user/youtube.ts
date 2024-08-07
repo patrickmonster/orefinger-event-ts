@@ -43,7 +43,7 @@ interface ChannelData {
     };
 }
 
-export const getYoutubeUser = async (youtubeHash: string): Promise<number> => {
+export const getYoutubeUser = async (guildId: string, youtubeHash: string): Promise<number> => {
     const { data } = await axios.get(`https://www.youtube.com/feeds/videos.xml?channel_id=${youtubeHash}`);
     return new Promise((resolve, reject) => {
         parseString(data, async (err, { feed }) => {
@@ -63,6 +63,7 @@ export const getYoutubeUser = async (youtubeHash: string): Promise<number> => {
 
             try {
                 const noticeId = await upsertNotice(
+                    guildId,
                     {
                         hash_id: youtubeHash,
                         notice_type: 2,
