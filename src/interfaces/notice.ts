@@ -46,6 +46,8 @@ export interface NoticeDetail {
 
     name: string;
     message: string;
+
+    update_user_id: string;
     // img_idx: number; /* 임시보류 */
 }
 
