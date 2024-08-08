@@ -83,11 +83,15 @@ FROM (
 		ap.auth_id
 		, IFNULL(a.name, a.username) AS name
 		, \`point\`
-		, ROW_NUMBER() OVER(ORDER BY \`point\` DESC) AS rnk
+		, ROW_NUMBER() OVER(ORDER BY \`point\` DESC, ap.update_at) AS rnk
 	FROM auth_point ap 
 	INNER JOIN auth a ON a.auth_id = ap.auth_id
 	WHERE ap.auth_id != '466950273928134666'
-    AND ap.guild_id = ?
+    AND ap.guild_id = IFNULL
+    (
+        (SELECT guild_id FROM auth_point_guild apg WHERE ? = apg.guild_id LIMIT 1),
+        '00000000000000000000' 
+    )
 ) A
 WHERE rnk BETWEEN 1 AND 15
 OR ? = auth_id 
