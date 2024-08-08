@@ -32,7 +32,7 @@ export const exec = async (interaction: MessageMenuInteraction, noticeType: stri
         switch (noticeType) {
             case '2': {
                 // 유튜브
-                noticeId = await getYoutubeUser(hashId);
+                noticeId = await getYoutubeUser(guild_id, hashId);
                 getYoutube(noticeId, hashId).catch(e => {}); // 채널 비디오 조회 (버림)
                 break;
             }
@@ -46,17 +46,17 @@ export const exec = async (interaction: MessageMenuInteraction, noticeType: stri
             }
             case '4': {
                 // 치지직
-                noticeId = await getChzzkUser(hashId);
+                noticeId = await getChzzkUser(guild_id, hashId);
                 break;
             }
             case '5': {
                 // 아프리카
-                noticeId = await getAfreecabeUser(hashId);
+                noticeId = await getAfreecabeUser(guild_id, hashId);
                 break;
             }
             case '7': {
                 // 라프텔
-                noticeId = await getLaftelVod(hashId);
+                noticeId = await getLaftelVod(guild_id, hashId);
                 getLaftel(noticeId, hashId).catch(e => {}); // 채널 비디오 조회 (버림)
                 break;
             }

@@ -6,9 +6,6 @@ import { createChatinputCommand } from 'utils/discord/component';
 
 export const exec = async (interaction: AppChatInputInteraction, selectOption: SelectOptionType) => {
     const { user, member } = interaction;
-
-    // if (!guild_id) return;
-    //
     const userId = user?.id || member?.user.id;
 
     const { point, logs } = await getPointLogs(userId || '');
@@ -21,11 +18,7 @@ export const exec = async (interaction: AppChatInputInteraction, selectOption: S
                 title: '포인트 이력',
                 description: `
 ${logs
-    .map(log => {
-        return `<t:${dayjs(log.create_at).unix()}:R> : ${
-            log.message
-        } (${log.point_old.toLocaleString()} -> ${log.point.toLocaleString()})`;
-    })
+    .map(log => `<t:${dayjs(log.create_at).unix()}:R> : ${log.message} (${log.point_old.toLocaleString()}`)
     .join('\n')}
                 `,
             },

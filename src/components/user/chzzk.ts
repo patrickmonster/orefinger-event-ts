@@ -74,7 +74,7 @@ export const getAuthChzzkUser = async (chzzkHash: string, authId: string) => {
  * @param chzzkHash
  * @returns number
  */
-export const getChzzkUser = async (chzzkHash: string, noticeType: number = 4): Promise<number> => {
+export const getChzzkUser = async (guildId: string, chzzkHash: string, noticeType: number = 4): Promise<number> => {
     try {
         const { code, message, content } = await chzzk.get<ChzzkInterface<ChannelData>>(`channels/${chzzkHash}`, {
             headers: {
@@ -90,6 +90,7 @@ export const getChzzkUser = async (chzzkHash: string, noticeType: number = 4): P
 
         // 알림 등록
         const noticeId = await upsertNotice(
+            guildId,
             {
                 hash_id: chzzkHash,
                 notice_type: noticeType,

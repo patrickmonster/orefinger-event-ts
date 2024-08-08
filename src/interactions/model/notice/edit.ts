@@ -15,7 +15,7 @@ export const exec = async (interaction: MessageMenuInteraction, values: Record<s
         values.message = await castMessage(guild_id, values.message, true);
     }
 
-    await upsertNotice({
+    await upsertNotice(guild_id, {
         notice_id: ParseInt(noticeId),
         ...values,
     });
