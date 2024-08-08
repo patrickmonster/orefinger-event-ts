@@ -14,13 +14,14 @@ import {
     createSuccessButton,
     createUrlButton,
 } from 'utils/discord/component';
+import { hasNot } from 'utils/discord/permission';
 
 const StreamChannelRegex =
     /^(http(s):\/\/)(chzzk.naver.com|play.afreecatv.com|bj.afreecatv.com|afreecatv.com|www.youtube.com)(\/channel|\/live)?\/([\w|@]+)/;
 
 // https://play.afreecatv.com/sikhye1004/null
 export const exec = async (interaction: AppChatInputInteraction, selectOption: SelectOptionType) => {
-    const { guild_id, channel, user, member } = interaction;
+    const { guild_id, channel, user, member, app_permissions } = interaction;
 
     if (!guild_id) return;
     const userId = user?.id || member?.user.id;
@@ -137,9 +138,33 @@ export const exec = async (interaction: AppChatInputInteraction, selectOption: S
 
     await deleteOrInsertNoticeChannels(noticeId, guild_id, [channel.id], `${userId}`);
 
-    // 알림 생성 맨트
-    await interaction.reply({
-        content: `
+    // 0x0000000000020000 0x0000000000004000
+    if (hasNot(app_permissions, 0x0000000000024800n)) {
+        await interaction.reply({
+            content: `
+알림이 생성되었습니다.
+
+현재 봇의 권한으로는 알림을 확인할 수 없습니다.
+알림을 전송하려면 봇에게 다음 권한을 부여해주세요.
+
+- \`메시지 관리\`
+- \`메시지 전송\`
+- \`임베드 링크 전송\`
+- \`everyone/here 맨션\`
+            `,
+            components: [
+                createActionRow(
+                    createUrlButton(`http://pf.kakao.com/_xnTkmG`, {
+                        label: '방송알리미 카카오톡 채널',
+                        emoji: { name: '🔗' },
+                    })
+                ),
+            ],
+        });
+    } else {
+        // 알림 생성 맨트
+        await interaction.reply({
+            content: `
 알림이 생성되었습니다.
 
 방송알리미는 스트리머 분들과 빠른 소통을 하기 위하여
@@ -147,16 +172,17 @@ export const exec = async (interaction: AppChatInputInteraction, selectOption: S
 
 추가 기능 및 업데이트 소식을 받으시려면,
 아래 링크를 통해 카카오톡 채널에 추가해 주세요!
-        `,
-        components: [
-            createActionRow(
-                createUrlButton(`http://pf.kakao.com/_xnTkmG`, {
-                    label: '방송알리미 카카오톡 채널',
-                    emoji: { name: '🔗' },
-                })
-            ),
-        ],
-    });
+            `,
+            components: [
+                createActionRow(
+                    createUrlButton(`http://pf.kakao.com/_xnTkmG`, {
+                        label: '방송알리미 카카오톡 채널',
+                        emoji: { name: '🔗' },
+                    })
+                ),
+            ],
+        });
+    }
 
     const { embeds, components } = await getNoticeDetailByEmbed(noticeId, guild_id);
 
