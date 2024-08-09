@@ -82,7 +82,7 @@ SELECT nc.channel_id
 FROM notice_channel nc
 LEFT JOIN notice_guild nd USING(notice_id, guild_id)
 WHERE nc.create_user_id = ?
-WHERE nc.use_yn = 'Y'
+AND nc.use_yn = 'Y'
         `,
         auth_id
     );
