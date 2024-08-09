@@ -46,7 +46,7 @@ SELECT
         AND nc.use_yn = 'Y'
     ) as channels
 from notice n
-INNER JOIN notice_detail nd using(notice_id)
+INNER JOIN notice_guild nd using(notice_id)
 WHERE 1=1
 AND notice_id = ?
     
@@ -80,9 +80,9 @@ SELECT nc.channel_id
 	, nc.create_user_id
 	, nd.name
 FROM notice_channel nc
-LEFT JOIN notice_detail nd USING(notice_id)
+LEFT JOIN notice_guild nd USING(notice_id, guild_id)
 WHERE nc.create_user_id = ?
-AND use_yn = 'Y'
+WHERE nc.use_yn = 'Y'
         `,
         auth_id
     );
@@ -149,7 +149,7 @@ export const upsertNotice = async (guildId: string, notiecData: Partial<NoticeDe
             });
 
         await query<SqlInsertUpdate>(
-            `INSERT INTO  notice_guild SET ? ${!noChageOrigin ? 'ON DUPLICATE KEY UPDATE ?' : ''}`,
+            `INSERT IGNORE INTO  notice_guild SET ? ${!noChageOrigin ? 'ON DUPLICATE KEY UPDATE ?' : ''}`,
             ...props
         );
 
