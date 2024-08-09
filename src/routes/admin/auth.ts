@@ -21,6 +21,7 @@ export default async (fastify: FastifyInstance, opts: any) => {
                 params: {
                     type: 'object',
                     properties: {
+                        target: { type: 'string' },
                         authId: { type: 'string' },
                     },
                 },
