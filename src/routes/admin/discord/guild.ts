@@ -52,4 +52,27 @@ export default async (fastify: FastifyInstance, opts: any) => {
         },
         async req => getGuildInvites(req.params.guild_id)
     );
+
+    fastify.get<{
+        Params: { guild_id: string };
+    }>(
+        '/guilds/{guild.id}/audit-logs',
+        {
+            onRequest: [fastify.masterkey],
+            schema: {
+                security: [{ Master: [] }],
+                description:
+                    '길드 감사 로그 조회 \n - https://discord.com/developers/docs/resources/audit-log#get-guild-audit-log',
+                tags: ['Admin'],
+                deprecated: false,
+                params: {
+                    type: 'object',
+                    properties: {
+                        guild_id: { type: 'string' },
+                    },
+                },
+            },
+        },
+        async req => discord.get(`/guilds/${req.params.guild_id}/audit-logs`)
+    );
 };
