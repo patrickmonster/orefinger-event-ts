@@ -4,12 +4,12 @@ import { AppChatInputInteraction, SelectOptionType } from 'interactions/app';
 import { createChatinputCommand } from 'utils/discord/component';
 
 export const exec = async (interaction: AppChatInputInteraction, selectOption: SelectOptionType) => {
-    const { user, member } = interaction;
+    const { user, member, guild_id } = interaction;
     const userId = user?.id || member?.user.id || '';
 
     await interaction.differ();
 
-    const ranks = await selectPointRanking(userId);
+    const ranks = await selectPointRanking(userId, guild_id);
     interaction.reply({
         embeds: [
             {
