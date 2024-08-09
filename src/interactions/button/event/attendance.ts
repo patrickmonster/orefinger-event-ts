@@ -33,7 +33,6 @@ const selectMessage = async (broadcaster_user_id: string, userId: string): Promi
         ephemeral: true,
         embeds: [
             createEmbed({
-                url: 'https://toss.me/방송알리미',
                 color: 0x9147ff,
                 description: `
 출석율 : ${((pin.length / spin.length) * 100).toFixed(2)}% (${pin.length}/${spin.length})
