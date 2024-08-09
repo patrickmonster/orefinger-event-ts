@@ -56,7 +56,7 @@ export default async (fastify: FastifyInstance, opts: any) => {
     fastify.get<{
         Params: { guild_id: string };
     }>(
-        '/guilds/{guild.id}/audit-logs',
+        '/guilds/:guild_id/audit-logs',
         {
             onRequest: [fastify.masterkey],
             schema: {
