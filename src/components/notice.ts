@@ -227,6 +227,7 @@ export const sendMessageByChannels = async (channels: NoticeChannelHook[], isTes
 
 import { convertVideoObject as convertAfreecaVideoObject, getLive as getAfreecaLive } from 'components/user/afreeca';
 import { convertVideoObject as convertChzzkVideoObject, getLive as getChzzkLive } from 'components/user/chzzk';
+import { addPointUser, appendPointCount } from './user/point';
 
 /**
  * 테스트 메세지를 전송합니다
@@ -348,6 +349,10 @@ export const selectAttachMessage = async (
         .filter(({ attendance_time }) => attendance_time)
         .map(({ attendance_time }) => new Date(attendance_time)); // 출석회수
     const spin = list.map(({ create_at }) => new Date(create_at)); // 방송횟수
+    const point = appendPointCount(100, count);
+
+    if (isSuccess) addPointUser(userId || '', point, `출석체크 포인트 지급 ${noticeId} - ${userId} `);
+
     return {
         content: isSuccess ? '출석체크가 완료되었습니다!' : '이미 출석이 완료되었습니다!',
         ephemeral: true,
@@ -362,7 +367,9 @@ export const selectAttachMessage = async (
                 },
                 description: `
 출석율 : ${((pin.length / spin.length) * 100).toFixed(2)}% (${pin.length}/${spin.length})
-출석 : ${count - 1 > 0 ? count + '회 연속' : '연속된 데이터가 없네요 8ㅅ8'}
+출석 : ${count - 1 > 0 ? count + '회 연속' : '연속된 데이터가 없네요 8ㅅ8'}${
+                    isSuccess ? `\n +${point} 포인트를 획득하셨습니다` : ''
+                }
 
 ### 출석은 방송 알림이 오면 출석을 눌러주세요!
  - 방송정보를 통하여 출석을 체크합니다.
