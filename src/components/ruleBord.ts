@@ -40,7 +40,7 @@ export const selectEmbedAuthBord = async (interaction: MessageInteraction, guild
             }
         );
 
-        result = await selectEmbedUserDtilByEmbed(role.embed_id);
+        result = await selectEmbedUserDtilByEmbed(`${insertId}`);
         if (!result) return interaction.reply({ content: '해당 데시보드를 찾을 수 없습니다.', ephemeral: true });
     }
     const { embed, content } = result;
@@ -80,7 +80,7 @@ export const selectEmbedAuthBord = async (interaction: MessageInteraction, guild
                         type: SelectMenuDefaultValueType.Role,
                     },
                 ].filter(v => v.id) as APISelectMenuDefaultValue<SelectMenuDefaultValueType.Role>[],
-                placeholder: '역할 선택',
+                placeholder: '역할 선택(선택하지 않거나, 역활이 높으면 에러발생)',
                 max_values: 1,
                 min_values: 1,
             }),
