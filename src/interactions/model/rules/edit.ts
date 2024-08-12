@@ -26,5 +26,5 @@ export const exec = async (interaction: MessageMenuInteraction, values: Record<s
         ephemeral: true,
         content: '변경되었습니다! - (새로고침 버튼을 눌러, 변경사항을 확인해주세요!)',
         embeds: [embed],
-    }); // 수정사항 업데이트
+    });
 };

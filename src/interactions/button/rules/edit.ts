@@ -1,6 +1,6 @@
 import { MessageInteraction } from 'interactions/message';
 
-import { selectEmbedUserBaseEditByModel, selectEmbedUserDtilByEmbed, upsertEmbedUser } from 'controllers/embed';
+import { selectEmbedUserBaseEditByModel, selectEmbedUserDtilByEmbed } from 'controllers/embed';
 
 import { messageCreate } from 'components/discord';
 import { selectEmbed } from 'components/embed/userDtail';
@@ -57,7 +57,6 @@ export const exec = async (interaction: MessageInteraction, auth_type: string, t
         }
         case 'notice': {
             // 3 : 인증 알림
-            //
             const noticeId = await getNoticeByType(guild_id || '0', `3_${auth_type}`, {
                 message: `{user}\n New user! 📌`,
                 name: '인증알리미',
@@ -120,31 +119,6 @@ export const exec = async (interaction: MessageInteraction, auth_type: string, t
                 ...(await selectEmbedUserBaseEditByModel(embed_id)),
                 custom_id: `rules edit ${embed_id}`,
             });
-            break;
-        }
-        case 'delete': {
-            const { embed_id } = bord;
-            const { user, member } = interaction;
-            const user_id = user?.id || member?.user.id;
-
-            upsertEmbedUser(
-                {
-                    use_yn: 'N',
-                    update_user: user_id,
-                },
-                embed_id
-            )
-                .then(() => {
-                    interaction.edit({
-                        content: '삭제되었습니다.',
-                    });
-                })
-                .catch(e => {
-                    interaction.edit({
-                        content: '삭제에 실패하였습니다.',
-                    });
-                });
-
             break;
         }
     }
