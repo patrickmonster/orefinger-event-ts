@@ -1,6 +1,6 @@
-import { selectComponentDtilByEmbed, upsertComponent } from 'controllers/component';
 import { selectEmbedUserDtilByEmbed, upsertEmbedUser } from 'controllers/embed';
 import { MessageMenuInteraction } from 'interactions/message';
+import { appendUrlHttp } from 'utils/object';
 
 /**
  *
@@ -10,6 +10,12 @@ import { MessageMenuInteraction } from 'interactions/message';
 export const exec = async (interaction: MessageMenuInteraction, values: Record<string, string>, target: string) => {
     const { user, member } = interaction;
     const user_id = user?.id || member?.user.id;
+
+    // appendUrlHttp
+
+    if ('url' in values) values.url = appendUrlHttp(values.url);
+    if ('image' in values) values.image = appendUrlHttp(values.image);
+
     await upsertEmbedUser(
         {
             ...values,

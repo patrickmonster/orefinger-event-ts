@@ -24,10 +24,10 @@ export const convertMessage = <T>(object: T, message: { [key: string]: string })
     );
 
 export const appendUrlHttp = (url: string) => {
-    if (url.startsWith('http')) return url;
-    if (url.startsWith('//')) return `http:${url}`;
-    if (url.startsWith('www.')) return `http://${url}`;
-    return `http://${url}`;
+    if (url.startsWith('https')) return url;
+    if (url.startsWith('//')) return `https:${url}`;
+    if (url.startsWith('www.')) return `https://${url}`;
+    return `https://${url}`;
 };
 
 export const randomIntegerInRange = (min: number, max: number) => Math.floor(Math.random() * (max - min + 1)) + min;
