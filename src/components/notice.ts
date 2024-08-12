@@ -182,7 +182,7 @@ export const sendMessageByChannels = async (channels: NoticeChannelHook[], isTes
         console.log('sendMessageByChannels', channel_type);
 
         switch (channel_type) {
-            case ChannelMessageType.TEXT:
+            case ChannelMessageType.TEXT: {
                 originMessage = await messageCreate(channel_id, message).catch(e => {
                     if ([10003, 50001 /* , 50013 */].includes(e.code)) {
                         deleteNoticeChannel(notice_id, channel_id).catch(e => {
@@ -191,6 +191,7 @@ export const sendMessageByChannels = async (channels: NoticeChannelHook[], isTes
                     } else ERROR(e);
                 });
                 break;
+            }
             case ChannelMessageType.WEBHOOK:
                 // 훅 발송
                 originMessage = await postDiscordMessage(`/${url}`, message).catch(e => {
@@ -263,22 +264,28 @@ export const sendTestNotice = async (noticeId: string | number, guildId: string)
             break;
     }
 
-    await sendMessageByChannels(
-        [
-            {
-                ...channel.channel,
-                message: {
-                    content: '알림 테스트 입니다!',
-                    embeds: [embed],
-                    username: content.channel?.channelName || '방송알리미',
-                    avatar_url:
-                        content.channel?.channelImageUrl ||
-                        'https://cdn.orefinger.click/post/466950273928134666/d2d0cc31-a00e-414a-aee9-60b2227ce42c.png',
-                },
-            },
-        ],
-        true
-    );
+    const { channel_id, url, channel_type } = channel.channel;
+
+    const message = {
+        content: '알림 테스트 입니다!',
+        embeds: [embed],
+        username: content.channel?.channelName || '방송알리미',
+        avatar_url:
+            content.channel?.channelImageUrl ||
+            'https://cdn.orefinger.click/post/466950273928134666/d2d0cc31-a00e-414a-aee9-60b2227ce42c.png',
+    };
+
+    switch (channel_type) {
+        case ChannelMessageType.TEXT:
+            delete message.avatar_url;
+            delete message.username;
+            await messageCreate(channel_id, message);
+            break;
+        case ChannelMessageType.WEBHOOK:
+            // 훅 발송
+            await postDiscordMessage(`/${url}`, message);
+            break;
+    }
 };
 
 /**

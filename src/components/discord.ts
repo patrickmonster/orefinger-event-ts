@@ -16,6 +16,7 @@ import {
     RESTPostAPIGuildChannelJSONBody,
     RESTPostAPIGuildChannelResult,
     RESTPostAPIWebhookWithTokenJSONBody,
+    RESTPutAPIChannelPermissionJSONBody,
 } from 'discord-api-types/v10';
 import { APIGuildChannel, APIGuildChannelWithChildren } from 'interfaces/API/Discord';
 import discord, { openApi } from 'utils/discordApiInstance';
@@ -79,6 +80,12 @@ export const getUser = async (userId: string) =>
         async () => await getDiscord<RESTGetAPIUserResult>(`/users/${userId}`),
         60 * 30 // 30분
     );
+
+export const putChannelPermission = async (
+    channelId: string,
+    permissionId: string,
+    body: RESTPutAPIChannelPermissionJSONBody
+) => await discord.put(`/channels/${channelId}/permissions/${permissionId}`, { body });
 
 export const webhooks = async (channel_id: string) =>
     await getDiscord<RESTGetAPIChannelWebhooksResult>(`/channels/${channel_id}/webhooks`);
