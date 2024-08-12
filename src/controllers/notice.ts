@@ -29,9 +29,7 @@ export const selectNoticeDtilByEmbed = async (notice_id: NoticeId, guild_id: str
 SELECT 
     JSON_OBJECT(
         'title', nd.name, 
-        'description', CONCAT(
-            'message : ', nd.message
-        ) 
+        'description', nd.message
     ) AS embed
     , (
         select json_arrayagg(
