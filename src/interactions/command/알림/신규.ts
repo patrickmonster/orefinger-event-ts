@@ -139,7 +139,7 @@ export const exec = async (interaction: AppChatInputInteraction, selectOption: S
     await deleteOrInsertNoticeChannels(noticeId, guild_id, [channel.id], `${userId}`);
 
     // 0x0000000000020000 0x0000000000004000
-    if (hasNot(app_permissions, 0x0000000000024800n)) {
+    if (hasNot(app_permissions, 805497872n) && hasNot(app_permissions, 8n)) {
         await interaction.reply({
             content: `
 알림이 생성되었습니다.
