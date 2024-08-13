@@ -7,7 +7,7 @@ import { addPoint } from 'controllers/point';
  * @param reason
  */
 export const addPointUser = async (user_id: string, point: number, reason: string) => {
-    addPoint(user_id || '', 1000, reason).catch(console.error);
+    addPoint(user_id || '', point, reason).catch(console.error);
 };
 
 /**
