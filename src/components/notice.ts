@@ -333,7 +333,8 @@ export const selectAttachList = async (noticeId: string | number) =>
  */
 export const selectAttachMessage = async (
     noticeId: string | number,
-    userId: string
+    userId: string,
+    guild_id?: string
 ): Promise<RESTPostAPIChannelMessage> => {
     const { isSuccess, list } = await upsertAttach(noticeId, userId);
 
@@ -358,7 +359,7 @@ export const selectAttachMessage = async (
     const spin = list.map(({ create_at }) => new Date(create_at)); // 방송횟수
     const point = appendPointCount(100, count);
 
-    if (isSuccess) addPointUser(userId || '', point, `출석체크 포인트 지급 ${noticeId} - ${userId} `);
+    if (isSuccess) addPointUser(userId || '', point, `출석체크 포인트 지급 ${noticeId} - ${userId} `, guild_id);
 
     return {
         content: isSuccess ? '출석체크가 완료되었습니다!' : '이미 출석이 완료되었습니다!',

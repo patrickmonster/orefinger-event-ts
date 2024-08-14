@@ -6,8 +6,13 @@ import { addPoint } from 'controllers/point';
  * @param point
  * @param reason
  */
-export const addPointUser = async (user_id: string, point: number, reason: string) => {
-    addPoint(user_id || '', 1000, reason).catch(console.error);
+export const addPointUser = async (
+    user_id: string,
+    point: number,
+    reason: string,
+    guild_id: string = '00000000000000000000'
+) => {
+    addPoint(user_id || '', point, reason, guild_id).catch(console.error);
 };
 
 /**

@@ -7,7 +7,7 @@ import { REDIS_KEY, catchRedis } from 'utils/redis';
  * @param interaction
  */
 export const exec = async (interaction: MessageInteraction, noticeId: string) => {
-    const { user, member } = interaction;
+    const { user, member, guild_id } = interaction;
 
     const userId = `${user?.id || member?.user.id}`;
 
@@ -17,7 +17,7 @@ export const exec = async (interaction: MessageInteraction, noticeId: string) =>
         interaction.reply(
             await catchRedis(
                 REDIS_KEY.API.ATTACH_LIVE(noticeId, userId),
-                async () => await selectAttachMessage(noticeId, userId),
+                async () => await selectAttachMessage(noticeId, userId, guild_id),
                 60 * 60 // 1시간
             )
         );
