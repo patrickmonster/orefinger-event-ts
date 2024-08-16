@@ -17,7 +17,7 @@ import {
 } from 'utils/discord/component';
 import { editerComponent } from './systemComponent';
 
-import { APIMessage, ChannelType } from 'discord-api-types/v10';
+import { APIEmbed, APIMessage, ChannelType } from 'discord-api-types/v10';
 
 import { upsertDiscordUserAndJWTToken } from 'controllers/auth';
 import { selectEventBat, selectNoticeGuildChannel } from 'controllers/bat';
@@ -27,7 +27,7 @@ import createCalender from 'utils/createCalender';
 import discord, { openApi } from 'utils/discordApiInstance';
 import { ParseInt, convertMessage } from 'utils/object';
 import { catchRedis } from 'utils/redis';
-import { getGuild, getUser, messageCreate, postDiscordMessage } from './discord';
+import { getGuild, getUser, messageCreate, postDiscordMessage, webhookCreate } from './discord';
 
 const ERROR = (...e: any) => {
     console.error(__filename, ' Error: ', ...e);
@@ -226,6 +226,7 @@ export const sendMessageByChannels = async (channels: NoticeChannelHook[], isTes
     return messages;
 };
 
+import axios from 'axios';
 import { convertVideoObject as convertAfreecaVideoObject, getLive as getAfreecaLive } from 'components/user/afreeca';
 import { convertVideoObject as convertChzzkVideoObject, getLive as getChzzkLive } from 'components/user/chzzk';
 import { addPointUser, appendPointCount } from './user/point';
@@ -286,6 +287,44 @@ export const sendTestNotice = async (noticeId: string | number, guildId: string)
             await postDiscordMessage(`/${url}`, message);
             break;
     }
+};
+
+export const createNoticeWebhook = async (
+    chnnaelId: string,
+    channelName: string,
+    channelImageUrl: string,
+    embed: APIEmbed
+) => {
+    //
+    await webhookCreate(
+        chnnaelId,
+        { name: channelName, auth_id: process.env.DISCORD_CLIENT_ID || '826484552029175808' },
+        'Y'
+    ).then(webhook => {
+        const { url } = webhook;
+
+        if (url) {
+            axios.post(url, {
+                username: channelName || '방송알리미',
+                avatar_url:
+                    channelImageUrl ||
+                    'https://cdn.orefinger.click/post/466950273928134666/d2d0cc31-a00e-414a-aee9-60b2227ce42c.png',
+                content: `
+# 프로필이 신규 등록되었습니다!
+현재 채널에 전송되는 알림을 모두 이 프로필로 전송되도록 설정되었습니다!!
+(이거완전 러키알림잔앙 ( •̀ ω •́ )✧)
+
+### 주의사항
+현재 알림은 "방송알리미"권한으로 설정되어 제작되었습니다.
+방송알리미가 추방되거나, 권한이 변경되면 권한 오류가 발생하여, 알림 설정 자체가
+중단될수 있으니 주의해주세요!
+                `,
+                embeds: [embed],
+            });
+        }
+
+        return webhook;
+    });
 };
 
 /**

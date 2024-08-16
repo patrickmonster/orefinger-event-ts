@@ -178,6 +178,10 @@ export const exec = async (interaction: AppChatInputInteraction, selectOption: S
                     createUrlButton(`http://pf.kakao.com/_xnTkmG`, {
                         label: '방송알리미 카카오톡 채널',
                         emoji: { name: '🔗' },
+                    }),
+                    createUrlButton(`https://orefinger.notion.site/b99761efe08f4d5e9bd22b78e4e0d563`, {
+                        label: '출석 체크 기능도 필요하신가요?',
+                        emoji: { name: '📅' },
                     })
                 ),
             ],

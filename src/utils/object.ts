@@ -23,6 +23,15 @@ export const convertMessage = <T>(object: T, message: { [key: string]: string })
         })
     );
 
+export const getTimeStringSeconds = (seconds: number) => {
+    const hour = Math.floor(seconds / 3600);
+
+    const min = Math.floor((seconds % 3600) / 60);
+    const sec = Math.floor(seconds % 60);
+
+    return `${hour === 0 ? '' : `${hour}시간 `}${min === 0 && hour === 0 ? '' : `${min}분 `}${sec}초`;
+};
+
 export const appendUrlHttp = (url: string) => {
     if (url.startsWith('https')) return url;
     if (url.startsWith('//')) return `https:${url}`;

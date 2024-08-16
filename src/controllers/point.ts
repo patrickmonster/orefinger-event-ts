@@ -99,3 +99,33 @@ OR ? = auth_id
         guild_id,
         auth_id
     );
+
+export const selectShop = async (guild_id: string = '00000000000000000000') =>
+    query<{
+        idx: number;
+        guild_id: string;
+        point: number;
+        name: string;
+        detail: string;
+        use_yn: string;
+        create_at: string;
+        update_at: string;
+        create_user: string;
+        update_user: string;
+    }>(
+        `
+SELECT
+	idx
+	, guild_id
+	, aps.point
+	, name
+	, detail
+	, use_yn
+	, create_at
+	, update_at
+	, create_user
+	, update_user
+FROM auth_point_shop aps 
+    `,
+        guild_id
+    );
