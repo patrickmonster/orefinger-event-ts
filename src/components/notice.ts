@@ -29,6 +29,8 @@ import { ParseInt, convertMessage } from 'utils/object';
 import { catchRedis } from 'utils/redis';
 import { getGuild, getUser, messageCreate, postDiscordMessage, webhookCreate } from './discord';
 
+const limit = false;
+
 const ERROR = (...e: any) => {
     console.error(__filename, ' Error: ', ...e);
 };
@@ -445,7 +447,31 @@ ${createCalender(new Date(), ...pin)}
 export const checkUserNoticeLimit = async (interaction: IReply, userId: string, guild_id: string): Promise<boolean> => {
     // 예외 사용자
     if (['466950273928134666'].includes(userId)) return true;
-    const { approximate_member_count, region } = await getGuild(guild_id);
+    const { approximate_member_count, region, preferred_locale } = await getGuild(guild_id);
+
+    if (['hongkong'].includes(region) || ['zh-CN', 'zh-TW'].includes(preferred_locale)) {
+        interaction.reply({
+            content: `
+# 지역 차단으로 인한 알림 등록 제한
+해당 서버는 차단된 지역으로, 알림 등록이 불가능합니다.
+
+해당 지역의 무분별한 서비스 남용 및 악용으로 인하여,
+국내의 스트리머 분들이 불편을 격는 경우가 있어, 
+해당 지역은 알림 등록이 제한되어 있습니다.
+
+# 由於區域封鎖而限制通知註冊
+此伺服器位於封鎖區域，因此無法註冊通知。
+
+由於該地區肆意濫用和濫用服務，
+國內主播有時會遇到不便，
+通知註冊在此區域受到限制。
+            `,
+        });
+        return false;
+    }
+
+    if (!limit) return true; // 제한 없음
+
     const oldList = await selectNoticeRegisterChannels(`${userId}`);
 
     if (oldList.length >= 10) {
@@ -489,27 +515,6 @@ ${oldList.map(({ channel_id, name }) => `${name} - <#${channel_id}>`).join('\n')
             });
             return false;
         }
-    }
-
-    if (['hongkong'].includes(region)) {
-        interaction.reply({
-            content: `
-# 지역 차단으로 인한 알림 등록 제한
-해당 서버는 차단된 지역으로, 알림 등록이 불가능합니다.
-
-해당 지역의 무분별한 서비스 남용 및 악용으로 인하여,
-국내의 스트리머 분들이 불편을 격는 경우가 있어, 
-해당 지역은 알림 등록이 제한되어 있습니다.
-
-# 由於區域封鎖而限制通知註冊
-此伺服器位於封鎖區域，因此無法註冊通知。
-
-由於該地區肆意濫用和濫用服務，
-國內主播有時會遇到不便，
-通知註冊在此區域受到限制。
-            `,
-        });
-        return false;
     }
 
     return true;
