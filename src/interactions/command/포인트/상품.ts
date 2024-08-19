@@ -2,8 +2,7 @@ import { AppChatInputInteraction, SelectOptionType } from 'interactions/app';
 
 import { selectComponentPagingMenuByKey } from 'components/systemComponent';
 import QUERY from 'controllers/component/pointShopListQuerys';
-import { getPoint } from 'controllers/point';
-import { createChatinputCommand } from 'utils/discord/component';
+import { createChatinputCommand, createSuccessButton } from 'utils/discord/component';
 
 //
 // private getMessageId(time: number, userId: string) {
@@ -16,32 +15,35 @@ import { createChatinputCommand } from 'utils/discord/component';
 // }
 
 export const exec = async (interaction: AppChatInputInteraction, selectOption: SelectOptionType) => {
-    const { user, member } = interaction;
+    const { user, member, guild_id } = interaction;
 
-    const userId = user?.id || member?.user.id;
-
-    const mount = selectOption.get<number>('포인트');
-    const point = await getPoint(userId || '');
+    if (!guild_id) {
+        return interaction.reply({ content: '서버에서만 사용 가능한 명령어 입니다.', ephemeral: true });
+    }
 
     interaction.reply({
         ephemeral: true,
-        content: `현재 포인트: ${point}`,
         components: await selectComponentPagingMenuByKey(
             {
-                custom_id: `pshop list ${mount}`,
-                placeholder: '원하시는 상품을 선택 해 주세요',
+                custom_id: `pshop list`,
+                placeholder: '수정을 원하시는 상품을 선택 해 주세요',
                 disabled: false,
                 max_values: 5,
                 min_values: 0,
+                button: createSuccessButton('pshop create', {
+                    label: '상품 추가하기',
+                    emoji: { name: '➕' },
+                }),
             },
-            QUERY.GuildShopByMenuListQuery
+            QUERY.GuildShopByMenuListQuery,
+            guild_id
         ),
     });
 };
 
 const api = createChatinputCommand(
     {
-        description: '포인트를 사용하여 상품을 구매합니다.',
+        description: '상품을 관리합니다.',
         options: [],
         dm_permission: true,
     },

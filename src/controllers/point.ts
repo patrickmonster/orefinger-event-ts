@@ -1,3 +1,5 @@
+import { APIModalInteractionResponseCallbackData } from 'discord-api-types/v10';
+import { PointPK, PshopItem } from 'interfaces/point';
 import getConnection, { SqlInsertUpdate, query } from 'utils/database';
 
 interface Message {
@@ -129,3 +131,35 @@ FROM auth_point_shop aps
     `,
         guild_id
     );
+
+export const selectPshopItemEditByModel = async (idx: string) =>
+    query<Omit<APIModalInteractionResponseCallbackData, 'custom_id'>>(
+        `
+SELECT CONCAT(name, ' 상품 수정') as title,
+    JSON_ARRAY(
+        JSON_OBJECT(
+            'type', 1, 'components', JSON_ARRAY(
+                JSON_OBJECT('type', 4,'custom_id', 'tag', 'label', '상품명', 'value', name, 'min_length', 1, 'max_length', 500, 'style', 1, 'required', true )
+            )
+        ),
+        JSON_OBJECT(
+            'type', 1, 'components', JSON_ARRAY(
+                JSON_OBJECT('type', 4,'custom_id', 'color', 'label', '포인트', 'value',IFNULL(point, 10) , 'min_length', 0, 'max_length', 1000, 'style', 1, 'required', true)
+            )
+        ),
+        JSON_OBJECT(
+            'type', 1, 'components', JSON_ARRAY(
+                JSON_OBJECT('type', 4,'custom_id', 'url', 'label', '설명', 'value', IFNULL(detail , ''), 'min_length', 0, 'max_length', 1000, 'style', 2, 'required', false)
+            )
+        )
+    ) AS components
+FROM auth_point_shop a
+WHERE a.idx = ?
+        `,
+        idx
+    ).then(res => res[0]);
+
+export const upsertPshopItem = async (item: Partial<Omit<PshopItem, 'idx'>>, pk?: PointPK) =>
+    pk
+        ? query<SqlInsertUpdate>(`UPDATE auth_point_shop SET ? WHERE idx = ?`, item, pk.idx)
+        : query<SqlInsertUpdate>(`INSERT INTO auth_point_shop SET ?`, item);

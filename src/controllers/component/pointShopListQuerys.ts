@@ -7,16 +7,12 @@
 
 const GuildShopByMenuListQuery = `
 SELECT 
-	JSON_OBJECT( 'name', IF(  SUM(IF(aps.use_yn = 'Y', 1,0)) >= 1, '🔴','⚫')) AS emoji
-	, CAST(aps.idx AS CHAR) AS value
+    JSON_OBJECT( 'name', IF(aps.use_yn = 'Y', '🔴','⚫')) AS emoji
+    , CAST(aps.idx AS CHAR) AS value
     , IFNULL(aps.name, '지정되지 않음')  AS label
     , CONCAT(aps.detail) AS  description
 FROM auth_point_shop aps 
-WHERE aps.guild_id = IFNULL
-(
-    (SELECT guild_id FROM auth_point_guild apg WHERE ? = apg.guild_id LIMIT 1),
-    '00000000000000000000' 
-)
+WHERE aps.guild_id = ?
     `;
 
 export default {
