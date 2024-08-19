@@ -3,7 +3,7 @@ import { AppChatInputInteraction, SelectOptionType } from 'interactions/app';
 import { selectComponentPagingMenuByKey } from 'components/systemComponent';
 import QUERY from 'controllers/component/pointShopListQuerys';
 import { getPoint } from 'controllers/point';
-import { createChatinputCommand, createSuccessButton } from 'utils/discord/component';
+import { createChatinputCommand, createUrlButton } from 'utils/discord/component';
 
 export const exec = async (interaction: AppChatInputInteraction, selectOption: SelectOptionType) => {
     const { user, member, guild_id } = interaction;
@@ -14,7 +14,6 @@ export const exec = async (interaction: AppChatInputInteraction, selectOption: S
         return interaction.reply({ content: '서버에서만 사용 가능한 명령어 입니다.', ephemeral: true });
     }
 
-    const mount = selectOption.get<number>('포인트');
     const point = await getPoint(userId || '');
 
     interaction.reply({
@@ -22,14 +21,14 @@ export const exec = async (interaction: AppChatInputInteraction, selectOption: S
         content: `현재 포인트: ${point}`,
         components: await selectComponentPagingMenuByKey(
             {
-                custom_id: `pshop list ${mount}`,
+                custom_id: `pshop item`,
                 placeholder: '원하시는 상품을 선택 해 주세요',
                 disabled: false,
-                max_values: 5,
-                min_values: 0,
-                button: createSuccessButton('pshop create', {
-                    label: '상품 추가하기',
-                    emoji: { name: '➕' },
+                max_values: 1,
+                min_values: 1,
+                button: createUrlButton('https://orefinger.notion.site/b81d56bf3127421bad0ada0466a2d921', {
+                    label: '이거 어떻게 쓰는건가요?',
+                    emoji: { name: '❔' },
                 }),
             },
             QUERY.GuildShopByMenuListQuery,

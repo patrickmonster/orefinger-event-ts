@@ -15,6 +15,17 @@ FROM auth_point_shop aps
 WHERE aps.guild_id = ?
     `;
 
+const GuildShopOrderItemByMenuListQuery = `
+SELECT
+	JSON_OBJECT( 'name', IF(apso.use_yn = 'Y', '🔴','⚫')) AS emoji
+	, CAST(apso.order_id AS CHAR) AS value
+	, IFNULL(apso.name, '알수없음') AS label
+FROM auth_point_shop_order apso
+WHERE 1=1
+AND apso.item_idx = ?
+    `;
+
 export default {
     GuildShopByMenuListQuery,
+    GuildShopOrderItemByMenuListQuery,
 };

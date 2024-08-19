@@ -1,7 +1,6 @@
-import { castMessage } from 'components/discord';
 import { upsertPshopItem } from 'controllers/point';
 import { MessageMenuInteraction } from 'interactions/message';
-import { ParseInt } from 'utils/object';
+import { isNumeric, ParseInt } from 'utils/object';
 
 type searchType = {
     label: string;
@@ -13,12 +12,21 @@ type searchType = {
  * @param interaction
  */
 export const exec = async (interaction: MessageMenuInteraction, values: Record<string, string>, key: string) => {
-    const { guild_id, member } = interaction;
+    const {
+        guild_id,
+        member,
+        message: { components },
+    } = interaction;
     if (!guild_id || !member) return;
 
-    if (values.message) {
-        values.message = await castMessage(guild_id, values.message, true);
+    if (values.point && !isNumeric(values.point)) {
+        return interaction.reply({
+            content: '포인트는 숫자만 입력 가능합니다.',
+            ephemeral: true,
+        });
     }
+
+    // await interaction.edit({ components });
 
     await upsertPshopItem(
         {

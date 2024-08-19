@@ -1,6 +1,6 @@
-import { APIModalInteractionResponseCallbackData } from 'discord-api-types/v10';
+import { APIEmbed, APIModalInteractionResponseCallbackData } from 'discord-api-types/v10';
 import { PointPK, PshopItem } from 'interfaces/point';
-import getConnection, { SqlInsertUpdate, query } from 'utils/database';
+import getConnection, { SqlInsertUpdate, calTo, query } from 'utils/database';
 
 interface Message {
     message_id: string;
@@ -139,17 +139,17 @@ SELECT CONCAT(name, ' 상품 수정') as title,
     JSON_ARRAY(
         JSON_OBJECT(
             'type', 1, 'components', JSON_ARRAY(
-                JSON_OBJECT('type', 4,'custom_id', 'tag', 'label', '상품명', 'value', name, 'min_length', 1, 'max_length', 500, 'style', 1, 'required', true )
+                JSON_OBJECT('type', 4,'custom_id', 'name', 'label', '상품명', 'value', name, 'min_length', 1, 'max_length', 500, 'style', 1, 'required', true )
             )
         ),
         JSON_OBJECT(
             'type', 1, 'components', JSON_ARRAY(
-                JSON_OBJECT('type', 4,'custom_id', 'color', 'label', '포인트', 'value',IFNULL(point, 10) , 'min_length', 0, 'max_length', 1000, 'style', 1, 'required', true)
+                JSON_OBJECT('type', 4,'custom_id', 'point', 'label', '포인트', 'value',IFNULL(point, 10) , 'min_length', 0, 'max_length', 1000, 'style', 1, 'required', true)
             )
         ),
         JSON_OBJECT(
             'type', 1, 'components', JSON_ARRAY(
-                JSON_OBJECT('type', 4,'custom_id', 'url', 'label', '설명', 'value', IFNULL(detail , ''), 'min_length', 0, 'max_length', 1000, 'style', 2, 'required', false)
+                JSON_OBJECT('type', 4,'custom_id', 'detail', 'label', '설명', 'value', IFNULL(detail , ''), 'min_length', 0, 'max_length', 1000, 'style', 2, 'required', false)
             )
         )
     ) AS components
@@ -163,3 +163,51 @@ export const upsertPshopItem = async (item: Partial<Omit<PshopItem, 'idx'>>, pk?
     pk
         ? query<SqlInsertUpdate>(`UPDATE auth_point_shop SET ? WHERE idx = ?`, item, pk.idx)
         : query<SqlInsertUpdate>(`INSERT INTO auth_point_shop SET ?`, item);
+
+export const selectPointDetailByEmbed = async (guild_id: string = '00000000000000000000', pk?: PointPK) =>
+    query<{
+        embed: APIEmbed;
+        use_yn: boolean;
+    }>(`
+SELECT JSON_OBJECT(
+    'title', IFNULL(aps.name, '없음'),
+    'timestamp', aps.create_at,
+    'description', aps.detail ,
+    'fields', JSON_ARRAY( 
+        JSON_OBJECT('name', '포인트','value', IFNULL(aps.point , '없음'), 'inline', true),
+--             JSON_OBJECT('name', '소비타입','value', IFNULL(aps.use_yn , '없음'), 'inline', true),
+        JSON_OBJECT('name','상태','value', IF(aps.use_yn = 'Y', '활성화', '비활성화'), 'inline', false)
+    )
+) AS embed
+, use_yn
+FROM auth_point_shop aps
+WHERE 1=1
+${calTo('AND aps.idx = ?', pk?.idx)}
+${calTo('AND aps.guild_id = ?', guild_id)}
+        `).then(res => res[0]);
+
+export const selectPointDetail = async (guild_id: string = '00000000000000000000', pk?: PointPK) =>
+    query<PshopItem>(
+        `
+SELECT
+	aps.idx
+	, aps.guild_id
+	, aps.point
+	, aps.name
+	, aps.detail
+	, aps.use_yn
+	, aps.create_at
+	, aps.update_at
+	, aps.create_user
+	, aps.update_user
+FROM auth_point_shop aps 
+WHERE 1=1
+${calTo('AND aps.idx = ?', pk?.idx)}
+AND aps.guild_id = IFNULL
+(
+    (SELECT guild_id FROM auth_point_guild apg WHERE ? = apg.guild_id LIMIT 1),
+    '00000000000000000000' 
+)
+        `,
+        guild_id
+    );

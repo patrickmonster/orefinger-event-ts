@@ -6,6 +6,8 @@ export const deleteObjectByKey = (obj: any, ...key: string[]) => {
     return out;
 };
 
+export const isNumeric = (data: string): boolean => !isNaN(Number(data));
+
 const regEx = /\{([0-9A-Za-z_]+)\}/i;
 export const convertMessage = <T>(object: T, message: { [key: string]: string }) =>
     JSON.parse(

@@ -15,7 +15,7 @@ import { createChatinputCommand, createSuccessButton } from 'utils/discord/compo
 // }
 
 export const exec = async (interaction: AppChatInputInteraction, selectOption: SelectOptionType) => {
-    const { user, member, guild_id } = interaction;
+    const { guild_id } = interaction;
 
     if (!guild_id) {
         return interaction.reply({ content: '서버에서만 사용 가능한 명령어 입니다.', ephemeral: true });
@@ -28,8 +28,8 @@ export const exec = async (interaction: AppChatInputInteraction, selectOption: S
                 custom_id: `pshop list`,
                 placeholder: '수정을 원하시는 상품을 선택 해 주세요',
                 disabled: false,
-                max_values: 5,
-                min_values: 0,
+                max_values: 1,
+                min_values: 1,
                 button: createSuccessButton('pshop create', {
                     label: '상품 추가하기',
                     emoji: { name: '➕' },
