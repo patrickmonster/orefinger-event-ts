@@ -47,7 +47,12 @@ export const exec = async (interaction: MessageInteraction, noticeId: string) =>
                 const live = await getAfreecaLive(notice.hash_id);
                 if (!live) {
                     return interaction.reply({
-                        content: '해당하는 라이브가 존재하지 않습니다.',
+                        content: `
+해당하는 라이브가 존재하지 않습니다. 
+(방송을 오래 키지 않았거나, 방송정보가 없으면 발생할 수 있습니다.) 
+
+- 프로필은 생성되었으니, 안심하셔도 됩니다!
+                        `,
                         ephemeral: true,
                     });
                 }
