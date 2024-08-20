@@ -151,7 +151,12 @@ export default async (interaction: IReply, { guild_id, auth_id, user_id, nick, t
                         errorEmbed('DISCORDAPI', {
                             target: `auth-${auth_id}`,
                             title: `ERROR - ${e.code}`,
-                            description: '디스코드 닉네임 변경에 실패 했습니다.',
+                            description: `
+디스코드 닉네임 변경에 실패 했습니다.
+
+# 혹시, 서버 관리자 이시면, 디스코드 정책에 의해 닉네임 변경이 제한되었을 수 있습니다.
+(서버 사용자가 서버 관리자의 닉네임을 바꿀 수 없어욧!!!!)
+                            `,
                         }),
                     ],
                 });

@@ -13,11 +13,18 @@ import {
     createChannelSelectMenu,
     createEmbed,
     createSecondaryButton,
+    createSuccessButton,
     createUrlButton,
 } from 'utils/discord/component';
 import { editerComponent } from './systemComponent';
 
-import { APIMessage, ChannelType } from 'discord-api-types/v10';
+import {
+    APIActionRowComponent,
+    APIEmbed,
+    APIMessage,
+    APIMessageActionRowComponent,
+    ChannelType,
+} from 'discord-api-types/v10';
 
 import { upsertDiscordUserAndJWTToken } from 'controllers/auth';
 import { selectEventBat, selectNoticeGuildChannel } from 'controllers/bat';
@@ -27,7 +34,9 @@ import createCalender from 'utils/createCalender';
 import discord, { openApi } from 'utils/discordApiInstance';
 import { ParseInt, convertMessage } from 'utils/object';
 import { catchRedis } from 'utils/redis';
-import { getGuild, getUser, messageCreate, postDiscordMessage } from './discord';
+import { getGuild, getUser, messageCreate, postDiscordMessage, webhookCreate } from './discord';
+
+const limit = false;
 
 const ERROR = (...e: any) => {
     console.error(__filename, ' Error: ', ...e);
@@ -55,12 +64,10 @@ export const getNoticeDetailByEmbed = async (noticeId: NoticeId, guildId: string
                             name: '🔔',
                         },
                     }),
-                    // createSecondaryButton(`notice channel ${noticeId} hook`, {
-                    //     label: '알림프로필생성 * 유료상품',
-                    //     emoji: {
-                    //         name: '👀',
-                    //     },
-                    // }),
+                    createSuccessButton(`notice profile ${noticeId}`, {
+                        label: '프로필 알림 설정',
+                        emoji: { name: '😺' },
+                    }),
                 ],
                 true,
                 {
@@ -226,6 +233,7 @@ export const sendMessageByChannels = async (channels: NoticeChannelHook[], isTes
     return messages;
 };
 
+import axios from 'axios';
 import { convertVideoObject as convertAfreecaVideoObject, getLive as getAfreecaLive } from 'components/user/afreeca';
 import { convertVideoObject as convertChzzkVideoObject, getLive as getChzzkLive } from 'components/user/chzzk';
 import { addPointUser, appendPointCount } from './user/point';
@@ -288,6 +296,44 @@ export const sendTestNotice = async (noticeId: string | number, guildId: string)
     }
 };
 
+export const createNoticeWebhook = async (
+    chnnaelId: string,
+    channelName: string,
+    channelImageUrl: string,
+    embed: APIEmbed
+) => {
+    //
+    await webhookCreate(
+        chnnaelId,
+        { name: channelName, auth_id: process.env.DISCORD_CLIENT_ID || '826484552029175808' },
+        'Y'
+    ).then(webhook => {
+        const { url } = webhook;
+
+        if (url) {
+            axios.post(url, {
+                username: channelName || '방송알리미',
+                avatar_url:
+                    channelImageUrl ||
+                    'https://cdn.orefinger.click/post/466950273928134666/d2d0cc31-a00e-414a-aee9-60b2227ce42c.png',
+                content: `
+# 프로필이 신규 등록되었습니다!
+현재 채널에 전송되는 알림을 모두 이 프로필로 전송되도록 설정되었습니다!!
+(이거완전 러키알림잔앙 ( •̀ ω •́ )✧)
+
+### 주의사항
+현재 알림은 "방송알리미"권한으로 설정되어 제작되었습니다.
+방송알리미가 추방되거나, 권한이 변경되면 권한 오류가 발생하여, 알림 설정 자체가
+중단될수 있으니 주의해주세요!
+                `,
+                embeds: [embed],
+            });
+        }
+
+        return webhook;
+    });
+};
+
 /**
  * 시스템 내부 알림 발생시, 알림을 전송합니다
  * @param guildId
@@ -296,7 +342,8 @@ export const sendTestNotice = async (noticeId: string | number, guildId: string)
 export const sendNoticeByBord = async (
     guildId: string,
     noticeType: string | number,
-    message?: { [key: string]: string }
+    message?: { [key: string]: string },
+    components?: APIActionRowComponent<APIMessageActionRowComponent>[]
 ) => {
     const hashId = getNoticeHashId(guildId, noticeType);
     const data = await selectEventBat(hashId);
@@ -304,9 +351,10 @@ export const sendNoticeByBord = async (
     if (!data || !data.hash_id || !data.channels?.length) return;
     const messageData = {
         content: data.message,
+        components,
     };
 
-    await sendChannels(data.channels, message ? convertMessage(messageData, message) : message);
+    await sendChannels(data.channels, message ? convertMessage(messageData, message) : messageData);
 };
 
 export const selectAttachList = async (noticeId: string | number) =>
@@ -406,7 +454,31 @@ ${createCalender(new Date(), ...pin)}
 export const checkUserNoticeLimit = async (interaction: IReply, userId: string, guild_id: string): Promise<boolean> => {
     // 예외 사용자
     if (['466950273928134666'].includes(userId)) return true;
-    const { approximate_member_count, region } = await getGuild(guild_id);
+    const { approximate_member_count, region, preferred_locale } = await getGuild(guild_id);
+
+    if (['hongkong'].includes(region) || ['zh-CN', 'zh-TW'].includes(preferred_locale)) {
+        interaction.reply({
+            content: `
+# 지역 차단으로 인한 알림 등록 제한
+해당 서버는 차단된 지역으로, 알림 등록이 불가능합니다.
+
+해당 지역의 무분별한 서비스 남용 및 악용으로 인하여,
+국내의 스트리머 분들이 불편을 격는 경우가 있어, 
+해당 지역은 알림 등록이 제한되어 있습니다.
+
+# 由於區域封鎖而限制通知註冊
+此伺服器位於封鎖區域，因此無法註冊通知。
+
+由於該地區肆意濫用和濫用服務，
+國內主播有時會遇到不便，
+通知註冊在此區域受到限制。
+            `,
+        });
+        return false;
+    }
+
+    if (!limit) return true; // 제한 없음
+
     const oldList = await selectNoticeRegisterChannels(`${userId}`);
 
     if (oldList.length >= 10) {
@@ -450,27 +522,6 @@ ${oldList.map(({ channel_id, name }) => `${name} - <#${channel_id}>`).join('\n')
             });
             return false;
         }
-    }
-
-    if (['hongkong'].includes(region)) {
-        interaction.reply({
-            content: `
-# 지역 차단으로 인한 알림 등록 제한
-해당 서버는 차단된 지역으로, 알림 등록이 불가능합니다.
-
-해당 지역의 무분별한 서비스 남용 및 악용으로 인하여,
-국내의 스트리머 분들이 불편을 격는 경우가 있어, 
-해당 지역은 알림 등록이 제한되어 있습니다.
-
-# 由於區域封鎖而限制通知註冊
-此伺服器位於封鎖區域，因此無法註冊通知。
-
-由於該地區肆意濫用和濫用服務，
-國內主播有時會遇到不便，
-通知註冊在此區域受到限制。
-            `,
-        });
-        return false;
     }
 
     return true;
