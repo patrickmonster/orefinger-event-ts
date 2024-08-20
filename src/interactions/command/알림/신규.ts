@@ -182,6 +182,10 @@ export const exec = async (interaction: AppChatInputInteraction, selectOption: S
                     createUrlButton(`https://orefinger.notion.site/b99761efe08f4d5e9bd22b78e4e0d563`, {
                         label: '출석 체크 기능도 필요하신가요?',
                         emoji: { name: '📅' },
+                    }),
+                    createSuccessButton(`notice profile ${noticeId}`, {
+                        label: '프로필 알림 설정',
+                        emoji: { name: '😺' },
                     })
                 ),
             ],

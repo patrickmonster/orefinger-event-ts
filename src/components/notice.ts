@@ -17,7 +17,13 @@ import {
 } from 'utils/discord/component';
 import { editerComponent } from './systemComponent';
 
-import { APIEmbed, APIMessage, ChannelType } from 'discord-api-types/v10';
+import {
+    APIActionRowComponent,
+    APIEmbed,
+    APIMessage,
+    APIMessageActionRowComponent,
+    ChannelType,
+} from 'discord-api-types/v10';
 
 import { upsertDiscordUserAndJWTToken } from 'controllers/auth';
 import { selectEventBat, selectNoticeGuildChannel } from 'controllers/bat';
@@ -337,7 +343,8 @@ export const createNoticeWebhook = async (
 export const sendNoticeByBord = async (
     guildId: string,
     noticeType: string | number,
-    message?: { [key: string]: string }
+    message?: { [key: string]: string },
+    components?: APIActionRowComponent<APIMessageActionRowComponent>[]
 ) => {
     const hashId = getNoticeHashId(guildId, noticeType);
     const data = await selectEventBat(hashId);
@@ -345,9 +352,10 @@ export const sendNoticeByBord = async (
     if (!data || !data.hash_id || !data.channels?.length) return;
     const messageData = {
         content: data.message,
+        components,
     };
 
-    await sendChannels(data.channels, message ? convertMessage(messageData, message) : message);
+    await sendChannels(data.channels, message ? convertMessage(messageData, message) : messageData);
 };
 
 export const selectAttachList = async (noticeId: string | number) =>

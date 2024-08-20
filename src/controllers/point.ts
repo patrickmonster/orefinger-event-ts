@@ -38,7 +38,7 @@ export const addOrder = async (
             point: number;
         }>(`SELECT func_add_point(?) AS \`point\``, [
             auth_id,
-            point,
+            -point,
             `${item_idx})${name} 상품구매 - ${order_id}`,
             guild_id,
         ]).then(([row]) => row?.point || 0);
@@ -57,6 +57,40 @@ export const addOrder = async (
 
         return false;
     });
+
+export const cancelOrder = async (order_id: string, guild_id: string = '00000000000000000000') =>
+    getConnection(async query => {
+        const [order] = await query<{
+            order_id: string;
+            item_idx: number;
+            auth_id: string;
+            point: number;
+            name: string;
+        }>(`SELECT * FROM auth_point_shop_order WHERE order_id = ?`, order_id);
+
+        if (!order) return false;
+
+        await query<{
+            point: number;
+        }>(`SELECT func_add_point(?) AS \`point\``, [
+            order.auth_id,
+            order.point,
+            `${order.item_idx})${order.name} 상품환불 - ${order.order_id}`,
+            guild_id,
+        ]);
+
+        await query<SqlInsertUpdate>(`UPDATE auth_point_shop_order SET use_yn = 'N' WHERE order_id = ?`, order_id);
+
+        return true;
+    });
+
+export const selectPointGuild = async (guild_id: string = '00000000000000000000') =>
+    query<{
+        auth_id: string;
+        guild_id: string;
+        guild_name: string;
+        channel_id: string;
+    }>(`SELECT * FROM auth_point_guild WHERE guild_id = ?`, guild_id).then(([rows]) => rows);
 
 export const getPoint = async (auth_id: string) =>
     query<{ point: number }>(`SELECT point FROM auth_point WHERE auth_id = ?`, auth_id).then(
@@ -194,6 +228,18 @@ WHERE a.idx = ?
         `,
         idx
     ).then(res => res[0]);
+
+export const upsertGuildPoint = async (data: {
+    auth_id: string;
+    guild_id: string;
+    guild_name: string;
+    channel_id: string;
+}) =>
+    query<SqlInsertUpdate>(
+        `INSERT INTO auth_point_guild SET ? ON DUPLICATE KEY UPDATE ?, update_at=CURRENT_TIMESTAMP`,
+        data,
+        data
+    );
 
 export const upsertPshopItem = async (item: Partial<Omit<PshopItem, 'idx'>>, pk?: PointPK) =>
     pk

@@ -8,6 +8,8 @@ import sleep from 'utils/sleep';
 import imageBase64 from './imageBase64';
 import { error as errorLog } from './logger';
 
+console.log('??', `${process.env.DISCORD_TOKEN}`);
+
 const rest = new REST({ version: '10' }).setToken(`${process.env.DISCORD_TOKEN}`);
 
 rest.on('rateLimited', rateLimitInfo => {
