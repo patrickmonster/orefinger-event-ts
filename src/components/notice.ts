@@ -13,6 +13,7 @@ import {
     createChannelSelectMenu,
     createEmbed,
     createSecondaryButton,
+    createSuccessButton,
     createUrlButton,
 } from 'utils/discord/component';
 import { editerComponent } from './systemComponent';
@@ -63,12 +64,10 @@ export const getNoticeDetailByEmbed = async (noticeId: NoticeId, guildId: string
                             name: '🔔',
                         },
                     }),
-                    // createSecondaryButton(`notice channel ${noticeId} hook`, {
-                    //     label: '알림프로필생성 * 유료상품',
-                    //     emoji: {
-                    //         name: '👀',
-                    //     },
-                    // }),
+                    createSuccessButton(`notice profile ${noticeId}`, {
+                        label: '프로필 알림 설정',
+                        emoji: { name: '😺' },
+                    }),
                 ],
                 true,
                 {
