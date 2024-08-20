@@ -31,7 +31,7 @@ export const exec = async (interaction: MessageInteraction, noticeId: string) =>
     try {
         const { url } = await webhookCreate(
             channel.id,
-            { name: '방송알리미', auth_id: process.env.DISCORD_CLIENT_ID || '826484552029175808' },
+            { name: '방송알리미', auth_id: apiUser?.id || '826484552029175808' },
             'Y'
         );
 
