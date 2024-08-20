@@ -343,3 +343,42 @@ GROUP BY notice_id
     `,
         ParseInt(noticeId)
     ).then(res => res[0]);
+
+export const selectNoticeByGuild = async (noticeId: string, guildId: string) =>
+    query<{
+        notice_id: number;
+        hash_id: string;
+        guild_id: string;
+        notice_type: number;
+        notice_type_tag: string;
+        video_yn: 'Y' | 'N' | boolean;
+        embed_id: number;
+        img_idx: number;
+        message: string;
+        name: string;
+        update_user_id: string;
+        create_at: string;
+        update_at: string;
+    }>(
+        `
+SELECT notice_id
+	, hash_id
+	, notice_type
+	, notice_type_tag
+	, video_yn
+	, guild_id
+	, embed_id
+	, img_idx
+	, message
+	, name
+	, update_user_id
+	, create_at
+	, update_at
+FROM v_notice_guild vng 
+WHERE 1=1
+AND ? = vng.guild_id
+AND ? = vng.notice_id
+        `,
+        guildId,
+        ParseInt(noticeId)
+    ).then(res => res[0]);
