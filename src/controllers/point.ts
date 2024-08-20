@@ -7,7 +7,6 @@ interface Message {
     channel_id: string;
     message: string;
 }
-
 export const CreateMessage = async (message: Message) =>
     query<SqlInsertUpdate>(`INSERT INTO message_log set ?`, message);
 
@@ -21,6 +20,43 @@ export const addPoint = async (
     query<{
         point: number;
     }>(`SELECT func_add_point(?) AS \`point\``, [auth_id, point, message, guild_id]).then(([row]) => row?.point || 0);
+
+// order_id, item_idx, auth_id, `point`, name, create_at, use_yn
+export const addOrder = async (
+    data: {
+        order_id: string;
+        item_idx: number;
+        auth_id: string;
+        point: number;
+        name: string;
+    },
+    guild_id: string = '00000000000000000000'
+) =>
+    getConnection(async query => {
+        const { auth_id, point, item_idx, order_id, name } = data;
+        await query<{
+            point: number;
+        }>(`SELECT func_add_point(?) AS \`point\``, [
+            auth_id,
+            point,
+            `${item_idx})${name} 상품구매 - ${order_id}`,
+            guild_id,
+        ]).then(([row]) => row?.point || 0);
+
+        await query<SqlInsertUpdate>(`INSERT INTO discord.auth_point_shop_order SET ?`, {
+            ...data,
+            use_yn: 'Y',
+        });
+
+        return true;
+    }, true).catch(async e => {
+        await query<SqlInsertUpdate>(`INSERT INTO discord.auth_point_shop_order SET ?`, {
+            ...data,
+            use_yn: 'N',
+        });
+
+        return false;
+    });
 
 export const getPoint = async (auth_id: string) =>
     query<{ point: number }>(`SELECT point FROM auth_point WHERE auth_id = ?`, auth_id).then(

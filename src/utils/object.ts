@@ -8,6 +8,18 @@ export const deleteObjectByKey = (obj: any, ...key: string[]) => {
 
 export const isNumeric = (data: string): boolean => !isNaN(Number(data));
 
+const getServiceId = (channelId: string, maxSize = 9) =>
+    (Math.abs(channelId.split('').reduce((acc, cur) => acc + cur.charCodeAt(0), 0)) % maxSize) + 1;
+
+export const getMessageId = (time: number, userId: string) => {
+    let snowflake = BigInt(time - 1_420_070_400_000) & ((BigInt(1) << BigInt(41)) - BigInt(1)); // 41 bits for timestamp
+    snowflake = snowflake << BigInt(22); // shift 22 bits
+    snowflake |= BigInt(getServiceId(userId, 1023) & ((1 << 10) - 1)) << BigInt(12); // 10 bits for node id
+    snowflake |= BigInt(process.pid & ((1 << 12) - 1)); // 12 bits for counter
+
+    return snowflake.toString();
+};
+
 const regEx = /\{([0-9A-Za-z_]+)\}/i;
 export const convertMessage = <T>(object: T, message: { [key: string]: string }) =>
     JSON.parse(
