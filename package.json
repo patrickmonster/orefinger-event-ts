@@ -65,7 +65,7 @@
         "tabWidth": 4
     },
     "name": "discord-notification-ts",
-    "version": "3.5.24",
+    "version": "3.5.25",
     "main": "index.js",
     "repository": "https://github.com/patrickmonster/discord-notification-ts.git",
     "author": "Soung jin Ryu <neocat@kakao.com>",

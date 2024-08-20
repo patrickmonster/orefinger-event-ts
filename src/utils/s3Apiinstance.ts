@@ -28,7 +28,7 @@ export const upload = async (auth_id: string, file: MultipartFile, path: string)
 
     const buffer = await file.toBuffer();
     const command = new PutObjectCommand({
-        Bucket: 'orefinger.media',
+        Bucket: process.env.BUCKET || '',
         Key: key,
         Body: buffer,
         ContentType: file.mimetype,
@@ -66,7 +66,7 @@ export const uploadProfile = async (auth_id: string, avatar?: string) => {
         .then(res => Buffer.from(res.data, 'binary'));
 
     const command = new PutObjectCommand({
-        Bucket: 'orefinger.media',
+        Bucket: process.env.BUCKET || '',
         Key: key,
         Body: buffer,
         ContentType: 'image/png',
