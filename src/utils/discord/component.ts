@@ -219,3 +219,12 @@ export const createMenuinputCommand = (
         f_name
     );
 };
+
+export const createToggleButton = (
+    isEnable: boolean,
+    custom_id: [string, string],
+    lable: [string, string]
+): APIButtonComponentWithCustomId =>
+    !isEnable
+        ? createSuccessButton(custom_id[0], { label: lable[0], emoji: { name: '🟢' } })
+        : createDangerButton(custom_id[1], { label: lable[1], emoji: { name: '🔴' } });
