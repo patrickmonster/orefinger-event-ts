@@ -38,7 +38,7 @@ jobs:
         run: yarn run build
 
       - name: zip file
-        run: zip -r orefinger.bat.zip ./dist ./scripts ./appspec.yml ./.env ./package.json
+        run: zip -r orefinger.api.zip ./dist ./scripts ./appspec.yml ./.env ./package.json
 
       - name: 🌎 AWS에 접속
         uses: aws-actions/configure-aws-credentials@v1
