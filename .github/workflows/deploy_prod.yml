@@ -52,7 +52,7 @@ jobs:
 
       - name: deploy with AWS codeDeploy
         run: aws deploy create-deployment
-          --application-name orefinger-api
+          --application-name orefinger-bat
           --deployment-config-name CodeDeployDefault.HalfAtATime
           --deployment-group-name orefinger-api-deploy
           --s3-location bucket=orefinger-pipline,bundleType=zip,key=orefinger-bat/orefinger.api.zip
