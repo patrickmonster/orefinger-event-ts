@@ -55,4 +55,4 @@ sudo /usr/bin/yarn
 sudo /usr/bin/pm2 stop all || true
 
 #  서비스 시작
-sudo /usr/bin/pm2 start dist/app.js
+sudo /usr/bin/pm2 start dist/app.js -i 0 --name orefinger-api
