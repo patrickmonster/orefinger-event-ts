@@ -46,6 +46,7 @@ echo YOUTUBE_API_KEY=$(aws ssm get-parameters --region ap-northeast-2 --names $p
 
 echo WEB_HOOK_URL=$(aws ssm get-parameters --region ap-northeast-2 --names $path"WEB_HOOK_URL" --query Parameters[0].Value | sed 's/"//g')  >> $filename
 
+echo PORT=3000  >> $filename
 
 # npm 설치
 sudo /usr/bin/yarn
