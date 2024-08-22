@@ -51,7 +51,7 @@ export const exec = async (interaction: MessageInteraction, noticeId: string, mo
                 console.log('sendTestNotice', e);
 
                 return interaction.reply({
-                    content: '알림 전송에 실패하였습니다. \n 하단 문서를 확인해 주세요',
+                    content: `\n알림 전송에 실패하였습니다. \n 하단 문서를 확인해 주세요 `,
                     ephemeral: true,
                     components: [
                         createActionRow(
