@@ -40,7 +40,13 @@ export const exec = async (interaction: MessageInteraction, noticeId: string, mo
             }
 
             try {
+                console.log('sendTestNotice', noticeId, guild_id);
+
                 await sendTestNotice(noticeId, guild_id);
+                interaction.reply({
+                    content: '알림이 전송되었습니다.',
+                    ephemeral: true,
+                });
             } catch (e) {
                 console.log('sendTestNotice', e);
 
@@ -60,10 +66,6 @@ export const exec = async (interaction: MessageInteraction, noticeId: string, mo
                 });
             }
 
-            interaction.reply({
-                content: '알림이 전송되었습니다.',
-                ephemeral: true,
-            });
             break;
         }
     }
