@@ -90,7 +90,7 @@ export default async (fastify: FastifyInstance, opts: any) => {
     fastify.post<{
         Params: { channel: string; hash_id: string };
     }>(
-        '/webhook/:channel/chzzk/:hash_id',
+        '/webhook/:channel/afreeca/:hash_id',
         {
             onRequest: [fastify.masterkey],
             schema: {
