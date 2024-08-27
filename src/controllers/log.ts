@@ -90,11 +90,18 @@ AND t < 1000
             cnt: number;
             tag: string;
         }>(`
-SELECT count(1) AS cnt
+SELECT 
+	count(1) AS cnt
 	, nt.tag 
-FROM v_notice_bat vnb
-INNER JOIN notice_type nt ON nt.notice_type_id = vnb.notice_type
-GROUP BY notice_type
+FROM (
+	SELECT *
+	FROM notice_channel nc 
+	WHERE nc.use_yn = 'Y'
+	GROUP BY notice_id 
+) nc
+INNER JOIN notice n USING(notice_id)
+INNER JOIN notice_type nt ON nt.notice_type_id = n.notice_type
+GROUP BY notice_type 
         `);
 
         return { time, c, notices };
