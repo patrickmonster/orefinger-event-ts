@@ -39,6 +39,8 @@ echo MASTER_KEY=$(aws ssm get-parameters --region ap-northeast-2 --names $path"M
 echo KAKAO_CLIENT=$(aws ssm get-parameters --region ap-northeast-2 --names $path"KAKAO_CLIENT" --query Parameters[0].Value | sed 's/"//g')  >> $filename
 echo KAKAO_SECRET=$(aws ssm get-parameters --region ap-northeast-2 --names $path"KAKAO_SECRET" --query Parameters[0].Value | sed 's/"//g')  >> $filename
 
+echo TWITCH_TOKEN=$(aws ssm get-parameters --region ap-northeast-2 --names $path"TWITCH_TOKEN" --query Parameters[0].Value | sed 's/"//g')  >> $filename
+
 echo TOSS_CLIENT=$(aws ssm get-parameters --region ap-northeast-2 --names $path"TOSS_CLIENT" --query Parameters[0].Value | sed 's/"//g')  >> $filename
 echo TOSS_SECRET=$(aws ssm get-parameters --region ap-northeast-2 --names $path"TOSS_SECRET" --query Parameters[0].Value | sed 's/"//g')  >> $filename
 
