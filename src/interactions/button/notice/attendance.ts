@@ -9,7 +9,10 @@ import { REDIS_KEY, catchRedis } from 'utils/redis';
 export const exec = async (interaction: MessageInteraction, noticeId: string) => {
     const { user, member, guild_id } = interaction;
 
-    const userId = `${user?.id || member?.user.id}`;
+    const userId = user?.id || member?.user.id;
+
+    if (userId === undefined)
+        return interaction.reply({ content: '사용자 정보를 수신하는데, 실패하여 출석체크를 진행할 수 없습니다.' });
 
     await interaction.differ({ ephemeral: true });
 
