@@ -3,7 +3,7 @@ name: Deploy to ECR - prod.
 on:
   push:
     branches:
-      - 'stage'
+      - 'master'
 
 jobs:
 
