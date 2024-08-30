@@ -37,6 +37,9 @@ jobs:
         working-directory: ./
         run: yarn run build
 
+      - name: zip file
+        run: zip -r orefinger.api.zip ./dist ./scripts ./appspec.yml ./.env ./package.json
+
       - name: 🌎 AWS에 접속
         uses: aws-actions/configure-aws-credentials@v1
         with:
@@ -44,12 +47,12 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ap-northeast-2
 
-      - name: Login to Amazon ECR
-        id: login-ecr
-        uses: aws-actions/amazon-ecr-login@v1
-        
-      - name: Build, tag, and push image to Amazon ECR
-        run: |
-          docker build -t orefinger.eventsub .
-          docker tag orefinger.eventsub:latest 417941206094.dkr.ecr.ap-northeast-2.amazonaws.com/orefinger.eventsub:latest
-          docker push 417941206094.dkr.ecr.ap-northeast-2.amazonaws.com/orefinger.eventsub:latest
+      - name: upload to S3
+        run: aws s3 cp --region ap-northeast-2 ./orefinger.api.zip s3://orefinger-pipline/orefinger-bat/
+
+      - name: deploy with AWS codeDeploy
+        run: aws deploy create-deployment
+          --application-name orefinger-bat
+          --deployment-config-name CodeDeployDefault.OneAtATime
+          --deployment-group-name orefinger-api-deploy
+          --s3-location bucket=orefinger-pipline,bundleType=zip,key=orefinger-bat/orefinger.api.zip

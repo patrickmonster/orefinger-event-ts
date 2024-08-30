@@ -38,8 +38,8 @@ SELECT
     , IFNULL(n.name, '지정되지 않음')  AS label
     , CONCAT(n.message) AS  description
 FROM notice_channel nc 
-INNER JOIN v_notice n USING(notice_id)
-WHERE (guild_id = ? OR notice_type = 7)
+INNER JOIN v_notice_guild n USING(notice_id, guild_id)
+WHERE (nc.guild_id = ? OR notice_type = 7)
 GROUP BY nc.notice_id 
 `;
 

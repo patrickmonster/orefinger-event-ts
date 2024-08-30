@@ -456,7 +456,7 @@ export const checkUserNoticeLimit = async (interaction: IReply, userId: string, 
     if (['466950273928134666'].includes(userId)) return true;
     const { approximate_member_count, region, preferred_locale } = await getGuild(guild_id);
 
-    if (['hongkong'].includes(region) || ['zh-CN', 'zh-TW'].includes(preferred_locale)) {
+    if (/*['hongkong'].includes(region) || */ ['zh-CN', 'zh-TW'].includes(preferred_locale)) {
         interaction.reply({
             content: `
 # 지역 차단으로 인한 알림 등록 제한

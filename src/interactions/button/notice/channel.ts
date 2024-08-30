@@ -40,12 +40,18 @@ export const exec = async (interaction: MessageInteraction, noticeId: string, mo
             }
 
             try {
+                console.log('sendTestNotice', noticeId, guild_id);
+
                 await sendTestNotice(noticeId, guild_id);
+                interaction.reply({
+                    content: '알림이 전송되었습니다.',
+                    ephemeral: true,
+                });
             } catch (e) {
                 console.log('sendTestNotice', e);
 
                 return interaction.reply({
-                    content: '알림 전송에 실패하였습니다. \n 하단 문서를 확인해 주세요',
+                    content: `\n알림 전송에 실패하였습니다. \n 하단 문서를 확인해 주세요 `,
                     ephemeral: true,
                     components: [
                         createActionRow(
@@ -60,10 +66,6 @@ export const exec = async (interaction: MessageInteraction, noticeId: string, mo
                 });
             }
 
-            interaction.reply({
-                content: '알림이 전송되었습니다.',
-                ephemeral: true,
-            });
             break;
         }
     }

@@ -24,6 +24,7 @@ if (existsSync(envDir)) {
 // 환경변수
 
 import { close } from 'components/socket/socketServer';
+import { ParseInt } from 'utils/object';
 import 'utils/procesTuning';
 import { addServerRequest } from 'utils/serverState';
 
@@ -47,7 +48,7 @@ server.addHook('onRequest', (request, reply, done) => {
     done();
 });
 
-server.listen({ port: 3000, host: '::' }, (err, address) => {
+server.listen({ port: ParseInt(process.env.PORT || 3000), host: '::' }, (err, address) => {
     if (err) {
         console.error(err);
         process.exit(1);
