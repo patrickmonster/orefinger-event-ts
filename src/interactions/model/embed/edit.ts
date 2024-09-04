@@ -13,8 +13,11 @@ export const exec = async (interaction: MessageMenuInteraction, values: Record<s
 
     // appendUrlHttp
 
-    if ('url' in values) values.url = appendUrlHttp(values.url);
-    if ('image' in values) values.image = appendUrlHttp(values.image);
+    if ('url' in values && values.url) values.url = appendUrlHttp(values.url);
+    else delete values.url;
+
+    if ('image' in values && values.image) values.image = appendUrlHttp(values.image);
+    else delete values.image;
 
     await upsertEmbedUser(
         {

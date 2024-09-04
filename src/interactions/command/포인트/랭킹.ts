@@ -10,7 +10,8 @@ export const exec = async (interaction: AppChatInputInteraction, selectOption: S
     await interaction.differ();
 
     const ranks = await selectPointRanking(userId, guild_id);
-    interaction.reply({
+
+    await interaction.reply({
         embeds: [
             {
                 title: '포인트 랭킹',

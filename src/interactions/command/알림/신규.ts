@@ -1,23 +1,11 @@
 import { checkUserNoticeLimit, getNoticeDetailByEmbed } from 'components/notice';
-import { getAfreecabeUser } from 'components/user/afreeca';
-import { getChzzkUser } from 'components/user/chzzk';
-import { searchYoutubeUser } from 'components/user/youtube';
+import { getNoticeIdByUrl } from 'components/user/notice';
 import { deleteOrInsertNoticeChannels } from 'controllers/notice';
 import { ApplicationCommandOptionType } from 'discord-api-types/v10';
 import { AppChatInputInteraction, SelectOptionType } from 'interactions/app';
 
-import {
-    createActionRow,
-    createChatinputCommand,
-    createDangerButton,
-    createStringSelectMenu,
-    createSuccessButton,
-    createUrlButton,
-} from 'utils/discord/component';
+import { createActionRow, createChatinputCommand, createSuccessButton, createUrlButton } from 'utils/discord/component';
 import { hasNot } from 'utils/discord/permission';
-
-const StreamChannelRegex =
-    /^(http(s):\/\/)(chzzk.naver.com|play.afreecatv.com|bj.afreecatv.com|afreecatv.com|www.youtube.com)(\/channel|\/live)?\/([\w|@]+)/;
 
 // https://play.afreecatv.com/sikhye1004/null
 export const exec = async (interaction: AppChatInputInteraction, selectOption: SelectOptionType) => {
@@ -60,70 +48,13 @@ export const exec = async (interaction: AppChatInputInteraction, selectOption: S
         });
         return;
     }
-
-    const data = StreamChannelRegex.exec(`${url}`);
-
-    if (!data) {
-        return interaction.reply({
-            content: '지원하지 않는 링크입니다.',
-        });
-    }
-
-    const [, , , domain, , id] = data;
-
     await interaction.differ({ ephemeral: true });
 
     if (!(await checkUserNoticeLimit(interaction, `${userId}`, guild_id))) {
         return;
     }
 
-    let noticeId;
-    switch (domain) {
-        case 'chzzk.naver.com':
-            noticeId = await getChzzkUser(guild_id, id);
-            break;
-        case 'play.afreecatv.com':
-        case 'bj.afreecatv.com':
-        case 'afreecatv.com':
-            noticeId = await getAfreecabeUser(guild_id, id);
-            break;
-        case 'www.youtube.com':
-            const list = await searchYoutubeUser(id);
-            // 채널
-            interaction.reply({
-                content: '검색결과',
-                ephemeral: true,
-                components: list.length
-                    ? [
-                          createStringSelectMenu(`notice add 2`, {
-                              placeholder: '원하시는 사용자를 선택해주세요.',
-                              options: list.map(({ name, value }) => ({ label: name, value })),
-                              max_values: 1,
-                              min_values: 1,
-                          }),
-                          createActionRow(
-                              createSuccessButton(`notice add 2 1`, {
-                                  emoji: { name: '🔍' },
-                                  label: `재검색`,
-                              })
-                          ),
-                      ]
-                    : [
-                          createActionRow(
-                              createDangerButton(`not found`, {
-                                  emoji: { name: '❗' },
-                                  label: `검색결과가 없습니다.`,
-                                  disabled: true,
-                              }),
-                              createSuccessButton(`notice add 2 1`, {
-                                  emoji: { name: '🔍' },
-                                  label: `재검색`,
-                              })
-                          ),
-                      ],
-            });
-            return;
-    }
+    const noticeId = await getNoticeIdByUrl(guild_id, `${url}`);
 
     if (!noticeId) {
         return interaction.reply({
@@ -138,7 +69,6 @@ export const exec = async (interaction: AppChatInputInteraction, selectOption: S
 
     await deleteOrInsertNoticeChannels(noticeId, guild_id, [channel.id], `${userId}`);
 
-    // 0x0000000000020000 0x0000000000004000
     if (hasNot(app_permissions, 805497872n) && hasNot(app_permissions, 8n)) {
         await interaction.reply({
             content: `
