@@ -314,8 +314,8 @@ SELECT hash_id
 	, name
 	, if(
 		nc.webhook_id IS NULL,
-		json_object( 'channel_id', nc.channel_id, 'notice_id', nc.notice_id, 'guild_id', nc.guild_id, 'channel_type', 0 ),
-		json_object( 'channel_id', nc.channel_id, 'notice_id', nc.notice_id, 'guild_id', nc.guild_id, 'url', nc.url, 'username', nc.username, 'avatar_url', nc.avatar_url, 'channel_type', 1 )
+		json_object( 'channel_id', nc.channel_id, 'notice_id', nc.notice_id, 'guild_id', nc.guild_id, 'channel_type', 0,'embed', IF(vng.embed_id IS NOT NULL, (SELECT embed FROM v_embed_user veu WHERE veu.embed_id = vng.embed_id LIMIT 1), NULL)),
+		json_object( 'channel_id', nc.channel_id, 'notice_id', nc.notice_id, 'guild_id', nc.guild_id, 'url', nc.url, 'username', nc.username, 'avatar_url', nc.avatar_url, 'channel_type', 1,'embed', IF(vng.embed_id IS NOT NULL, (SELECT embed FROM v_embed_user veu WHERE veu.embed_id = vng.embed_id LIMIT 1), NULL))
 	) AS channel
 FROM v_notice_guild vng
 INNER JOIN v_notice_channel_hook nc USING(notice_id, guild_id)
