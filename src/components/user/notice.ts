@@ -69,6 +69,7 @@ export const getUrlByNoticeId = async (
             return await getAfreecabeUser(guildId, id);
 
         case 'www.youtube.com':
+        case 'youtube.com':
             return {
                 id,
                 type: StreamTarget.YOUTUBE,
