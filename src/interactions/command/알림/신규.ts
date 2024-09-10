@@ -1,10 +1,18 @@
 import { checkUserNoticeLimit, getNoticeDetailByEmbed } from 'components/notice';
-import { getNoticeIdByUrl } from 'components/user/notice';
+import { getUrlByNoticeId, StreamTarget } from 'components/user/notice';
+import { searchYoutubeUser } from 'components/user/youtube';
 import { deleteOrInsertNoticeChannels } from 'controllers/notice';
 import { ApplicationCommandOptionType } from 'discord-api-types/v10';
 import { AppChatInputInteraction, SelectOptionType } from 'interactions/app';
 
-import { createActionRow, createChatinputCommand, createSuccessButton, createUrlButton } from 'utils/discord/component';
+import {
+    createActionRow,
+    createChatinputCommand,
+    createDangerButton,
+    createStringSelectMenu,
+    createSuccessButton,
+    createUrlButton,
+} from 'utils/discord/component';
 import { hasNot } from 'utils/discord/permission';
 
 // https://play.afreecatv.com/sikhye1004/null
@@ -54,9 +62,9 @@ export const exec = async (interaction: AppChatInputInteraction, selectOption: S
         return;
     }
 
-    const noticeId = await getNoticeIdByUrl(guild_id, `${url}`);
+    const noticeId = await getUrlByNoticeId(guild_id, `${url}`);
 
-    if (!noticeId) {
+    if (noticeId === null) {
         return interaction.reply({
             content: `
 알림을 생성하지 못했습니다. - 사용자를 찾을 수 없습니다.
@@ -65,13 +73,14 @@ export const exec = async (interaction: AppChatInputInteraction, selectOption: S
 - 라이브/영상이 없는 경우 알림을 생성할 수 없습니다.
             `,
         });
-    }
+    } else if (typeof noticeId === 'number') {
+        // 아이디 검증에 실패함.
 
-    await deleteOrInsertNoticeChannels(noticeId, guild_id, [channel.id], `${userId}`);
+        await deleteOrInsertNoticeChannels(noticeId, guild_id, [channel.id], `${userId}`);
 
-    if (hasNot(app_permissions, 805497872n) && hasNot(app_permissions, 8n)) {
-        await interaction.reply({
-            content: `
+        if (hasNot(app_permissions, 805497872n) && hasNot(app_permissions, 8n)) {
+            await interaction.reply({
+                content: `
 알림이 생성되었습니다.
 
 현재 봇의 권한으로는 알림을 확인할 수 없습니다.
@@ -82,19 +91,19 @@ export const exec = async (interaction: AppChatInputInteraction, selectOption: S
 - \`임베드 링크 전송\`
 - \`everyone/here 맨션\`
             `,
-            components: [
-                createActionRow(
-                    createUrlButton(`http://pf.kakao.com/_xnTkmG`, {
-                        label: '방송알리미 카카오톡 채널',
-                        emoji: { name: '🔗' },
-                    })
-                ),
-            ],
-        });
-    } else {
-        // 알림 생성 맨트
-        await interaction.reply({
-            content: `
+                components: [
+                    createActionRow(
+                        createUrlButton(`http://pf.kakao.com/_xnTkmG`, {
+                            label: '방송알리미 카카오톡 채널',
+                            emoji: { name: '🔗' },
+                        })
+                    ),
+                ],
+            });
+        } else {
+            // 알림 생성 맨트
+            await interaction.reply({
+                content: `
 알림이 생성되었습니다.
 
 방송알리미는 스트리머 분들과 빠른 소통을 하기 위하여
@@ -103,32 +112,73 @@ export const exec = async (interaction: AppChatInputInteraction, selectOption: S
 추가 기능 및 업데이트 소식을 받으시려면,
 아래 링크를 통해 카카오톡 채널에 추가해 주세요!
             `,
-            components: [
-                createActionRow(
-                    createUrlButton(`http://pf.kakao.com/_xnTkmG`, {
-                        label: '방송알리미 카카오톡 채널',
-                        emoji: { name: '🔗' },
-                    }),
-                    createUrlButton(`https://orefinger.notion.site/b99761efe08f4d5e9bd22b78e4e0d563`, {
-                        label: '출석 체크 기능도 필요하신가요?',
-                        emoji: { name: '📅' },
-                    }),
-                    createSuccessButton(`notice profile ${noticeId}`, {
-                        label: '프로필 알림 설정',
-                        emoji: { name: '😺' },
-                    })
-                ),
-            ],
+                components: [
+                    createActionRow(
+                        createUrlButton(`http://pf.kakao.com/_xnTkmG`, {
+                            label: '방송알리미 카카오톡 채널',
+                            emoji: { name: '🔗' },
+                        }),
+                        createUrlButton(`https://orefinger.notion.site/b99761efe08f4d5e9bd22b78e4e0d563`, {
+                            label: '출석 체크 기능도 필요하신가요?',
+                            emoji: { name: '📅' },
+                        }),
+                        createSuccessButton(`notice profile ${noticeId}`, {
+                            label: '프로필 알림 설정',
+                            emoji: { name: '😺' },
+                        })
+                    ),
+                ],
+            });
+        }
+
+        const { embeds, components } = await getNoticeDetailByEmbed(noticeId, guild_id);
+
+        interaction.follow({
+            embeds,
+            ephemeral: true,
+            components,
+        });
+    } else {
+        // 알림 생성 실패
+        const { id, type } = noticeId;
+        const list = await searchYoutubeUser(id);
+
+        interaction.reply({
+            content: '검색결과',
+            ephemeral: true,
+            components: list.length
+                ? [
+                      createStringSelectMenu(`notice add 2`, {
+                          placeholder: '원하시는 사용자를 선택해주세요.',
+                          options: list.map(({ name, value }) => ({
+                              label: name,
+                              value,
+                          })),
+                          max_values: 1,
+                          min_values: 1,
+                      }),
+                      createActionRow(
+                          createSuccessButton(`notice add ${type === StreamTarget.YOUTUBE ? '2' : '0'} 1`, {
+                              emoji: { name: '🔍' },
+                              label: `재검색`,
+                          })
+                      ),
+                  ]
+                : [
+                      createActionRow(
+                          createDangerButton(`not found`, {
+                              emoji: { name: '❗' },
+                              label: `검색결과가 없습니다.`,
+                              disabled: true,
+                          }),
+                          createSuccessButton(`notice add ${type === StreamTarget.YOUTUBE ? '2' : '0'} 1`, {
+                              emoji: { name: '🔍' },
+                              label: `재검색`,
+                          })
+                      ),
+                  ],
         });
     }
-
-    const { embeds, components } = await getNoticeDetailByEmbed(noticeId, guild_id);
-
-    interaction.follow({
-        embeds,
-        ephemeral: true,
-        components,
-    });
 };
 
 const api = createChatinputCommand(
