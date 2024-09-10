@@ -176,7 +176,7 @@ SELECT
     , JSON_ARRAY(
         JSON_OBJECT(
             'type', 1, 'components', JSON_ARRAY(
-                JSON_OBJECT('type', 4,'custom_id', 'message', 'label', '멘트', 'value', message, 'min_length', 0, 'max_length', 1000, 'style', 2, 'required', true )
+                JSON_OBJECT('type', 4,'custom_id', 'message', 'label', '멘트', 'value', message, 'min_length', 0, 'max_length', 1000, 'style', 2, 'required', false )
             )
         )
     ) AS components
