@@ -52,9 +52,12 @@ export const exec = async (interaction: MessageInteraction, typeId: string) => {
             await interaction.reply({
                 content: `
 현재 로그인 정보가 없는 상태 입니다.
+You currently do not have any login information.
 
 권한을 부여받기 위해서는 계정 연결이 필요합니다.
+You need to link your account to be granted permission.
 하단의 버튼을 눌러, 홈페이지에 접속하여 계정 연결을 진행해 주세요!  
+Please register the button below, log in to the homepage, and link your account!
                 `,
                 embeds: [
                     {
