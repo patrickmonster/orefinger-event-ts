@@ -166,6 +166,7 @@ ${tastTo("AND at2.use_yn = 'Y'")}
 export const tokens = (auth_id: string, ...types: number[]) =>
     query<{
         type: number;
+        type_kr: string;
         user_id: string;
         auth_id: string;
         login: string;
@@ -180,6 +181,7 @@ export const tokens = (auth_id: string, ...types: number[]) =>
     }>(
         `
 select vat.type
+	, ( SELECT tag FROM auth_type at2 WHERE at2.auth_type = vat.type) AS type_kr
     , user_id
     , auth_id
     , login

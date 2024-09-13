@@ -17,12 +17,15 @@ export const exec = async (interaction: appInteraction) => {
 
         console.log(`사용자 ${target_id}님의 정보를 불러오는중....`);
 
-        const user = (await tokens(target_id, 2, 3, 5, 12, 13)).map(({ login, name, is_session, create_at }) => ({
-            login,
-            name,
-            is_session,
-            create_at,
-        }));
+        const user = (await tokens(target_id, 2, 3, 5, 12, 13)).map(
+            ({ type_kr, login, name, is_session, create_at }) => ({
+                type_kr,
+                login,
+                name,
+                is_session,
+                create_at,
+            })
+        );
 
         const authState = await userAuthState(target_id);
 
@@ -31,10 +34,10 @@ export const exec = async (interaction: appInteraction) => {
 \`\`\`ansi
 ${user
     .slice(0, 10)
-    .map(({ login, name, is_session, create_at }) =>
+    .map(({ type_kr, login, name, is_session, create_at }) =>
         is_session == 'Y'
-            ? `[0;34m឵${name}(${login})[0m឵ - ${moment(create_at).format('YYYY년MMMDo')}`
-            : `[0;37m឵${name}(${login})[0m឵ - ${moment(create_at).format('YYYY년MMMDo')} (세션이 끊김)`
+            ? `[0;34m឵${type_kr}]${name}(${login})[0m឵ - ${moment(create_at).format('YYYY년MMMDo')}`
+            : `[0;37m឵${type_kr}]${name}(${login})[0m឵ - ${moment(create_at).format('YYYY년MMMDo')} (세션이 끊김)`
     )
     .join('\n')}\`\`\`
 길드 연결 정보
