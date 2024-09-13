@@ -17,7 +17,7 @@ export const exec = async (interaction: appInteraction) => {
 
         console.log(`사용자 ${target_id}님의 정보를 불러오는중....`);
 
-        const user = (await tokens(target_id, 2, 3)).map(({ login, name, is_session, create_at }) => ({
+        const user = (await tokens(target_id, 2, 3, 5, 12, 13)).map(({ login, name, is_session, create_at }) => ({
             login,
             name,
             is_session,
