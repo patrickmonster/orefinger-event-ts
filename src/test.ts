@@ -12,7 +12,56 @@ if (existsSync(envDir)) {
     });
 }
 
-import { channelShorts } from 'components/user/youtube';
+import { seelctNoticeHistory } from 'controllers/notice';
+import { sixWeekBig } from 'utils/createCalender';
 
-channelShorts('UCrWBTUXbWG3VjNas9mt9tHw').then(console.log).catch(console.error);
-// channelVideos('UCrWBTUXbWG3VjNas9mt9tHw').then(console.log).catch(console.error);
+// console.log(createCalender(new Date(), new Date()));
+
+// seelctNoticeHistory(46).then(data => {
+//     console.log(
+//         sixWeekBig(
+//             {
+//                 time: new Date(),
+//                 textLength: 1,
+//             },
+//             ...data.map(({ live_at, title }) => ({
+//                 time: new Date(live_at),
+//                 title,
+//             }))
+//         )
+//     );
+// });
+
+const a = async () => {
+    const list = await seelctNoticeHistory(46);
+
+    const games = list.reduce((acc, { game }) => {
+        acc[game] = (acc[game] || 0) + 1;
+        return acc;
+    }, {} as any);
+
+    return {
+        color: 0xffca52,
+        description: `
+최근 ${list.length}개의 방송이력이 있습니다.
+${
+    Object.keys(games)
+        .map(key => ` - ${key} 방송 ${games[key]}회`)
+        .join('\n') || '방송이력이 없습니다.'
+}
+\`\`\`ansi
+${sixWeekBig(
+    {
+        time: new Date(),
+        textLength: 15,
+    },
+    ...list.map(({ live_at, title }) => ({
+        time: new Date(live_at),
+        title,
+    }))
+)}
+\`\`\``,
+    };
+};
+
+a().then(console.log);

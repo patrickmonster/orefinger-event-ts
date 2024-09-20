@@ -111,6 +111,7 @@ export const REDIS_KEY = {
     API: {
         SEARCH_USER: (id: string) => `api:search:user:${id}`,
         ATTACH_LIVE: (liveId: string | number, id: string) => `api:attach:live:${liveId}:${id}`,
+        HISTORY_LIVE: (liveId: string | number) => `api:history:live:${liveId}`,
         CHZZK_POST: (id: string) => `api:chzzk:post:${id}`,
         AFREECA_POST: (id: string) => `api:afreeca:post:${id}`,
         CHZZK_LIVE_STATE: (id: string) => `api:chzzk:live:state:${id}`,

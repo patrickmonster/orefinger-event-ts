@@ -1,6 +1,7 @@
 import {
     NoticeId,
     deleteNoticeChannel,
+    seelctNoticeHistory,
     selectNoticeDtilByEmbed,
     selectNoticeRegisterChannels,
     upsertAttach,
@@ -30,7 +31,7 @@ import { upsertDiscordUserAndJWTToken } from 'controllers/auth';
 import { selectEventBat, selectNoticeGuildChannel } from 'controllers/bat';
 import { getAttendanceAtLive } from 'controllers/notification';
 import { IReply, RESTPostAPIChannelMessage } from 'plugins/discord';
-import createCalender from 'utils/createCalender';
+import createCalender, { sixWeekBig } from 'utils/createCalender';
 import discord, { openApi } from 'utils/discordApiInstance';
 import { ParseInt, convertMessage } from 'utils/object';
 import { catchRedis } from 'utils/redis';
@@ -441,6 +442,50 @@ ${createCalender(new Date(), ...pin)}
                     label: appendTextWing('📅출석현황', 8),
                 })
             ),
+        ],
+    };
+};
+
+export const selectNoticeList = async (noticeId: string | number) => {
+    const list = await seelctNoticeHistory(noticeId);
+
+    // 방송 카테고리 횟수
+    const games = list.reduce((acc, { game }) => {
+        acc[game] = (acc[game] || 0) + 1;
+        return acc;
+    }, {} as any);
+
+    return {
+        ephemeral: true,
+        embeds: [
+            createEmbed({
+                color: 0xffca52,
+                author: {
+                    name: '방송알리미',
+                    icon_url:
+                        'https://cdn.orefinger.click/post/466950273928134666/e4a1e3e4-ffe1-45c1-a0f6-0107301babcc.png',
+                    url: 'https://toss.me/방송알리미',
+                },
+                description: `
+최근 ${list.length}개의 방송이력이 있습니다.
+${
+    Object.keys(games)
+        .map(key => ` - ${key} 방송 ${games[key]}회`)
+        .join('\n') || '방송이력이 없습니다.'
+}
+\`\`\`ansi
+${sixWeekBig(
+    {
+        time: new Date(),
+        textLength: 15,
+    },
+    ...list.map(({ live_at, title }) => ({
+        time: new Date(live_at),
+        title,
+    }))
+)}
+\`\`\``,
+            }),
         ],
     };
 };
