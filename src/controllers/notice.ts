@@ -377,3 +377,37 @@ AND ? = vng.notice_id
         guildId,
         ParseInt(noticeId)
     ).then(res => res[0]);
+
+/**
+ * 한달치 방송 리스트를 불러옵니다.
+ * @param noticeId
+ * @returns
+ */
+export const seelctNoticeHistory = async (noticeId: NoticeId) =>
+    query<{
+        notice_id: number;
+        id: number;
+        create_at: string;
+        live_at: string;
+        end_at: string;
+        image: string;
+        title: string;
+        game: string;
+    }>(
+        `
+SELECT
+notice_id
+, id
+, create_at
+, live_at
+, end_at
+, image
+, title
+, game
+FROM notice_live nl 
+WHERE 1=1
+AND nl.notice_id = ?
+AND create_at > DATE_ADD(NOW(), INTERVAL -1 MONTH)
+        `,
+        ParseInt(noticeId)
+    );

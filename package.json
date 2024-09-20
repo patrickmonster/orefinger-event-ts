@@ -77,6 +77,6 @@
         "bot": "cross-env NODE_ENV=local nodemon --watch src/interactions --exec ts-node -r tsconfig-paths/register src/app.ts",
         "dev": "cross-env NODE_ENV=dev nodemon --watch src/routes --exec ts-node -r tsconfig-paths/register src/app.ts",
         "local": "cross-env NODE_ENV=local nodemon --watch src/routes --exec ts-node -r tsconfig-paths/register src/app.ts",
-        "test": "cross-env NODE_ENV=local ts-node -r tsconfig-paths/register src/test.ts"
+        "test": "cross-env NODE_ENV=local nodemon --watch src/test.ts --exec ts-node -r tsconfig-paths/register src/test.ts"
     }
 }
