@@ -7,6 +7,7 @@ import {
     upsertAttach,
     upsertNotice,
 } from 'controllers/notice';
+import { format } from 'date-fns';
 import { ChannelType as ChannelMessageType, NoticeChannel, NoticeChannelHook, OriginMessage } from 'interfaces/notice';
 import {
     appendTextWing,
@@ -14,6 +15,7 @@ import {
     createChannelSelectMenu,
     createEmbed,
     createSecondaryButton,
+    createStringSelectMenu,
     createSuccessButton,
     createUrlButton,
 } from 'utils/discord/component';
@@ -419,7 +421,7 @@ export const selectAttachMessage = async (
                 author: {
                     name: '방송알리미',
                     icon_url:
-                        'https://cdn.orefinger.click/post/466950273928134666/e4a1e3e4-ffe1-45c1-a0f6-0107301babcc.png',
+                        'https://cdn.orefinger.click/post/466950273928134666/d2d0cc31-a00e-414a-aee9-60b2227ce42c.png',
                     url: 'https://toss.me/방송알리미',
                 },
                 description: `
@@ -463,11 +465,11 @@ export const selectNoticeList = async (noticeId: string | number) => {
                 author: {
                     name: '방송알리미',
                     icon_url:
-                        'https://cdn.orefinger.click/post/466950273928134666/e4a1e3e4-ffe1-45c1-a0f6-0107301babcc.png',
+                        'https://cdn.orefinger.click/post/466950273928134666/d2d0cc31-a00e-414a-aee9-60b2227ce42c.png',
                     url: 'https://toss.me/방송알리미',
                 },
                 description: `
-최근 ${list.length}개의 방송이력이 있습니다.
+최근 한달간 ${list.length}개의 방송 이력을 찾았습니다!
 ${
     Object.keys(games)
         .map(key => ` - ${key} 방송 ${games[key]}회`)
@@ -477,14 +479,25 @@ ${
 ${sixWeekBig(
     {
         time: new Date(),
-        textLength: 15,
+        textLength: 4,
     },
-    ...list.map(({ live_at, title }) => ({
+    ...list.map(({ live_at, game }) => ({
         time: new Date(live_at),
-        title,
+        title: game,
     }))
 )}
 \`\`\``,
+            }),
+        ],
+        components: [
+            createStringSelectMenu(`notice logs ${noticeId}`, {
+                placeholder: '방송이력',
+                max_values: 1,
+                min_values: 1,
+                options: list.map(({ live_at, id, title }) => ({
+                    label: `${format(new Date(live_at), 'MM.dd')}]${title}`,
+                    value: `${id}`,
+                })),
             }),
         ],
     };

@@ -1,6 +1,6 @@
 import { selectNoticeList } from 'components/notice';
 import { MessageInteraction } from 'interactions/message';
-import { REDIS_KEY, catchRedis } from 'utils/redis';
+import { catchRedis, REDIS_KEY } from 'utils/redis';
 
 /**
  * 출석체크
@@ -11,6 +11,7 @@ export const exec = async (interaction: MessageInteraction, noticeId: string) =>
 
     try {
         interaction.reply(
+            // await selectNoticeList(noticeId)
             await catchRedis(
                 REDIS_KEY.API.HISTORY_LIVE(noticeId),
                 async () => await selectNoticeList(noticeId),
