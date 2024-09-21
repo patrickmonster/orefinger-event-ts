@@ -33,7 +33,7 @@ import { upsertDiscordUserAndJWTToken } from 'controllers/auth';
 import { selectEventBat, selectNoticeGuildChannel } from 'controllers/bat';
 import { getAttendanceAtLive } from 'controllers/notification';
 import { IReply, RESTPostAPIChannelMessage } from 'plugins/discord';
-import createCalender, { sixWeekBig } from 'utils/createCalender';
+import { sixWeek, sixWeekBig } from 'utils/createCalender';
 import discord, { openApi } from 'utils/discordApiInstance';
 import { ParseInt, convertMessage } from 'utils/object';
 import { catchRedis } from 'utils/redis';
@@ -432,9 +432,8 @@ export const selectAttachMessage = async (
 
 ### 출석은 방송 알림이 오면 출석을 눌러주세요!
  - 방송정보를 통하여 출석을 체크합니다.
-===========================
 \`\`\`ansi
-${createCalender(new Date(), ...pin)}
+${sixWeek(new Date(), ...pin)}
 \`\`\``,
             }),
         ],
