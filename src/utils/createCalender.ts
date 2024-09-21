@@ -95,12 +95,9 @@ export const sixWeekBig = (
         title: string;
     }[]
 ) => {
-    const buffer = [
-        `${time.toLocaleDateString('en-US', { month: 'short' })}`,
-        `[0;31m ឵${day.join(getSpace(textLength + 1))}[0m឵ `,
-    ];
+    const buffer = [`${time.toLocaleDateString('en-US', { month: 'long' })}`, `[0;31m${day.join(getSpace(textLength + 1))}[0m឵`];
     const week = getWeek(time);
-    const dayT = (d: number) => `${d < 10 ? ' ' + d : d}`;
+    const dayT = (d: number): string => d + `${d < 10 ? ' ' : ''}`;
 
     time.setDate(1 - (5 - week) * 7 - 1);
 
@@ -116,11 +113,11 @@ export const sixWeekBig = (
                 line = Math.max(line, point.length);
 
                 return point.length
-                    ? '[0;33m឵ √[0m឵'
+                    ? '[0;33m឵√  [0m឵'
                     : time.getDay() === 0
-                    ? `[0;31m឵ ${dayT(time.getDate())}[0m឵`
-                    : ` ${dayT(time.getDate())}`;
-            }).join(getSpace(textLength))
+                    ? `[0;31m឵${dayT(time.getDate())}[0m឵ `
+                    : `${dayT(time.getDate())} `;
+            }).join(getSpace(textLength - 1))
         );
 
         if (count === 0) continue;
@@ -135,10 +132,12 @@ export const sixWeekBig = (
                     )[j];
 
                     return point
-                        ? `[0;33m឵ ${
-                              point.title.length > textLength ? point.title.slice(0, textLength - 1) + '…' : point.title
+                        ? `[0;33m឵${
+                              point.title.length > textLength
+                                  ? point.title.slice(0, textLength) + '…'
+                                  : point.title + getSpace(textLength - point.title.length + 1)
                           }[0m឵`
-                        : getSpace(10);
+                        : getSpace(textLength + 1);
                 }).join(getSpace(1))
             );
         }
