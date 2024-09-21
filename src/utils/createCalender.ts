@@ -52,9 +52,9 @@ const getSpace = (i: number) => Array.from({ length: i }, () => ' ').join('');
  * @returns
  */
 export const sixWeek = (time: Date, ...list: Date[]) => {
-    const buffer = [`${time.toLocaleDateString('en-US', { month: 'short' })}`, `[0;31m ឵${day.join('    ')}[0m឵ `];
+    const buffer = [`${time.toLocaleDateString('en-US', { month: 'long' })}`, `[0;31m${day.join(getSpace(4))}[0m឵`];
     const week = getWeek(time);
-    const dayT = (d: number) => `${d < 10 ? ' ' + d : d}`;
+    const dayT = (d: number) => `${d < 10 ? d + ' ' : d}`;
 
     time.setDate(1 - (5 - week) * 7 - 1);
 
@@ -64,11 +64,11 @@ export const sixWeek = (time: Date, ...list: Date[]) => {
                 time.setDate(time.getDate() + 1);
                 const point = list.filter(item => format(item, 'yyyyMMdd') === format(time, 'yyyyMMdd'));
                 return point.length
-                    ? '[0;33m឵ √[0m឵'
+                    ? '[0;33m឵√  [0m឵'
                     : time.getDay() === 0
-                    ? `[0;31m឵ ${dayT(time.getDate())}[0m឵`
-                    : ` ${dayT(time.getDate())}`;
-            }).join('   ')
+                    ? `[0;31m឵${dayT(time.getDate())}[0m឵ `
+                    : `${dayT(time.getDate())} `;
+            }).join(getSpace(2))
         );
     }
 
