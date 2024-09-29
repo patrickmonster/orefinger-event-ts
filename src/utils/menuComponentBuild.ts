@@ -7,6 +7,10 @@ import {
 } from 'discord-api-types/v10';
 import division from 'utils/division';
 
+/**
+ * SelectMenu를 생성합니다.
+ */
+
 export default (
     menuProps: Omit<APIBaseSelectMenuComponent<ComponentType.StringSelect>, 'type'>,
     ...options: APISelectMenuOption[]
