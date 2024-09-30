@@ -32,8 +32,8 @@ const sqlLogger = (query: string, params: any[], rows: any[] | any) => {
     // if (env.sql_log != 'true') return rows;
     console.log('=======================================================');
     if (env.MASTER_KEY)
-        console.log('SQL] ', mysql.format(query, params).replace(newLine, ' '), '||', JSON.stringify(rows));
-    else console.log('SQL] ', mysql.format(query, params), '||', rows);
+        console.log('SQL] ', mysql.format(query, params).replace(newLine, ' '), ':: \n', JSON.stringify(rows));
+    else console.log('SQL] ', mysql.format(query, params), ':: \n', rows);
     console.log('=======================================================');
     return rows;
 };

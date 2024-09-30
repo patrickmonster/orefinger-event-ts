@@ -15,7 +15,6 @@ import {
     createChannelSelectMenu,
     createEmbed,
     createSecondaryButton,
-    createStringSelectMenu,
     createSuccessButton,
     createUrlButton,
 } from 'utils/discord/component';
@@ -239,6 +238,7 @@ export const sendMessageByChannels = async (channels: NoticeChannelHook[], isTes
 import axios from 'axios';
 import { convertVideoObject as convertAfreecaVideoObject, getLive as getAfreecaLive } from 'components/user/afreeca';
 import { convertVideoObject as convertChzzkVideoObject, getLive as getChzzkLive } from 'components/user/chzzk';
+import menuComponentBuild from 'utils/menuComponentBuild';
 import { addPointUser, appendPointCount } from './user/point';
 
 /**
@@ -488,17 +488,18 @@ ${sixWeekBig(
 \`\`\``,
             }),
         ],
-        components: [
-            createStringSelectMenu(`notice logs ${noticeId}`, {
+        components: menuComponentBuild(
+            {
                 placeholder: '방송이력',
                 max_values: 1,
                 min_values: 1,
-                options: list.map(({ live_at, id, title }) => ({
-                    label: `${format(new Date(live_at), 'MM.dd')}]${title}`,
-                    value: `${id}`,
-                })),
-            }),
-        ],
+                custom_id: `notice logs ${noticeId}`,
+            },
+            ...list.map(({ live_at, id, title }) => ({
+                label: `${format(new Date(live_at), 'MM.dd')}]${title}`,
+                value: `${id}`,
+            }))
+        ),
     };
 };
 
