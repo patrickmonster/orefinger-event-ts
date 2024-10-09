@@ -139,7 +139,7 @@ export const exec = async (interaction: AppChatInputInteraction, selectOption: S
             components,
         });
     } else {
-        // 알림 생성 실패
+        // 유튜브 알림 같은 한번에 탐색 불가능한 알림
         const { id, type } = noticeId;
         const list = await searchYoutubeUser(id);
 
