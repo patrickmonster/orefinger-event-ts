@@ -2,7 +2,7 @@ import { getAfreecabeUser } from 'components/user/afreeca';
 import { getChzzkUser } from 'components/user/chzzk';
 
 const StreamChannelRegex =
-    /^(http(s):\/\/)(chzzk.naver.com|play.afreecatv.com|bj.afreecatv.com|afreecatv.com|www.youtube.com)(\/channel|\/live)?\/([\w|@]+)/;
+    /^(http(s):\/\/)(chzzk.naver.com|play.afreecatv.com|bj.afreecatv.com|afreecatv.com|www.youtube.com|youtube.com)(\/channel|\/live)?\/([\w|@]+)/;
 
 export enum StreamTarget {
     YOUTUBE = 'YOUTUBE',
@@ -31,6 +31,7 @@ export const getNoticeIdByUrl = async (guildId: string, url: string): Promise<St
             return await getAfreecabeUser(guildId, id);
 
         case 'www.youtube.com':
+        case 'youtube.com':
             return StreamTarget.YOUTUBE;
         default: {
             return null;
