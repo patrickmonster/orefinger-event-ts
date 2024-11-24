@@ -495,7 +495,7 @@ ${sixWeekBig(
                 min_values: 1,
                 custom_id: `notice logs ${noticeId}`,
             },
-            ...list.map(({ live_at, id, title }) => ({
+            ...list.reverse().map(({ live_at, id, title }) => ({
                 label: `${format(new Date(live_at), 'MM.dd')}]${title}`,
                 value: `${id}`,
             }))

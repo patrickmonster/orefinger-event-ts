@@ -17,7 +17,8 @@ export default (
 ): APIActionRowComponent<APIStringSelectComponent>[] => {
     if (!options.length) return [];
 
-    const menuOptions = division(options, 25);
+    // 배열 개수가 5개 이상인경우, 잘라냄
+    const menuOptions: Array<Array<APISelectMenuOption>> = division<APISelectMenuOption>(options, 25).slice(0, 5);
 
     const components: APIActionRowComponent<APIStringSelectComponent>[] = [];
     for (const i in menuOptions) {
@@ -39,5 +40,6 @@ export default (
             ],
         });
     }
+
     return components;
 };
