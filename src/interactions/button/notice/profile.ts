@@ -106,7 +106,11 @@ export const exec = async (interaction: MessageInteraction, noticeId: string) =>
             case 2: {
                 // 유튜브
                 // skip
-                break;
+                interaction.reply({
+                    content: '죄송합니다.\n유튜브 알림은 특성상 프로필을 설정할 수 없습니다.',
+                    ephemeral: true,
+                });
+                return;
             }
         }
 
