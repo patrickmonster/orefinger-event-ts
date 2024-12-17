@@ -18,4 +18,26 @@ export default async (fastify: FastifyInstance, opts: any) => {
         query: req.query,
         headers: req.headers,
     }));
+
+    fastify.get<{
+        Params: { target: string };
+    }>(
+        '/l/:target',
+        {
+            schema: {
+                hide: true,
+                params: {
+                    type: 'object',
+                    properties: {
+                        target: { type: 'string' },
+                    },
+                },
+            },
+        },
+        (q, r) => {
+            const { target } = q.params;
+
+            //r.redirect('https://orefinger.click')
+        }
+    );
 };

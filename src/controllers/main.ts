@@ -71,3 +71,18 @@ AND vat.type NOT IN (6, 8, 10, 11, 14)
     `,
         authId
     );
+
+export const getHashUrl = async (hashId: string) =>
+    query<{ url: string }>(
+        `
+SELECT
+	hash_id
+	, id
+	, label
+	, target_url
+FROM link_target lt
+WHERE 1=1
+AND hash_id = ?
+        `,
+        hashId
+    );
