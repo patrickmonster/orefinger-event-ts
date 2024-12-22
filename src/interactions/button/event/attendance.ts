@@ -14,7 +14,8 @@ const selectMessage = async (broadcaster_user_id: string, userId: string): Promi
     let count = 0;
 
     // 개근일자
-    for (const { attendance_time } of list) {
+    for (const { attendance_time } of list.reverse()) {
+        /* 뒤에서 부터 연산해야 함. */
         if (attendance_time) count++;
         else break;
     }
@@ -43,7 +44,7 @@ const selectMessage = async (broadcaster_user_id: string, userId: string): Promi
 ===========================
 \`\`\`ansi
 ${createCalender(new Date(), ...pin)}
-\`\`\`${is_success ? ' +100 포인트를 획득하셨습니다' : ''}`,
+\`\`\``,
             }),
         ],
     };
