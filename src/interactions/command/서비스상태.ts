@@ -8,17 +8,18 @@ import { catchRedis } from 'utils/redis';
 const { version } = require('../../../package.json');
 
 export const exec = async (interaction: AppChatInputInteraction, selectOption: SelectOptionType) => {
-    const { ids, time, c, notices } = await catchRedis(
+    const { ids, time, c, notices, chnnels } = await catchRedis(
         'server:status',
         async () => {
             const { ids } = await ecsTaskState();
-            const { time, c, notices } = await liveState();
+            const { time, c, notices, chnnels } = await liveState();
 
             return {
                 ids,
                 time,
                 c,
                 notices,
+                chnnels,
             };
         },
         60 * 60 * 1
@@ -33,6 +34,7 @@ export const exec = async (interaction: AppChatInputInteraction, selectOption: S
 - EC2 Task: ${ids.length}개
 - Running : ${getTimeStringSeconds(process.uptime())}
 - Live Sending delay : ${time} sec (최근3달 ${c.toLocaleString()}건 평균)
+- Channel: ${chnnels.toLocaleString()}개
 - Total: ${notices.reduce((a, b) => a + b.cnt, 0).toLocaleString()}건
 ${notices.map(({ cnt, tag }) => `\t⌞ ${tag}: \t${cnt.toLocaleString()}건`).join('\n') || '- 알림이 없습니다.'}
 

@@ -34,6 +34,12 @@ GROUP BY revision
     `
     );
 
+/**
+ * ECS Task 목록을 조회합니다.
+ * @param revision
+ * @param id
+ * @returns
+ */
 export const ecsSelect = async (revision?: string, id?: string) =>
     query<{
         idx: number;
@@ -60,6 +66,12 @@ ${calTo('AND t.id = ?', id)}
         `
     );
 
+/**
+ * ECS Task 상태를 조회합니다.
+ * - 5분 이내에 업데이트 된 Task 목록을 조회합니다.
+ * @param noticeType
+ * @returns
+ */
 export const ecsTaskState = async (noticeType?: 4 | 5) =>
     query<{
         total: number;
@@ -70,6 +82,13 @@ WHERE update_at > now() - INTERVAL 5 MINUTE
 ORDER BY create_at
     `).then(([res]) => res);
 
+/**
+ * 알림의 현재 상태를 조회합니다.
+ *  - 평균 전송 속도
+ *  - 알림 종류별 전송 건수
+ * - 채널 수
+ * @returns
+ */
 export const liveState = async () =>
     getConnection(async query => {
         const { time, c } = await query<{ time: number; c: number }>(`
@@ -103,8 +122,17 @@ INNER JOIN notice n USING(notice_id)
 INNER JOIN notice_type nt ON nt.notice_type_id = n.notice_type
 GROUP BY notice_type 
         `);
+        const chnnels = await query<{
+            cnt: number;
+        }>(`
+SELECT 
+	count(1) AS cnt
+FROM notice_channel nc 
+WHERE 1=1
+AND nc.use_yn ='Y' 
+        `).then(([res]) => res.cnt);
 
-        return { time, c, notices };
+        return { time, c, notices, chnnels };
     });
 
 export const liveStateTotal = async () =>
