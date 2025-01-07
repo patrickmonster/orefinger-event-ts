@@ -1,0 +1,38 @@
+name: Organize Branch
+
+on:
+  pull_request:
+    types: [closed] # PR이 'closed' 상태일 때 실행
+    branches:
+      - 'release/*' # release 브랜치에 push가 발생하면 실행합니다.
+    
+permissions:
+  contents: write # 리포지토리 내용 수정 권한
+  id-token: write # GitHub ID 토큰을 쓸 수 있는 권한
+
+jobs:
+  build:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: ✅ 체크아웃 source code.
+        uses: actions/checkout@v3
+
+      - name: 작업 정리 대상 브런치
+        run: echo "작업 정리 대상 브런치는 ${{ github.ref }} 입니다."
+
+      - name: 🚀 develop 브랜치 정리시작
+        run: |
+          git checkout develop
+          git pull origin develop
+          
+          echo "develop 브랜치로 체크아웃 완료"
+
+          git merge ${{ github.ref }}
+          git push origin develop
+          echo "develop 브랜치로 merge 완료"
+
+          git push origin --delete ${{ github.ref }}
+          echo "release 브랜치 삭제 완료"
+      

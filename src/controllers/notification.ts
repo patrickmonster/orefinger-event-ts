@@ -1,6 +1,8 @@
 import { Paging } from 'interfaces/swagger';
 import { calLikeTo, calTo, query, selectPaging, tastTo } from 'utils/database';
 
+export type NoticeId = number | string;
+
 export const selectType = async () => query(`SELECT notice_type_id, tag, use_yn, video_yn  FROM notice_type nt`);
 
 export const liveList = () =>
@@ -181,4 +183,39 @@ ${calTo('AND vn.notice_id = ?', noticeId)}
 ${calLikeTo('AND vn.hash_id like ?', hash)}
         `,
         page
+    );
+
+export const selectNoticeHistoryById = async (page: Paging, noticeId: NoticeId) =>
+    selectPaging<{
+        notice_id: number;
+        channel_id: string;
+        notice_type: number;
+        key_id: string;
+        tags: string[] | null;
+        channel: {
+            channelId: string;
+            channelName: string;
+            channelImageUrl: string;
+        };
+        title: `"${string}"` | null; // 아프리카일 경우 null 이 나올 수 있음(오프라인)
+        json_data: object;
+        create_at: string;
+    }>(
+        `
+SELECT
+	notice_id
+	, channel_id
+	, notice_type
+	, key_id
+	, tags
+	, channel
+	, title
+	, json_data
+	, create_at 
+FROM v_notice_history
+WHERE 1=1
+AND notice_id = ?
+        `,
+        page,
+        noticeId
     );
