@@ -219,3 +219,30 @@ AND notice_id = ?
         page,
         noticeId
     );
+
+export const selectNoticeHistoryDtailById = async (page: Paging, noticeId: NoticeId) =>
+    selectPaging<{
+        notice_id: number;
+        channel_id: string;
+        notice_type: number;
+        key_id: string;
+        cnt: string;
+        json_data: object;
+        create_at: string;
+    }>(
+        `
+SELECT
+	notice_id
+	, channel_id
+	, notice_type
+	, key_id
+	, cnt
+	, json_data
+	, create_at
+FROM v_notice_history_detail
+WHERE 1=1
+AND notice_id = ?
+            `,
+        page,
+        noticeId
+    );
