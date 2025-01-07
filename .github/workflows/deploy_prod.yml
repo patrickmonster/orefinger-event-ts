@@ -1,14 +1,16 @@
 name: Deploy to ECR - prod.
 
 on:
-  push:
+  pull_request:
+    types: [closed] # PR이 'closed' 상태일 때 실행
     branches:
       - 'master'
 
 jobs:
 
   build:
-
+    # PR 머지가 발생했을 때만 실행
+    if: github.event.pull_request.merged == true
     name: Build Image
     runs-on: ubuntu-latest
     

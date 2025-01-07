@@ -117,6 +117,9 @@ export const REDIS_KEY = {
         CHZZK_LIVE_STATE: (id: string) => `api:chzzk:live:state:${id}`,
         MAIN_TOTAL: 'api:main:total',
         MAIN_NOTICE: 'api:main:notice',
+
+        // 통계
+        CHANNEL_HISTORY_LIVE: (channelId: string) => `api:channel:history:live:${channelId}`,
     },
     DISCORD: {
         GUILD_CHANNELS: (id: string) => `discord:channels:${id}`,
