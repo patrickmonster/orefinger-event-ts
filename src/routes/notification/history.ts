@@ -1,7 +1,7 @@
 import { selectNoticeHistoryById, selectNoticeHistoryDtailById } from 'controllers/notification';
 import { FastifyInstance } from 'fastify';
 import { Paging } from 'interfaces/swagger';
-import { cacheRedis, REDIS_KEY } from 'utils/redis';
+import { catchRedis, REDIS_KEY } from 'utils/redis';
 
 export default async (fastify: FastifyInstance, opts: any) => {
     fastify.get<{
@@ -30,9 +30,9 @@ export default async (fastify: FastifyInstance, opts: any) => {
             },
         },
         async req =>
-            cacheRedis(
+            catchRedis(
                 REDIS_KEY.API.CHANNEL_HISTORY_LIVE(`${req.query.id}`),
-                await selectNoticeHistoryById(req.query, req.query.id),
+                async () => await selectNoticeHistoryById(req.query, req.query.id),
                 60 * 60 * 1
             )
     );
@@ -62,9 +62,9 @@ export default async (fastify: FastifyInstance, opts: any) => {
             },
         },
         async req =>
-            cacheRedis(
+            catchRedis(
                 REDIS_KEY.API.CHANNEL_HISTORY_LIVE(`${req.query.id}`),
-                await selectNoticeHistoryDtailById(req.query, req.query.id),
+                async () => await selectNoticeHistoryDtailById(req.query, req.query.id),
                 60 * 60 * 1
             )
     );
