@@ -13,7 +13,7 @@ export default async (fastify: FastifyInstance, opts: any) => {
         {
             onRequest: [fastify.authenticateQuarter],
             schema: {
-                tags: ['post'],
+                tags: ['Post'],
                 description: '게시글 목록 조회',
                 deprecated: false,
                 querystring: {
@@ -43,7 +43,7 @@ export default async (fastify: FastifyInstance, opts: any) => {
         '/type',
         {
             schema: {
-                tags: ['post'],
+                tags: ['Post'],
                 description: '게시글 타입 목록 조회',
                 deprecated: false,
             },
@@ -60,7 +60,7 @@ export default async (fastify: FastifyInstance, opts: any) => {
         {
             onRequest: [fastify.authenticateQuarter],
             schema: {
-                tags: ['post'],
+                tags: ['Post'],
                 description: '게시글 조회',
                 deprecated: false,
                 params: {
@@ -93,7 +93,7 @@ export default async (fastify: FastifyInstance, opts: any) => {
             onRequest: [fastify.authenticate],
             schema: {
                 security: [{ Bearer: [] }],
-                tags: ['post'],
+                tags: ['Post'],
                 description: '게시글 작성',
                 deprecated: false,
                 body: {

@@ -14,7 +14,7 @@ export default async (fastify: FastifyInstance, opts: any) => {
         '/:id',
         {
             schema: {
-                tags: ['post'],
+                tags: ['Post'],
                 description: '게시글 덧글 조회',
                 deprecated: false,
                 params: {
@@ -47,7 +47,7 @@ export default async (fastify: FastifyInstance, opts: any) => {
             onRequest: [fastify.authenticate],
             schema: {
                 security: [{ Bearer: [] }],
-                tags: ['post'],
+                tags: ['Post'],
                 description: '게시글 덧글 작성',
                 deprecated: false,
                 params: {

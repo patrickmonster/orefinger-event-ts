@@ -30,17 +30,22 @@ export default fp(async function (fastify, opts) {
                 { name: 'Auth', description: '인증' },
 
                 { name: 'Main', description: '매인화면 관련 (캐싱적용) API' },
-                { name: 'WebSocket', description: '웹 소캣' },
-
-                { name: 'Admin', description: '관리자 관리용 API' },
-                { name: 'System', description: '시스템 관리용 API' },
+                // { name: 'WebSocket', description: '웹 소캣' },
 
                 { name: 'Notification', description: '알림 (구)' },
                 { name: 'Notice', description: '알림 (신규)' },
 
                 { name: 'Discord', description: '디스코드 관련 API' },
 
+                { name: 'Infra', description: '인프라 설정' },
+                { name: 'Admin', description: '관리자 관리용 API' },
+                { name: 'System', description: '시스템 관리용 API' },
+
                 { name: 'Util', description: '유틸리티 관련 API' },
+
+                { name: 'Paymont', description: '결제 모듈' },
+                { name: 'Post', description: '포스팅 관련' },
+                { name: 'File', description: '파일서버 (S3)' },
             ],
             // schemes: [process.env.MASTER_KEY ? 'https' : 'http'],
             components: {
@@ -70,7 +75,7 @@ export default fp(async function (fastify, opts) {
             ),
         },
         uiConfig: {
-            docExpansion: 'list',
+            docExpansion: 'none',
             deepLinking: false,
         },
         transformSpecification: (swaggerObject, request, reply) => swaggerObject,

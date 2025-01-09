@@ -1,5 +1,5 @@
 'use strict';
-import { query, SqlInsertUpdate, calTo } from 'utils/database';
+import { query } from 'utils/database';
 
 export const rolePermission = async (showAll = false) =>
     query<{

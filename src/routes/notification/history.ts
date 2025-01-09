@@ -31,7 +31,7 @@ export default async (fastify: FastifyInstance, opts: any) => {
         },
         async req =>
             catchRedis(
-                REDIS_KEY.API.CHANNEL_HISTORY_LIVE(`${req.query.id}`),
+                REDIS_KEY.API.CHANNEL_HISTORY_LIVE(`${req.query.id}:${req.query.limit || 10}:${req.query.page}`),
                 async () => await selectNoticeHistoryById(req.query, req.query.id),
                 60 * 60 * 1
             )
@@ -63,7 +63,7 @@ export default async (fastify: FastifyInstance, opts: any) => {
         },
         async req =>
             catchRedis(
-                REDIS_KEY.API.CHANNEL_HISTORY_LIVE(`${req.query.id}`),
+                REDIS_KEY.API.CHANNEL_HISTORY_LIVE(`${req.query.id}:${req.query.limit || 10}:${req.query.page}`),
                 async () => await selectNoticeHistoryDtailById(req.query, req.query.id),
                 60 * 60 * 1
             )
