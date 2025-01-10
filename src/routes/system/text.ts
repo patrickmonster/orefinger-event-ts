@@ -1,6 +1,6 @@
-import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
+import { FastifyInstance } from 'fastify';
 
-import { getTextList, createText, updateText } from 'controllers/text';
+import { createText, getTextList } from 'controllers/util/text';
 
 import { Paging } from 'interfaces/swagger';
 import { TextCreate } from 'interfaces/text';

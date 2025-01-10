@@ -78,8 +78,8 @@ SELECT c.component_id
     , c.order_by
     , c.label_id
     , c.style_id
-FROM component c
-LEFT JOIN component_type ct ON c.type_idx = ct.type_idx`,
+FROM sys_orefinger.component c
+LEFT JOIN sys_orefinger.component_type ct ON c.type_idx = ct.type_idx`,
         page
     );
 
@@ -112,9 +112,9 @@ SELECT
   a.create_at,
   a.update_at,
   a.order_by
-FROM component a
-left join component_type c on a.type_idx = c.type_idx 
-left join component_style d on a.style_id = d.style_idx 
+FROM sys_orefinger.component a
+left join sys_orefinger.component_type c on a.type_idx = c.type_idx 
+left join sys_orefinger.component_style d on a.style_id = d.style_idx 
 where 1=1
 and a.component_id = ?
     `,
@@ -146,7 +146,7 @@ SELECT
     , permission_type
     , create_at
     , update_at
-FROM component_option
+FROM sys_orefinger.component_option
   `,
         page
     );
@@ -154,22 +154,22 @@ FROM component_option
 export const selectComponentOptionDtil = async (option_id: number) =>
     query(
         `
-    SELECT
-      option_id,
-      label_id,
-      f_get_text(label_id) as label,
-      value,
-      description_id,
-      f_get_text(description_id) as description,
-      emoji,
-      default_yn as \`default\`,
-      use_yn as \`use\`,
-      permission_type,
-      create_at,
-      update_at
-    FROM component_option a
-    where 1=1
-    and a.option_id = ?
+SELECT
+    option_id,
+    label_id,
+    f_get_text(label_id) as label,
+    value,
+    description_id,
+    f_get_text(description_id) as description,
+    emoji,
+    default_yn as \`default\`,
+    use_yn as \`use\`,
+    permission_type,
+    create_at,
+    update_at
+FROM sys_orefinger.component_option a
+where 1=1
+and a.option_id = ?
       `,
         option_id
     ).then(res => res[0]);
@@ -189,10 +189,10 @@ export const selectComponentTypeList = async (component_id?: ComponentId) =>
 SELECT CAST(ct.type AS CHAR) AS value
     , CONCAT(ct.type, ']', tag) AS label
     ${calTo(
-        ', IF(ct.type = ( SELECT type_idx FROM component c WHERE c.component_id = ? ), true, false) AS `default`',
+        ', IF(ct.type = ( SELECT type_idx FROM sys_orefinger.component c WHERE c.component_id = ? ), true, false) AS `default`',
         component_id
     )}
-FROM component_type ct  
+FROM sys_orefinger.component_type ct  
 ${tastTo("WHERE use_yn = 'Y'")}
            `
     );
@@ -224,9 +224,9 @@ SELECT
         'footer', JSON_OBJECT('text', name),
         'timestamp', a.create_at 
     ) AS embed
-FROM component a
-LEFT JOIN component_type c ON a.type_idx = c.type_idx 
-LEFT JOIN component_style d ON a.style_id = d.style_idx 
+FROM sys_orefinger.component a
+LEFT JOIN sys_orefinger.component_type c ON a.type_idx = c.type_idx 
+LEFT JOIN sys_orefinger.component_style d ON a.style_id = d.style_idx 
     ${tastTo("AND use_yn = 'Y'")}
 WHERE a.component_id = ?
         `,
@@ -247,8 +247,8 @@ SELECT
         'author', JSON_OBJECT('name', IFNULL(c.tag, '없음')),
         'timestamp', cg.create_at 
     ) AS embed
-FROM component_group cg
-LEFT JOIN component_type c ON cg.type_idx = c.type_idx 
+FROM sys_orefinger.component_group cg
+LEFT JOIN sys_orefinger.component_type c ON cg.type_idx = c.type_idx 
 WHERE cg.group_id = ?
         `,
         ParseInt(component_group_id)
@@ -280,15 +280,15 @@ FROM (
         , car.create_at
         , carc.component_id
         , carc.sort_number
-    FROM component_action_row car
-    LEFT JOIN component_action_row_connect carc 
+    FROM sys_orefinger.component_action_row car
+    LEFT JOIN sys_orefinger.component_action_row_connect carc 
         ON carc.component_row_id = car.component_id 
         ${tastTo("AND carc.use_yn = 'Y'")}
     WHERE car.component_id = ?
     ORDER BY carc.sort_number 
     LIMIT 10
 ) car
-LEFT JOIN component c ON c.component_id = car.component_id 
+LEFT JOIN sys_orefinger.component c ON c.component_id = car.component_id 
 GROUP BY car.component_row_id 
         `,
         ParseInt(component_group_id)
@@ -328,7 +328,7 @@ SELECT CONCAT(a.component_id, '] 컴포넌트 수정') as title,
             )
         )
     ) AS components
-FROM component a
+FROM sys_orefinger.component a
 WHERE a.component_id = ?
         `,
         ParseInt(component_id)
@@ -345,7 +345,7 @@ SELECT CONCAT(group_id , '] 컴포넌트 그룹 수정') as title,
             )
         )
     ) AS components
-FROM component_group cg 
+FROM sys_orefinger.component_group cg 
 WHERE group_id = ?
         `,
         ParseInt(group_id)
@@ -362,8 +362,8 @@ SELECT CONCAT(component_id , '] 컴포넌트 그룹 수정') as title,
             )
         )
     ) AS components
-FROM component_action_row 
-WHERE component_id = ? 
+FROM sys_orefinger.component_action_row 
+WHERE sys_orefinger.component_id = ? 
         `,
         ParseInt(action_row_id)
     ).then(res => res[0]);
@@ -396,7 +396,7 @@ SELECT JSON_ARRAY(
                 `JSON_OBJECT('label', '${column_name}', 'value', '${column_name}', 'default', IF(${column_name} = 'Y', TRUE, FALSE))`
         )
         .join(',')})AS \`options\`
-FROM ${targetTable} c
+FROM sys_orefinger.${targetTable} c
 WHERE c.${YNMenu[targetTable]} = ?
             `,
             ParseInt(component_id)
@@ -437,7 +437,7 @@ LIMIT 5
 export const updateComponent = async (component_id: ComponentId, component: Partial<ComponentCreate>) =>
     query<SqlInsertUpdate>(
         `
-UPDATE component
+UPDATE sys_orefinger.component
 SET ?, update_at=CURRENT_TIMESTAMP
 WHERE component_id=?`,
         component,
@@ -452,7 +452,7 @@ export type UpdateYNConnection = {
 export const updateComponentOption = async (component_id: ComponentId, component: ComponentOptionCreate) =>
     query<SqlInsertUpdate>(
         `
-UPDATE component_option
+UPDATE sys_orefinger.component_option
 SET ?, update_at=CURRENT_TIMESTAMP
 WHERE component_id=?`,
         component,
@@ -461,7 +461,7 @@ WHERE component_id=?`,
 
 export const updateComponentActionRow = async (component_id: ComponentId, component: ComponentActionRow) =>
     query<SqlInsertUpdate>(
-        `UPDATE component_action_row SET ?, update_at=CURRENT_TIMESTAMP WHERE component_id = ?`,
+        `UPDATE sys_orefinger.component_action_row SET ?, update_at=CURRENT_TIMESTAMP WHERE component_id = ?`,
         component,
         ParseInt(component_id)
     );
@@ -472,7 +472,7 @@ export const updateComponentActionRowConnect = async (
     component: Partial<ComponentActionRowConnect>
 ) =>
     query<SqlInsertUpdate>(
-        `UPDATE component_action_row_connect SET ?, update_at=CURRENT_TIMESTAMP WHERE component_row_id = ? ${calTo(
+        `UPDATE sys_orefinger.component_action_row_connect SET ?, update_at=CURRENT_TIMESTAMP WHERE component_row_id = ? ${calTo(
             'AND component_id = ?',
             component_id
         )}`,
@@ -494,8 +494,11 @@ export const upsertComponent = async (
 ) =>
     query<SqlInsertUpdate>(
         component_id
-            ? `UPDATE component SET ?, update_at=CURRENT_TIMESTAMP WHERE component_id = ${calTo('?', component_id)}`
-            : `INSERT INTO component SET ?`,
+            ? `UPDATE sys_orefinger.component SET ?, update_at=CURRENT_TIMESTAMP WHERE component_id = ${calTo(
+                  '?',
+                  component_id
+              )}`
+            : `INSERT INTO sys_orefinger.component SET ?`,
         component
     );
 
@@ -508,11 +511,11 @@ export const upsertComponent = async (
 export const upsertComponentActionRow = async (component: Partial<ComponentActionRow>, component_id?: ComponentId) =>
     query<SqlInsertUpdate>(
         component_id
-            ? `UPDATE component_action_row SET ?, update_at=CURRENT_TIMESTAMP WHERE component_id = ${calTo(
+            ? `UPDATE sys_orefinger.component_action_row SET ?, update_at=CURRENT_TIMESTAMP WHERE component_id = ${calTo(
                   '?',
                   component_id
               )}`
-            : `INSERT INTO component_action_row SET ?`,
+            : `INSERT INTO sys_orefinger.component_action_row SET ?`,
         component
     );
 
@@ -534,7 +537,7 @@ export const upsertComponentActionRowConnect = async (
         if (Array.isArray(components)) {
             for (const component of components) {
                 const { affectedRows, changedRows, insertId } = await query<SqlInsertUpdate>(
-                    `INSERT INTO component_action_row_connect SET ? ON DUPLICATE KEY UPDATE ?, update_at=CURRENT_TIMESTAMP`,
+                    `INSERT INTO sys_orefinger.component_action_row_connect SET ? ON DUPLICATE KEY UPDATE ?, update_at=CURRENT_TIMESTAMP`,
                     component,
                     component
                 );
@@ -544,7 +547,7 @@ export const upsertComponentActionRowConnect = async (
             }
         } else {
             const { affectedRows, changedRows, insertId } = await query<SqlInsertUpdate>(
-                `INSERT INTO component_action_row_connect SET ? ON DUPLICATE KEY UPDATE ?, update_at=CURRENT_TIMESTAMP`,
+                `INSERT INTO sys_orefinger.component_action_row_connect SET ? ON DUPLICATE KEY UPDATE ?, update_at=CURRENT_TIMESTAMP`,
                 components,
                 components
             );
@@ -573,7 +576,7 @@ export const upsertComponentOptionConnect = async (components: ComponentOptionCo
         if (Array.isArray(components)) {
             for (const component of components) {
                 const { affectedRows, changedRows, insertId } = await query<SqlInsertUpdate>(
-                    `INSERT INTO component_option_connection SET ? ON DUPLICATE KEY UPDATE ?, update_at=CURRENT_TIMESTAMP`,
+                    `INSERT INTO sys_orefinger.component_option_connection SET ? ON DUPLICATE KEY UPDATE ?, update_at=CURRENT_TIMESTAMP`,
                     component,
                     component
                 );
@@ -583,7 +586,7 @@ export const upsertComponentOptionConnect = async (components: ComponentOptionCo
             }
         } else {
             const { affectedRows, changedRows, insertId } = await query<SqlInsertUpdate>(
-                `INSERT INTO component_option_connection SET ? ON DUPLICATE KEY UPDATE ?, update_at=CURRENT_TIMESTAMP`,
+                `INSERT INTO sys_orefinger.component_option_connection SET ? ON DUPLICATE KEY UPDATE ?, update_at=CURRENT_TIMESTAMP`,
                 components,
                 components
             );
@@ -604,7 +607,7 @@ export const upsertComponentOptionConnect = async (components: ComponentOptionCo
  * @returns
  */
 export const createComponent = async (component: ComponentCreate) =>
-    query<SqlInsertUpdate>(`INSERT INTO component SET ?`, component);
+    query<SqlInsertUpdate>(`INSERT INTO sys_orefinger.component SET ?`, component);
 
 /**
  * 컴포넌트 옵션 생성
@@ -612,7 +615,7 @@ export const createComponent = async (component: ComponentCreate) =>
  * @returns
  */
 export const createComponentOption = async (component: ComponentOptionCreate) =>
-    query<SqlInsertUpdate>(`INSERT INTO component_option   SET ?`, component);
+    query<SqlInsertUpdate>(`INSERT INTO sys_orefinger.component_option   SET ?`, component);
 
 // ========================================================================================================
 
@@ -624,9 +627,9 @@ export const createComponentOption = async (component: ComponentOptionCreate) =>
 export const copyComponent = async (component_id: ComponentId) =>
     query<SqlInsertUpdate>(
         `
-INSERT INTO component (name, label_id, label_lang, type_idx, text_id, emoji, custom_id, value, \`style\`, min_values, max_values, disabled_yn, required_yn, use_yn, edit_yn, permission_type, order_by)
+INSERT INTO sys_orefinger.component (name, label_id, label_lang, type_idx, text_id, emoji, custom_id, value, \`style\`, min_values, max_values, disabled_yn, required_yn, use_yn, edit_yn, permission_type, order_by)
 SELECT name, label_id, label_lang, type_idx, text_id, emoji, custom_id, value, \`style\`, min_values, max_values, disabled_yn, required_yn, use_yn, edit_yn, permission_type, order_by 
-FROM component
+FROM sys_orefinger.component
 WHERE component_id = ?
     `,
         ParseInt(component_id)
@@ -640,9 +643,9 @@ WHERE component_id = ?
 export const copyComponentGroup = async (component_group_id: ComponentId) =>
     query<SqlInsertUpdate>(
         `
-INSERT INTO component_group (name, group_type, type_idx) 
+INSERT INTO sys_orefinger.component_group (name, group_type, type_idx) 
 SELECT name, group_type, type_idx
-FROM component_group cg 
+FROM sys_orefinger.component_group cg 
 WHERE group_id = ? 
     `,
         ParseInt(component_group_id)
@@ -658,8 +661,8 @@ export const copyComponentActionRow = async (component_action_row_id: ComponentI
         `
 INSERT INTO (name, component_id_0, component_id_1, component_id_2, component_id_3, component_id_4)
 SELECT name, component_id_0, component_id_1, component_id_2, component_id_3, component_id_4 
-FROM component_action_row car 
-WHERE component_id  = ?
+FROM sys_orefinger.component_action_row car 
+WHERE sys_orefinger.component_id  = ?
     `,
         ParseInt(component_action_row_id)
     );

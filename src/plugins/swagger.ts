@@ -32,8 +32,7 @@ export default fp(async function (fastify, opts) {
                 { name: 'Main', description: '매인화면 관련 (캐싱적용) API' },
                 // { name: 'WebSocket', description: '웹 소캣' },
 
-                { name: 'Notification', description: '알림 (구)' },
-                { name: 'Notice', description: '알림 (신규)' },
+                { name: 'Notice', description: '알림' },
 
                 { name: 'Discord', description: '디스코드 관련 API' },
 
