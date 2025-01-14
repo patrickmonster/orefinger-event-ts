@@ -26,6 +26,11 @@ export interface sqlInsertUpdate {
     insertId: number;
 }
 
+export interface BaseTableCols {
+    create_at: string;
+    update_at: string;
+}
+
 const newLine = /\n/g;
 
 const sqlLogger = (query: string, params: any[], rows: any[] | any) => {
