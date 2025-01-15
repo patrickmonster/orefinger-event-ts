@@ -7,7 +7,7 @@ export default async (fastify: FastifyInstance, opts: any) => {
     fastify.addSchema({
         $id: 'textMessage',
         type: 'object',
-        required: ['tag'],
+        required: ['name'],
         properties: {
             name: { type: 'string', description: '텍스트 설명' },
             language_cd: { type: 'number', description: '언어 코드' },
@@ -40,8 +40,7 @@ export default async (fastify: FastifyInstance, opts: any) => {
                         {
                             type: 'object',
                             properties: {
-                                tag: { type: 'string', description: '텍스트 설명', nullable: true },
-                                message: { type: 'string', description: '텍스트', nullable: true },
+                                search: { type: 'string', description: '검색어', nullable: true },
                             },
                         },
                     ],
@@ -51,7 +50,7 @@ export default async (fastify: FastifyInstance, opts: any) => {
         async req => await selectText(req.query, req.query)
     );
 
-    fastify.patch<{
+    fastify.post<{
         Body: TextType;
         Querystring: TextPk;
     }>(

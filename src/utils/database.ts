@@ -208,12 +208,20 @@ export const getQueryKey = (query: string, ...params: any[]) => {
 export const calTo = (query: string, ...value: any[]) =>
     value.filter(v => v != null && v != undefined && v != '').length ? mysql.format(`${query}`, value) : '-- calTo';
 
-export const tastTo = (query: string) => (process.env.NODE_ENV === 'local' ? '' : query);
-
 export const calLikeTo = (query: string, ...value: any[]) =>
     value.filter(v => v != null && v != undefined && v != '').length
-        ? mysql.format(`%${query}%`, value)
-        : '-- calLikeTo';
+        ? mysql.format(
+              `${query}`,
+              value.map(v => `%${v}%`)
+          )
+        : '-- calTo';
+
+export const tastTo = (query: string) => (process.env.NODE_ENV === 'local' ? '' : query);
+
+// export const calLikeTo = (query: string, ...value: any[]) =>
+//     value.filter(v => v != null && v != undefined && v != '').length
+//         ? mysql.format(`$%${}%`, value)
+//         : '-- calLikeTo';
 export const objectToAndQury = (obj: any) =>
     Object.keys(obj)
         .map(key => (obj[key] ? `AND ${key} = ${obj[key]}` : `/* SKIP :: ${key} */`))
