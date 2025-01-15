@@ -21,7 +21,8 @@ export default async (fastify: FastifyInstance, opts: any) => {
 
     fastify.get<{
         Querystring: Paging & {
-            search?: string;
+            text_id?: string;
+            name?: string;
             language_cd?: number;
         };
     }>(
@@ -40,7 +41,9 @@ export default async (fastify: FastifyInstance, opts: any) => {
                         {
                             type: 'object',
                             properties: {
-                                search: { type: 'string', description: '검색어', nullable: true },
+                                text_id: { type: 'string', description: '텍스트 ID', nullable: true },
+                                language_cd: { type: 'number', description: '언어 코드', nullable: true },
+                                name: { type: 'string', description: '검색어', nullable: true },
                             },
                         },
                     ],

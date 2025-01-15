@@ -1,5 +1,5 @@
 import { Paging } from 'interfaces/swagger';
-import { BaseTableCols, calLikeTo, objectToAndQury, query, selectPaging, SqlInsertUpdate } from 'utils/database';
+import { BaseTableCols, calLikeTo, calTo, objectToAndQury, query, selectPaging, SqlInsertUpdate } from 'utils/database';
 
 export interface TextPk {
     text_id: number;
@@ -29,7 +29,10 @@ AND language_cd = ?
         language_cd || 0 // KR
     );
 
-export const selectText = async (page: Paging, { search, language_cd }: { search?: string; language_cd?: number }) =>
+export const selectText = async (
+    page: Paging,
+    { name, text_id, language_cd }: { name?: string; text_id?: string; language_cd?: number }
+) =>
     selectPaging<Text & BaseTableCols>(
         `
 SELECT text_id
@@ -41,7 +44,8 @@ SELECT text_id
 FROM sys_orefinger.text_message
 WHERE 1=1
 AND language_cd = ?
-${calLikeTo(`AND name LIKE ?`, search)}
+${calTo(`AND text_id = ?`, text_id)}
+${calLikeTo(`AND name LIKE ?`, name)}
     `,
         page,
         language_cd || 0 // KR
