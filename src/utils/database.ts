@@ -214,3 +214,7 @@ export const calLikeTo = (query: string, ...value: any[]) =>
     value.filter(v => v != null && v != undefined && v != '').length
         ? mysql.format(`%${query}%`, value)
         : '-- calLikeTo';
+export const objectToAndQury = (obj: any) =>
+    Object.keys(obj)
+        .map(key => (obj[key] ? `AND ${key} = ${obj[key]}` : `/* SKIP :: ${key} */`))
+        .join('\n');

@@ -36,13 +36,17 @@ SELECT
 FROM sys_orefinger.label
 WHERE 1=1
 AND language_cd = ?
-${calTo(`AND ( name = ? OR text = ? )`, search)}
+${calTo(`AND ( name = ? OR text = ? )`, search, search)}
     `,
         page,
         language_cd || 0 // KR
     );
 
 export const upsertLabel = async (label: Label) =>
-    query<SqlInsertUpdate>(`INSERT INTO sys_orefinger.label SET ? ON DUPLICATE KEY UPDATE ?`, label, {
-        text: label.text,
-    });
+    query<SqlInsertUpdate>(
+        `INSERT INTO sys_orefinger.label SET ? ON DUPLICATE KEY UPDATE ? , update_at = CURRENT_TIMESTAMP `,
+        label,
+        {
+            text: label.text,
+        }
+    );

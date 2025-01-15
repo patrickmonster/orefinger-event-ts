@@ -1,9 +1,7 @@
 import { FastifyInstance } from 'fastify';
 
-import { createText, getTextList } from 'controllers/util/text';
-
+import { selectText, TextPk, Text as TextType, upsertText } from 'controllers/system/text';
 import { Paging } from 'interfaces/swagger';
-import { TextCreate } from 'interfaces/text';
 
 export default async (fastify: FastifyInstance, opts: any) => {
     fastify.addSchema({
@@ -11,8 +9,9 @@ export default async (fastify: FastifyInstance, opts: any) => {
         type: 'object',
         required: ['tag'],
         properties: {
-            tag: { type: 'string', description: '텍스트 설명' },
-            message: {
+            name: { type: 'string', description: '텍스트 설명' },
+            language_cd: { type: 'number', description: '언어 코드' },
+            text: {
                 type: 'string',
 
                 description: '저장되어 보여질 메세지 (string)',
@@ -22,8 +21,8 @@ export default async (fastify: FastifyInstance, opts: any) => {
 
     fastify.get<{
         Querystring: Paging & {
-            tag?: string;
-            message?: string;
+            search?: string;
+            language_cd?: number;
         };
     }>(
         '/text',
@@ -49,30 +48,12 @@ export default async (fastify: FastifyInstance, opts: any) => {
                 },
             },
         },
-        async req => await getTextList(req.query, req.query)
-    );
-
-    fastify.post<{
-        Body: TextCreate;
-    }>(
-        '/text',
-        {
-            onRequest: [fastify.masterkey],
-            schema: {
-                security: [{ Master: [] }],
-                tags: ['System'],
-                description: '텍스트 생성',
-                body: { $ref: 'textMessage#' },
-                response: {
-                    200: { $ref: 'sqlResult#' },
-                },
-            },
-        },
-        async req => await createText(req.body)
+        async req => await selectText(req.query, req.query)
     );
 
     fastify.patch<{
-        Body: TextCreate;
+        Body: TextType;
+        Querystring: TextPk;
     }>(
         '/text',
         {
@@ -93,6 +74,6 @@ export default async (fastify: FastifyInstance, opts: any) => {
                 },
             },
         },
-        async req => await createText(req.body)
+        async req => await upsertText(req.body, req.query)
     );
 };

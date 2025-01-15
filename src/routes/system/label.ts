@@ -17,7 +17,7 @@ export default async (fastify: FastifyInstance, opts: any) => {
     }>(
         '/findLabel',
         {
-            onRequest: [fastify.masterkey],
+            // onRequest: [fastify.masterkey],
             schema: {
                 security: [{ Master: [] }],
                 description: '라벨 리스트 조회',
