@@ -26,8 +26,7 @@ export type Component = {
     name: string;
     label_id: number;
     label_lang: string;
-    type_idx: number;
-    type: string;
+    type: number;
     type_name: string;
     text_id: number;
     emoji: string;
@@ -65,7 +64,7 @@ SELECT c.component_id
     , c.emoji
     , c.custom_id
     , c.value
-    , c.\`style\`
+    , c.style_id AS \`style\`
     , c.min_values
     , c.max_values
     , c.disabled_yn
@@ -92,8 +91,7 @@ SELECT
   a.label_id,
   f_get_text(label_id) as label,
   a.label_lang,
-  a.type_idx,
-  c.type,
+  a.type_idx AS \`type\`,
   c.tag as type_name,
   a.text_id,
   f_get_text(text_id) as \`text\`,
@@ -113,8 +111,8 @@ SELECT
   a.update_at,
   a.order_by
 FROM sys_orefinger.component a
-left join sys_orefinger.component_type c on a.type_idx = c.type_idx 
-left join sys_orefinger.component_style d on a.style_id = d.style_idx 
+left join sys_orefinger.component_type c on a.type_idx = c.type_idx
+left join sys_orefinger.component_style d on a.style_id = d.style_id
 where 1=1
 and a.component_id = ?
     `,
