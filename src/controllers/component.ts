@@ -25,7 +25,6 @@ export type Component = {
     component_id: number;
     name: string;
     label_id: number;
-    label_lang: string;
     type: number;
     type_name: string;
     text_id: number;
@@ -56,8 +55,6 @@ export const selectComponentList = async (page: Paging) =>
         `
 SELECT c.component_id
     , c.name
-    , c.label
-    , c.label_lang
     , c.type_idx
     , ct.tag AS \`type\`
     , c.text_id
@@ -90,7 +87,6 @@ SELECT
   a.name,
   a.label_id,
   f_get_text(label_id) as label,
-  a.label_lang,
   a.type_idx AS \`type\`,
   c.tag as type_name,
   a.text_id,
