@@ -39,6 +39,7 @@ export default fp(async function (fastify, opts) {
                 { name: 'Infra', description: '인프라 설정' },
                 { name: 'Admin', description: '관리자 관리용 API' },
                 { name: 'System', description: '시스템 관리용 API' },
+                { name: 'KakaoBot', description: '카카오 봇 API' },
 
                 { name: 'Util', description: '유틸리티 관련 API' },
 
