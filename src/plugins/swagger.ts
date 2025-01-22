@@ -44,7 +44,6 @@ export default fp(async function (fastify, opts) {
                 { name: 'Util', description: '유틸리티 관련 API' },
 
                 { name: 'Paymont', description: '결제 모듈' },
-                { name: 'Post', description: '포스팅 관련' },
                 { name: 'File', description: '파일서버 (S3)' },
             ],
             // schemes: [process.env.MASTER_KEY ? 'https' : 'http'],
