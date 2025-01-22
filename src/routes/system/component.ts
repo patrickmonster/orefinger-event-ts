@@ -5,9 +5,8 @@ import {
     getComponentOptionList,
     selectComponentDtil,
     selectComponentList,
-    selectComponentOptionDtil,
     updateComponent,
-    updateComponentOption,
+    upsertComponentOptionConnect,
 } from 'controllers/component';
 import { ComponentCreate, ComponentOptionCreate } from 'interfaces/component';
 
@@ -21,7 +20,6 @@ export default async (fastify: FastifyInstance, opts: any) => {
         properties: {
             name: { type: 'string' },
             label_id: { type: 'number' },
-            label_lang: { type: 'number' },
             type_idx: { type: 'number' },
             text_id: { type: 'number' },
             emoji: { type: 'string' },
@@ -50,6 +48,8 @@ export default async (fastify: FastifyInstance, opts: any) => {
             update_at: { type: 'string' },
         },
     });
+
+    ////////////////////////////////////////////////////////////
 
     fastify.get<{
         Querystring: Paging;
@@ -229,62 +229,87 @@ export default async (fastify: FastifyInstance, opts: any) => {
         }
     );
 
-    fastify.get<{
-        Params: { option_id: number };
-    }>(
-        '/component/option/:option_id',
-        {
-            onRequest: [fastify.masterkey],
-            schema: {
-                security: [{ Master: [] }],
-                description: '컴포넌트 옵션 상세 조회',
-                tags: ['System'],
-                deprecated: false,
-                params: {
-                    type: 'object',
-                    required: ['option_id'],
-                    properties: {
-                        option_id: { type: 'number' },
-                    },
-                },
-            },
-        },
-        async req => await selectComponentOptionDtil(req.params.option_id)
-    );
+    // fastify.get<{
+    //     Params: { component_id: number };
+    //     Querystring: Paging & {
+    //         use_yn?: 'Y' | 'N';
+    //     };
+    // }>(
+    //     '/component/:component_id/options',
+    //     {
+    //         onRequest: [fastify.masterkey],
+    //         schema: {
+    //             security: [{ Master: [] }],
+    //             description: '컴포넌트 옵션 연결 수정',
+    //             tags: ['System'],
+    //             deprecated: false,
+    //             params: {
+    //                 type: 'object',
+    //                 required: ['option_id'],
+    //                 properties: {
+    //                     component_id: { type: 'number' },
+    //                 },
+    //             },
+    //             body: {
+    //                 allOf: [
+    //                     { $ref: 'paging#' },
+    //                     {
+    //                         type: 'array',
+    //                         properties: {
+    //                             use_yn: { type: 'string', enum: ['Y', 'N'] },
+    //                         },
+    //                     },
+    //                 ],
+    //             },
+    //         },
+    //     },
+    //     // async req => await updateComponentOption(req.params.option_id, req.body)
+    //     async req => {
+    //         const { component_id } = req.params;
+    //     }
+    // );
 
     fastify.patch<{
-        Body: ComponentOptionCreate;
-        Params: { option_id: number };
+        Params: { component_id: number };
+        Body: {
+            option_id: number;
+            use_yn: 'Y' | 'N';
+        }[];
     }>(
-        '/component/option/:option_id',
+        '/component/:component_id/options',
         {
             onRequest: [fastify.masterkey],
             schema: {
                 security: [{ Master: [] }],
-                description: '컴포넌트 옵션 수정',
+                description: '컴포넌트 옵션 연결 수정',
                 tags: ['System'],
                 deprecated: false,
                 params: {
                     type: 'object',
                     required: ['option_id'],
                     properties: {
-                        option_id: { type: 'number' },
+                        component_id: { type: 'number' },
                     },
                 },
                 body: {
-                    allOf: [
-                        { $ref: 'componentOption#' },
-                        {
-                            type: 'object',
-                            properties: {
-                                use_yn: { type: 'string', enum: ['Y', 'N'] },
-                                edit_yn: { type: 'string', enum: ['Y', 'N'] },
-                            },
-                        },
-                    ],
+                    type: 'array',
+                    properties: {
+                        option_id: { type: 'number' },
+                        use_yn: { type: 'string', enum: ['Y', 'N'] },
+                    },
                 },
             },
         },
-        async req => await updateComponentOption(req.params.option_id, req.body)
+        // async req => await updateComponentOption(req.params.option_id, req.body)
+        async req => {
+            const { component_id } = req.params;
+            return await upsertComponentOptionConnect(
+                req.body.map(item => ({
+                    component_id: component_id,
+                    option_id: item.option_id,
+                    use_yn: item.use_yn,
+                }))
+            );
+        }
     );
 };

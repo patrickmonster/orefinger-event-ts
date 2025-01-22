@@ -3,7 +3,9 @@ import { SqlInsertUpdate, calTo, query, selectPaging } from 'utils/database';
 import { Paging } from 'interfaces/swagger';
 
 export const selectFileType = async () =>
-    query<{ idx: number; name: string }>(`SELECT idx, name  FROM file_cdn_type fct WHERE use_yn='Y'`);
+    query<{ idx: number; name: string }>(
+        `SELECT idx, name  FROM file_cdn_type fct WHERE use_yn='Y' /* 파일 업로드 리스트 */`
+    );
 
 export const selectFile = async (paging: Paging, auth_id: string, target?: number) =>
     selectPaging<{

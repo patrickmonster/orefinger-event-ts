@@ -1,6 +1,6 @@
 import { MessageMenuInteraction } from 'interactions/message';
 
-import { getTextDtilByEmbeds } from 'controllers/text';
+import { getTextDtilByEmbeds } from 'controllers/util/text';
 
 /**
  *
