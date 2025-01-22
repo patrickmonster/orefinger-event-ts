@@ -1,6 +1,10 @@
 name: Deploy to ECR - prod.
 
 on:
+  workflow_dispatch : 
+    inputs :
+      branch :
+        type : choice
   pull_request:
     types: [closed] # PR이 'closed' 상태일 때 실행
     branches:
