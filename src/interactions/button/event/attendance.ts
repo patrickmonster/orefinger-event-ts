@@ -1,7 +1,7 @@
 import { MessageInteraction } from 'interactions/message';
 import { RESTPostAPIChannelMessage } from 'plugins/discord';
 
-import { attendance } from 'controllers/twitch';
+import { attendance } from 'controllers/notice/twitch';
 
 import { addPointUser } from 'components/user/point';
 import createCalender from 'utils/createCalender';

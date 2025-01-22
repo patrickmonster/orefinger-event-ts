@@ -40,7 +40,7 @@ server.register(Multipart);
 server.register(AutoLoad, { dir: join(__dirname, 'plugins') });
 
 // 라우터
-server.register(AutoLoad, { dir: join(__dirname, 'routes'), ignorePattern: /.*(test|spec).*/ });
+server.register(AutoLoad, { dir: join(__dirname, 'routes'), ignorePattern: /.*(test|spec|interface).*/ });
 
 // 서버 요청 카운트
 server.addHook('onRequest', (request, reply, done) => {

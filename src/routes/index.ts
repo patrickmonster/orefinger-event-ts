@@ -2,14 +2,14 @@ import { FastifyInstance } from 'fastify';
 
 import auth from './auth';
 import bot from './bot';
-import chzzk from './redirect';
 import user from './user';
 
 export default async (fastify: FastifyInstance, opts: any) => {
     fastify.register(auth);
     fastify.register(user);
-    fastify.register(bot);
-    fastify.register(chzzk);
+
+    // 개발환경에서는 앱을 켜지 않음.
+    process.env.MASTER_KEY && fastify.register(bot);
 
     fastify.get('/ping', { schema: { hide: true } }, async (req, res) => 'pong');
     fastify.get('/', { schema: { hide: true } }, (q, r) => r.redirect('https://orefinger.click'));

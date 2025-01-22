@@ -39,7 +39,7 @@ export default async (fastify: FastifyInstance, opts: any) => {
             onRequest: [fastify.authenticate],
             schema: {
                 security: [{ Bearer: [] }],
-                tags: ['파일'],
+                tags: ['File'],
                 summary: '파일 목록',
                 description: '파일 목록',
                 querystring: {
@@ -75,7 +75,7 @@ export default async (fastify: FastifyInstance, opts: any) => {
             onRequest: [fastify.authenticate],
             schema: {
                 security: [{ Bearer: [] }],
-                tags: ['파일'],
+                tags: ['File'],
                 summary: '파일 삭제',
                 description: '파일 삭제',
                 params: {
@@ -113,7 +113,7 @@ export default async (fastify: FastifyInstance, opts: any) => {
             onRequest: [fastify.authenticate],
             schema: {
                 security: [{ Bearer: [] }],
-                tags: ['파일'],
+                tags: ['File'],
                 summary: '파일 업로드',
                 description: '파일 업로드',
                 consumes: ['multipart/form-data'],

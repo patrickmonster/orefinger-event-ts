@@ -1,18 +1,17 @@
-import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
+import { FastifyInstance } from 'fastify';
 
-import { getTextList, createText, updateText } from 'controllers/text';
-
+import { selectText, TextPk, Text as TextType, upsertText } from 'controllers/system/text';
 import { Paging } from 'interfaces/swagger';
-import { TextCreate } from 'interfaces/text';
 
 export default async (fastify: FastifyInstance, opts: any) => {
     fastify.addSchema({
         $id: 'textMessage',
         type: 'object',
-        required: ['tag'],
+        required: ['name'],
         properties: {
-            tag: { type: 'string', description: '텍스트 설명' },
-            message: {
+            name: { type: 'string', description: '텍스트 설명' },
+            language_cd: { type: 'number', description: '언어 코드' },
+            text: {
                 type: 'string',
 
                 description: '저장되어 보여질 메세지 (string)',
@@ -22,8 +21,9 @@ export default async (fastify: FastifyInstance, opts: any) => {
 
     fastify.get<{
         Querystring: Paging & {
-            tag?: string;
-            message?: string;
+            text_id?: string;
+            name?: string;
+            language_cd?: number;
         };
     }>(
         '/text',
@@ -41,38 +41,21 @@ export default async (fastify: FastifyInstance, opts: any) => {
                         {
                             type: 'object',
                             properties: {
-                                tag: { type: 'string', description: '텍스트 설명', nullable: true },
-                                message: { type: 'string', description: '텍스트', nullable: true },
+                                text_id: { type: 'string', description: '텍스트 ID', nullable: true },
+                                language_cd: { type: 'number', description: '언어 코드', nullable: true },
+                                name: { type: 'string', description: '검색어', nullable: true },
                             },
                         },
                     ],
                 },
             },
         },
-        async req => await getTextList(req.query, req.query)
+        async req => await selectText(req.query, req.query)
     );
 
     fastify.post<{
-        Body: TextCreate;
-    }>(
-        '/text',
-        {
-            onRequest: [fastify.masterkey],
-            schema: {
-                security: [{ Master: [] }],
-                tags: ['System'],
-                description: '텍스트 생성',
-                body: { $ref: 'textMessage#' },
-                response: {
-                    200: { $ref: 'sqlResult#' },
-                },
-            },
-        },
-        async req => await createText(req.body)
-    );
-
-    fastify.patch<{
-        Body: TextCreate;
+        Body: TextType;
+        Querystring: TextPk;
     }>(
         '/text',
         {
@@ -93,6 +76,6 @@ export default async (fastify: FastifyInstance, opts: any) => {
                 },
             },
         },
-        async req => await createText(req.body)
+        async req => await upsertText(req.body, req.query)
     );
 };

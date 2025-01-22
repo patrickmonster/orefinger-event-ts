@@ -40,13 +40,14 @@
 - Add : 새로운 기능 추가
 - Fix : 버그 수정
 - Docs : 문서 수정
+- Init : 초기작업
 - ~~Test : 테스트 코드, 테스트 코드 리팩토링~~
 
 
 ## Plugin
 ### 라이브러리
 - cors - 웹 차단
-- jwt - jwt 토큰
+- jwt - 토큰
 - multipart - 파일 업로드
 - ratelimit - 레이트 리밋
 - swagger  - swagger 문서 제작
@@ -57,14 +58,14 @@
   - 인증
 
 ## 이슈 트래킹
-- redis pub/sub server 
-- socket.io (redis-adapter)
+- ~~redis pub/sub server ~~
+- ~~socket.io (redis-adapter)~~
 
 
-## 챗봇
+## ~~챗봇~~
 - ~~chzzkChat.ts~~
-  - ~~치지직 채팅 통신용 봇~~
-
+ - ~~치지직 채팅 통신용 봇~~
+ - 운 
 # 지원 플랫폼
 <img src="https://cdn.orefinger.click/upload/466950273928134666/557750f3-8109-473a-8c52-fce47fe215d8.png" width="20%" height="auto">
 <img src="https://cdn.orefinger.click/upload/466950273928134666/50a2f3e9-8281-4d8a-bf05-9a3d626cc2a4.jpg" width="20%" height="auto">
