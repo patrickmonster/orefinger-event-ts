@@ -26,7 +26,9 @@ const toSpecialCase_ = (str: string, separator: string) =>
         .replace(new RegExp(separator + '$'), '');
 
 const emptyDirSync = (dir: string) =>
-    readdirSync(dir).forEach(item => rmSync(join(dir, item), { recursive: true, force: true }));
+    existsSync(dir)
+        ? readdirSync(dir).forEach(item => rmSync(join(dir, item), { recursive: true, force: true }))
+        : mkdirSync(dir, { recursive: true });
 
 const toSnakeCase = (str: string) => toSpecialCase_(str, '_');
 const toUpperSnakeCase = (str: string) => toSpecialCase_(str, '_').toUpperCase();
@@ -56,10 +58,10 @@ const toTableType = (type: string) => {
 
 import getConnection, { queryFunctionType } from 'utils/database';
 
-const TARGET_DATABASE = 'discord';
+const TARGET_DATABASE = 'sys_orefinger';
 const TARGET_PATH = join(env.PWD || __dirname, `/src/interfaces/Database`);
 
-emptyDirSync(TARGET_PATH);
+emptyDirSync(join(TARGET_PATH, `/${TARGET_DATABASE}`));
 
 const createTableFile = async (query: queryFunctionType, table: Table) => {
     const cols = await query<{
