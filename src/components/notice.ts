@@ -392,7 +392,7 @@ export const selectAttachMessage = async (
     let count = 0;
     let name: string | undefined = undefined;
     // 개근일자
-    for (const { attendance_time, name: orgName } of list) {
+    for (const { attendance_time, name: orgName } of list.reverse()) {
         if (attendance_time) count++;
         else break;
 
