@@ -73,6 +73,7 @@
     "scripts": {
         "build": "npx tsc --project tsconfig.json && tsc-alias -p tsconfig.json",
         "cmdLocal": "cross-env NODE_ENV=local ts-node -r tsconfig-paths/register src/discordCommands.ts",
+        "scripts": "cross-env NODE_ENV=local ts-node -r tsconfig-paths/register",
         "start": "node dist/app.js",
         "bot": "cross-env NODE_ENV=local nodemon --watch src/interactions --exec ts-node -r tsconfig-paths/register src/app.ts",
         "dev": "cross-env NODE_ENV=dev nodemon --watch src/routes --exec ts-node -r tsconfig-paths/register src/app.ts",
