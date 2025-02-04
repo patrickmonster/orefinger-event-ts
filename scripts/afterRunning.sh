@@ -32,6 +32,8 @@ echo REDIS_URL=$(aws ssm get-parameters --region ap-northeast-2 --names $path"RE
 echo DISCORD_CLIENT_ID=$(aws ssm get-parameters --region ap-northeast-2 --names $path"DISCORD_CLIENT_ID" --query Parameters[0].Value | sed 's/"//g')  >> $filename
 echo DISCORD_PUBLIC_KEY=$(aws ssm get-parameters --region ap-northeast-2 --names $path"DISCORD_PUBLIC_KEY" --query Parameters[0].Value | sed 's/"//g')  >> $filename
 echo DISCORD_TOKEN=$(aws ssm get-parameters --region ap-northeast-2 --names $path"DISCORD_TOKEN" --query Parameters[0].Value | sed 's/"//g')  >> $filename
+echo GABIA_KEY=$(aws ssm get-parameters --region ap-northeast-2 --names $path"GABIA_KEY" --query Parameters[0].Value | sed 's/"//g')  >> $filename
+echo GABIA_NAME=$(aws ssm get-parameters --region ap-northeast-2 --names $path"GABIA_NAME" --query Parameters[0].Value | sed 's/"//g')  >> $filename
 
 echo JWT_SECRET=$(aws ssm get-parameters --region ap-northeast-2 --names $path"JWT_SECRET" --query Parameters[0].Value | sed 's/"//g')  >> $filename
 echo MASTER_KEY=$(aws ssm get-parameters --region ap-northeast-2 --names $path"MASTER_KEY" --query Parameters[0].Value | sed 's/"//g')  >> $filename
@@ -47,6 +49,7 @@ echo TOSS_SECRET=$(aws ssm get-parameters --region ap-northeast-2 --names $path"
 echo YOUTUBE_API_KEY=$(aws ssm get-parameters --region ap-northeast-2 --names $path"YOUTUBE_API_KEY" --query Parameters[0].Value | sed 's/"//g')  >> $filename
 
 echo WEB_HOOK_URL=$(aws ssm get-parameters --region ap-northeast-2 --names $path"WEB_HOOK_URL" --query Parameters[0].Value | sed 's/"//g')  >> $filename
+
 
 echo PORT=80  >> $filename
 

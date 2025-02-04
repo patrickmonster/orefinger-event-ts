@@ -1,5 +1,6 @@
 'use strict';
-import { Paging } from 'interface/swagger';
+
+import { Paging } from 'interfaces/swagger';
 import mysql, { Pool, PoolConnection, RowDataPacket } from 'mysql2/promise';
 import { env } from 'process';
 
