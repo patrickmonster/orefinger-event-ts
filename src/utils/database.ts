@@ -1,5 +1,5 @@
 'use strict';
-import { Paging } from 'interfaces/swagger';
+import { Paging } from 'interface/swagger';
 import mysql, { Pool, PoolConnection, RowDataPacket } from 'mysql2/promise';
 import { env } from 'process';
 
@@ -89,9 +89,10 @@ const getConnection = async <T>(
     isTransaction = false
 ) => {
     let connect: PoolConnection | null = null;
+    const errorQuerys: { query: string; params: any }[] = [];
     try {
         connect = await pool.getConnection();
-        if (isTransaction) await connect.beginTransaction();
+        if (isTransaction) await connect.beginTransaction(); // 트렌젝션 시작
         return await connectionPool(async (query: string, ...params: any[]) => {
             try {
                 const [rows] = await connect!.query(query, params);
@@ -104,24 +105,40 @@ const getConnection = async <T>(
                           insertId: rows.insertId,
                       };
             } catch (e) {
-                console.error('SQL]', format(query, params));
-                // if (process.env.NODE_ENV != 'prod') console.error('SQL]', e);
-                connect!.query('INSERT INTO discord_log.error_sql set `sql` = ?, target = ?', [
-                    mysql.format(query, params),
-                    env.NODE_ENV || 'dev',
-                ]);
+                if (env.DB_HOST == 'localhost') console.error('SQL]', format(query, params));
+                if (!query.includes('IGNORE')) {
+                    // 중복키 에러 예외처리
+                    if (!isTransaction) {
+                        connect!.query('INSERT INTO discord_log.error_sql set `sql` = ?, target = ?', [
+                            mysql.format(query, params),
+                            env.NODE_ENV || 'dev',
+                        ]);
+                    } else {
+                        errorQuerys.push({ query, params });
+                    }
+                }
                 throw e;
             }
         }).then(async (result: T) => {
-            if (isTransaction && connect) await connect.commit();
+            if (isTransaction && connect) await connect.commit(); // 커밋
             return result;
         });
     } catch (e) {
-        if (isTransaction && connect) await connect.rollback();
+        if (isTransaction && connect) {
+            await connect.rollback(); // 롤백
+
+            /// 에러 쿼리 로그
+            for (const { query, params } of errorQuerys) {
+                connect.query('INSERT INTO discord_log.error_sql set `sql` = ?, target = ?', [
+                    mysql.format(query, params),
+                    env.NODE_ENV || 'dev',
+                ]);
+            }
+        }
         // console.error('SQL]', e);
         throw e;
     } finally {
-        if (connect) connect.release();
+        if (connect) connect.release(); // 커넥션 반환
     }
 };
 
