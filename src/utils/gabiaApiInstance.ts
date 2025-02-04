@@ -39,8 +39,15 @@ gabiaAPI.interceptors.response.use(
     }
 );
 
+export type Token = {
+    access_token: string;
+    token_type: string;
+    expires_in: number;
+    scope: string;
+};
+
 export const getToken = async () =>
-    gabiaAPI.post(
+    gabiaAPI.post<Token>(
         '/oauth/token',
         {
             grant_type: 'client_credentials',
@@ -59,7 +66,7 @@ export const getToken = async () =>
  *  즉시발송용 API입니다.
  */
 export const sendAlimTalk = async (
-    token: string,
+    token: Token,
     {
         template_id,
         template_variable,
@@ -75,7 +82,7 @@ export const sendAlimTalk = async (
         },
         {
             headers: {
-                Authorization: `Bearer ${token}`,
+                Authorization: `${token.token_type} ${token.access_token}`,
             },
         }
     );

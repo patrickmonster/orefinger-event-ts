@@ -1,17 +1,17 @@
 import { FastifyInstance } from 'fastify';
-import { getToken } from 'utils/gabiaApiInstance';
+import { getToken, sendAlimTalk } from 'utils/gabiaApiInstance';
 import { catchRedis } from 'utils/redis';
 
 export default async (fastify: FastifyInstance, opts: any) => {
-    const template_ids = [791, 792]; // 알림톡 템플릿 ID
+    const template_ids = [6, 791, 792]; // 알림톡 템플릿 ID
 
     fastify.post<{
-        Params: { user_id: string; tamplet_id: string };
+        Params: { user_id: string; template_id: string };
         Body: {
             template_variable: string;
         };
     }>(
-        '/alimtalk/:user_id/:tamplet_id',
+        '/alimtalk/:user_id/:template_id',
         {
             onRequest: [fastify.masterkey],
             schema: {
@@ -23,7 +23,7 @@ export default async (fastify: FastifyInstance, opts: any) => {
                     type: 'object',
                     properties: {
                         user_id: { type: 'string' },
-                        tamplet_id: { type: 'string' },
+                        template_id: { type: 'string' },
                     },
                 },
                 body: {
@@ -35,20 +35,19 @@ export default async (fastify: FastifyInstance, opts: any) => {
             },
         },
         async req => {
-            const { user_id, tamplet_id } = req.params;
+            const { user_id, template_id } = req.params;
             const { template_variable } = req.body;
 
             // 사용자 휴대전화 번호를 가져옴
             const token = await catchRedis(`gabia:token`, getToken, 60 * 60);
 
-            console.log('알림톡 전송', user_id, tamplet_id, template_variable, token);
-            return {};
+            // return {};
             // 알림톡 전송부
-            // return await sendAlimTalk('', {
-            //     template_id: template_ids[Number(tamplet_id)],
-            //     template_variable,
-            //     phone: user_id,
-            // });
+            return await sendAlimTalk(token, {
+                template_id,
+                template_variable,
+                phone: '01074412872',
+            });
         }
     );
     fastify.get(
