@@ -6,6 +6,7 @@ export interface SmsLog {
     type: string;
     is_send: string;
     return_message: string;
+    phone: string;
     create_at: string;
     update_at: string;
 }

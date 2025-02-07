@@ -3,7 +3,7 @@ import { authDtil, updatePhone } from 'controllers/auth';
 import { FastifyInstance } from 'fastify';
 import { decryptByIv, ENCRYPT_KEY, encryptByIv } from 'utils/cryptoPw';
 import { getToken } from 'utils/gabiaApiInstance';
-import { authRandNum, getMessageId } from 'utils/object';
+import { authRandNum } from 'utils/object';
 import { cacheRedis, catchRedis, loadRedis } from 'utils/redis';
 import sleep from 'utils/sleep';
 
@@ -153,8 +153,6 @@ export default async (fastify: FastifyInstance, opts: any) => {
             if (!user) {
                 return { message: '사용자 정보를 찾을 수 없습니다.', code: 404 };
             }
-
-            const message_id = getMessageId(Date.now(), user_id);
             // 사용자 휴대전화 번호를 가져옴
             const token = await catchRedis(`gabia:token`, getToken, 60 * 60);
 
