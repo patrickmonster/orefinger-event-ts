@@ -5,6 +5,7 @@ import { decryptByIv, ENCRYPT_KEY, encryptByIv } from 'utils/cryptoPw';
 import { getToken } from 'utils/gabiaApiInstance';
 import { authRandNum, getMessageId } from 'utils/object';
 import { cacheRedis, catchRedis, loadRedis } from 'utils/redis';
+import sleep from 'utils/sleep';
 
 // 알림톡 전송용 라우터
 export default async (fastify: FastifyInstance, opts: any) => {
@@ -55,6 +56,8 @@ export default async (fastify: FastifyInstance, opts: any) => {
 
             // 휴대전화 정보 암호화
             const content = encryptByIv(auth.phone, ENCRYPT_KEY, user_id);
+
+            await sleep(3 * 1000); // 3초 대기
             await updatePhone(user_id, content);
 
             return { message: '인증되었습니다.', code: 200 };
