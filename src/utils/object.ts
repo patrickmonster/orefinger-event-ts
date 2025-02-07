@@ -86,3 +86,11 @@ export const getContentAllias = (conent: any, ...alias: string[]) => {
     }
     return null;
 };
+
+/**
+ * 인증번호를 생성합니다.
+ * @param length
+ * @returns
+ */
+export const authRandNum = (length: number = 5) =>
+    Array.from({ length }, () => Math.floor(Math.random() * 10)).join('');
