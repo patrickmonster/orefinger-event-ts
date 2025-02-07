@@ -82,7 +82,38 @@ export const sendAlimTalk = async (
         },
         {
             headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
                 Authorization: `${token.token_type} ${token.access_token}`,
+            },
+        }
+    );
+
+export const sendSms = async <E>(
+    token: Token,
+    {
+        callback,
+        message,
+        refkey,
+        phone,
+    }: {
+        callback: string;
+        message: string;
+        refkey: string;
+        phone: string;
+    }
+) =>
+    gabiaAPI.post<E>(
+        '/api/send/sms',
+        {
+            callback,
+            message,
+            refkey,
+            phone,
+        },
+        {
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                Authorization: `Basic ${Buffer.from(env.GABIA_NAME + ':' + token.access_token).toString('base64')}`,
             },
         }
     );

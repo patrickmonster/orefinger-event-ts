@@ -14,6 +14,37 @@ import { APIUser } from 'discord-api-types/v10';
 import { Event } from 'interfaces/eventsub';
 import { Paging } from 'interfaces/swagger';
 
+export const authDtil = async (user_id: string) =>
+    query<{
+        auth_id: string;
+        name: string;
+        username: string;
+        tag: string;
+        avatar: string;
+        create_at: string;
+        update_at: string;
+        phone: string;
+    }>(
+        `
+SELECT
+	auth_id
+	, name
+	, username
+	, tag
+	, avatar
+	, create_at
+	, update_at
+	, phone
+FROM auth a
+WHERE 1=1
+AND auth_id = ?
+            `,
+        user_id
+    ).then(([user]) => user);
+
+export const updatePhone = async (user_id: string, phone: string) =>
+    query<SqlInsertUpdate>(`UPDATE auth SET phone = ? WHERE auth_id = ?`, phone, user_id);
+
 export const discord = async (profile: AuthUser, refreshToken: string) =>
     auth('discord', profile.id, profile, refreshToken);
 
