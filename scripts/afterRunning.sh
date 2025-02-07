@@ -35,6 +35,9 @@ echo DISCORD_TOKEN=$(aws ssm get-parameters --region ap-northeast-2 --names $pat
 echo GABIA_KEY=$(aws ssm get-parameters --region ap-northeast-2 --names $path"GABIA_KEY" --query Parameters[0].Value | sed 's/"//g')  >> $filename
 echo GABIA_NAME=$(aws ssm get-parameters --region ap-northeast-2 --names $path"GABIA_NAME" --query Parameters[0].Value | sed 's/"//g')  >> $filename
 
+echo PHONE=$(aws ssm get-parameters --region ap-northeast-2 --names $path"PHONE" --query Parameters[0].Value | sed 's/"//g')  >> $filename
+
+
 echo JWT_SECRET=$(aws ssm get-parameters --region ap-northeast-2 --names $path"JWT_SECRET" --query Parameters[0].Value | sed 's/"//g')  >> $filename
 echo MASTER_KEY=$(aws ssm get-parameters --region ap-northeast-2 --names $path"MASTER_KEY" --query Parameters[0].Value | sed 's/"//g')  >> $filename
 
