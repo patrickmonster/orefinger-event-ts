@@ -12,6 +12,6 @@ INSERT INTO sms_log
 SET ?
 ON DUPLICATE KEY UPDATE ?, update_at=CURRENT_TIMESTAMP
         `,
-        sms,
-        { ...sms, message_id: id }
+        { ...sms, message_id: id },
+        sms
     );
