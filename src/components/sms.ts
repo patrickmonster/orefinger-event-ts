@@ -1,5 +1,6 @@
 import { upsertSMSLog } from 'controllers/sms';
 import { env } from 'process';
+import { ENCRYPT_KEY, sha256 } from 'utils/cryptoPw';
 import { getToken, sendSms } from 'utils/gabiaApiInstance';
 import { getMessageId } from 'utils/object';
 import { catchRedis } from 'utils/redis';
@@ -12,6 +13,8 @@ export const createMessage = async (user_id: string, phone: string, message: str
     if (callback === undefined) {
         throw new Error('PHONE is not defined');
     }
+
+    const phoneKey = sha256(phone, ENCRYPT_KEY);
 
     return await sendSms<{
         code: string;
@@ -29,6 +32,7 @@ export const createMessage = async (user_id: string, phone: string, message: str
                 type,
                 is_send: 'Y',
                 return_message: JSON.stringify(res.data),
+                phone: phoneKey,
             })
         )
         .catch(async e =>
@@ -37,6 +41,7 @@ export const createMessage = async (user_id: string, phone: string, message: str
                 type,
                 is_send: 'N',
                 return_message: JSON.stringify(e?.data || { ERROR: 404 }),
+                phone: phoneKey,
             })
         );
 };
