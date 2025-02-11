@@ -35,6 +35,7 @@ export default client;
 export const saveRedis = (key: string, value: any, expire = 60 * 60 * 1) => {
     return client.set(key, JSON.stringify(value), 'EX', expire);
 };
+export const deleteRedis = (key: string) => client.del(key);
 
 const cacheKey = (key: string) => `cache:${key}`;
 

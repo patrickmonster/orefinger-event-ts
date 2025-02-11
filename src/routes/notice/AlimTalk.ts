@@ -1,10 +1,9 @@
-import { createMessage } from 'components/sms';
+import { createAuthNumber, createMessage, deleteAuthNumber } from 'components/sms';
 import { authDtil, updatePhone } from 'controllers/auth';
 import { FastifyInstance } from 'fastify';
 import { decryptByIv, ENCRYPT_KEY, encryptByIv } from 'utils/cryptoPw';
 import { getToken } from 'utils/gabiaApiInstance';
-import { authRandNum } from 'utils/object';
-import { cacheRedis, catchRedis, loadRedis } from 'utils/redis';
+import { catchRedis, loadRedis } from 'utils/redis';
 import sleep from 'utils/sleep';
 
 // 알림톡 전송용 라우터
@@ -94,26 +93,17 @@ export default async (fastify: FastifyInstance, opts: any) => {
 
             phone = phone.replace(phoneRegex, '01$1$2$3');
 
-            const authNum = authRandNum(); // 인증번호 생성
-            const oldAuth = await loadRedis(RedisAuth(req.user.id));
-            if (oldAuth) {
-                return { message: '이미 인증번호가 발송되었습니다.', code: 400 };
+            try {
+                const authNum = await createAuthNumber(req.user.id, phone);
+                if (!authNum) {
+                    return { message: '이미 인증번호가 발송되었습니다.', code: 400 };
+                }
+                console.log('AUTH NUM', phone, authNum);
+                return { message: '인증번호가 발송되었습니다.', code: 200, time: 60 * 5 };
+            } catch (e) {
+                deleteAuthNumber(req.user.id);
+                return { message: '인증번호 발송에 실패하였습니다.', code: 400 };
             }
-
-            cacheRedis(
-                RedisAuth(req.user.id),
-                {
-                    authNum, // 인증번호
-                    phone, // 휴대전화 번호
-                },
-                60 * 5
-            ); // 인증번호 캐시에 저장 (5분)
-
-            console.log(`${req.user.id} :: ${authNum}`);
-
-            await createMessage(req.user.id, phone, `방송알리미 인증번호는 [${authNum}] 입니다.`, 'AUTH');
-
-            return { message: '인증번호가 발송되었습니다.', code: 200, time: 60 * 5 };
         }
     );
 
