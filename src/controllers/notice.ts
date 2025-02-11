@@ -238,7 +238,7 @@ FROM (
     SELECT notice_id, id, create_at, end_at 
     FROM notice_live nl 
     WHERE nl.notice_id  = ?
-    ORDER BY id desc
+    ORDER BY create_at DESC
     LIMIT 1
 ) eo
 WHERE eo.end_at IS NULL`,
