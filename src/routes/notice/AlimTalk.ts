@@ -1,4 +1,4 @@
-import { createAuthNumber, createMessage, matchAuthNumber } from 'components/sms';
+import { createAuthNumber, createMessage, deleteAuthNumber, matchAuthNumber } from 'components/sms';
 import { authDtil } from 'controllers/auth';
 import { FastifyInstance } from 'fastify';
 import { decryptByIv, ENCRYPT_KEY } from 'utils/cryptoPw';
@@ -81,11 +81,17 @@ export default async (fastify: FastifyInstance, opts: any) => {
 
             phone = phone.replace(phoneRegex, '01$1$2$3');
 
-            const authNum = await createAuthNumber(req.user.id, phone);
-            if (!authNum) {
-                return { message: '이미 인증번호가 발송되었습니다.', code: 400 };
+            try {
+                const authNum = await createAuthNumber(req.user.id, phone);
+                if (!authNum) {
+                    return { message: '이미 인증번호가 발송되었습니다.', code: 400 };
+                }
+                console.log('AUTH NUM', phone, authNum);
+                return { message: '인증번호가 발송되었습니다.', code: 200, time: 60 * 5 };
+            } catch (e) {
+                deleteAuthNumber(req.user.id);
+                return { message: '인증번호 발송에 실패하였습니다.', code: 400 };
             }
-            return { message: '인증번호가 발송되었습니다.', code: 200, time: 60 * 5 };
         }
     );
 

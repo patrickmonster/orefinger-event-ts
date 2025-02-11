@@ -28,8 +28,12 @@ gabiaAPI.interceptors.request.use(
     }
 );
 gabiaAPI.interceptors.response.use(
-    ({ data }) => {
+    ({ data, status }) => {
         console.log('GABIA API', data);
+        if (!(status === 200 || status === 201 || status === 204)) throw new Error();
+
+        if (data.errors) throw new Error(data.errors);
+
         return data;
     }, // 데이터 변환
     async error => {
@@ -65,7 +69,7 @@ export const getToken = async () =>
  * @description 알림톡을 전송합니다.
  *  즉시발송용 API입니다.
  */
-export const sendAlimTalk = async (
+export const sendAlimTalk = async <E>(
     token: Token,
     {
         template_id,
@@ -73,7 +77,7 @@ export const sendAlimTalk = async (
         phone,
     }: { template_id: string | number; template_variable: string; phone: string }
 ) =>
-    gabiaAPI.post(
+    gabiaAPI.post<E>(
         '/api/send/alimtalk',
         {
             template_id,
@@ -83,7 +87,7 @@ export const sendAlimTalk = async (
         {
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded',
-                Authorization: `${token.token_type} ${token.access_token}`,
+                Authorization: `Basic ${Buffer.from(env.GABIA_NAME + ':' + token.access_token).toString('base64')}`,
             },
         }
     );
