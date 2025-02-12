@@ -70,7 +70,7 @@ export const searchAfreecabeUser = async (keyword: string): Promise<Array<{ name
         } = await axios.get<{
             suggest_bj: Array<ChannelData>;
         }>(
-            `https://sch.afreecatv.com/api.php?${qs.stringify({
+            `https://sch.sooplive.co.kr/api.php?${qs.stringify({
                 m: 'searchHistory',
                 service: 'list',
                 d: `${keyword}`,
@@ -118,14 +118,13 @@ export const convertVideoObject = (videoObject: Content, name?: string): APIEmbe
         no = broad_no;
         id = user_id;
     }
-
-    return {
+    https: return {
         title: title || 'LIVE ON',
         description: `<t:${time.unix()}:R>`,
-        url: `https://play.afreecatv.com/${id}/${no}`,
+        url: `https://play.sooplive.co.kr/${id}/${no}`,
         color: 0x0746af,
         thumbnail: { url: channelImageUrl.startsWith('http') ? channelImageUrl : `https:${channelImageUrl}` },
-        image: { url: `https://liveimg.afreecatv.com/m/${no}?${randomIntegerInRange(100, 999)}` },
+        image: { url: `https://liveimg.sooplive.co.kr/m/${no}?${randomIntegerInRange(100, 999)}` },
         footer: { text: name ?? channelName },
         timestamp: time.format(),
     };

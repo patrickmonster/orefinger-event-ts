@@ -1,16 +1,11 @@
-import { createAuthNumber, createMessage, deleteAuthNumber } from 'components/sms';
-import { authDtil, updatePhone } from 'controllers/auth';
+import { createAuthNumber, createMessage, deleteAuthNumber, matchAuthNumber } from 'components/sms';
+import { authDtil } from 'controllers/auth';
 import { FastifyInstance } from 'fastify';
-import { decryptByIv, ENCRYPT_KEY, encryptByIv } from 'utils/cryptoPw';
-import { getToken } from 'utils/gabiaApiInstance';
-import { catchRedis, loadRedis } from 'utils/redis';
-import sleep from 'utils/sleep';
+import { decryptByIv, ENCRYPT_KEY } from 'utils/cryptoPw';
 
 // 알림톡 전송용 라우터
 export default async (fastify: FastifyInstance, opts: any) => {
     const template_ids = [6, 791, 792]; // 알림톡 템플릿 ID
-
-    const RedisAuth = (user_id: string) => `auth:phone:${user_id}`;
 
     const getUserPhone = async (user_id: string) => {
         const user = await authDtil(user_id);
@@ -47,19 +42,12 @@ export default async (fastify: FastifyInstance, opts: any) => {
             const { authNum } = req.params;
             const user_id = req.user.id;
 
-            const auth = await loadRedis<{ authNum: string; phone: string }>(RedisAuth(user_id));
-
-            if (!auth || auth.authNum !== authNum) {
+            let phone = await matchAuthNumber(user_id, authNum);
+            if (!phone) {
                 return { message: '인증번호가 올바르지 않습니다.', code: 400 };
             }
 
-            // 휴대전화 정보 암호화
-            const content = encryptByIv(auth.phone, ENCRYPT_KEY, user_id);
-
-            await sleep(3 * 1000); // 3초 대기
-            await updatePhone(user_id, content);
-
-            return { message: '인증되었습니다.', code: 200 };
+            return { message: '인증되었습니다.', code: 200, phone };
         }
     );
 
@@ -143,8 +131,6 @@ export default async (fastify: FastifyInstance, opts: any) => {
             if (!user) {
                 return { message: '사용자 정보를 찾을 수 없습니다.', code: 404 };
             }
-            // 사용자 휴대전화 번호를 가져옴
-            const token = await catchRedis(`gabia:token`, getToken, 60 * 60);
 
             // 알림톡 전송부
             return await createMessage(req.user.id, user.phone, message, 'MSG');

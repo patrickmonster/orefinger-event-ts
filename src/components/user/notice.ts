@@ -2,7 +2,7 @@ import { getAfreecabeUser } from 'components/user/afreeca';
 import { getChzzkUser } from 'components/user/chzzk';
 
 const StreamChannelRegex =
-    /^(http(s):\/\/)(chzzk.naver.com|play.afreecatv.com|bj.afreecatv.com|afreecatv.com|www.youtube.com|youtube.com)(\/channel|\/live)?\/([\w|@]+)/;
+    /^(http(s):\/\/)(chzzk.naver.com|play.afreecatv.com|bj.afreecatv.com|afreecatv.com|sooplive.co.kr|www.sooplive.co.kr|bj.sooplive.co.kr|play.sooplive.co.kr|www.youtube.com|youtube.com)(\/channel|\/live)?\/([\w|@]+)/;
 
 export enum StreamTarget {
     YOUTUBE = 'YOUTUBE',
@@ -28,6 +28,10 @@ export const getNoticeIdByUrl = async (guildId: string, url: string): Promise<St
         case 'play.afreecatv.com':
         case 'bj.afreecatv.com':
         case 'afreecatv.com':
+        case 'www.sooplive.co.kr':
+        case 'sooplive.co.kr':
+        case 'play.sooplive.co.kr':
+        case 'bj.sooplive.co.kr':
             return await getAfreecabeUser(guildId, id);
 
         case 'www.youtube.com':
@@ -67,6 +71,10 @@ export const getUrlByNoticeId = async (
         case 'play.afreecatv.com':
         case 'bj.afreecatv.com':
         case 'afreecatv.com':
+        case 'www.sooplive.co.kr':
+        case 'sooplive.co.kr':
+        case 'play.sooplive.co.kr':
+        case 'bj.sooplive.co.kr':
             return await getAfreecabeUser(guildId, id);
 
         case 'www.youtube.com':
