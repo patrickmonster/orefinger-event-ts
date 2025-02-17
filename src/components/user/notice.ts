@@ -2,7 +2,8 @@ import { getAfreecabeUser } from 'components/user/afreeca';
 import { getChzzkUser } from 'components/user/chzzk';
 
 const StreamChannelRegex =
-    /^(http(s):\/\/)(chzzk.naver.com|play.afreecatv.com|bj.afreecatv.com|afreecatv.com|sooplive.co.kr|www.sooplive.co.kr|bj.sooplive.co.kr|play.sooplive.co.kr|www.youtube.com|youtube.com)(\/channel|\/live)?\/([\w|@]+)/;
+    /^(https?:\/\/)?(chzzk|play|bj|ch|www)?\.?(naver\.com|afreecatv\.com|sooplive\.co\.kr|youtube\.com)(\/channel|\/live)?\/([\w@]+)/;
+// new RegExp('');
 
 export enum StreamTarget {
     YOUTUBE = 'YOUTUBE',
@@ -20,22 +21,14 @@ export const getNoticeIdByUrl = async (guildId: string, url: string): Promise<St
     const data = StreamChannelRegex.exec(`${url}`);
     if (!data) return null;
 
-    const [, , , domain, , id] = data;
+    const [, https, tier3, domain, , id] = data;
 
-    switch (domain) {
-        case 'chzzk.naver.com':
+    switch (true) {
+        case domain.includes('chzzk'):
             return await getChzzkUser(guildId, id);
-        case 'play.afreecatv.com':
-        case 'bj.afreecatv.com':
-        case 'afreecatv.com':
-        case 'www.sooplive.co.kr':
-        case 'sooplive.co.kr':
-        case 'play.sooplive.co.kr':
-        case 'bj.sooplive.co.kr':
+        case ['afreecatv', 'sooplive'].includes(domain):
             return await getAfreecabeUser(guildId, id);
-
-        case 'www.youtube.com':
-        case 'youtube.com':
+        case domain.includes('youtube'):
             return StreamTarget.YOUTUBE;
         default: {
             return null;
@@ -65,20 +58,12 @@ export const getUrlByNoticeId = async (
 
     const [, , , domain, , id] = data;
 
-    switch (domain) {
-        case 'chzzk.naver.com':
+    switch (true) {
+        case domain.includes('chzzk'):
             return await getChzzkUser(guildId, id);
-        case 'play.afreecatv.com':
-        case 'bj.afreecatv.com':
-        case 'afreecatv.com':
-        case 'www.sooplive.co.kr':
-        case 'sooplive.co.kr':
-        case 'play.sooplive.co.kr':
-        case 'bj.sooplive.co.kr':
+        case ['afreecatv', 'sooplive'].includes(domain):
             return await getAfreecabeUser(guildId, id);
-
-        case 'www.youtube.com':
-        case 'youtube.com':
+        case domain.includes('youtube'):
             return {
                 id,
                 type: StreamTarget.YOUTUBE,
