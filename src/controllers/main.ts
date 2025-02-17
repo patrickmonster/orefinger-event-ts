@@ -22,8 +22,8 @@ SELECT
     , DATE_FORMAT(vat.create_at , "%y-%m-%d") AS create_to
     , COUNT(1) AS counts 
 FROM auth_type at2 
-INNER JOIN v_auth_token vat
-    ON vat.type = at2.auth_type 
+INNER JOIN auth_conntection vat
+    ON vat.type = at2.auth_type
     AND vat.create_at > DATE_ADD(NOW(), INTERVAL -10 DAY)
 WHERE 1=1
 AND (

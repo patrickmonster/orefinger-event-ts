@@ -53,7 +53,7 @@ export default async (fastify: FastifyInstance, opts: any) => {
             }
 
             // 응답이 유동적인 처리를 해야함.
-            const interaction = fastify.interaction(req, res);
+            const interaction = fastify.decorateInteractionReply(req, res);
             const msg: any = { ...body, ...body.data };
             for (const [key, value] of interaction) {
                 msg[key as string] = value;

@@ -31,7 +31,6 @@ import {
 import { upsertDiscordUserAndJWTToken } from 'controllers/auth';
 import { selectEventBat, selectNoticeGuildChannel } from 'controllers/bat';
 import { getAttendanceAtLive } from 'controllers/notification';
-import { IReply, RESTPostAPIChannelMessage } from 'plugins/discord';
 import { sixWeek, sixWeekBig } from 'utils/createCalender';
 import discord, { openApi } from 'utils/discordApiInstance';
 import { ParseInt, convertMessage } from 'utils/object';
@@ -238,6 +237,7 @@ export const sendMessageByChannels = async (channels: NoticeChannelHook[], isTes
 import axios from 'axios';
 import { convertVideoObject as convertAfreecaVideoObject, getLive as getAfreecaLive } from 'components/user/afreeca';
 import { convertVideoObject as convertChzzkVideoObject, getLive as getChzzkLive } from 'components/user/chzzk';
+import { RESTPostAPIChannelMessage, Reply } from 'fastify-discord';
 import menuComponentBuild from 'utils/menuComponentBuild';
 import { addPointUser, appendPointCount } from './user/point';
 
@@ -509,7 +509,7 @@ ${sixWeekBig(
  * @param userId
  * @returns
  */
-export const checkUserNoticeLimit = async (interaction: IReply, userId: string, guild_id: string): Promise<boolean> => {
+export const checkUserNoticeLimit = async (interaction: Reply, userId: string, guild_id: string): Promise<boolean> => {
     // 예외 사용자
     if (['466950273928134666'].includes(userId)) return true;
     const { approximate_member_count, region, preferred_locale } = await getGuild(guild_id);

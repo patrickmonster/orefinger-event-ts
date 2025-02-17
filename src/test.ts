@@ -12,34 +12,10 @@ if (existsSync(envDir)) {
     });
 }
 
-import { messageCreate } from 'components/discord';
-import { createActionRow, createSuccessButton } from 'utils/discord/component';
-
+import { seelctNoticeHistory } from 'controllers/notice';
+import { sixWeek } from 'utils/createCalender';
 // console.log(createCalender(new Date(), new Date()));
 
-// seelctNoticeHistory(46).then(data => {
-//     console.log(
-//         sixWeekBig(
-//             {
-//                 time: new Date(),
-//                 textLength: 1,
-//             },
-//             ...data.map(({ live_at, title }) => ({
-//                 time: new Date(live_at),
-//                 title,
-//             }))
-//         )
-//     );
-// });
-
-// 1125273780063846441
-
-messageCreate('1125273780063846441', {
-    components: [
-        createActionRow(
-            createSuccessButton('notice logs 46', {
-                label: '방송이력',
-            })
-        ),
-    ],
+seelctNoticeHistory(46).then(data => {
+    console.log(sixWeek(new Date(), ...data.map(({ live_at, title }) => new Date(live_at))));
 });

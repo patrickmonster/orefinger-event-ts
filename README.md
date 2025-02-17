@@ -12,6 +12,7 @@
 - RDS
 - Route 53
 - EC2 (Redis)
+- S3
 
 배포환경
 - gitaction
@@ -39,7 +40,7 @@
 ## 커밋 메시지 컨벤션 💬
 - Add : 새로운 기능 추가
 - Fix : 버그 수정
-- Docs : 문서 수정
+- ~~Docs : 문서 수정~~
 - Init : 초기작업
 - ~~Test : 테스트 코드, 테스트 코드 리팩토링~~
 
@@ -51,15 +52,25 @@
 - multipart - 파일 업로드
 - ratelimit - 레이트 리밋
 - swagger  - swagger 문서 제작
-### 제작(커스텀)
-- ~~eventsub - twitch 이벤트 수신~~
-- discord - interaction 이벤트
-  - 인터렉션 이벤트 처리
-  - 인증
 
 ## 이슈 트래킹
-- ~~redis pub/sub server ~~
+- ~~redis pub/sub server~~
 - ~~socket.io (redis-adapter)~~
+
+## 파생된 라이브러리
+### [interval-queue](https://www.npmjs.com/package/interval-queue)
+ - 배치 로직 작업을 위한 프로세서 루프 관리
+ - 프로세서가 상시 중지할 가능성이 있기 때문에 중지 시그널을 받으면, 모든 반복작업을 사전 정리함
+
+### [mysql-rowquery](https://www.npmjs.com/package/mysql-rowquery)
+ - mysql 커넥션 관리 라이브러리
+ - 로우 쿼리용
+ - 연결 관리 자동화
+
+### [fastify-discord](https://www.npmjs.com/package/fastify-discord)
+  - discord command 명령어 수신용 (암호화키 처리)
+  - fastify 연동 라이브러리
+
 
 
 ## ~~챗봇~~
@@ -68,6 +79,5 @@
  - 운 
 # 지원 플랫폼
 <img src="https://cdn.orefinger.click/upload/466950273928134666/557750f3-8109-473a-8c52-fce47fe215d8.png" width="20%" height="auto">
-<img src="https://cdn.orefinger.click/upload/466950273928134666/50a2f3e9-8281-4d8a-bf05-9a3d626cc2a4.jpg" width="20%" height="auto">
 <img src="https://cdn.orefinger.click/post/466950273928134666/042375ef-c2d6-4b00-83b7-7353239b78de.png" width="20%" height="auto">
 <img src="https://cdn.orefinger.click/upload/466950273928134666/eb6334d6-2be1-4755-a8e5-b438391d9e1d.png" width="20%" height="auto">

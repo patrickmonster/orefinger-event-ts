@@ -1,19 +1,21 @@
 import {
+    APIApplicationCommandInteraction,
+    APIApplicationCommandInteractionData,
     APIApplicationCommandInteractionDataBasicOption,
     APIChatInputApplicationCommandInteractionData,
     APIContextMenuInteractionData,
     ApplicationCommandOptionType,
-} from 'discord-api-types/v10';
-import {
-    APIApplicationCommandInteraction,
-    APIApplicationCommandInteractionData,
     ApplicationCommandType,
-    IReply,
-} from 'plugins/discord';
+} from 'discord-api-types/v10';
+import { Reply } from 'fastify-discord';
 
 import { join } from 'path';
 import autoLoader from 'utils/autoCommand';
 import { sendErrorNotFoundComponent } from 'utils/discord/interaction';
+
+export type IReply = {
+    [K in keyof Reply]: Reply[K] extends (...args: any[]) => any ? Reply[K] : never;
+};
 
 type InteractionType = Omit<APIApplicationCommandInteraction, 'data' | 'type'>;
 export type appInteraction = IReply & InteractionType & APIApplicationCommandInteractionData;

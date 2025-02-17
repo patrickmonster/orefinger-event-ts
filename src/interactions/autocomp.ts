@@ -5,8 +5,8 @@ import {
     APIApplicationCommandInteractionDataStringOption,
     APIApplicationCommandInteractionDataSubcommandGroupOption,
     APIApplicationCommandInteractionDataSubcommandOption,
+    APIChatInputApplicationCommandInteractionData,
 } from 'discord-api-types/v10';
-import { APIChatInputApplicationCommandInteractionData } from 'plugins/discord';
 import { getChzzkAPI } from 'utils/naverApiInstance';
 
 import { searchAfreecabeUser } from 'components/user/afreeca';

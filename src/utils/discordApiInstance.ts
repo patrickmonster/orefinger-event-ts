@@ -2,8 +2,8 @@
 import { REST } from '@discordjs/rest';
 import axios from 'axios';
 import { RESTPostAPIWebhookWithTokenJSONBody } from 'discord-api-types/v10';
+import { RESTPostAPIChannelMessage } from 'fastify-discord';
 import { CustomInstance } from 'interfaces/API/Axios';
-import { RESTPostAPIChannelMessage } from 'plugins/discord';
 import sleep from 'utils/sleep';
 import imageBase64 from './imageBase64';
 import { error as errorLog } from './logger';

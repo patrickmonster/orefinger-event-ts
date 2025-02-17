@@ -24,3 +24,30 @@ kakaoAPI.interceptors.response.use(
         throw error;
     }
 );
+
+export const createMessage = async (message: string) => {
+    return await kakaoAPI.post('/talk/memo/default/send', {
+        template_object: {
+            object_type: 'feed',
+            content: {
+                title: '',
+                description: message,
+                image_url:
+                    'https://livecloud-thumb.akamaized.net/chzzk/livecloud/KR/stream/26875492/live/10602244/record/36809290/thumbnail/image_{type}.jpg',
+                image_width: 640,
+                image_height: 640,
+                link: {
+                    web_url: 'https://chzzk.naver.com/9381e7d6816e6d915a44a13c0195b202',
+                },
+            },
+            buttons: [
+                {
+                    title: '바로가기',
+                    link: {
+                        web_url: 'https://chzzk.naver.com/9381e7d6816e6d915a44a13c0195b202',
+                    },
+                },
+            ],
+        },
+    });
+};
