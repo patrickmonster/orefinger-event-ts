@@ -1,5 +1,5 @@
 import { deleteOrInsertNoticeChannels } from 'controllers/notice';
-import { MessageMenuInteraction } from 'interactions/message';
+import { MessageMenuInteraction } from 'fastify-discord';
 
 /**
  * 알림 채널 변경용

@@ -1,5 +1,5 @@
 import { selectNoticeList } from 'components/notice';
-import { MessageInteraction } from 'interactions/message';
+import { MessageInteraction } from 'fastify-discord';
 import { catchRedis, REDIS_KEY } from 'utils/redis';
 
 /**

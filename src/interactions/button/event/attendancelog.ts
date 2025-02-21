@@ -1,4 +1,4 @@
-import { MessageInteraction } from 'interactions/message';
+import { MessageInteraction } from 'fastify-discord';
 
 import { getAdvertisement } from 'controllers/message';
 import { attendanceList } from 'controllers/notice/twitch';

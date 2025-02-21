@@ -1,6 +1,6 @@
 import { selectEmbedUserBaseEditByModel, upsertEmbedUser } from 'controllers/embed';
 import { upsertAuthBorde } from 'controllers/guild/authDashbord';
-import { MessageInteraction } from 'interactions/message';
+import { MessageInteraction } from 'fastify-discord';
 
 /**
  *

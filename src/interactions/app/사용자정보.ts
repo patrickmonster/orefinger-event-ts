@@ -1,11 +1,10 @@
-import { appInteraction } from 'interactions/app';
-
 import { tokens, userAuthState } from 'controllers/auth';
 import { ApplicationCommandType } from 'discord-api-types/v10';
+import { AppInteraction } from 'fastify-discord';
 import moment from 'moment';
 import { createMenuinputCommand } from 'utils/discord/component';
 
-export const exec = async (interaction: appInteraction) => {
+export const exec = async (interaction: AppInteraction) => {
     if (interaction.type !== ApplicationCommandType.User) return; // 유저 커맨드만
     const { target_id } = interaction;
 

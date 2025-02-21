@@ -2,7 +2,7 @@ import { getNoticeDetailByEmbed } from 'components/notice';
 import { searchAfreecabeUser } from 'components/user/afreeca';
 import { getChzzkUser, isChzzkHash, searchChzzkUser } from 'components/user/chzzk';
 import { searchYoutubeUser } from 'components/user/youtube';
-import { MessageMenuInteraction } from 'interactions/message';
+import { MessageMenuInteraction } from 'fastify-discord';
 import {
     createActionRow,
     createDangerButton,

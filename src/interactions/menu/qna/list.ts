@@ -1,7 +1,7 @@
 import { editerComponent } from 'components/systemComponent';
 import { selectEmbedUserDtilByEmbed } from 'controllers/embed';
 import { selectQnaTypesByMenu } from 'controllers/guild/qna';
-import { MessageMenuInteraction } from 'interactions/message';
+import { MessageMenuInteraction } from 'fastify-discord';
 import { createStringSelectMenu, createSuccessButton } from 'utils/discord/component';
 
 /*

@@ -1,4 +1,5 @@
-import { AppChatInputInteraction, SelectOptionType } from 'interactions/app';
+import { AppChatInputInteraction } from 'fastify-discord';
+import { SelectOptionType } from 'interactions/app';
 
 import { selectComponentPagingMenuByKey } from 'components/systemComponent';
 import QUERY from 'controllers/component/pointShopListQuerys';

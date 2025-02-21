@@ -3,7 +3,7 @@ import { basename } from 'path';
 import authTokenSelect from 'components/authTokenSelect';
 import authTusuSelect from 'components/authTusuSelect';
 import { upsertDiscordUserAndJWTToken } from 'controllers/auth';
-import { MessageInteraction } from 'interactions/message';
+import { MessageInteraction } from 'fastify-discord';
 import { createButtonArrays, createUrlButton } from 'utils/discord/component';
 
 const name = basename(__filename, __filename.endsWith('js') ? '.js' : '.ts');

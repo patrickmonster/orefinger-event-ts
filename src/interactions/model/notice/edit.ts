@@ -1,6 +1,6 @@
 import { castMessage } from 'components/discord';
 import { upsertNotice } from 'controllers/notice';
-import { MessageMenuInteraction } from 'interactions/message';
+import { MessageMenuInteraction } from 'fastify-discord';
 import { ParseInt } from 'utils/object';
 
 /**

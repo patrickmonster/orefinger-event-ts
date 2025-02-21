@@ -1,6 +1,7 @@
 import { ecsTaskState, liveState } from 'controllers/log';
 import dayjs from 'dayjs';
-import { AppChatInputInteraction, SelectOptionType } from 'interactions/app';
+import { AppChatInputInteraction } from 'fastify-discord';
+import { SelectOptionType } from 'interactions/app';
 import { createChatinputCommand, createEmbed } from 'utils/discord/component';
 import { getTimeStringSeconds } from 'utils/object';
 import { catchRedis } from 'utils/redis';

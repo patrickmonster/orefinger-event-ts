@@ -2,7 +2,7 @@ import { messageEdit } from 'components/discord';
 import { updateQnaQuestion } from 'controllers/component/qna';
 import { selectQnaTypes } from 'controllers/guild/qna';
 import { RESTPostAPIChannelMessageJSONBody } from 'discord-api-types/v10';
-import { MessageMenuInteraction } from 'interactions/message';
+import { MessageMenuInteraction } from 'fastify-discord';
 import { createActionRow, createSuccessButton } from 'utils/discord/component';
 import { ParseInt } from 'utils/object';
 import redis, { REDIS_KEY } from 'utils/redis';

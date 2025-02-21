@@ -1,5 +1,6 @@
 import axios from 'axios';
-import { AppChatInputInteraction, SelectOptionType } from 'interactions/app';
+import { AppChatInputInteraction } from 'fastify-discord';
+import { SelectOptionType } from 'interactions/app';
 import { createChatinputCommand } from 'utils/discord/component';
 
 export const exec = async (interaction: AppChatInputInteraction, selectOption: SelectOptionType) => {

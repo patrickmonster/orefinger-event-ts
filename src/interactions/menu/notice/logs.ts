@@ -1,4 +1,4 @@
-import { MessageMenuInteraction } from 'interactions/message';
+import { MessageMenuInteraction } from 'fastify-discord';
 
 /**
  *
@@ -17,6 +17,4 @@ export const exec = async (interaction: MessageMenuInteraction, noticeId: string
     //     ephemeral: true,
     //     content: '해당 기능은 현재 준비중입니다...!',
     // });
-
-    
 };

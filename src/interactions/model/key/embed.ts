@@ -1,5 +1,5 @@
 import { upsertEmbedUser } from 'controllers/embed';
-import { MessageMenuInteraction } from 'interactions/message';
+import { MessageMenuInteraction } from 'fastify-discord';
 
 /**
  * 알림을 수정합니다.

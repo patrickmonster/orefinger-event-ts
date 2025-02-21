@@ -1,4 +1,4 @@
-import { MessageMenuInteraction } from 'interactions/message';
+import { MessageMenuInteraction } from 'fastify-discord';
 
 import { selectEmbedAuthBord } from 'components/ruleBord';
 

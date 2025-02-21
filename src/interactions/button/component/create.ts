@@ -1,5 +1,5 @@
 import { createComponent, selectComponentBaseEditByModel } from 'controllers/component';
-import { MessageInteraction } from 'interactions/message';
+import { MessageInteraction } from 'fastify-discord';
 
 /**
  *

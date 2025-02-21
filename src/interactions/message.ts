@@ -1,11 +1,6 @@
-import {
-    APIActionRowComponent,
-    APIMessageActionRowComponent,
-    APIMessageButtonInteractionData,
-    APIMessageSelectMenuInteractionData,
-} from 'discord-api-types/v10';
+import { APIActionRowComponent, APIMessageActionRowComponent, ComponentType } from 'discord-api-types/v10';
+import { MessageButtonInteraction, MessageInteraction, MessageMenuInteraction } from 'fastify-discord';
 import { join } from 'path';
-import { APIMessageComponentInteraction, ComponentType, IReply } from 'plugins/discord';
 import autoLoader from 'utils/autoCommand';
 import { sendErrorNotFoundComponent } from 'utils/discord/interaction';
 import { getCommand } from 'utils/interaction';
@@ -14,17 +9,6 @@ import { getCommand } from 'utils/interaction';
 export interface EventComponent {
     component: APIActionRowComponent<APIMessageActionRowComponent> | undefined;
 }
-
-export type MessageButtonInteraction = IReply &
-    Omit<APIMessageComponentInteraction, 'data' | 'type'> &
-    APIMessageButtonInteractionData &
-    EventComponent;
-export type MessageMenuInteraction = IReply &
-    Omit<APIMessageComponentInteraction, 'data' | 'type'> &
-    APIMessageSelectMenuInteractionData &
-    EventComponent;
-
-export type MessageInteraction = MessageButtonInteraction | MessageMenuInteraction;
 
 const [buttons] = autoLoader(join(__dirname, 'button'), { pathTag: ' ', isLog: true });
 const [menus] = autoLoader(join(__dirname, 'menu'), { pathTag: ' ', isLog: true });

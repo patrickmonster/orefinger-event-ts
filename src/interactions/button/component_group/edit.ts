@@ -1,4 +1,4 @@
-import { MessageInteraction } from 'interactions/message';
+import { MessageInteraction } from 'fastify-discord';
 
 import { selectComponentPagingMenuByKey } from 'components/systemComponent';
 import { copyComponentGroup, selectComponentGroupEditByModel } from 'controllers/component';

@@ -34,12 +34,6 @@ export default async (fastify: FastifyInstance, opts: any) => {
         (req, res) => {
             const { body } = req;
 
-            // 상태체크 처리
-            if (body.type === InteractionType.Ping) {
-                console.log('ping');
-                return res.status(200).send({ type: InteractionResponseType.PONG });
-            }
-
             // 자동완성처리
             if (body.type === InteractionType.ApplicationCommandAutocomplete) {
                 return autocomp(body.data, (choices: Array<{ name: string; value: string }>) => {
@@ -54,10 +48,6 @@ export default async (fastify: FastifyInstance, opts: any) => {
 
             // 응답이 유동적인 처리를 해야함.
             const interaction = fastify.decorateInteractionReply(req, res);
-            const msg: any = { ...body, ...body.data };
-            for (const [key, value] of interaction) {
-                msg[key as string] = value;
-            }
 
             fastify.log.info(
                 'interactionEvent',
@@ -68,15 +58,15 @@ export default async (fastify: FastifyInstance, opts: any) => {
                 body.id
             );
 
-            switch (body.type) {
+            switch (interaction.type) {
                 case InteractionType.ApplicationCommand:
-                    app && app(msg);
+                    app && app(interaction);
                     break;
                 case InteractionType.MessageComponent:
-                    message && message(msg);
+                    message && message(interaction);
                     break;
                 case InteractionType.ModalSubmit:
-                    model && model(msg);
+                    model && model(interaction);
                     break;
                 default:
                     break;

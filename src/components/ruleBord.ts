@@ -1,7 +1,7 @@
 import { selectEmbedUserDtilByEmbed, upsertEmbedUser } from 'controllers/embed';
 import { getAuthbordeList, upsertAuthBorde } from 'controllers/guild/authDashbord';
 import { APISelectMenuDefaultValue, SelectMenuDefaultValueType } from 'discord-api-types/v10';
-import { MessageInteraction } from 'interactions/message';
+import { MessageInteraction } from 'fastify-discord';
 import {
     createActionRow,
     createPrimaryButton,

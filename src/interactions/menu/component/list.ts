@@ -1,4 +1,4 @@
-import { MessageMenuInteraction } from 'interactions/message';
+import { MessageMenuInteraction } from 'fastify-discord';
 
 import { editerComponent } from 'components/systemComponent';
 import { selectComponentDtilByEmbed, selectComponentTypeList, selectComponentYnMenu } from 'controllers/component';

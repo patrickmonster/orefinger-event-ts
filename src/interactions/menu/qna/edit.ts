@@ -1,6 +1,6 @@
 import { selectQnaTypesByMenu } from 'controllers/guild/qna';
 import { APIActionRowComponent, APIModalActionRowComponent } from 'discord-api-types/v10';
-import { MessageMenuInteraction } from 'interactions/message';
+import { MessageMenuInteraction } from 'fastify-discord';
 import { createTextShortInput } from 'utils/discord/component';
 
 /**

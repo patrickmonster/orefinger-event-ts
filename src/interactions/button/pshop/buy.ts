@@ -1,6 +1,6 @@
 import { messageCreate } from 'components/discord';
 import { addOrder, selectPointDetail, selectPointGuild } from 'controllers/point';
-import { MessageInteraction } from 'interactions/message';
+import { MessageInteraction } from 'fastify-discord';
 import { createActionRow, createDangerButton, createSuccessButton } from 'utils/discord/component';
 import { getMessageId, ParseInt } from 'utils/object';
 

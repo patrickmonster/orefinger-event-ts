@@ -1,4 +1,4 @@
-import { MessageInteraction } from 'interactions/message';
+import { MessageInteraction } from 'fastify-discord';
 
 import authTokenSelect from 'components/authTokenSelect';
 import giveRoleAndNick from 'components/giveRoleAndNick';

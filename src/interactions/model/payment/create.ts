@@ -1,5 +1,5 @@
 import { createPayment } from 'components/paymont';
-import { MessageMenuInteraction } from 'interactions/message';
+import { MessageMenuInteraction } from 'fastify-discord';
 
 /**
  *

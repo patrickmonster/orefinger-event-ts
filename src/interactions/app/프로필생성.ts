@@ -2,7 +2,7 @@ import { webhookCreate } from 'components/discord';
 import { insertFile } from 'controllers/CDN/file';
 import { upsertWebhook } from 'controllers/guild/webhook';
 import { ApplicationCommandType } from 'discord-api-types/v10';
-import { AppContextMenuInteraction } from 'interactions/app';
+import { AppContextMenuInteraction } from 'fastify-discord';
 import { createMenuinputCommand } from 'utils/discord/component';
 import { sendWebhook } from 'utils/discordApiInstance';
 import { uploadProfile } from 'utils/s3Apiinstance';

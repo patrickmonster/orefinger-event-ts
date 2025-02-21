@@ -1,6 +1,6 @@
 import { selectEmbedUserBaseEditByModel, upsertEmbedUser } from 'controllers/embed';
 import { upsertQnaBorde } from 'controllers/guild/qna';
-import { MessageInteraction } from 'interactions/message';
+import { MessageInteraction } from 'fastify-discord';
 
 /**
  *

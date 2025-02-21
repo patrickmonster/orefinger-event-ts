@@ -1,6 +1,6 @@
 import { selectQnaQuestion } from 'controllers/component/qna';
 import { PermissionFlagsBits } from 'discord-api-types/v10';
-import { MessageInteraction } from 'interactions/message';
+import { MessageInteraction } from 'fastify-discord';
 import { createTextParagraphInput } from 'utils/discord/component';
 
 import { hasNot } from 'utils/discord/permission';

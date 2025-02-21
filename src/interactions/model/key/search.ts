@@ -1,5 +1,5 @@
 import { selectComponentPagingMenuKey } from 'components/systemComponent';
-import { MessageMenuInteraction } from 'interactions/message';
+import { MessageMenuInteraction } from 'fastify-discord';
 
 type searchType = {
     label: string;

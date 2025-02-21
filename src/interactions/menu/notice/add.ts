@@ -1,4 +1,4 @@
-import { MessageMenuInteraction } from 'interactions/message';
+import { MessageMenuInteraction } from 'fastify-discord';
 
 import { checkUserNoticeLimit, getNoticeByType, getNoticeDetailByEmbed } from 'components/notice';
 import { getAfreecabeUser } from 'components/user/afreeca';

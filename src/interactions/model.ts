@@ -1,10 +1,7 @@
-import { APIModalSubmission, APIModalSubmitInteraction, IReply } from 'plugins/discord';
-
+import { ModelInteraction } from 'fastify-discord';
 import { join } from 'path';
 import autoLoader from 'utils/autoCommand';
 import { getCommand } from 'utils/interaction';
-
-export type ModelInteraction = IReply & Omit<APIModalSubmitInteraction, 'data' | 'type'> & APIModalSubmission;
 
 const [models] = autoLoader(join(__dirname, 'model'), {
     pathTag: ' ',

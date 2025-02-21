@@ -1,5 +1,4 @@
-import { MessageInteraction } from 'interactions/message';
-import { RESTPostAPIChannelMessage } from 'plugins/discord';
+import { MessageInteraction, RESTPostAPIChannelMessage } from 'fastify-discord';
 
 import { attendance } from 'controllers/notice/twitch';
 

@@ -1,5 +1,5 @@
 import { upsertAuthBorde } from 'controllers/guild/authDashbord';
-import { MessageMenuInteraction } from 'interactions/message';
+import { MessageMenuInteraction } from 'fastify-discord';
 
 /**
  *

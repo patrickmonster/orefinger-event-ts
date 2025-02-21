@@ -6,7 +6,7 @@ import {
     upsertComponentOptionConnect,
 } from 'controllers/component';
 import { APIStringSelectComponent } from 'discord-api-types/v10';
-import { MessageMenuInteraction } from 'interactions/message';
+import { MessageMenuInteraction } from 'fastify-discord';
 import { ComponentCreate, ComponentOptionConnect } from 'interfaces/component';
 
 import QUERY from 'controllers/component/embedListQuerys';

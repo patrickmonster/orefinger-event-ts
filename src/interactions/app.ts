@@ -1,26 +1,13 @@
 import {
-    APIApplicationCommandInteraction,
-    APIApplicationCommandInteractionData,
     APIApplicationCommandInteractionDataBasicOption,
-    APIChatInputApplicationCommandInteractionData,
-    APIContextMenuInteractionData,
     ApplicationCommandOptionType,
     ApplicationCommandType,
 } from 'discord-api-types/v10';
-import { Reply } from 'fastify-discord';
+import { AppChatInputInteraction, AppInteraction } from 'fastify-discord';
 
 import { join } from 'path';
 import autoLoader from 'utils/autoCommand';
 import { sendErrorNotFoundComponent } from 'utils/discord/interaction';
-
-export type IReply = {
-    [K in keyof Reply]: Reply[K] extends (...args: any[]) => any ? Reply[K] : never;
-};
-
-type InteractionType = Omit<APIApplicationCommandInteraction, 'data' | 'type'>;
-export type appInteraction = IReply & InteractionType & APIApplicationCommandInteractionData;
-export type AppChatInputInteraction = IReply & InteractionType & APIChatInputApplicationCommandInteractionData;
-export type AppContextMenuInteraction = IReply & InteractionType & APIContextMenuInteractionData;
 
 const [appCommands, apiApp] = autoLoader(join(__dirname, 'app'), {
     pathTag: ' ',
@@ -91,7 +78,7 @@ export interface SelectOptionType {
  * 앱 컴포넌트를 탐색 합니다.
  * @param interaction
  */
-export default async (interaction: appInteraction) => {
+export default async (interaction: AppInteraction) => {
     switch (interaction.type) {
         case ApplicationCommandType.Message:
         case ApplicationCommandType.User:

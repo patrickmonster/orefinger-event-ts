@@ -1,5 +1,5 @@
 import { getPoint, selectPointDetail } from 'controllers/point';
-import { MessageMenuInteraction } from 'interactions/message';
+import { MessageMenuInteraction } from 'fastify-discord';
 import { createActionRow, createSuccessButton } from 'utils/discord/component';
 import { ParseInt } from 'utils/object';
 

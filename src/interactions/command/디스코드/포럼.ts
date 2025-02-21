@@ -6,7 +6,8 @@ import {
     ChannelType,
 } from 'discord-api-types/v10';
 
-import { AppChatInputInteraction, SelectOptionType } from 'interactions/app';
+import { AppChatInputInteraction } from 'fastify-discord';
+import { SelectOptionType } from 'interactions/app';
 import { createChatinputSubCommand } from 'utils/discord/component';
 import discord from 'utils/discordApiInstance';
 

@@ -1,5 +1,5 @@
 import { upsertPshopItem } from 'controllers/point';
-import { MessageMenuInteraction } from 'interactions/message';
+import { MessageMenuInteraction } from 'fastify-discord';
 import { isNumeric, ParseInt } from 'utils/object';
 
 type searchType = {

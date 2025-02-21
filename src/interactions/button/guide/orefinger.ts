@@ -1,4 +1,4 @@
-import { MessageInteraction } from 'interactions/message';
+import { MessageInteraction } from 'fastify-discord';
 
 import { selectMessage } from 'controllers/message';
 

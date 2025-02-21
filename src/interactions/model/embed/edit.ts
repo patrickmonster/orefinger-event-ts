@@ -1,5 +1,5 @@
 import { selectEmbedUserDtilByEmbed, upsertEmbedUser } from 'controllers/embed';
-import { MessageMenuInteraction } from 'interactions/message';
+import { MessageMenuInteraction } from 'fastify-discord';
 import { appendUrlHttp } from 'utils/object';
 
 /**

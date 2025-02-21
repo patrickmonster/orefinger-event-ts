@@ -1,6 +1,7 @@
 import { addPoint, getPoint } from 'controllers/point';
 import { ApplicationCommandOptionType } from 'discord-api-types/v10';
-import { AppChatInputInteraction, SelectOptionType } from 'interactions/app';
+import { AppChatInputInteraction } from 'fastify-discord';
+import { SelectOptionType } from 'interactions/app';
 
 import { createChatinputCommand } from 'utils/discord/component';
 import sleep from 'utils/sleep';

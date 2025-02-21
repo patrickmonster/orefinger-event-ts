@@ -1,5 +1,6 @@
 import { upsertDiscordUserAndJWTToken, userIds } from 'controllers/auth';
-import { AppChatInputInteraction, SelectOptionType } from 'interactions/app';
+import { AppChatInputInteraction } from 'fastify-discord';
+import { SelectOptionType } from 'interactions/app';
 import { createButtonArrays, createChatinputCommand, createUrlButton } from 'utils/discord/component';
 
 export const exec = async (interaction: AppChatInputInteraction, selectOption: SelectOptionType) => {

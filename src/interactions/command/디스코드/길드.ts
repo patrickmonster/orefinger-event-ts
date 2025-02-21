@@ -1,6 +1,7 @@
 import { getGuild } from 'components/discord';
 import { ApplicationCommandOptionType } from 'discord-api-types/v10';
-import { AppChatInputInteraction, SelectOptionType } from 'interactions/app';
+import { AppChatInputInteraction } from 'fastify-discord';
+import { SelectOptionType } from 'interactions/app';
 import { createChatinputCommand } from 'utils/discord/component';
 
 export const exec = async (interaction: AppChatInputInteraction, selectOption: SelectOptionType) => {

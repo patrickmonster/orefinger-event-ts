@@ -1,6 +1,6 @@
 import { messageCreate } from 'components/discord';
 import { selectEmbedUserDtilByEmbed } from 'controllers/embed';
-import { MessageMenuInteraction } from 'interactions/message';
+import { MessageMenuInteraction } from 'fastify-discord';
 import { createButtonArrays, createPrimaryButton, createUrlButton } from 'utils/discord/component';
 
 /**

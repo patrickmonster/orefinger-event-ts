@@ -1,7 +1,7 @@
 import { selectComponentPagingMenuByKey } from 'components/systemComponent';
 import { searchLaftelVod } from 'components/user/laftel';
 import QUERY from 'controllers/component/embedListQuerys';
-import { MessageInteraction } from 'interactions/message';
+import { MessageInteraction } from 'fastify-discord';
 import { createTextShortInput } from 'utils/discord/component';
 import menuComponentBuild from 'utils/menuComponentBuild';
 

@@ -1,5 +1,5 @@
 import { selectComponentRowDtilByEmbed, upsertComponentActionRow } from 'controllers/component';
-import { MessageMenuInteraction } from 'interactions/message';
+import { MessageMenuInteraction } from 'fastify-discord';
 
 /**
  *

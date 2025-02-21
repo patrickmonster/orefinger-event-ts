@@ -1,5 +1,5 @@
 import { cancelOrder } from 'controllers/point';
-import { MessageInteraction } from 'interactions/message';
+import { MessageInteraction } from 'fastify-discord';
 
 /**
  * 상품을 추가합니다.

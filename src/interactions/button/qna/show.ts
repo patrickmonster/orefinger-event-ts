@@ -1,5 +1,5 @@
 import { selectQnaQuestion } from 'controllers/component/qna';
-import { MessageInteraction } from 'interactions/message';
+import { MessageInteraction } from 'fastify-discord';
 import { ParseInt } from 'utils/object';
 
 /**

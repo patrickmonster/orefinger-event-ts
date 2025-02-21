@@ -1,4 +1,4 @@
-import { MessageInteraction } from 'interactions/message';
+import { MessageInteraction, MessageMenuInteraction } from 'fastify-discord';
 
 import { selectComponentPagingMenuByKey } from 'components/systemComponent';
 import {
@@ -49,7 +49,7 @@ const componentActionRowOrderView = async (interaction: MessageInteraction, comp
 };
 
 const componentActionRowOrderEdit = async (
-    interaction: MessageInteraction,
+    interaction: MessageMenuInteraction,
     component_row_id: string,
     component_id: string
 ) => {

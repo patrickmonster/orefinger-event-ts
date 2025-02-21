@@ -1,5 +1,5 @@
 import { selectEmbedUserBaseEditByModel, upsertEmbedUser } from 'controllers/embed';
-import { MessageInteraction } from 'interactions/message';
+import { MessageInteraction } from 'fastify-discord';
 
 /**
  *

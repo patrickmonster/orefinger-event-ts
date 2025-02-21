@@ -1,6 +1,6 @@
 import { sendTestNotice } from 'components/notice';
 import { selectNoticeDetailEditByModel } from 'controllers/notice';
-import { MessageInteraction } from 'interactions/message';
+import { MessageInteraction } from 'fastify-discord';
 import { createActionRow, createUrlButton } from 'utils/discord/component';
 
 /**

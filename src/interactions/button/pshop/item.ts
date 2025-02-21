@@ -1,6 +1,6 @@
 import { selectComponentPagingMenuByKey } from 'components/systemComponent';
 import { selectPointDetailByEmbed, selectPshopItemEditByModel, upsertPshopItem } from 'controllers/point';
-import { MessageInteraction } from 'interactions/message';
+import { MessageInteraction } from 'fastify-discord';
 import { createActionRow, createToggleButton } from 'utils/discord/component';
 import { ParseInt } from 'utils/object';
 

@@ -1,5 +1,5 @@
 import { getDashboard } from 'controllers/guild/authDashbord';
-import { MessageMenuInteraction } from 'interactions/message';
+import { MessageMenuInteraction } from 'fastify-discord';
 
 import { createActionRow, createPrimaryButton } from 'utils/discord/component';
 

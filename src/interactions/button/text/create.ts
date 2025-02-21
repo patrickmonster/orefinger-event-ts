@@ -1,5 +1,5 @@
 import { TextInputStyle } from 'discord-api-types/v10';
-import { MessageInteraction } from 'interactions/message';
+import { MessageInteraction } from 'fastify-discord';
 import { createTextInput } from 'utils/discord/component';
 
 /**

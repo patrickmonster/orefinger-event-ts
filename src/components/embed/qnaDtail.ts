@@ -1,6 +1,5 @@
 import { selectEmbedUserDtilByEmbed } from 'controllers/embed';
-import { MessageInteraction } from 'interactions/message';
-
+import { MessageInteraction } from 'fastify-discord';
 export const postBord = async (interaction: MessageInteraction, embedId: string) => {
     const { guild_id, channel } = interaction;
     if (!guild_id) return;

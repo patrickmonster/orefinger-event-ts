@@ -1,7 +1,7 @@
 import { createComponentSelectMenuByComponentPagingMenuByKey } from 'components/systemComponent';
-import { AppChatInputInteraction } from 'interactions/app';
 
 import QUERY from 'controllers/component/embedListQuerys';
+import { AppChatInputInteraction } from 'fastify-discord';
 import { createChatinputSubCommand } from 'utils/discord/component';
 
 export const exec = async (interaction: AppChatInputInteraction) => {

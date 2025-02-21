@@ -1,5 +1,5 @@
 import { selectNoticeByGuild } from 'controllers/notice';
-import { MessageInteraction } from 'interactions/message';
+import { MessageInteraction } from 'fastify-discord';
 
 import axios from 'axios';
 import { webhookCreate } from 'components/discord';

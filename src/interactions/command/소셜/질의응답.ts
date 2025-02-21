@@ -1,4 +1,5 @@
-import { AppChatInputInteraction, SelectOptionType } from 'interactions/app';
+import { AppChatInputInteraction } from 'fastify-discord';
+import { SelectOptionType } from 'interactions/app';
 import { createChatinputSubCommand, createPrimaryButton } from 'utils/discord/component';
 
 import { createComponentSelectMenuByComponentPagingMenuByKey } from 'components/systemComponent';

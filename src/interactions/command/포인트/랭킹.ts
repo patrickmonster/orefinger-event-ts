@@ -1,5 +1,6 @@
 import { selectPointRanking } from 'controllers/point';
-import { AppChatInputInteraction, SelectOptionType } from 'interactions/app';
+import { AppChatInputInteraction } from 'fastify-discord';
+import { SelectOptionType } from 'interactions/app';
 
 import { createChatinputCommand } from 'utils/discord/component';
 

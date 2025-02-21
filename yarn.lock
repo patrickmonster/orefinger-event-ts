@@ -2074,10 +2074,10 @@ fastfall@^1.5.0:
   dependencies:
     reusify "^1.0.0"
 
-fastify-discord@^1.0.4:
-  version "1.0.4"
-  resolved "https://registry.npmjs.org/fastify-discord/-/fastify-discord-1.0.4.tgz"
-  integrity sha512-UgjuMdwZ581VCgR7F5TQM93bcRI456QjvNILEYvqz4qhJD5rRFn12WS6Zy7GOq/bYFOFtGRdxRZlOYT0+KdQnw==
+fastify-discord@^1.1.1:
+  version "1.1.1"
+  resolved "https://registry.npmjs.org/fastify-discord/-/fastify-discord-1.1.1.tgz"
+  integrity sha512-SgPovI7vBUeXMKsB7ppQ4S+BPEumQEFiE1DZIpuqavbyXYe180m4+qf1fL/qwwdQkkpGgUhbxkoeQdcDvpj8fg==
   dependencies:
     axios "^1.7.9"
     discord-api-types "^0.37.119"

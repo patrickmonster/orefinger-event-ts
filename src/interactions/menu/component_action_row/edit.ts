@@ -1,6 +1,6 @@
 import { upsertComponentActionRowConnect } from 'controllers/component';
 import { APIStringSelectComponent } from 'discord-api-types/v10';
-import { MessageMenuInteraction } from 'interactions/message';
+import { MessageMenuInteraction } from 'fastify-discord';
 import { ComponentActionRowConnect } from 'interfaces/component';
 
 /**

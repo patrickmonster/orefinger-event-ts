@@ -1,9 +1,14 @@
 import { selectComponentDtilByEmbed, selectComponentTypeList, selectComponentYnMenu } from 'controllers/component';
-import { IReply } from 'plugins/discord';
+
+import { InteractionType } from 'discord-api-types/payloads/v10/_interactions/responses';
+import { Reply } from 'fastify-discord';
 import { createStringSelectMenu } from 'utils/discord/component';
 import { editerComponent } from './systemComponent';
 
-export const getComponentEditor = async (interaction: IReply, component_id: string | number) => {
+export const getComponentEditor = async <Type extends InteractionType>(
+    interaction: Reply<Type>,
+    component_id: string | number
+) => {
     await interaction.differ({ ephemeral: true });
     const embed = await selectComponentDtilByEmbed(component_id);
 

@@ -1,5 +1,5 @@
 import { selectEmbedUserDtilByEmbed } from 'controllers/embed';
-import { MessageInteraction } from 'interactions/message';
+import { MessageInteraction } from 'fastify-discord';
 
 export const selectEmbed = async (interaction: MessageInteraction, embed_id: string) => {
     const { component } = interaction;

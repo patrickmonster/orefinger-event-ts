@@ -1,4 +1,5 @@
-import { AppChatInputInteraction, SelectOptionType } from 'interactions/app';
+import { AppChatInputInteraction } from 'fastify-discord';
+import { SelectOptionType } from 'interactions/app';
 import { createActionRow, createChatinputCommand, createUrlButton } from 'utils/discord/component';
 
 const { version } = require('../../../package.json');
