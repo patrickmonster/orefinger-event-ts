@@ -1,23 +1,10 @@
 import getConnection, { calTo, query, selectPaging, SqlInsertUpdate } from 'utils/database';
 
 import { APIEmbed, APIModalInteractionResponseCallbackData } from 'discord-api-types/v10';
-import { EmbedCreate, EmbedUser } from 'interfaces/embed';
+import { Embed, EmbedCreate, EmbedUser, UserEmbed } from 'interfaces/embed';
 
 export const selectEmbedList = async (page: number) =>
-    selectPaging<{
-        embed_id: number;
-        tag: string;
-        url: string;
-        color: number;
-        image: string;
-        thumbnail: string;
-        title: string;
-        description: string;
-        provider: string;
-        author: string;
-        create_at: string;
-        update_at: string;
-    }>(
+    selectPaging<Embed>(
         `
 select *
 from v_embed
@@ -174,8 +161,6 @@ WHERE a.embed_id = ?
         embed_id || 1
     ).then(res => res[0]);
 
-// ========================================================================================================
-
 /**
  * 메세지에 포함된 임베드를 조회합니다.
  * @param postId
@@ -183,19 +168,7 @@ WHERE a.embed_id = ?
  */
 export const selectPostByEmbedUser = async (postId: string, idx = 1) =>
     getConnection(async query => {
-        const embed = query<{
-            post_id: number;
-            tag: string;
-            hash_id: `mp-${string}-${string}`;
-            message_id: number;
-            embed_id: number;
-            message: string;
-            embed: APIEmbed;
-            create_user: string;
-            update_user: string;
-            create_at: string;
-            update_at: string;
-        }>(
+        const embed = query<UserEmbed>(
             `
 SELECT
 	vmp.post_id

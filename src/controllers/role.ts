@@ -1,5 +1,5 @@
 'use strict';
-import getConnection, { SqlInsertUpdate, query, queryFunctionType } from 'utils/database';
+import getConnection, { query, QueryFunctionType, SqlInsertUpdate } from 'utils/database';
 
 const roleType = 52;
 
@@ -34,7 +34,7 @@ on duplicate key update token = null`,
     );
 
 export const insertAuthRule = async (auth_id: string, guild_id: string, type: number | string) =>
-    getConnection(async (query: queryFunctionType) => {
+    getConnection(async (query: QueryFunctionType) => {
         const [target] = await query<{
             auth_type: string;
             tag: string;

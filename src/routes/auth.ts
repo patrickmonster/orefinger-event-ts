@@ -6,7 +6,6 @@ import {
     auth,
     authTypes,
     deleteAuthConnection,
-    deleteAuthConnectionAuthTypes,
     discord,
     selectAuthType,
     selectDiscordUserByJWTToken,
@@ -14,6 +13,7 @@ import {
     upsertDiscordUserAndJWTToken,
     userIds,
 } from 'controllers/auth';
+import { deleteAuthConnectionAuthTypes } from 'interfaces/auth';
 import discordApi, { changeNickname, openApi } from 'utils/discordApiInstance';
 import { kakaoAPI } from 'utils/kakaoApiInstance';
 import { getChzzkPostComment, naverAPI } from 'utils/naverApiInstance';

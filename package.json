@@ -37,6 +37,7 @@
         "ioredis": "^5.4.1",
         "isomorphic-ws": "^5.0.0",
         "moment": "^2.29.4",
+        "mysql-rowquery": "^1.0.8",
         "mysql2": "^3.11.0",
         "p-queue": "^6.6.2",
         "querystring": "^0.2.1",

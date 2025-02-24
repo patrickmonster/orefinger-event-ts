@@ -1,30 +1,22 @@
 'use strict';
-import { AuthUser } from 'interfaces/auth';
-import getConnection, {
-    SqlInsertUpdate,
-    YN,
-    calTo,
-    query,
-    queryFunctionType,
-    selectPaging,
-    tastTo,
-} from 'utils/database';
+import {
+    Auth,
+    AuthBadge,
+    AuthToken,
+    AuthType,
+    AuthUser,
+    deleteAuthConnectionAuthTypes,
+    UserId,
+    UserInfo,
+} from 'interfaces/auth';
+import getConnection, { calTo, query, QueryFunctionType, selectPaging, SqlInsertUpdate, tastTo } from 'utils/database';
 
 import { APIUser } from 'discord-api-types/v10';
 import { Event } from 'interfaces/eventsub';
 import { Paging } from 'interfaces/swagger';
 
 export const authDtil = async (user_id: string) =>
-    query<{
-        auth_id: string;
-        name: string;
-        username: string;
-        tag: string;
-        avatar: string;
-        create_at: string;
-        update_at: string;
-        phone: string;
-    }>(
+    query<Auth>(
         `
 SELECT
 	auth_id
@@ -70,18 +62,7 @@ export const auth = async (
 };
 
 export const selectAuthType = async () =>
-    query<{
-        auth_type: number;
-        tag: string;
-        tag_kr: string;
-        create_at: string;
-        use_yn: string;
-        scope: string;
-        client_id: string;
-        target: string;
-        client_sc: string;
-        logout_url: string;
-    }>(`
+    query<AuthType>(`
 SELECT auth_type, tag, tag_kr, create_at, use_yn, \`scope\`, client_id, target, client_sc, logout_url 
 FROM auth_type at2 
 WHERE 1=1
@@ -119,15 +100,7 @@ WHERE \`type\` in (?) and user_id=?
 };
 
 export const authTypes = async (isAll?: boolean, type?: number) =>
-    await query<{
-        auth_type: number;
-        tag: string;
-        tag_kr: string;
-        target: string;
-        scope: string;
-        client_id: string;
-        client_sc: string;
-    }>(
+    await query<Omit<AuthType, 'logout_url' | 'create_at' | 'use_yn'>>(
         `
 select auth_type, tag, tag_kr, scope
 ${isAll ? '' : '-- '}, client_id , target , client_sc
@@ -138,16 +111,6 @@ AND use_yn ='Y'
         `
     );
 
-export type deleteAuthConnectionAuthTypes =
-    | 'discord'
-    | 'twitch.stream'
-    | 'twitch'
-    | 'tiktok'
-    | 'afreecatv'
-    | 'kakao'
-    | 'youtube'
-    | 'toss'
-    | 'toss.test';
 export const deleteAuthConnection = async (type: deleteAuthConnectionAuthTypes, auth_id: string, user_id: string) =>
     await query<SqlInsertUpdate>(
         'DELETE FROM discord.auth_conntection  WHERE auth_id=? AND `type`=func_get_auth_type(?) AND user_id=?',
@@ -162,19 +125,8 @@ export const deleteAuthConnection = async (type: deleteAuthConnectionAuthTypes, 
  * @param user_id
  * @returns
  */
-export const userIds = async (user_id: string, QUERY?: queryFunctionType) =>
-    await (QUERY ? QUERY : query)<{
-        auth_type: number;
-        tag: string;
-        tag_kr: string;
-        user_id: string;
-        login: string;
-        name: string;
-        name_alias: string;
-        avatar: string;
-        is_session: boolean;
-        create_at: string;
-    }>(
+export const userIds = async (user_id: string, QUERY?: QueryFunctionType) =>
+    await (QUERY ? QUERY : query)<UserId>(
         `
 select 
     at2.auth_type
@@ -195,21 +147,7 @@ ${tastTo("AND at2.use_yn = 'Y'")}
     );
 
 export const tokens = (auth_id: string, ...types: number[]) =>
-    query<{
-        type: number;
-        type_kr: string;
-        user_id: string;
-        auth_id: string;
-        login: string;
-        name: string;
-        user_type: number;
-        email: string;
-        avatar: string;
-        refresh_token: string;
-        is_session: string;
-        create_at: string;
-        update_at: string;
-    }>(
+    query<AuthToken>(
         `
 select vat.type
 	, ( SELECT tag FROM auth_type at2 WHERE at2.auth_type = vat.type) AS type_kr
@@ -251,32 +189,20 @@ and g.name > ''`,
         id
     );
 
-export type GetAuthUsersSearchOption = {
-    user_id?: string;
-    auth_id?: string;
-    login?: string;
-    name?: string;
-    type?: string;
-};
-export const selectAuthUsers = (page: Paging, { user_id, auth_id, login, name, type }: GetAuthUsersSearchOption) =>
-    selectPaging<{
-        type: number;
-        tag: string;
-        tag_kr: string;
-        user_id: string;
-        auth_id: string;
-        login: string;
-        name: string;
-        kr_name: string;
-        user_type: number;
-        email: string;
-        avatar: string;
-        avatar_id: string;
-        refresh_token: string;
-        is_session: YN;
-        create_at: string;
-        update_at: string;
-    }>(
+export const selectAuthUsers = (
+    page: Paging,
+    {
+        user_id,
+        auth_id,
+        login,
+        name,
+        type,
+    }: Omit<
+        UserInfo,
+        'tag' | 'tag_kr' | 'create_at' | 'use_yn' | 'scope' | 'client_id' | 'client_sc' | 'target' | 'logout_url'
+    >
+) =>
+    selectPaging<UserInfo>(
         `    
 SELECT
     vat.\`type\`
@@ -309,15 +235,7 @@ ${calTo('AND vat.name = ?', name)}
 
 // 옵션에 대한 사용자 정보를 불러옴
 export const getAuthBadge = (user_id: string) =>
-    query<{
-        user_id: string;
-        auth_id: string;
-        login: string;
-        name: string;
-        kr_name: string;
-        user_type: string;
-        avatar: string;
-    }>(
+    query<AuthBadge>(
         `
 SELECT 
     vat.user_id

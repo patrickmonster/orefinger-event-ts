@@ -1,6 +1,5 @@
 import { RequestData } from '@discordjs/rest';
 import axios from 'axios';
-import { channelUpsert } from 'controllers/channel';
 import { upsertWebhook } from 'controllers/guild/webhook';
 import { CreateMessage } from 'controllers/log';
 import {
@@ -13,8 +12,6 @@ import {
     RESTPostAPIChannelMessageJSONBody,
     RESTPostAPIChannelMessageResult,
     RESTPostAPIChannelWebhookResult,
-    RESTPostAPIGuildChannelJSONBody,
-    RESTPostAPIGuildChannelResult,
     RESTPostAPIWebhookWithTokenJSONBody,
     RESTPutAPIChannelPermissionJSONBody,
 } from 'discord-api-types/v10';
@@ -125,21 +122,6 @@ export const attachmentFile = async (...url: Attachment[]) => {
     for (const { name, target } of list) form.append(target, name);
 
     return form;
-};
-
-export const channelCreate = async (guild_id: string, data: RESTPostAPIGuildChannelJSONBody) => {
-    const channel = await postDiscord<RESTPostAPIGuildChannelResult>(`/guilds/${guild_id}/channels`, {
-        body: data,
-    });
-    await channelUpsert([
-        {
-            guild_id,
-            channel_id: channel.id,
-            name: channel.name || '',
-            type: channel.type,
-        },
-    ]);
-    return channel;
 };
 
 export const messageCreate = async (channel_id: string, body: RESTPostAPIChannelMessageJSONBody) =>

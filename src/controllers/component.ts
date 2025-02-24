@@ -10,40 +10,17 @@ import {
     ComponentType,
 } from 'discord-api-types/v10';
 import {
+    Component,
     ComponentActionRow,
     ComponentActionRowConnect,
     ComponentCreate,
+    ComponentId,
+    ComponentOption,
     ComponentOptionConnect,
     ComponentOptionCreate,
 } from 'interfaces/component';
 import { Paging } from 'interfaces/swagger';
 import { ParseInt } from 'utils/object';
-
-export type ComponentId = number | string;
-
-export type Component = {
-    component_id: number;
-    name: string;
-    label_id: number;
-    type: number;
-    type_name: string;
-    text_id: number;
-    emoji: string;
-    custom_id: string;
-    value: string;
-    style: number;
-    style_name: string;
-    min_values: number;
-    max_values: number;
-    disabled: boolean;
-    required: boolean;
-    use_yn: boolean;
-    edit: boolean;
-    permission_type: string;
-    create_at: string;
-    update_at: string;
-    order_by: number;
-};
 
 export const selectComponentList = async (page: Paging) =>
     selectPaging<
@@ -116,18 +93,7 @@ and a.component_id = ?
     ).then(res => res[0]);
 
 export const getComponentOptionList = async (page: Paging) =>
-    selectPaging<{
-        option_id: number;
-        label: string;
-        value: string;
-        description: string;
-        emoji: string;
-        default: boolean;
-        use_yn: boolean;
-        permission_type: string;
-        create_at: string;
-        update_at: string;
-    }>(
+    selectPaging<ComponentOption>(
         `
 SELECT 
     option_id

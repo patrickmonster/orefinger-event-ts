@@ -56,14 +56,14 @@ const toTableType = (type: string) => {
 
 ////////
 
-import getConnection, { queryFunctionType } from 'utils/database';
+import getConnection, { QueryFunctionType } from 'utils/database';
 
 const TARGET_DATABASE = 'sys_orefinger';
 const TARGET_PATH = join(env.PWD || __dirname, `/src/interfaces/Database`);
 
 emptyDirSync(join(TARGET_PATH, `/${TARGET_DATABASE}`));
 
-const createTableFile = async (query: queryFunctionType, table: Table) => {
+const createTableFile = async (query: QueryFunctionType, table: Table) => {
     const cols = await query<{
         COLUMN_NAME: string;
         ORDINAL_POSITION: number;
