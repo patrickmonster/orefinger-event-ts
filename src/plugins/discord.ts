@@ -9,23 +9,25 @@ import axios, { AxiosInstance, AxiosRequestConfig } from 'axios';
 import {
     APIApplicationCommandAutocompleteInteraction,
     APIApplicationCommandInteraction,
+    APIApplicationCommandInteractionData,
+    APIBaseInteraction,
+    APIChatInputApplicationCommandInteractionData,
     APICommandAutocompleteInteractionResponseCallbackData,
-    APIInteraction,
+    APIContextMenuInteractionData,
     APIMessage,
+    APIMessageButtonInteractionData,
     APIMessageComponentInteraction,
+    APIMessageComponentInteractionData,
+    APIMessageSelectMenuInteractionData,
     APIModalInteractionResponseCallbackData,
+    APIModalSubmission,
     APIModalSubmitInteraction,
+    APIPingInteraction,
     APIWebhook,
     InteractionType,
 } from 'discord-api-types/v10';
 
 import { RESTPostAPIChannelMessageJSONBody } from 'discord-api-types/rest/v10';
-
-export type Interaction =
-    | APIApplicationCommandInteraction
-    | APIMessageComponentInteraction
-    | APIApplicationCommandAutocompleteInteraction
-    | APIModalSubmitInteraction;
 
 export {
     APIApplicationCommandAutocompleteInteraction,
@@ -52,7 +54,7 @@ export type RESTPostAPIChannelMessageParams = RESTPostAPIChannelMessage | string
 declare module 'fastify' {
     interface FastifyInstance {
         verifyDiscordKey: (request: FastifyRequest, reply: FastifyReply, done: Function) => void;
-        interaction: (req: FastifyRequest<{ Body: APIInteraction }>, res: FastifyReply) => Reply;
+        interaction: (req: FastifyRequest<{ Body: APIInteraction }>, res: FastifyReply) => Interaction;
     }
 }
 
@@ -90,12 +92,63 @@ discordInteraction.interceptors.response.use(
         return Promise.reject(error);
     }
 );
+// ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+export type APIInteraction = APIApplicationCommandAutocompleteInteraction | APIApplicationCommandInteraction | APIMessageComponentInteraction | APIModalSubmitInteraction | APIPingInteraction;
 
-export type IReply = {
-    [K in keyof Reply]: Reply[K] extends (...args: any[]) => any ? Reply[K] : never;
-};
+type BaseInteraction<Type extends InteractionType, Data,  K extends keyof APIBaseInteraction<Type, Data>> = APIBaseInteraction<Type, Data> & Required<Pick<APIBaseInteraction<Type, Data>, K>>;
 
-export class Reply {
+// APIChatInputApplicationCommandInteraction | APIContextMenuInteraction
+export type AppInteraction = BaseInteraction<APIApplicationCommandInteraction, APIApplicationCommandInteractionData>;
+export type AppChatInputInteraction =  BaseInteraction<APIApplicationCommandInteraction, APIChatInputApplicationCommandInteractionData>;
+export type AppContextMenuInteraction =  BaseInteraction<APIApplicationCommandInteraction, APIContextMenuInteractionData>;
+
+type BaseMessageInteraction<Data extends APIMessageComponentInteractionData> = BaseInteraction<InteractionType.MessageComponent, null,  'app_permissions' | 'channel_id' | 'channel' | 'message'> & Data;
+export type MessageInteraction = BaseMessageInteraction<APIMessageComponentInteractionData>;
+export type MessageButtonInteraction = BaseMessageInteraction<APIMessageButtonInteractionData>;
+export type MessageMenuInteraction = BaseMessageInteraction<APIMessageSelectMenuInteractionData>;
+
+
+// APIModalSubmission
+export type ModelInteraction = BaseInteraction<InteractionType.ModalSubmit, APIModalSubmission, 'data'>;
+
+
+export type Interaction = AppInteraction | MessageInteraction | ModelInteraction;
+
+/**
+ * 공통 응답
+ */
+type ReplyType = {
+    get : () => Promise<APIMessage>
+    remove : () => Promise<void>
+    auth : (message: APICommandAutocompleteInteractionResponseCallbackData) => Promise<void>
+    differ : (message?: ephemeral) => Promise<void>
+    differEdit : (message: RESTPostAPIChannelMessage) => Promise<void>
+    edit : (message: RESTPostAPIChannelMessage) => Promise<void>
+    follow : (message: RESTPostAPIChannelMessage) => Promise<ReplyType>
+    model : (message: APIModalInteractionResponseCallbackData) => Promise<void>
+    reply : (message: RESTPostAPIChannelMessage) => Promise<void>
+}
+
+
+
+
+export type Reply<
+    APIBaseInteraction extends APIInteraction = APIInteraction,
+    Data extends APIBaseInteraction['data'] = APIBaseInteraction['data'],
+> = ReplyType & Data;
+
+
+/**
+ * 응답 생성
+ * @param req
+ * @param res
+ * @returns
+ */
+export const createReplay = (req: FastifyRequest<{ Body: APIInteraction }>, res: FastifyReply) => {
+    return ReplyInstance.getInstace(req, res);
+}
+
+class ReplyInstance {
     private req: FastifyRequest<{ Body: APIInteraction }>;
     private res: FastifyReply;
     private isReply: boolean;
@@ -105,7 +158,7 @@ export class Reply {
     private type: InteractionType;
     private id: string;
 
-    constructor(
+    private constructor(
         req: FastifyRequest<{
             Body: APIInteraction;
         }>,
@@ -113,7 +166,7 @@ export class Reply {
         id?: string
     ) {
         const {
-            body: { token, application_id, message, type },
+            body: { token, application_id, type },
         } = req;
 
         this.id = id ?? '@original';
@@ -124,6 +177,25 @@ export class Reply {
 
         this.res = res;
         this.req = req;
+    }
+
+    public static getInstace(req: FastifyRequest<{ Body: APIInteraction }>, res: FastifyReply,id?: string): Interaction {
+        const reply = new ReplyInstance(req, res, id);
+        const { body : {data, ...body} } = req;
+
+        return  {
+            ...body,
+            ...data,
+            get: reply.get.bind(reply),
+            remove: reply.remove.bind(reply),
+            auth: reply.auth.bind(reply),
+            differ: reply.differ.bind(reply),
+            differEdit: reply.differEdit.bind(reply),
+            edit: reply.edit.bind(reply),
+            follow: reply.follow.bind(reply),
+            model: reply.model.bind(reply),
+            reply: reply.reply.bind(reply),
+        } as Interaction;
     }
 
     public async get() {
@@ -243,22 +315,10 @@ export class Reply {
      * @param message
      * @returns
      */
-    public async follow(message: RESTPostAPIChannelMessage): Promise<Reply> {
+    public async follow(message: RESTPostAPIChannelMessage): Promise<Interaction> {
         return await discordInteraction
             .post<APIWebhook>(`/webhooks/${this.application_id}/${this.token}`, this.appendEmpheral(message))
-            .then(({ id }) => new Reply(this.req, this.res, id));
-    }
-
-    *[Symbol.iterator]() {
-        yield ['get', this.get.bind(this)];
-        yield ['remove', this.remove.bind(this)];
-        yield ['auth', this.auth.bind(this)];
-        yield ['differ', this.differ.bind(this)];
-        yield ['differEdit', this.differEdit.bind(this)];
-        yield ['edit', this.edit.bind(this)];
-        yield ['follow', this.follow.bind(this)];
-        yield ['model', this.model.bind(this)];
-        yield ['reply', this.reply.bind(this)];
+            .then(({ id }) => ReplyInstance.getInstace(this.req, this.res, id));
     }
 }
 
@@ -296,6 +356,6 @@ export default fp(async function (fastify, opts) {
                 Body: APIInteraction;
             }>,
             res: FastifyReply
-        ): Reply => new Reply(req, res)
+        ) => createReplay(req, res)
     );
 });
