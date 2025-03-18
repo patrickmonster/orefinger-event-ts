@@ -132,7 +132,9 @@ export const selectNoticeLiveOnList = async (type?: number) =>
         name: string;
     }>(
         `
-SELECT nl.notice_id, nl.id, nl.create_at, nl.end_at 
+SELECT nl.notice_id, nl.id
+    , DATE_ADD(nl.create_at, INTERVAL 9 HOUR) as create_at
+    , nl.end_at 
     , vng.notice_type
 	, vng.notice_type_tag
 	, vng.name
