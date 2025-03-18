@@ -133,18 +133,19 @@ export const selectNoticeLiveOnList = async (type?: number) =>
     }>(
         `
 SELECT nl.notice_id, nl.id, nl.create_at, nl.end_at 
-    , vn.notice_type
-	, vn.notice_type_tag
-	, vn.name
+    , vng.notice_type
+	, vng.notice_type_tag
+	, vng.name
     , nl.image
     , nl.title 
     , nl.game 
 FROM notice_live nl
-LEFT JOIN v_notice vn ON nl.notice_id = vn.notice_id 
+LEFT JOIN v_notice_guild vng  ON nl.notice_id = vng.notice_id 
 WHERE nl.end_at IS NULL 
-${calTo('AND vn.notice_type = ?', type)}
+${calTo('AND vng.notice_type = ?', type)}
+group by vng.notice_id
 ORDER BY nl.create_at DESC
-LIMIT 30
+LIMIT 50
     `
     );
 
