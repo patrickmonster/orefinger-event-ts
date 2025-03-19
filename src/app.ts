@@ -45,14 +45,18 @@ const sshTunnel = new SshTunnel({
     privateKey: readFileSync(join(env.PWD || __dirname, 'db.pem')),
 });
 
-/* 데이터 베이스 터널링을 만듬 */
-const host = `${env.DB_HOST || 'localhost'}`;
-const port = `${env.DB_PORT || '3306'}`;
-env.DB_HOST = '127.0.0.1';
-env.DB_PORT = (3400 + Math.floor(Math.random() * 501)).toString();
 
-sshTunnel.forwardOut(`${env.DB_PORT}:${host}:${port}`).then(config => {
-    console.log('CONNECTED ::', config.id, env.DB_PORT);
+console.log( readFileSync(join(env.PWD || __dirname, 'db.pem')))
+
+
+/* 데이터 베이스 터널링을 만듬 */
+// const host = `${env.DB_HOST || 'localhost'}`;
+// const port = `${env.DB_PORT || '3306'}`;
+// env.DB_HOST = '127.0.0.1';
+// env.DB_PORT = (3400 + Math.floor(Math.random() * 501)).toString();
+
+// sshTunnel.forwardOut(`${env.DB_PORT}:${host}:${port}`).then(config => {
+    // console.log('CONNECTED ::', config.id, env.DB_PORT);
 
     server.register(AutoLoad, { dir: join(__dirname, 'plugins') });
     // 라우터
@@ -67,7 +71,7 @@ sshTunnel.forwardOut(`${env.DB_PORT}:${host}:${port}`).then(config => {
         console.log(`Server listening at ${address}`);
     });
     
-});
+// });
 
 process.on('SIGINT', sshTunnel.close);
 
