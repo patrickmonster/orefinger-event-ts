@@ -68,3 +68,5 @@ sql/*
 .yarn
 # React Component Preview
 previewConfig.json
+
+*.pem
