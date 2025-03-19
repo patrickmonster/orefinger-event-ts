@@ -13,7 +13,6 @@ import { ChannelData, Content } from 'interfaces/API/Chzzk';
 import { ChannelType, NoticeBat, OriginMessage } from 'interfaces/notice';
 import { KeyVal } from 'interfaces/text';
 
-import { serverEmit } from 'components/socket/socketServer';
 import { ENCRYPT_KEY, sha256 } from 'utils/cryptoPw';
 import { createActionRow, createUrlButton } from 'utils/discord/component';
 import { ChzzkInterface, getChzzkAPI } from 'utils/naverApiInstance';
@@ -256,7 +255,6 @@ export const getChannelLive = async (noticeId: number, hashId: string, liveId: s
                     if (liveId != '0') {
                         // 기존 라이브 정보가 있었다면 ( 라이브 교체 )
                         // clientEmit('liveStatus', noticeId);
-                        serverEmit('chatReload', noticeId);
                         // 라이브 정보를 캐시합니다
                         await cacheRedis(REDIS_KEY.API.CHZZK_LIVE_STATE(`${noticeId}`), content, 60 * 60 * 12);
                         return reject(null);
@@ -328,9 +326,7 @@ export const getLiveMessage = async ({
             60 * 60 * 24 // 12시간
         );
 
-        serverEmit('chatJoin', noticeId, await getFreeChatServer());
     } else if (liveStatus && liveStatus.status == 'CLOSE') {
-        serverEmit('chatLeave', noticeId);
     }
     return liveStatus;
 };
