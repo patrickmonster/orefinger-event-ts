@@ -17,6 +17,9 @@ path="/orefinger/production/"
 # 기존 파일 삭제
 rm $filename
 
+# pem 파일 생성
+echo $(aws ssm get-parameters --region ap-northeast-2 --names $path"pem" --query Parameters[0].Value | sed 's/"//g')  >> dist/db.pem
+
 
 
 # .env 파일 생성
@@ -52,7 +55,6 @@ echo TOSS_SECRET=$(aws ssm get-parameters --region ap-northeast-2 --names $path"
 echo YOUTUBE_API_KEY=$(aws ssm get-parameters --region ap-northeast-2 --names $path"YOUTUBE_API_KEY" --query Parameters[0].Value | sed 's/"//g')  >> $filename
 
 echo WEB_HOOK_URL=$(aws ssm get-parameters --region ap-northeast-2 --names $path"WEB_HOOK_URL" --query Parameters[0].Value | sed 's/"//g')  >> $filename
-
 
 echo PORT=80  >> $filename
 
