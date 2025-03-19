@@ -18,7 +18,8 @@ path="/orefinger/production/"
 rm $filename
 
 # pem 파일 생성
-echo $(aws ssm get-parameters --region ap-northeast-2 --names $path"pem" --query Parameters[0].Value | sed 's/"//g')  >> dist/db.pem
+db_pem=$(aws ssm get-parameters --region ap-northeast-2 --names $path"pem" --query Parameters[0].Value | sed 's/"//g')
+echo -e $db_pem  >> dist/db.pem
 
 
 
@@ -55,6 +56,10 @@ echo TOSS_SECRET=$(aws ssm get-parameters --region ap-northeast-2 --names $path"
 echo YOUTUBE_API_KEY=$(aws ssm get-parameters --region ap-northeast-2 --names $path"YOUTUBE_API_KEY" --query Parameters[0].Value | sed 's/"//g')  >> $filename
 
 echo WEB_HOOK_URL=$(aws ssm get-parameters --region ap-northeast-2 --names $path"WEB_HOOK_URL" --query Parameters[0].Value | sed 's/"//g')  >> $filename
+
+# DB
+echo TARGET_HOST=$(aws ssm get-parameters --region ap-northeast-2 --names $path"TARGET_HOST" --query Parameters[0].Value | sed 's/"//g')  >> $filename
+echo TARGET_NAME=ubuntu
 
 echo PORT=80  >> $filename
 
