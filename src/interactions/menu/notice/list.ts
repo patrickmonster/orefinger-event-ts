@@ -28,7 +28,7 @@ export const exec = async (interaction: MessageMenuInteraction) => {
                     emoji: { name: '🔍' },
                 }),
             },
-            QUERY.SelectNoticeDashbordByGuildId,
+            QUERY.SelectNoticeDashbordByNoticeId,
             notice_type,
             guild_id
         ),
