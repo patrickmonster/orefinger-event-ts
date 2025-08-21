@@ -45,9 +45,7 @@ const sshTunnel = new SshTunnel({
     privateKey: readFileSync(join(env.PWD || __dirname, 'db.pem')),
 });
 
-
-console.log( readFileSync(join(env.PWD || __dirname, 'db.pem')))
-
+console.log(readFileSync(join(env.PWD || __dirname, 'db.pem')));
 
 /* 데이터 베이스 터널링을 만듬 */
 // const host = `${env.DB_HOST || 'localhost'}`;
@@ -56,21 +54,21 @@ console.log( readFileSync(join(env.PWD || __dirname, 'db.pem')))
 // env.DB_PORT = (3400 + Math.floor(Math.random() * 501)).toString();
 
 // sshTunnel.forwardOut(`${env.DB_PORT}:${host}:${port}`).then(config => {
-    // console.log('CONNECTED ::', config.id, env.DB_PORT);
+// console.log('CONNECTED ::', config.id, env.DB_PORT);
 
-    server.register(AutoLoad, { dir: join(__dirname, 'plugins') });
-    // 라우터
-    server.register(AutoLoad, { dir: join(__dirname, 'routes'), ignorePattern: /.*(test|spec|interface).*/ });
+server.register(AutoLoad, { dir: join(__dirname, 'plugins') });
+// 라우터
+server.register(AutoLoad, { dir: join(__dirname, 'routes'), ignorePattern: /.*(test|spec|interface).*/ });
 
-    server.listen({ port: ParseInt(process.env.PORT || 3000), host: '::' }, (err, address) => {
-        if (err) {
-            console.error(err);
-            process.exit(1);
-        }
-        console.log(`Server started in  ${process.uptime()}s`);
-        console.log(`Server listening at ${address}`);
-    });
-    
+server.listen({ port: ParseInt(process.env.PORT || 3000), host: '::' }, (err, address) => {
+    if (err) {
+        console.error(err);
+        process.exit(1);
+    }
+    console.log(`Server started in  ${process.uptime()}s`);
+    console.log(`Server listening at ${address}`);
+});
+
 // });
 
 process.on('SIGINT', sshTunnel.close);
