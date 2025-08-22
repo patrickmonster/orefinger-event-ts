@@ -2,6 +2,8 @@ name: 🚀 Create pull request
 
 on:
   workflow_dispatch : 
+    branches:
+      - 'develop'
     inputs :
       branch :
         type : choice
