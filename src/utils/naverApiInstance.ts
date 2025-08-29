@@ -5,8 +5,7 @@ import { error as errorLog } from './logger';
 import { REDIS_KEY, catchRedis } from './redis';
 
 const API_VERSION = 'v1';
-const baseURL = `https://openapi.naver.com/${API_VERSION}`;
-const chzzkURL = `https://comm-api.game.naver.com/nng_main/${API_VERSION}`;
+const baseURL = `http://${process.env.PROXY}:3000/naver/${API_VERSION}`;
 
 // const naver: CustomInstance = axios.create({
 //     baseURL,
@@ -35,7 +34,9 @@ const apis: { [version: string]: CustomInstance } = {};
 
 export const getChzzkAPI = (version: string, target?: 'service' | 'polling') => {
     if (!apis[version]) {
-        apis[version] = axios.create({ baseURL: `https://api.chzzk.naver.com/${target || 'service'}/${version}/` });
+        apis[version] = axios.create({
+            baseURL: `http://${process.env.PROXY}:3000/chzzk/${target || 'service'}/${version}/`,
+        });
         apis[version].interceptors.response.use(
             ({ data, config }) => {
                 // console.log(`CHZZK API(${version}) ::`, data, config);
@@ -104,7 +105,7 @@ export const getChzzkPostComment = async (id: string | number) => {
                         };
                     }>
                 >(
-                    `https://apis.naver.com/nng_main/nng_comment_api/v1/type/CHANNEL_COMMENT/id/${id}/comments?limit=30&offset=0&orderType=DESC&pagingType=PAGE`,
+                    `http://${process.env.PROXY}:3000/ncomment/${id}/comments?limit=30&offset=0&orderType=DESC&pagingType=PAGE`,
                     {
                         headers: {
                             'User-Agent':
