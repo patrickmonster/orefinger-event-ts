@@ -8,8 +8,6 @@ import sleep from 'utils/sleep';
 import imageBase64 from './imageBase64';
 import { error as errorLog } from './logger';
 
-console.log(`Discord API Proxy: http://${process.env.PROXY}/`, process.env.DISCORD_TOKEN);
-
 const rest = new REST({ version: '10', api: `http://${process.env.PROXY}` }).setToken(`${process.env.DISCORD_TOKEN}`);
 
 rest.on('rateLimited', rateLimitInfo => {
