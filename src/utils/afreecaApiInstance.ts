@@ -4,7 +4,7 @@ import { error as errorLog } from './logger';
 import { catchRedis, REDIS_KEY } from './redis';
 
 const afreecaAPI: CustomInstance = axios.create({
-    baseURL: 'https://chapi.sooplive.co.kr/api/',
+    baseURL: `http://${process.env.PROXY}:3000/soop/`,
     // baseURL: 'https://bjapi.afreecatv.com/api/',
     headers: {
         'user-agent':
@@ -56,7 +56,7 @@ export const getAfreecaPostComment = async (id: string | number) => {
                         tag_index: number;
                         tag_check: boolean;
                     }[];
-                }>(`https://chapi.sooplive.co.kr/api/orefinger/title/${id}/comment`, {
+                }>(`http://${process.env.PROXY}:3000/soop/orefinger/title/${id}/comment`, {
                     headers: {
                         'User-Agent':
                             'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
