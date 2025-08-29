@@ -61,6 +61,9 @@ echo WEB_HOOK_URL=$(aws ssm get-parameters --region ap-northeast-2 --names $path
 echo TARGET_HOST=$(aws ssm get-parameters --region ap-northeast-2 --names $path"TARGET_HOST" --query Parameters[0].Value | sed 's/"//g')  >> $filename
 echo TARGET_NAME=ubuntu
 
+echo PROXY=172.31.77.136 >> $filename
+
+
 echo PORT=80  >> $filename
 
 # npm 설치

@@ -8,7 +8,9 @@ import sleep from 'utils/sleep';
 import imageBase64 from './imageBase64';
 import { error as errorLog } from './logger';
 
-const rest = new REST({ version: '10' }).setToken(`${process.env.DISCORD_TOKEN}`);
+console.log(`Discord API Proxy: http://${process.env.PROXY}/`, process.env.DISCORD_TOKEN);
+
+const rest = new REST({ version: '10', api: `http://${process.env.PROXY}` }).setToken(`${process.env.DISCORD_TOKEN}`);
 
 rest.on('rateLimited', rateLimitInfo => {
     console.log(`Rate limited for ${rateLimitInfo.sublimitTimeout}ms`);
@@ -20,7 +22,7 @@ rest.on('invalidRequestWarning', invalidRequestInfo => {
 
 export default rest;
 export const openApi: CustomInstance = axios.create({
-    baseURL: 'https://discord.com/api/', // discordTk
+    baseURL: `http://${process.env.PROXY}`, // discordTk
 });
 
 openApi.interceptors.response.use(
