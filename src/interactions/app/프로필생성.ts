@@ -1,6 +1,6 @@
 import { webhookCreate } from 'components/discord';
-import { insertFile } from 'controllers/CDN/file';
 import { upsertWebhook } from 'controllers/guild/webhook';
+import { insertFile } from 'controllers/s3/file';
 import { ApplicationCommandType } from 'discord-api-types/v10';
 import { AppContextMenuInteraction } from 'interactions/app';
 import { createMenuinputCommand } from 'utils/discord/component';

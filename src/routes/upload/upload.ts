@@ -1,7 +1,7 @@
 import { MultipartFile } from '@fastify/multipart';
 import { FastifyInstance } from 'fastify';
 
-import { deleteFile, insertFile, selectFile, selectFileType } from 'controllers/CDN/file';
+import { deleteFile, insertFile, selectFile, selectFileType } from 'controllers/s3/file';
 import { Paging } from 'interfaces/swagger';
 import { upload } from 'utils/s3Apiinstance';
 

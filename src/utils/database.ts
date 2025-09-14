@@ -1,7 +1,7 @@
 'use strict';
 
 import { Paging } from 'interfaces/swagger';
-import mysql, { Pool, PoolConnection, RowDataPacket } from 'mysql2/promise';
+import mysql, { PoolConnection, RowDataPacket, createPoolCluster } from 'mysql2/promise';
 import { env } from 'process';
 
 // Re-export mysql format for convenience
@@ -17,16 +17,24 @@ const DATABASE_CONFIG = {
     password: env.DB_PASSWD,
     database: env.DB_DATABASE,
     connectionLimit: 4, // 연결 개수 제한
-    acquireTimeout: 60000,
-    timeout: 60000,
 } as const;
 
-const pool: Pool = mysql.createPool(DATABASE_CONFIG);
+export enum DBEnum {
+    OREFINGER = 'OREFINGER',
+    MOBINOGI = 'MOBINOGI',
+}
 
+// Database connection configuration
+const poolCluster = createPoolCluster();
+poolCluster.add(DBEnum.OREFINGER, DATABASE_CONFIG);
+poolCluster.add(DBEnum.MOBINOGI, {
+    ...DATABASE_CONFIG,
+    database: 'mabinogi',
+});
 export const DBName = `${env.DB_DB}`;
 
 // Database connection event handlers
-pool.on('connection', () => console.log('DB] 연결됨'));
+poolCluster.on('connection', target => console.log('DB] 연결됨', target));
 
 // Interface definitions
 export interface sqlInsertUpdate {
@@ -110,13 +118,14 @@ export const resultParser = (rows: any[] | any): any =>
  */
 const getConnection = async <T>(
     connectionPool: (queryFunction: queryFunctionType) => Promise<T>,
-    isTransaction = false
+    isTransaction = false,
+    dbName: DBEnum = DBEnum.OREFINGER
 ): Promise<T> => {
     let connect: PoolConnection | null = null;
     const errorQuerys: { query: string; params: any[] }[] = [];
 
     try {
-        connect = await pool.getConnection();
+        connect = await poolCluster.getConnection(dbName);
         if (isTransaction) await connect.beginTransaction(); // 트랜잭션 시작
 
         return await connectionPool(async (query: string, ...params: any[]) => {
@@ -198,6 +207,8 @@ export interface SelectPagingResult<E> {
  */
 export const query = async <E>(query: string, ...params: any[]): Promise<ResqultQuery<E>> =>
     await getConnection(async (connectionQuery: queryFunctionType) => connectionQuery(query, ...params));
+export const queryTarget = async <E>(target: DBEnum, query: string, ...params: any[]): Promise<ResqultQuery<E>> =>
+    await getConnection(async (connectionQuery: queryFunctionType) => connectionQuery(query, ...params), false, target);
 
 /**
  * UPSERT 작업 수행 (INSERT ... ON DUPLICATE KEY UPDATE)
@@ -233,7 +244,55 @@ export const selectPaging = async <E>(
 ): Promise<SelectPagingResult<E>> => {
     let connect: PoolConnection | null = null;
     try {
-        connect = await pool.getConnection();
+        connect = await poolCluster.getConnection('OREFINGER');
+        const page = typeof paging === 'number' ? paging : paging.page;
+        const size = typeof paging === 'number' ? limit : ((paging.limit || limit) as number);
+
+        const [rows] = await connect.query<(E & RowDataPacket)[]>(`${query}\nLIMIT ?, ?`, [
+            ...params,
+            page <= 0 ? 0 : page * size,
+            size,
+        ]);
+
+        sqlLogger(query, params, [`${page}/${size}`, ...rows]);
+
+        const countResult = await connect.query<({ total: number } & RowDataPacket)[]>(
+            `SELECT COUNT(1) AS total FROM (\n${query}\n) AS subquery`,
+            params
+        );
+        const totalCount = countResult[0][0].total;
+
+        return {
+            total: totalCount,
+            totalPage: Math.ceil(totalCount / size) - 1,
+            limit: size,
+            page,
+            list: rows,
+        };
+    } catch (error) {
+        console.error('SQL]', error);
+        throw error;
+    } finally {
+        if (connect) connect.release();
+    }
+};
+
+/**
+ * 페이징하여 데이터를 조회합니다.
+ * @param query - SQL 쿼리 문자열
+ * @param paging - 페이징 정보 (Paging 객체 또는 페이지 번호)
+ * @param params - 쿼리 매개변수
+ * @returns 페이징된 결과
+ */
+export const selectTargetPaging = async <E>(
+    target: DBEnum,
+    query: string,
+    paging: Paging | number,
+    ...params: any[]
+): Promise<SelectPagingResult<E>> => {
+    let connect: PoolConnection | null = null;
+    try {
+        connect = await poolCluster.getConnection(target);
         const page = typeof paging === 'number' ? paging : paging.page;
         const size = typeof paging === 'number' ? limit : ((paging.limit || limit) as number);
 
