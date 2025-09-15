@@ -29,7 +29,8 @@ const poolCluster = createPoolCluster();
 poolCluster.add(DBEnum.OREFINGER, DATABASE_CONFIG);
 poolCluster.add(DBEnum.MOBINOGI, {
     ...DATABASE_CONFIG,
-    database: 'mabinogi',
+    database: 'mobinogi',
+    // user: 'mobinogi',
 });
 export const DBName = `${env.DB_DB}`;
 

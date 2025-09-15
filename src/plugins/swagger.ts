@@ -36,14 +36,11 @@ export default fp(async function (fastify, opts) {
 
                 { name: 'Discord', description: '디스코드 관련 API' },
 
-                { name: 'Infra', description: '인프라 설정' },
                 { name: 'Admin', description: '관리자 관리용 API' },
                 { name: 'System', description: '시스템 관리용 API' },
-                { name: 'KakaoBot', description: '카카오 봇 API' },
 
                 { name: 'Util', description: '유틸리티 관련 API' },
 
-                { name: 'Paymont', description: '결제 모듈' },
                 { name: 'File', description: '파일서버 (S3)' },
             ],
             // schemes: [process.env.MASTER_KEY ? 'https' : 'http'],
@@ -75,7 +72,7 @@ export default fp(async function (fastify, opts) {
         },
         uiConfig: {
             docExpansion: 'none',
-            deepLinking: false,
+            deepLinking: true,
         },
         transformSpecification: (swaggerObject, request, reply) => swaggerObject,
         transformSpecificationClone: true,
