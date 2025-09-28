@@ -1,11 +1,16 @@
 'use strict';
-import { FastifyRequest } from 'fastify';
 import fp from 'fastify-plugin';
 
 import { fastifySwagger } from '@fastify/swagger';
 import swagger_ui from '@fastify/swagger-ui';
 
 const { version } = require('../../package.json');
+
+declare module 'fastify' {
+    interface FastifyInstance {
+        pagingResponse: (properties: { [key: string]: any }) => { [key: string]: any };
+    }
+}
 
 /**
  * This plugins adds some utilities to handle http errors
@@ -112,5 +117,22 @@ export default fp(async function (fastify, opts) {
         },
     });
 
-    fastify.decorateReply('paging', (req: FastifyRequest) => (<{ page: number }>req.query).page || 0);
+    fastify.decorate('pagingResponse', function (properties: { [key: string]: any }) {
+        return {
+            200: {
+                type: 'object',
+                properties: {
+                    total: { type: 'number', description: '총 갯수' },
+                    totalPage: { type: 'number', description: '총 페이지' },
+                    limit: { type: 'number', description: '페이지당 개수' },
+                    page: { type: 'number', description: '페이지 번호' },
+                    list: {
+                        type: 'array',
+                        description: '게시글 리스트',
+                        items: { type: 'object', properties: properties },
+                    },
+                },
+            },
+        };
+    });
 });
