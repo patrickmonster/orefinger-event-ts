@@ -94,3 +94,14 @@ export const getContentAllias = (conent: any, ...alias: string[]) => {
  */
 export const authRandNum = (length: number = 5) =>
     Array.from({ length }, () => Math.floor(Math.random() * 10)).join('');
+
+export const generateContentHash = (title: string, description: string): string => {
+    const content = `${title}\n${description}`;
+    let hash = 0;
+    for (let i = 0; i < content.length; i++) {
+        const char = content.charCodeAt(i);
+        hash = (hash << 5) - hash + char;
+        hash = hash & hash; // 32bit integer로 변환
+    }
+    return Math.abs(hash).toString(36);
+};
