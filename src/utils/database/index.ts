@@ -46,7 +46,7 @@ const sqlLogger = (query: string, params: any[], rows: any[] | any) => {
 
 // 커넥션 쿼리 함수
 // select / insert / update / delete
-type ResqultQuery<E> = E extends SqlInsertUpdate ? sqlInsertUpdate : Array<E>;
+export type ResqultQuery<E> = E extends SqlInsertUpdate ? sqlInsertUpdate : Array<E>;
 type ResqultPaggingQuery<E> = E extends SqlInsertUpdate
     ? null
     : {
@@ -87,12 +87,14 @@ export const resultParser = (rows: any[] | any) =>
  */
 const getConnection = async <T>(
     connectionPool: (queryFunction: queryFunctionType) => Promise<T>,
-    isTransaction = false
+    isTransaction = false,
+    database?: string
 ) => {
     let connect: PoolConnection | null = null;
     const errorQuerys: { query: string; params: any }[] = [];
     try {
         connect = await pool.getConnection();
+        if (database) await connect.query(`USE \`${database}\``); // 데이터베이스 선택
         if (isTransaction) await connect.beginTransaction(); // 트렌젝션 시작
         return await connectionPool(async (query: string, ...params: any[]) => {
             try {
