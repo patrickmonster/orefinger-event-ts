@@ -415,3 +415,13 @@ AND create_at > DATE_ADD(NOW(), INTERVAL -1 MONTH)
         `,
         ParseInt(noticeId)
     );
+
+export const disableNotice = async (notice_id: NoticeId) =>
+    query<SqlInsertUpdate>(
+        `
+UPDATE discord.notice
+SET update_at=CURRENT_TIMESTAMP, use_yn='N'
+WHERE notice_id=?
+	`,
+        notice_id
+    );
