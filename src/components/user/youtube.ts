@@ -44,7 +44,9 @@ interface ChannelData {
 }
 
 export const getYoutubeUser = async (guildId: string, youtubeHash: string): Promise<number> => {
-    const { data } = await axios.get(`https://www.youtube.com/feeds/videos.xml?channel_id=${youtubeHash}`);
+    const { data } = await axios.get(
+        `http://${process.env.PROXY}:3000/youtube/feeds/videos.xml?channel_id=${youtubeHash}`
+    );
     return new Promise((resolve, reject) => {
         parseString(data, async (err, { feed }) => {
             console.log('?', feed, err);
@@ -106,7 +108,7 @@ export const searchYoutubeUser = async (keyword: string): Promise<Array<{ name: 
         } = await axios.get<{
             items: Array<ChannelData>;
         }>(
-            `https://www.googleapis.com/youtube/v3/search?${qs.stringify({
+            `http://${process.env.PROXY}:3000/googleapi/youtube/v3/search?${qs.stringify({
                 part: 'snippet',
                 q: `${keyword}`,
                 type: 'channel',
@@ -156,7 +158,7 @@ interface ChannelObject {
  * @returns { channel: ChannelObject, videos: any[] }
  */
 export const channelVideos = async (hashId: string) => {
-    const html = await fetch(`https://www.youtube.com/channel/${hashId}/videos`);
+    const html = await fetch(`http://${process.env.PROXY}:3000/youtube/channel/${hashId}/videos`);
     const match = html.match(/var ytInitialData = (.*)]}}};/)?.[1];
 
     if (!match) return {};
@@ -199,7 +201,7 @@ export const channelVideos = async (hashId: string) => {
  * @returns { channel: ChannelObject, videos: any[] }
  */
 export const channelShorts = async (hashId: string) => {
-    const html = await fetch(`https://www.youtube.com/channel/${hashId}/shorts`);
+    const html = await fetch(`http://${process.env.PROXY}:3000/youtube/channel/${hashId}/shorts`);
     const match = html.match(/var ytInitialData = (.*)]}}};/)?.[1];
 
     if (!match) return {};

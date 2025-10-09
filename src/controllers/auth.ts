@@ -42,9 +42,6 @@ AND auth_id = ?
         user_id
     ).then(([user]) => user);
 
-export const updatePhone = async (user_id: string, phone: string) =>
-    query<SqlInsertUpdate>(`UPDATE auth SET phone = ? WHERE auth_id = ?`, phone, user_id);
-
 export const discord = async (profile: AuthUser, refreshToken: string) =>
     auth('discord', profile.id, profile, refreshToken);
 
