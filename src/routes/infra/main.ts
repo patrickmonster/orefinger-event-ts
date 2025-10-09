@@ -154,16 +154,20 @@ AND nt.scan_yn = 'Y'
         async req =>
             await selectPersent(
                 `
-SELECT notice_id
-	, hash_id 
-	, notice_type 
+SELECT vno.notice_id
+	, vno.hash_id 
+	, vno.notice_type 
 	, count(0) AS C
-FROM v_notice_origin
-INNER JOIN notice_guild USING(notice_id)
+FROM v_notice_origin vno
+INNER JOIN notice_guild ng USING(notice_id)
+INNER JOIN notice_channel nc 
+	ON nc.guild_id = ng.guild_id 
+	AND nc.notice_id = vno.notice_id 
 WHERE 1=1
-AND notice_type = ?
-GROUP BY notice_id, hash_id, notice_type
-ORDER BY notice_id
+AND vno.notice_type = ?
+AND ng.use_yn = 'Y'
+AND nc.use_yn = 'Y'
+GROUP BY vno.notice_id, vno.hash_id, vno.notice_type
                 `,
                 { index: req.query.index, length: req.query.length },
                 req.params.noticeType
@@ -241,6 +245,7 @@ WHERE 1=1
 AND nl.notice_id = ?
 AND nl.end_at IS NOT NULL
 ORDER BY nl.live_at DESC
+LIMIT 5
                     `,
                     noticeId
                 );
