@@ -7,12 +7,14 @@ import { NoticeChannel } from 'interfaces/notice';
 import { query, selectPersent } from 'utils/database';
 import { appendTextWing, createActionRow, createSuccessButton, createUrlButton } from 'utils/discord/component';
 
-import redis, { REDIS_KEY } from 'utils/redis';
-
-export default async (fastify: FastifyInstance, opts: any) => {
-    const getChannels = async (noticeId: string) =>
-        await query<NoticeChannel>(
-            `
+/**
+ * 채널 온라인 정보를 가져옴
+ * @param noticeId
+ * @returns
+ */
+const getChannels = async (noticeId: string) =>
+    await query<NoticeChannel>(
+        `
 SELECT 
 	vng.notice_id
 	, vng.notice_type
@@ -51,8 +53,10 @@ WHERE 1=1
 AND nc.use_yn = 'Y'
 AND vng.notice_id = ?
                 `,
-            noticeId
-        );
+        noticeId
+    );
+
+export default async (fastify: FastifyInstance, opts: any) => {
     fastify.addSchema({
         $id: 'discordEmbed',
         type: 'object',
@@ -73,59 +77,44 @@ AND vng.notice_id = ?
         },
     });
 
-    /**
-     * 메세지 수정
-     *  - 라이브 종료시간을 수정합니다
-     * @param notice_id
-     * @param content
-     */
-    const changeMessage = async (notice_id: number, content: any) => {
-        const redisKey = REDIS_KEY.DISCORD.LAST_MESSAGE(`${notice_id}`);
-
-        const messages = await redis.get(redisKey);
-        if (messages) {
-            const { closeDate } = content;
-            // for (const {
-            //     id,
-            //     channel_type,
-            //     channel_id,
-            //     hook,
-            //     message: { message_reference, components, content, embeds, ...message },
-            // } of JSON.parse(messages) as OriginMessage[]) {
-            //     const [embed] = embeds;
-            //     const time = dayjs(closeDate).add(-9, 'h');
-
-            //     embed.description += `~ <t:${time.unix()}:R>`;
-            //     embed.timestamp = time.format();
-
-            //     switch (channel_type) {
-            //         case ChannelType.TEXT:
-            //             messageEdit(channel_id, id, {
-            //                 ...message,
-            //                 embeds,
-            //                 components: [],
-            //             }).catch(e => console.error(e));
-            //             break;
-            //         case ChannelType.WEBHOOK:
-            //             messageHookEdit(`${hook}`, id, {
-            //                 ...message,
-            //                 embeds,
-            //                 components: [],
-            //             }).catch(e => console.error(e));
-            //             break;
-            //     }
-
-            //     await redis.del(redisKey);
-            // }
-        }
-    };
+    fastify.get(
+        '/target',
+        {
+            onRequest: [fastify.masterkey],
+            schema: {
+                security: [{ Master: [] }],
+                description: '온라인 알림 리스트를 가져옵니다.',
+                tags: ['infra'],
+            },
+        },
+        async req =>
+            await query(
+                `
+SELECT
+	notice_type_id
+	, tag
+	, use_yn
+	, video_yn
+	, auth_type
+    , timmer
+    , loop_time
+    , lib
+FROM notice_type nt 
+WHERE 1=1
+AND nt.scan_yn = 'Y'
+                `
+            )
+    );
 
     fastify.get<{
         Querystring: { index: number; length: number };
+        Params: { noticeType: 2 | 4 | 5 };
     }>(
-        '/online/list',
+        '/online/:noticeType',
         {
+            onRequest: [fastify.masterkey],
             schema: {
+                security: [{ Master: [] }],
                 description: '온라인 알림 리스트를 가져옵니다.',
                 tags: ['infra'],
                 querystring: {
@@ -133,6 +122,16 @@ AND vng.notice_id = ?
                     properties: {
                         index: { type: 'number', description: '서버 순번', default: 0 },
                         length: { type: 'number', description: '총 서버 개수', default: 1 },
+                    },
+                },
+                params: {
+                    type: 'object',
+                    properties: {
+                        noticeType: {
+                            type: 'number',
+                            description: '알림 타입 (2 : 유튜브, 4 : 치지직, 5 : 숲)',
+                            enum: [2, 4, 5],
+                        },
                     },
                 },
             },
@@ -147,12 +146,15 @@ SELECT notice_id
 FROM v_notice_origin
 INNER JOIN notice_guild USING(notice_id)
 WHERE 1=1
+AND notice_type = ?
 GROUP BY notice_id, hash_id, notice_type
 ORDER BY notice_id
                 `,
-                { index: req.query.index, length: req.query.length }
+                { index: req.query.index, length: req.query.length },
+                req.params.noticeType
             )
     );
+
     fastify.post<{
         Params: { noticeId: string; liveId: string };
         Body: {
@@ -327,8 +329,8 @@ ORDER BY nl.live_at DESC
             onRequest: [fastify.masterkey],
             schema: {
                 security: [{ Master: [] }],
-                description: '온라인 알림을 보냅니다.',
-                summary: '온라인 알림 전송',
+                description: '비디오 타입 알림을 보냅니다.',
+                summary: '비디오 알림 전송',
                 tags: ['infra'],
                 deprecated: false,
                 params: {
@@ -362,7 +364,6 @@ ORDER BY nl.live_at DESC
             },
         },
         async req => {
-            // TODO: 인증 필요
             const { noticeId, videoId } = req.params;
             const { data } = req.body;
 
