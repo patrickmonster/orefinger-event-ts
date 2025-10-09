@@ -110,7 +110,7 @@ AND nt.scan_yn = 'Y'
         Querystring: { index: number; length: number };
         Params: { noticeType: 2 | 4 | 5 };
     }>(
-        '/online/:noticeType',
+        '/list/:noticeType',
         {
             onRequest: [fastify.masterkey],
             schema: {
