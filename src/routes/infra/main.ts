@@ -7,6 +7,7 @@ import { APIEmbed } from 'discord-api-types/v10';
 import { NoticeChannel } from 'interfaces/notice';
 import { query, selectPersent } from 'utils/database';
 import { appendTextWing, createActionRow, createSuccessButton, createUrlButton } from 'utils/discord/component';
+import { openApi } from 'utils/discordApiInstance';
 
 /**
  * 채널 온라인 정보를 가져옴
@@ -257,6 +258,7 @@ ORDER BY nl.live_at DESC
                             ...channel,
                             message: {
                                 content: channel.content || undefined,
+                                embeds: channel.embed ? [channel.embed] : [],
                                 components: [
                                     createActionRow(
                                         createSuccessButton(`notice attendance ${noticeId}`, {
@@ -278,6 +280,17 @@ ORDER BY nl.live_at DESC
                             },
                         }))
                     );
+
+                    if (channels.length) {
+                        const [channel] = channels;
+                        const { notice_id } = channel;
+                        openApi.post(`${process.env.WEB_HOOK_URL}`, {
+                            content: `
+${notice_id}]${channels.length}개 채널에 알림이 전송되었습니다.
+${channels.reduce((p, c) => `${p}\n<#${c.channel_id}> ${noticeId} ${req.body.button?.url} `, '')}
+                            `,
+                        });
+                    }
                     return { success: true, message: '알림이 전송되었습니다.' };
                 } else {
                     return { success: true, message: '라이브 정보가 업데이트 되었습니다' };
@@ -442,7 +455,7 @@ ORDER BY nl.live_at DESC
                 }
             }
 
-            for (const { title, noticeId, embed } of list) {
+            for (const { title, noticeId, embed, videoId } of list) {
                 // 정상 상태
                 const channels = (await getChannels(noticeId)).filter(ch => ch.video_yn);
                 try {
@@ -461,6 +474,17 @@ ORDER BY nl.live_at DESC
                         }))
                     );
                     successCnt++;
+
+                    if (channels.length) {
+                        const [channel] = channels;
+                        const { notice_id } = channel;
+                        openApi.post(`${process.env.WEB_HOOK_URL}`, {
+                            content: `
+${notice_id}]${channels.length}개 채널에 알림이 전송되었습니다.
+${channels.reduce((p, c) => `${p}\n<#${c.channel_id}> ${noticeId} https://www.youtube.com/watch?v=${videoId} `, '')}
+                            `,
+                        });
+                    }
                 } catch (error) {
                     console.error(error);
                 }
