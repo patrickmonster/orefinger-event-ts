@@ -1,6 +1,6 @@
 'use strict';
 
-import { Paging } from 'interfaces/swagger';
+import { Paging, Present } from 'interfaces/swagger';
 import mysql, { Pool, PoolConnection, RowDataPacket } from 'mysql2/promise';
 import { env } from 'process';
 
@@ -246,3 +246,40 @@ export const objectToAndQury = (obj: any) =>
     Object.keys(obj)
         .map(key => (obj[key] ? `AND ${key} = ${obj[key]}` : `/* SKIP :: ${key} */`))
         .join('\n');
+
+// 전체 블럭중, 현재 블럭을 조회
+export const selectPersent = async <E>(query: string, present: Present, ...params: any[]) => {
+    let connect: PoolConnection | null = null;
+    try {
+        connect = await pool.getConnection();
+
+        /// 전체 카운트
+        const cnt = await connect
+            .query<({ total: number } & RowDataPacket)[]>(`SELECT COUNT(1) AS total FROM (\n${query}\n) A`, params)
+            .then(([[rows]]) => rows.total);
+
+        const { index, length } = present;
+        const limit = Math.ceil(cnt / length); // 테스크당 데이터 처리에 필요한 개수
+
+        const [rows] = await connect.query<(E & RowDataPacket)[]>(`${query}\nlimit ?, ?`, [
+            ...params,
+            index <= 0 ? 0 : index * limit,
+            limit,
+        ]);
+
+        sqlLogger(query, params, [`${cnt} - ${index} /${limit}`, ...rows]);
+
+        return {
+            total: cnt,
+            totalPage: Math.ceil(cnt / limit) - 1,
+            limit,
+            index,
+            list: rows,
+        };
+    } catch (e) {
+        console.error('SQL]', e);
+        throw e;
+    } finally {
+        if (connect) connect.release();
+    }
+};

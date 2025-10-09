@@ -1,4 +1,4 @@
-import { createAuthNumber, createMessage, deleteAuthNumber, matchAuthNumber } from 'components/sms';
+import { createAuthNumber, deleteAuthNumber, matchAuthNumber } from 'components/sms';
 import { authDtil } from 'controllers/auth';
 import { FastifyInstance } from 'fastify';
 import { decryptByIv, ENCRYPT_KEY } from 'utils/cryptoPw';
@@ -92,62 +92,6 @@ export default async (fastify: FastifyInstance, opts: any) => {
                 deleteAuthNumber(req.user.id);
                 return { message: '인증번호 발송에 실패하였습니다.', code: 400 };
             }
-        }
-    );
-
-    fastify.post<{
-        Params: { user_id: string };
-        Body: { message: string };
-    }>(
-        '/sms/:user_id/',
-        {
-            onRequest: [fastify.masterkey],
-            schema: {
-                security: [{ Master: [] }],
-                description: '문자메세지를 전송 합니다.',
-                summary: '문자 전송',
-                tags: ['Notice'],
-                deprecated: false,
-                params: {
-                    type: 'object',
-                    properties: {
-                        user_id: { type: 'string' },
-                    },
-                },
-                body: {
-                    type: 'object',
-                    properties: {
-                        message: { type: 'string' },
-                    },
-                },
-            },
-        },
-        async req => {
-            const { user_id } = req.params;
-            const { message } = req.body;
-
-            const user = await getUserPhone(user_id);
-
-            if (!user) {
-                return { message: '사용자 정보를 찾을 수 없습니다.', code: 404 };
-            }
-
-            // 알림톡 전송부
-            return await createMessage(req.user.id, user.phone, message, 'MSG');
-        }
-    );
-    fastify.get(
-        '/alimtalk/:target/:notice_id/:user_id',
-        {
-            schema: {
-                description: '알림톡 배치 버튼',
-                summary: '알림톡 배치 버튼',
-                tags: ['Notice'],
-                deprecated: false,
-            },
-        },
-        (req, res) => {
-            res.redirect(`https://orefinger.com`);
         }
     );
 };

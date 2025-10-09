@@ -79,7 +79,7 @@ export default fp(async function (fastify, opts) {
             ),
         },
         uiConfig: {
-            docExpansion: 'none',
+            docExpansion: 'list',
             deepLinking: false,
         },
         transformSpecification: (swaggerObject, request, reply) => swaggerObject,
