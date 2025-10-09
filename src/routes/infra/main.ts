@@ -302,7 +302,7 @@ ${channels.reduce((p, c) => `${p}\n<#${c.channel_id}> ${noticeId} ${req.body.but
         }
     );
 
-    fastify.put<{
+    fastify.post<{
         Params: { noticeId: number };
     }>(
         '/offline/:noticeId',
