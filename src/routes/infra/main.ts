@@ -162,6 +162,7 @@ ORDER BY notice_id
             game: string;
             live_at: string;
             chat: string;
+            create_at?: string;
             button?: {
                 url: string;
                 emoji: string;
@@ -213,39 +214,58 @@ ORDER BY notice_id
             const { noticeId, liveId } = req.params;
 
             try {
+                const result = await query(
+                    `
+SELECT
+	nl.notice_id
+	, nl.id
+	, nl.live_at
+	, nl.end_at
+FROM notice_live nl 
+WHERE 1=1
+AND nl.notice_id = ?
+AND nl.end_at IS NOT NULL
+ORDER BY nl.live_at DESC
+                    `,
+                    noticeId
+                );
+
                 await insertLiveEvents(noticeId, liveId, req.body);
 
                 // 정상 상태
                 const channels = (await getChannels(noticeId)).filter(ch => !ch.video_yn);
 
-                await sendMessageByChannels(
-                    channels.map(channel => ({
-                        ...channel,
-                        message: {
-                            content: channel.content || undefined,
-                            components: [
-                                createActionRow(
-                                    // isLoginUser?
-                                    createSuccessButton(`notice attendance ${noticeId}`, {
-                                        label: appendTextWing('📌출석체크\u3164', 8), // 크기보정
-                                    }),
-                                    // : undefined,
-                                    createSuccessButton(`notice logs ${noticeId}`, {
-                                        label: '📊방송이력\u3164', // 크기보정
-                                    }),
-                                    req.body.button
-                                        ? createUrlButton(req.body.button.url, { emoji: { id: req.body.button.emoji } })
-                                        : undefined
-                                ),
-                            ],
-                            username: '방송알리미',
-                            avatar_url:
-                                'https://cdn.orefinger.click/post/466950273928134666/d2d0cc31-a00e-414a-aee9-60b2227ce42c.png',
-                        },
-                    }))
-                );
-
-                return { success: true, message: '알림이 전송되었습니다.' };
+                if (result && result.length > 0) {
+                    await sendMessageByChannels(
+                        channels.map(channel => ({
+                            ...channel,
+                            message: {
+                                content: channel.content || undefined,
+                                components: [
+                                    createActionRow(
+                                        createSuccessButton(`notice attendance ${noticeId}`, {
+                                            label: appendTextWing('📌출석체크\u3164', 8), // 크기보정
+                                        }),
+                                        createSuccessButton(`notice logs ${noticeId}`, {
+                                            label: '📊방송이력\u3164', // 크기보정
+                                        }),
+                                        req.body.button
+                                            ? createUrlButton(req.body.button.url, {
+                                                  emoji: { id: req.body.button.emoji },
+                                              })
+                                            : undefined
+                                    ),
+                                ],
+                                username: '방송알리미',
+                                avatar_url:
+                                    'https://cdn.orefinger.click/post/466950273928134666/d2d0cc31-a00e-414a-aee9-60b2227ce42c.png',
+                            },
+                        }))
+                    );
+                    return { success: true, message: '알림이 전송되었습니다.' };
+                } else {
+                    return { success: true, message: '라이브 정보가 업데이트 되었습니다' };
+                }
             } catch (error) {
                 console.error(error);
                 return { success: false, message: '알림 전송에 실패했습니다.' };
@@ -253,23 +273,10 @@ ORDER BY notice_id
         }
     );
 
-    fastify.post<{
+    fastify.patch<{
         Params: { noticeId: number; liveId: string };
-        Querystring: { key: string };
-        Body: {
-            embed: APIEmbed;
-            image: string;
-            title: string;
-            game: string;
-            live_at: string;
-            chat: string;
-            button?: {
-                url: string;
-                emoji: string;
-            };
-        };
     }>(
-        '/offline/:noticeId/:liveId',
+        '/offline/:noticeId',
         {
             onRequest: [fastify.masterkey],
             schema: {
@@ -278,13 +285,6 @@ ORDER BY notice_id
                 summary: '오프라인 알림 전송',
                 tags: ['infra'],
                 deprecated: false,
-                querystring: {
-                    type: 'object',
-                    properties: {
-                        key: { type: 'string', description: '인증키' },
-                    },
-                    required: ['key'],
-                },
                 params: {
                     type: 'object',
                     properties: {
@@ -297,7 +297,7 @@ ORDER BY notice_id
             },
         },
         async req => {
-            const { noticeId, liveId } = req.params;
+            const { noticeId } = req.params;
 
             try {
                 const { changedRows } = await updateLiveEvents(noticeId);
