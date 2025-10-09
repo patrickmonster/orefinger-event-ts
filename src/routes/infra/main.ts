@@ -155,7 +155,6 @@ ORDER BY notice_id
     );
     fastify.post<{
         Params: { noticeId: string; liveId: string };
-        Querystring: { key: string };
         Body: {
             embed: APIEmbed;
             image: string;
@@ -171,18 +170,13 @@ ORDER BY notice_id
     }>(
         '/online/:noticeId/:liveId',
         {
+            onRequest: [fastify.masterkey],
             schema: {
+                security: [{ Master: [] }],
                 description: '온라인 알림을 보냅니다.',
                 summary: '온라인 알림 전송',
                 tags: ['infra'],
                 deprecated: false,
-                querystring: {
-                    type: 'object',
-                    properties: {
-                        key: { type: 'string', description: '인증키' },
-                    },
-                    required: ['key'],
-                },
                 params: {
                     type: 'object',
                     properties: {
@@ -217,9 +211,6 @@ ORDER BY notice_id
         async req => {
             // TODO: 인증 필요
             const { noticeId, liveId } = req.params;
-            const { key } = req.query;
-
-            if (key != '%QcGXp26mc.XlmU^c') return { success: false, message: '인증키가 올바르지 않습니다.' };
 
             try {
                 await insertLiveEvents(noticeId, liveId, req.body);
@@ -280,7 +271,9 @@ ORDER BY notice_id
     }>(
         '/offline/:noticeId/:liveId',
         {
+            onRequest: [fastify.masterkey],
             schema: {
+                security: [{ Master: [] }],
                 description: '오프라인 알림을 보냅니다.',
                 summary: '오프라인 알림 전송',
                 tags: ['infra'],
@@ -304,11 +297,7 @@ ORDER BY notice_id
             },
         },
         async req => {
-            // TODO: 인증 필요
             const { noticeId, liveId } = req.params;
-            const { key } = req.query;
-
-            if (key != '%QcGXp26mc.XlmU^c') return { success: false, message: '인증키가 올바르지 않습니다.' };
 
             try {
                 const { changedRows } = await updateLiveEvents(noticeId);
@@ -323,7 +312,6 @@ ORDER BY notice_id
 
     fastify.post<{
         Params: { noticeId: string; videoId: string };
-        Querystring: { key: string };
         Body: {
             data: {
                 title: string;
@@ -335,18 +323,13 @@ ORDER BY notice_id
     }>(
         '/video/:noticeId',
         {
+            onRequest: [fastify.masterkey],
             schema: {
+                security: [{ Master: [] }],
                 description: '온라인 알림을 보냅니다.',
                 summary: '온라인 알림 전송',
                 tags: ['infra'],
                 deprecated: false,
-                querystring: {
-                    type: 'object',
-                    properties: {
-                        key: { type: 'string', description: '인증키' },
-                    },
-                    required: ['key'],
-                },
                 params: {
                     type: 'object',
                     properties: {
@@ -380,10 +363,7 @@ ORDER BY notice_id
         async req => {
             // TODO: 인증 필요
             const { noticeId, videoId } = req.params;
-            const { key } = req.query;
             const { data } = req.body;
-
-            if (key != '%QcGXp26mc.XlmU^c') return { success: false, message: '인증키가 올바르지 않습니다.' };
 
             const list = [];
             let successCnt = 0;
