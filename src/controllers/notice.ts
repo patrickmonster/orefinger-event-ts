@@ -160,6 +160,9 @@ export const deleteNotice = async (notice_id: NoticeId) =>
 export const deleteNoticeChannel = async (notice_id: NoticeId, channel_id: string) =>
     updateNoticeChannelState(notice_id, channel_id, 'N');
 
+export const deleteNoticeWebhook = async (channel_id: string) =>
+    query(`UPDATE webhooks SET use_yn='N', update_at=CURRENT_TIMESTAMP WHERE channel_id = ?`, channel_id);
+
 export const updateNoticeChannelState = async (notice_id: NoticeId, channel_id: string, use_yn: 'N' | 'Y') =>
     query(
         `UPDATE discord.notice_channel SET use_yn=?, update_at=CURRENT_TIMESTAMP WHERE channel_id=? AND notice_id= ?`,
