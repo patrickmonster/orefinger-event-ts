@@ -2,6 +2,7 @@ import { FastifyInstance } from 'fastify';
 
 import { sendMessageByChannels } from 'components/notice';
 import { insertLiveEvents, insertVideoEvents, updateLiveEvents } from 'controllers/bat';
+import { disableNotice } from 'controllers/notice';
 import { APIEmbed } from 'discord-api-types/v10';
 import { NoticeChannel } from 'interfaces/notice';
 import { query, selectPersent } from 'utils/database';
@@ -311,6 +312,38 @@ ORDER BY nl.live_at DESC
                 return { success: false, message: '알림 전송에 실패했습니다.' };
             }
         }
+    );
+
+    fastify.delete<{
+        Params: { noticeId: number; liveId: string };
+    }>(
+        '/list/:noticeId',
+        {
+            onRequest: [fastify.masterkey],
+            schema: {
+                security: [{ Master: [] }],
+                description: '알림을 비활성화 합니다.',
+                summary: '알림 비활성화',
+                tags: ['infra'],
+                deprecated: false,
+                params: {
+                    type: 'object',
+                    properties: {
+                        noticeId: {
+                            type: 'number',
+                            description: '라이브 ID',
+                        },
+                    },
+                },
+            },
+        },
+        async req =>
+            await disableNotice(req.params.noticeId)
+                .then(() => ({ success: true, message: '알림이 비활성화 되었습니다.' }))
+                .catch(error => {
+                    console.error(error);
+                    return { success: false, message: '알림 비활성화에 실패했습니다.' };
+                })
     );
 
     fastify.post<{
