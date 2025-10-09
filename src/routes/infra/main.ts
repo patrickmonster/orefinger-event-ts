@@ -241,6 +241,7 @@ WHERE 1=1
 AND nl.notice_id = ?
 AND nl.end_at IS NOT NULL
 ORDER BY nl.live_at DESC
+LIMIT 5
                     `,
                     noticeId
                 );
