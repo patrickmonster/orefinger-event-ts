@@ -65,7 +65,14 @@ export default async (fastify: FastifyInstance, opts: any) => {
             url: { type: 'string' },
             title: { type: 'string' },
             description: { type: 'string' },
-            image: { type: 'string' },
+            image: {
+                type: 'object',
+                properties: {
+                    url: { type: 'string' },
+                    width: { type: 'number' },
+                    height: { type: 'number' },
+                },
+            },
             color: { type: 'string' },
             thumbnail: { type: 'string' },
             fields: {
