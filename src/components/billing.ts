@@ -1,10 +1,6 @@
-import { auth } from 'controllers/auth';
-import { PaymentHidden, insertPayment, selectCardList } from 'controllers/paymont';
-import { AuthorizationsCard, Card } from 'interfaces/toss';
+import { selectCardList } from 'controllers/paymont';
 import moment from 'moment';
-import { ENCRYPT_KEY, encrypt, sha256 } from 'utils/cryptoPw';
 import menuComponentBuild from 'utils/menuComponentBuild';
-import toss from 'utils/tossApiInstance';
 
 type OrderState =
     | 'READY'
@@ -61,67 +57,4 @@ export const getCardList = async (id: string, custom_id: string) => {
                 );
         }
     });
-};
-
-export const createCard = async (id: string, card: Card, isTest = false) => {
-    const { cardNumber, cardExpirationYear, cardExpirationMonth, cardPassword, customerIdentityNumber, cardName } =
-        card;
-
-    const user = await toss.post<AuthorizationsCard>('/billing/authorizations/card', {
-        cardNumber,
-        cardExpirationYear,
-        cardExpirationMonth,
-        cardPassword,
-        customerIdentityNumber,
-        customerKey: id,
-    });
-
-    // 카드 정보 암호화
-    const cardKey = sha256(cardNumber, ENCRYPT_KEY);
-    const { iv, content } = encrypt(cardNumber, ENCRYPT_KEY);
-
-    await auth(
-        isTest ? 'toss.test' : 'toss',
-        id,
-        {
-            id: cardKey, // 단방향 암호화 카드 번호
-            username: iv, // 1회용 단일 인증 암호
-            discriminator: cardName,
-            email: content, // 양뱡향 암호호된 카드 번호
-            avatar: user.mId,
-        },
-        user.billingKey
-    );
-
-    return cardKey;
-};
-
-export const billing = async (amount: number, orderName: string, item: PaymentHidden<true>) => {
-    const orderId = sha256(`${item.refresh_token}${Date.now()}`, ENCRYPT_KEY);
-
-    const data = await toss.post<{
-        status: OrderState;
-        receipt: { url: string };
-        orderId: string;
-        orderName: string;
-
-        currency: string;
-        suppliedAmount: number;
-        vat: number;
-        totalAmount: number;
-    }>(`billing/${item.refresh_token}`, {
-        amount,
-        customerKey: item.auth_id,
-        orderId,
-        orderName,
-    });
-
-    await insertPayment({
-        order_id: orderId,
-        auth_id: item.auth_id,
-        order_state: getBillingState(data.status),
-        amount,
-    });
-
-    return data;
 };

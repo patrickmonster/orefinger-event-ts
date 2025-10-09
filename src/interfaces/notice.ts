@@ -1,4 +1,5 @@
 import {
+    APIEmbed,
     APIMessage,
     RESTPostAPIChannelMessageJSONBody,
     RESTPostAPIWebhookWithTokenJSONBody,
@@ -29,12 +30,18 @@ export interface NoticeChannel {
 
     channel_type: ChannelType;
 
+    content?: string;
+    name: string;
+    img_idx: number;
+
     // hook
     url?: string;
     username?: string;
     avatar_url?: string;
-}
 
+    video_yn: boolean;
+    embed?: APIEmbed;
+}
 export interface NoticeChannelHook extends NoticeChannel {
     message: RESTPostAPIChannelMessageJSONBody | RESTPostAPIWebhookWithTokenJSONBody;
 }
