@@ -210,9 +210,7 @@ ORDER BY notice_id
             },
         },
         async req => {
-            // TODO: 인증 필요
             const { noticeId, liveId } = req.params;
-
             try {
                 const result = await query(
                     `
@@ -235,7 +233,9 @@ ORDER BY nl.live_at DESC
                 // 정상 상태
                 const channels = (await getChannels(noticeId)).filter(ch => !ch.video_yn);
 
-                if (result && result.length > 0) {
+                if (!result || result.length < 0) {
+                    console.log('LIVE START ::', noticeId, liveId);
+
                     await sendMessageByChannels(
                         channels.map(channel => ({
                             ...channel,
@@ -301,8 +301,9 @@ ORDER BY nl.live_at DESC
 
             try {
                 const { changedRows } = await updateLiveEvents(noticeId);
-                if (changedRows == 0) return { success: false, message: '알림 전송에 실패했습니다.' };
-                return { success: true, message: '알림이 전송되었습니다.' };
+                if (changedRows == 0) return { success: false, message: '알림 상태 변경 실패' };
+                console.log('LIVE END ::', noticeId, changedRows);
+                return { success: true, message: '알림 상태가 변경되었습니다.' };
             } catch (error) {
                 console.error(error);
                 return { success: false, message: '알림 전송에 실패했습니다.' };
@@ -398,6 +399,8 @@ ORDER BY nl.live_at DESC
                 // 정상 상태
                 const channels = (await getChannels(noticeId)).filter(ch => ch.video_yn);
                 try {
+                    console.log('VIDEO UPLOAD ::', noticeId, title);
+
                     await sendMessageByChannels(
                         channels.map(channel => ({
                             ...channel,
