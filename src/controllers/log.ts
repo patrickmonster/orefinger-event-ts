@@ -1,3 +1,4 @@
+import { RESTPostAPIChannelMessageJSONBody, RESTPostAPIWebhookWithTokenJSONBody } from 'discord-api-types/v10';
 import getConnection, { SqlInsertUpdate, calTo, query } from 'utils/database';
 import { ParseInt } from 'utils/object';
 
@@ -8,7 +9,45 @@ interface Message {
 }
 
 export const CreateMessage = async (message: Message) =>
-    query<SqlInsertUpdate>(`INSERT INTO message_log set ?`, message);
+    query<SqlInsertUpdate>(`INSERT INTO message_log set ?, edit_yn = 'N'`, message);
+
+export const GetMessageNotChange = async (channel_id: string) =>
+    getConnection(async query => {
+        const list = await query<{
+            message_id: string;
+            channel_id: string;
+            message: RESTPostAPIChannelMessageJSONBody | RESTPostAPIWebhookWithTokenJSONBody;
+            create_at: string;
+            send_yn: boolean;
+        }>(
+            `
+SELECT
+    ml.message_id
+    , ml.channel_id
+    , ml.message
+    , ml.create_at
+    , ml.send_yn
+FROM message_log ml
+WHERE 1=1
+AND ml.channel_id = ?
+AND ml.edit_yn = 'N' -- 수정되지 않은 메세지
+AND ml.send_yn = 'Y' -- 전송한 메세지만
+ORDER BY create_at DESC 
+            `,
+            channel_id
+        );
+
+        const ids = list.map(v => v.message_id);
+        if (ids.length === 0) return [];
+
+        await query<SqlInsertUpdate>(
+            `UPDATE message_log SET edit_yn = 'Y' WHERE channel_id = ? AND message_id IN (?) AND edit_yn = 'N'`,
+            channel_id,
+            ids
+        );
+
+        return list;
+    }, true);
 
 export const ecsSet = async (id: string, revision: string, family: string) =>
     query<SqlInsertUpdate>(`INSERT INTO task set ? `, {
