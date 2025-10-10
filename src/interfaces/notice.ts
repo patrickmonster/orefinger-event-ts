@@ -35,6 +35,9 @@ export interface NoticeChannel {
     channel_type: ChannelType;
     embed: APIEmbed;
 
+    avatar_url?: string | null; // 채널 아이콘
+    username?: string | null; // 채널 닉네임
+
     name: string;
 }
 export interface NoticeChannelHook extends NoticeChannel {
