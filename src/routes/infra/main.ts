@@ -257,7 +257,10 @@ LIMIT 3
                 await insertLiveEvents(noticeId, liveId, req.body);
 
                 // 정상 상태
-                const channels = (await getChannels(noticeId)).filter(ch => !ch.video_yn);
+                const channels = (await getChannels(noticeId)).filter(ch => {
+                    console.log('LIVE CHANNEL ::', ch.notice_id, ch.channel_id, ch.video_yn);
+                    return !ch.video_yn;
+                });
 
                 console.log('LIVE CHECK ::', noticeId, liveId, result);
                 if (!result || result.length < 0) {
