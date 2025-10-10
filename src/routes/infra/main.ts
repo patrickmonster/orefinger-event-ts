@@ -245,7 +245,7 @@ WHERE 1=1
 AND nl.notice_id = ?
 AND nl.end_at IS NULL
 ORDER BY nl.live_at DESC
-LIMIT 5
+LIMIT 3
                     `,
                     noticeId
                 );
@@ -259,6 +259,7 @@ LIMIT 5
                 // 정상 상태
                 const channels = (await getChannels(noticeId)).filter(ch => !ch.video_yn);
 
+                console.log('LIVE CHECK ::', noticeId, liveId, result);
                 if (!result || result.length < 0) {
                     // 이전 알림이 있는지 확인 (현재 활성화된 알림)
                     console.log('LIVE START ::', noticeId, liveId);
