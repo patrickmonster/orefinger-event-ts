@@ -15,7 +15,14 @@ import { openApi } from 'utils/discordApiInstance';
  * @returns
  */
 const getChannels = async (noticeId: string) =>
-    await query<NoticeChannel>(
+    await query<{
+        notice_id: number;
+        notice_type: number;
+        hash_id: string;
+        video_yn: boolean;
+        channel_id: string;
+        channel: NoticeChannel;
+    }>(
         `
 SELECT 
 	vng.notice_id
@@ -25,8 +32,8 @@ SELECT
 	, nc.channel_id
 	, IF(vw.webhook_id IS NOT NULL
 		, json_object(
-			'content', vng.message, 'name', vng.name,
-			'channel_id', nc.channel_id
+			'content', vng.message, 'name', vng.name
+            , 'channel_id', nc.channel_id
 			, 'notice_id', vng.notice_id
 			, 'guild_id', vng.guild_id
 			, 'create_at', nc.create_at
@@ -263,16 +270,16 @@ LIMIT 3
                 });
 
                 console.log('LIVE CHECK ::', noticeId, liveId, result);
-                if (!result || result.length < 0) {
+                if (!result || !result.length) {
                     // 이전 알림이 있는지 확인 (현재 활성화된 알림)
                     console.log('LIVE START ::', noticeId, liveId);
 
                     await sendMessageByChannels(
                         channels.map(channel => ({
-                            ...channel,
+                            ...channel.channel,
                             message: {
-                                content: channel.content || undefined,
-                                embeds: channel.embed ? [channel.embed] : [],
+                                content: channel.channel.content || undefined,
+                                embeds: req.body.embed ? [req.body.embed] : undefined,
                                 components: [
                                     createActionRow(
                                         createSuccessButton(`notice attendance ${noticeId}`, {
@@ -466,12 +473,12 @@ LIMIT 3
 
                     await sendMessageByChannels(
                         channels.map(channel => ({
-                            ...channel,
+                            ...channel.channel,
                             hook: {
                                 name: title || '방송알리미',
                             },
                             message: {
-                                content: channel.content,
+                                content: channel.channel.content || '-',
                                 embeds: [embed],
                             },
                         }))
