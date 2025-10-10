@@ -263,7 +263,7 @@ LIMIT 3
                 });
 
                 console.log('LIVE CHECK ::', noticeId, liveId, result);
-                if (!result || result.length < 0) {
+                if (!result || !result.length) {
                     // 이전 알림이 있는지 확인 (현재 활성화된 알림)
                     console.log('LIVE START ::', noticeId, liveId);
 
