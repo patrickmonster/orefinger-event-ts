@@ -243,7 +243,7 @@ SELECT
 FROM notice_live nl 
 WHERE 1=1
 AND nl.notice_id = ?
-AND nl.end_at IS NOT NULL
+AND nl.end_at IS NULL
 ORDER BY nl.live_at DESC
 LIMIT 5
                     `,
@@ -285,17 +285,6 @@ LIMIT 5
                             },
                         }))
                     );
-
-                    if (channels.length) {
-                        const [channel] = channels;
-                        const { notice_id } = channel;
-                        openApi.post(`${process.env.WEB_HOOK_URL}`, {
-                            content: `
-${notice_id}]${channels.length}개 채널에 알림이 전송되었습니다.
-${channels.reduce((p, c) => `${p}\n<#${c.channel_id}> ${noticeId} ${req.body.button?.url} `, '')}
-                            `,
-                        });
-                    }
                     return { success: true, message: '알림이 전송되었습니다.' };
                 } else {
                     return { success: true, message: '라이브 정보가 업데이트 되었습니다' };
