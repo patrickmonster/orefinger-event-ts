@@ -24,23 +24,18 @@ export enum ChannelType {
 }
 
 export interface NoticeChannel {
+    content?: string;
+
+    channel_id: string;
     notice_id: number;
     guild_id: string;
-    channel_id: string;
-
+    create_at: string;
+    update_at: string;
+    url: string | null;
     channel_type: ChannelType;
+    embed: APIEmbed;
 
-    content?: string;
     name: string;
-    img_idx: number;
-
-    // hook
-    url?: string;
-    username?: string;
-    avatar_url?: string;
-
-    video_yn: boolean;
-    embed?: APIEmbed;
 }
 export interface NoticeChannelHook extends NoticeChannel {
     message: RESTPostAPIChannelMessageJSONBody | RESTPostAPIWebhookWithTokenJSONBody;
