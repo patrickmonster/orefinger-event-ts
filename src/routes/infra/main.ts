@@ -245,17 +245,26 @@ WHERE 1=1
 AND nl.notice_id = ?
 AND nl.end_at IS NULL
 ORDER BY nl.live_at DESC
-LIMIT 5
+LIMIT 3
                     `,
                     noticeId
                 );
 
+                if (result.length > 0 && result.find((item: any) => item.id == liveId)) {
+                    return { success: true, message: '이미 라이브 알림이 전송되었습니다.' };
+                }
+
                 await insertLiveEvents(noticeId, liveId, req.body);
 
                 // 정상 상태
-                const channels = (await getChannels(noticeId)).filter(ch => !ch.video_yn);
+                const channels = (await getChannels(noticeId)).filter(ch => {
+                    console.log('LIVE CHANNEL ::', ch.notice_id, ch.channel_id, ch.video_yn);
+                    return !ch.video_yn;
+                });
 
+                console.log('LIVE CHECK ::', noticeId, liveId, result);
                 if (!result || result.length < 0) {
+                    // 이전 알림이 있는지 확인 (현재 활성화된 알림)
                     console.log('LIVE START ::', noticeId, liveId);
 
                     await sendMessageByChannels(
