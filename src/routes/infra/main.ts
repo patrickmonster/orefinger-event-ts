@@ -250,12 +250,17 @@ LIMIT 5
                     noticeId
                 );
 
+                if (result.length > 0 && result.find((item: any) => item.id == liveId)) {
+                    return { success: true, message: '이미 라이브 알림이 전송되었습니다.' };
+                }
+
                 await insertLiveEvents(noticeId, liveId, req.body);
 
                 // 정상 상태
                 const channels = (await getChannels(noticeId)).filter(ch => !ch.video_yn);
 
                 if (!result || result.length < 0) {
+                    // 이전 알림이 있는지 확인 (현재 활성화된 알림)
                     console.log('LIVE START ::', noticeId, liveId);
 
                     await sendMessageByChannels(
