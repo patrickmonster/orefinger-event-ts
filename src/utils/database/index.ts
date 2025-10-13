@@ -288,3 +288,11 @@ export const selectPersent = async <E>(query: string, present: Present, ...param
         if (connect) connect.release();
     }
 };
+
+export const paramsToFormat = (params: Array<unknown>): string =>
+    format(
+        `(${Object.values(params)
+            .map(value => '?')
+            .join(', ')})`,
+        params
+    );
