@@ -81,7 +81,19 @@ export default async (fastify: FastifyInstance, opts: any) => {
     }>(
         '/async/:target',
         {
-            schema: {},
+            onRequest: [fastify.masterkey],
+            schema: {
+                security: [{ Master: [] }],
+                description: '서버간 데이터 동기화를 진행합니다 - ',
+                tags: ['infra'],
+                params: {
+                    type: 'object',
+                    properties: {
+                        target: { type: 'string', enum: ['mobinogi'] },
+                    },
+                    required: ['target'],
+                },
+            },
         },
         async req => {
             const { target } = req.params;
