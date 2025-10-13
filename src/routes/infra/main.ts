@@ -1,10 +1,13 @@
 import { FastifyInstance } from 'fastify';
 
+import { messageEdit, messageHookEdit } from 'components/discord';
 import { sendMessageByChannels } from 'components/notice';
 import { insertLiveEvents, insertVideoEvents, updateLiveEvents } from 'controllers/bat';
+import { GetMessageNotChange } from 'controllers/log';
 import { disableNotice } from 'controllers/notice';
+import dayjs from 'dayjs';
 import { APIEmbed } from 'discord-api-types/v10';
-import { NoticeChannel } from 'interfaces/notice';
+import { ChannelType, NoticeChannel } from 'interfaces/notice';
 import { query, selectPersent } from 'utils/database';
 import { appendTextWing, createActionRow, createSuccessButton, createUrlButton } from 'utils/discord/component';
 import { openApi } from 'utils/discordApiInstance';
@@ -342,6 +345,47 @@ LIMIT 3
                 const { changedRows } = await updateLiveEvents(noticeId);
                 if (changedRows == 0) return { success: false, message: '알림 상태 변경 실패' };
                 console.log('LIVE END ::', noticeId, changedRows);
+
+                // 정상 상태
+                const channels = (await getChannels(`${noticeId}`)).filter(ch => {
+                    console.log('LIVE CHANNEL ::', ch.notice_id, ch.channel_id, ch.video_yn);
+                    return !ch.video_yn;
+                });
+
+                const time = dayjs(Date.now()).add(-9, 'h');
+                for (const channel of channels) {
+                    try {
+                        const messages = await GetMessageNotChange(channel.channel_id);
+                        for (const msg of messages) {
+                            // 개별 메세지 수정
+                            if ('embeds' in msg.message && msg.message.embeds) {
+                                msg.message.embeds = msg.message.embeds.map(emb => ({
+                                    ...emb,
+                                    description: `${emb.description || ''} ~ <t:${time.unix()}:R>`,
+                                    timestamp: time.format(),
+                                }));
+                            }
+
+                            switch (channel.channel.channel_type) {
+                                case ChannelType.TEXT:
+                                    messageEdit(msg.channel_id, msg.message_id, {
+                                        ...msg.message,
+                                        components: [],
+                                    }).catch(e => console.error(e));
+                                    break;
+                                case ChannelType.WEBHOOK:
+                                    messageHookEdit(`${channel.channel.url}`, msg.message_id, {
+                                        ...msg.message,
+                                        components: [],
+                                    }).catch(e => console.error(e));
+                                    break;
+                            }
+                        }
+                    } catch (e) {
+                        console.error('메세지 수정 에러 ::', e);
+                    }
+                }
+
                 return { success: true, message: '알림 상태가 변경되었습니다.' };
             } catch (error) {
                 console.error(error);
