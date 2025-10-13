@@ -6,6 +6,10 @@ on:
     branches:
       - 'master'
 
+permissions:
+  contents: write # 리포지토리 내용 수정 권한
+  id-token: write # GitHub ID 토큰을 쓸 수 있는 권한
+
 jobs:
 
   build:
@@ -58,3 +62,59 @@ jobs:
           --deployment-config-name CodeDeployDefault.OneAtATime
           --deployment-group-name orefinger-api-deploy
           --s3-location bucket=orefinger-pipline,bundleType=zip,key=orefinger-bat/orefinger.api.zip
+
+  merge_to_dev:
+    # 빌드 job이 성공적으로 완료된 후에만 실행
+    needs: build
+    if: github.event.pull_request.merged == true
+    name: Merge to Dev Branch
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: ✅ 체크아웃 source code.
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0 # 전체 히스토리를 가져와서 브랜치 작업을 원활히 함
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: ⚙️ Node.js 설정
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20.10.0'
+
+      - name: 📦 패키지 버전 확인 및 release 브랜치 병합
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          
+          # package.json에서 버전 가져오기
+          version=$(node -p 'require("./package.json").version')
+          echo "현재 패키지 버전: $version"
+          
+          # release 브랜치명 생성
+          release_branch="release/$version"
+          echo "대상 release 브랜치: $release_branch"
+          
+          # dev 브랜치로 체크아웃
+          echo "dev 브랜치로 체크아웃 시작"
+          git checkout dev || git checkout -b dev origin/dev
+          git pull origin dev
+          echo "dev 브랜치로 체크아웃 완료"
+          
+          # release 브랜치가 존재하는지 확인하고 병합
+          if git ls-remote --exit-code --heads origin $release_branch; then
+            echo "$release_branch 브랜치를 dev로 병합 시작"
+            git merge origin/$release_branch --no-ff -m "Auto merge $release_branch into dev after production deployment (v$version)"
+            git push origin dev
+            echo "$release_branch 브랜치를 dev로 merge 완료"
+            
+            # release 브랜치 삭제
+            echo "$release_branch 브랜치 삭제 시작"
+            git push origin --delete $release_branch
+            echo "$release_branch 브랜치 삭제 완료"
+          else
+            echo "경고: $release_branch 브랜치를 찾을 수 없습니다. master 브랜치를 대신 병합합니다."
+            git merge origin/master --no-ff -m "Auto merge master into dev after production deployment (v$version)"
+            git push origin dev
+            echo "master 브랜치를 dev로 merge 완료"
+          fi
