@@ -2,11 +2,13 @@
 
 import { Paging } from 'interfaces/swagger';
 import mysql, { RowDataPacket } from 'mysql2/promise';
-import getConnection, { queryFunctionType, ResqultQuery, SelectPagingResult } from '.';
+import getConnection, { paramsToFormat, queryFunctionType, ResqultQuery, SelectPagingResult } from '.';
 
 export const format = mysql.format;
 
 export const DATABASE_NAME = 'mobinogi';
+
+export { paramsToFormat };
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 export let limit = 10;
