@@ -95,19 +95,19 @@ jobs:
           release_branch="release/$version"
           echo "대상 release 브랜치: $release_branch"
           
-          # dev 브랜치로 체크아웃
-          echo "dev 브랜치로 체크아웃 시작"
-          git checkout dev || git checkout -b dev origin/dev
-          git pull origin dev
-          echo "dev 브랜치로 체크아웃 완료"
-          
+          # develop 브랜치로 체크아웃
+          echo "develop 브랜치로 체크아웃 시작"
+          git checkout develop || git checkout -b develop origin/develop
+          git pull origin develop
+          echo "develop 브랜치로 체크아웃 완료"
+
           # release 브랜치가 존재하는지 확인하고 병합
           if git ls-remote --exit-code --heads origin $release_branch; then
-            echo "$release_branch 브랜치를 dev로 병합 시작"
-            git merge origin/$release_branch --no-ff -m "Auto merge $release_branch into dev after production deployment (v$version)"
-            git push origin dev
-            echo "$release_branch 브랜치를 dev로 merge 완료"
-            
+            echo "$release_branch 브랜치를 develop로 병합 시작"
+            git merge origin/$release_branch --no-ff -m "Auto merge $release_branch into develop after production deployment (v$version)"
+            git push origin develop
+            echo "$release_branch 브랜치를 develop로 merge 완료"
+
             # release 브랜치 삭제
             echo "$release_branch 브랜치 삭제 시작"
             git push origin --delete $release_branch
