@@ -427,7 +427,7 @@ LIMIT 3
     );
 
     fastify.post<{
-        Params: { noticeId: string; videoId: string };
+        Params: { noticeId: string };
         Body: {
             data: {
                 title: string;
@@ -477,17 +477,19 @@ LIMIT 3
             },
         },
         async req => {
-            const { noticeId, videoId } = req.params;
+            const { noticeId } = req.params;
             const { data } = req.body;
 
             const list = [];
             let successCnt = 0;
 
-            for (const { title, embed, hashId } of data) {
+            console.log('RECIVE VIDEO ::', noticeId);
+            for (const { title, embed, hashId, videoId } of data) {
                 if (!videoId || !title) continue;
                 try {
                     await insertVideoEvents(noticeId, videoId, title);
                     // 정상 상태
+                    console.log('NEW VIDEO ::', noticeId);
 
                     list.push({
                         title,
