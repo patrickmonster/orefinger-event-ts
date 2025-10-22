@@ -2,7 +2,7 @@ import { getAfreecabeUser } from 'components/user/afreeca';
 import { getChzzkUser } from 'components/user/chzzk';
 
 const StreamChannelRegex =
-    /^(http(s):\/\/)(chzzk.naver.com|play.afreecatv.com|bj.afreecatv.com|afreecatv.com|sooplive.co.kr|www.sooplive.co.kr|bj.sooplive.co.kr|ch.sooplive.co.kr|play.sooplive.co.kr|www.youtube.com|youtube.com)(\/channel|\/live)?\/([\w|@]+)/;
+    /^(http(s):\/\/)(chzzk.naver.com|play.afreecatv.com|bj.afreecatv.com|afreecatv.com|sooplive.co.kr|www.sooplive.co.kr|bj.sooplive.co.kr|ch.sooplive.co.kr|play.sooplive.co.kr|www.youtube.com|youtube.com)(\/channel|\/live|\/station)?\/([\w|@]+)/;
 
 export enum StreamTarget {
     YOUTUBE = 'YOUTUBE',
