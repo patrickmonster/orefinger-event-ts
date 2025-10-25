@@ -10,7 +10,6 @@ import { APIEmbed } from 'discord-api-types/v10';
 import { ChannelType, NoticeChannel } from 'interfaces/notice';
 import { query, selectPersent } from 'utils/database';
 import { appendTextWing, createActionRow, createSuccessButton, createUrlButton } from 'utils/discord/component';
-import { openApi } from 'utils/discordApiInstance';
 
 /**
  * 채널 온라인 정보를 가져옴
@@ -530,17 +529,6 @@ LIMIT 3
                         }))
                     );
                     successCnt++;
-
-                    if (channels.length) {
-                        const [channel] = channels;
-                        const { notice_id } = channel;
-                        openApi.post(`${process.env.WEB_HOOK_URL}`, {
-                            content: `
-${notice_id}]${channels.length}개 채널에 알림이 전송되었습니다.
-${channels.reduce((p, c) => `${p}\n<#${c.channel_id}> ${noticeId} https://www.youtube.com/watch?v=${videoId} `, '')}
-                            `,
-                        });
-                    }
                 } catch (error) {
                     console.error(error);
                 }
