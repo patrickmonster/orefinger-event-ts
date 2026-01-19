@@ -14,7 +14,10 @@ RUN npm install && npm cache clean --force
 COPY . .
 
 # 애플리케이션 빌드
+RUN PWD # 디버깅용 현재 작업 디렉토리 출력
 RUN npm run build
+
+
 
 # 운영 환경용 이미지
 FROM node:20-alpine AS production
