@@ -14,11 +14,7 @@ RUN npm install && npm cache clean --force
 COPY . .
 
 # 애플리케이션 빌드
-# 현재 경로 디버깅 출력
-RUN pwd && ls -la
 RUN npm run build
-
-
 
 # 운영 환경용 이미지
 FROM node:20-alpine AS production
@@ -43,14 +39,11 @@ RUN adduser -S appuser -u 1001
 WORKDIR /app
 
 # package.json 먼저 복사하여 운영용 의존성 설치
-COPY --chown=appuser:nodejs *.json ./
+COPY --chown=appuser:nodejs package*.json ./
 RUN npm install --omit=dev && npm cache clean --force
 
 # 빌드 단계에서 생성된 파일들 복사
 COPY --from=builder --chown=appuser:nodejs /app/dist ./dist
-
-
-RUN pwd && ls -la
 
 # 소스에서 직접 필요한 파일들 복사
 # COPY --chown=appuser:nodejs src/static ./dist/static
@@ -64,7 +57,6 @@ EXPOSE 3000
 
 # non-root 사용자로 전환
 USER appuser
-
 
 # 헬스체크 추가
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
