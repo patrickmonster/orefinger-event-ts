@@ -58,6 +58,8 @@ EXPOSE 3000
 # non-root 사용자로 전환
 USER appuser
 
+RUN PWD # 디버깅용 현재 작업 디렉토리 출력
+
 # 헬스체크 추가
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
   CMD node -e "require('http').get('http://localhost:3000/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) }).on('error', () => { process.exit(1) })"
