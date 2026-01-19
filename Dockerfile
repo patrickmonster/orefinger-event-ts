@@ -39,7 +39,7 @@ RUN adduser -S appuser -u 1001
 WORKDIR /app
 
 # package.json 먼저 복사하여 운영용 의존성 설치
-COPY --chown=appuser:nodejs package*.json ./
+COPY --chown=appuser:nodejs *.json ./
 RUN npm install --omit=dev && npm cache clean --force
 
 # 빌드 단계에서 생성된 파일들 복사
