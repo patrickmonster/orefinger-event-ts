@@ -5,7 +5,7 @@ FROM node:20-alpine AS builder
 WORKDIR /app
 
 # package.json 복사
-COPY package*.json ./
+COPY *.json ./
 
 # 의존성 설치 (빌드에 필요한 devDependencies 포함)
 RUN npm install && npm cache clean --force
@@ -46,7 +46,7 @@ RUN npm install --omit=dev && npm cache clean --force
 COPY --from=builder --chown=appuser:nodejs /app/dist ./dist
 
 # 소스에서 직접 필요한 파일들 복사
-# COPY --chown=appuser:nodejs src/static ./dist/static
+COPY --chown=appuser:nodejs src/static ./dist/static
 
 # 환경 변수 설정
 ENV NODE_ENV=production
