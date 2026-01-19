@@ -110,7 +110,7 @@ const valueToUint8Array = (value: Uint8Array | ArrayBuffer | Buffer | string, fo
         return new Uint8Array(value);
     }
     if (value instanceof Uint8Array) {
-        return value;
+        return Uint8Array.from(value);
     }
     throw new Error('Unrecognized value type, must be one of: string, Buffer, ArrayBuffer, Uint8Array');
 };
