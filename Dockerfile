@@ -14,7 +14,8 @@ RUN npm install && npm cache clean --force
 COPY . .
 
 # 애플리케이션 빌드
-RUN PWD # 디버깅용 현재 작업 디렉토리 출력
+# 현재 경로 디버깅 출력
+RUN pwd && ls -la
 RUN npm run build
 
 
@@ -48,6 +49,9 @@ RUN npm install --omit=dev && npm cache clean --force
 # 빌드 단계에서 생성된 파일들 복사
 COPY --from=builder --chown=appuser:nodejs /app/dist ./dist
 
+
+RUN pwd && ls -la
+
 # 소스에서 직접 필요한 파일들 복사
 # COPY --chown=appuser:nodejs src/static ./dist/static
 
@@ -61,7 +65,6 @@ EXPOSE 3000
 # non-root 사용자로 전환
 USER appuser
 
-RUN PWD # 디버깅용 현재 작업 디렉토리 출력
 
 # 헬스체크 추가
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
