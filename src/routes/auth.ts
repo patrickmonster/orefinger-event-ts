@@ -41,7 +41,10 @@ export default async (fastify: FastifyInstance, opts: any) => {
             }>(`http://${process.env.PROXY}:3000/token.${target}`, data, {
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
             })
-            .then(res => res.data);
+            .then(res => {
+                console.log('USER OAUTH2 ::', target, res.data);
+                return res.data;
+            });
 
     fastify.addSchema({
         $id: 'userId',
