@@ -96,7 +96,6 @@ const getConnection = async <T>(
     database?: string
 ) => {
     let connect: PoolConnection | null = null;
-    const errorQuerys: { query: string; params: any }[] = [];
     try {
         connect = await pool.getConnection();
         if (database) await connect.query(`USE \`${database}\``); // 데이터베이스 선택
@@ -114,17 +113,6 @@ const getConnection = async <T>(
                       };
             } catch (e) {
                 if (env.DB_HOST == 'localhost') console.error('SQL]', format(query, params));
-                if (!query.includes('IGNORE')) {
-                    // 중복키 에러 예외처리
-                    if (!isTransaction) {
-                        connect!.query('INSERT INTO discord_log.error_sql set `sql` = ?, target = ?', [
-                            mysql.format(query, params),
-                            env.NODE_ENV || 'dev',
-                        ]);
-                    } else {
-                        errorQuerys.push({ query, params });
-                    }
-                }
                 throw e;
             }
         }).then(async (result: T) => {
@@ -134,14 +122,6 @@ const getConnection = async <T>(
     } catch (e) {
         if (isTransaction && connect) {
             await connect.rollback(); // 롤백
-
-            /// 에러 쿼리 로그
-            for (const { query, params } of errorQuerys) {
-                connect.query('INSERT INTO discord_log.error_sql set `sql` = ?, target = ?', [
-                    mysql.format(query, params),
-                    env.NODE_ENV || 'dev',
-                ]);
-            }
         }
         // console.error('SQL]', e);
         throw e;
