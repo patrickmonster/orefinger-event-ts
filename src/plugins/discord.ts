@@ -163,6 +163,7 @@ export class Reply {
                         `/webhooks/${this.application_id}/${this.token}/messages/${this.id}`,
                         e.response?.data || e.response
                     );
+                    console.error(e);
                 });
         } else {
             this.isReply = true;
