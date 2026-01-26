@@ -49,7 +49,7 @@ export const exec = async (interaction: MessageInteraction, noticeId: string, mo
                 });
             } catch (e) {
                 console.log('sendTestNotice', e);
-                if(e instanceof Error && e.message){ {
+                if (e instanceof Error && e.message) {
                     return interaction.reply({
                         content: `\n알림 전송에 실패하였습니다. \n 오류 내용: ${e.message}`,
                         ephemeral: true,
@@ -65,7 +65,6 @@ export const exec = async (interaction: MessageInteraction, noticeId: string, mo
                         ],
                     });
                 }
-
             }
 
             break;
