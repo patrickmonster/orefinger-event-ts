@@ -161,7 +161,7 @@ export class Reply {
                     console.log(
                         '메세지 수정 실패',
                         `/webhooks/${this.application_id}/${this.token}/messages/${this.id}`,
-                        e.response.data
+                        e.response?.data || e.response
                     );
                 });
         } else {
