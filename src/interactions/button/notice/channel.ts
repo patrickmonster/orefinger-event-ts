@@ -49,21 +49,23 @@ export const exec = async (interaction: MessageInteraction, noticeId: string, mo
                 });
             } catch (e) {
                 console.log('sendTestNotice', e);
+                if(e instanceof Error && e.message){ {
+                    return interaction.reply({
+                        content: `\n알림 전송에 실패하였습니다. \n 오류 내용: ${e.message}`,
+                        ephemeral: true,
+                        components: [
+                            createActionRow(
+                                createUrlButton('https://orefinger.notion.site/e5856c2d3e6f494e95e1ea5a927f31bf', {
+                                    label: '미전송 가이드',
+                                    emoji: {
+                                        name: '📌',
+                                    },
+                                })
+                            ),
+                        ],
+                    });
+                }
 
-                return interaction.reply({
-                    content: `\n알림 전송에 실패하였습니다. \n 하단 문서를 확인해 주세요 `,
-                    ephemeral: true,
-                    components: [
-                        createActionRow(
-                            createUrlButton('https://orefinger.notion.site/e5856c2d3e6f494e95e1ea5a927f31bf', {
-                                label: '문서 확인',
-                                emoji: {
-                                    name: '📌',
-                                },
-                            })
-                        ),
-                    ],
-                });
             }
 
             break;
