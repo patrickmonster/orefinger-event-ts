@@ -38,9 +38,7 @@ export default async (fastify: FastifyInstance, opts: any) => {
                 refresh_token: string;
                 expires_in: number;
                 token_type: string;
-            }>(`http://${process.env.PROXY}:3000/token.${target}`, data, {
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            })
+            }>(target, data, { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } })
             .then(res => res.data);
 
     fastify.addSchema({
@@ -354,7 +352,7 @@ export default async (fastify: FastifyInstance, opts: any) => {
                 }
             } else
                 return await getToken(
-                    'discord',
+                    'https://discord.com/api/oauth2/token',
                     qs.stringify({
                         client_id: process.env.DISCORD_CLIENT_ID,
                         client_secret: process.env.DISCORD_CLIENT_SECRET,
@@ -617,7 +615,7 @@ export default async (fastify: FastifyInstance, opts: any) => {
             let token;
             switch (target) {
                 case 'discord':
-                    token = await getToken('discord', params).then(async token => {
+                    token = await getToken('https://discord.com/api/oauth2/token', params).then(async token => {
                         const user = await openApi.get<any>('/users/@me', {
                             headers: { Authorization: `Bearer ${token.access_token}` },
                         });
@@ -639,7 +637,7 @@ export default async (fastify: FastifyInstance, opts: any) => {
                     });
                     break;
                 case 'twitch':
-                    token = await getToken(`twitch`, params).then(async token => {
+                    token = await getToken(`https://id.twitch.tv/oauth2/token`, params).then(async token => {
                         const {
                             data: {
                                 data: [user],
@@ -680,7 +678,7 @@ export default async (fastify: FastifyInstance, opts: any) => {
                     });
                     break;
                 case 'kakao':
-                    token = getToken(`kakao`, params).then(async token => {
+                    token = getToken(`https://kauth.kakao.com/oauth/token`, params).then(async token => {
                         const {
                             id: kakaoId,
                             connected_at,
@@ -715,7 +713,7 @@ export default async (fastify: FastifyInstance, opts: any) => {
                     });
                     break;
                 case 'naver':
-                    token = getToken(`naver`, params).then(async token => {
+                    token = getToken(`https://nid.naver.com/oauth2.0/token`, params).then(async token => {
                         console.log(params, token);
                         const { resultcode, response: user } = await naverAPI.get<{
                             resultcode: string;

@@ -104,7 +104,7 @@ export const getChzzkPostComment = async (id: string | number) => {
                         };
                     }>
                 >(
-                    `http://${process.env.PROXY}:3000/ncomment/${id}/comments?limit=30&offset=0&orderType=DESC&pagingType=PAGE`,
+                    `https://apis.naver.com/nng_main/nng_comment_api/v1/type/CHANNEL_COMMENT/id/${id}/comments?limit=30&offset=0&orderType=DESC&pagingType=PAGE`,
                     {
                         headers: {
                             'User-Agent':

@@ -67,7 +67,7 @@ interface CustomInstance extends AxiosInstance {
 // ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 const discordInteraction: CustomInstance = axios.create({
-    baseURL: `http://${process.env.PROXY}:3000/discord`,
+    baseURL: 'https://discord.com/api',
     headers: { 'Content-Type': 'application/json' },
 });
 
