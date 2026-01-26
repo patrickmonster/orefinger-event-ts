@@ -47,11 +47,11 @@ export const exec = async (interaction: MessageInteraction, noticeId: string, mo
                     content: '알림이 전송되었습니다.',
                     ephemeral: true,
                 });
-            } catch (e) {
-                console.log('sendTestNotice', e);
+            } catch (e: Error | any) {
+                console.log('sendTestNotice', e.response?.data || e);
                 if (e instanceof Error && e.message) {
                     return interaction.reply({
-                        content: `\n알림 전송에 실패하였습니다. \n 오류 내용: ${e.message}`,
+                        content: `\n알림 전송에 실패하였습니다. \n 오류 내용: ${'response' in e ? JSON.stringify((e as any).response?.data) : e.message}`,
                         ephemeral: true,
                         components: [
                             createActionRow(
