@@ -18,7 +18,7 @@ export const exec = async (interaction: MessageInteraction, typeId: string) => {
 
     await interaction.differ({ ephemeral: true });
 
-    await authTokenSelect(userId || '0', `select rules ${typeId}`, Number(typeId))
+    await authTokenSelect(userId || '0', `select rule ${typeId}`, Number(typeId))
         .then(async user => {
             if (Array.isArray(user)) {
                 interaction.reply({
