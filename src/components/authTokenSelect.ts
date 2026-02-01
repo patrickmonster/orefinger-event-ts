@@ -5,22 +5,22 @@ import menuComponentBuild from 'utils/menuComponentBuild';
 
 moment.locale('ko');
 
-type result =
-    | APIActionRowComponent<APIStringSelectComponent>[]
-    | {
-          type: number;
-          user_id: string;
-          auth_id: string;
-          login: string;
-          name: string;
-          user_type: number;
-          email: string;
-          avatar: string;
-          refresh_token: string;
-          is_session: string;
-          create_at: string;
-          update_at: string;
-      };
+type UserType = {
+    type: number;
+    user_id: string;
+    auth_id: string;
+    login: string;
+    name: string;
+    user_type: number;
+    email: string;
+    avatar: string;
+    refresh_token: string;
+    is_session: string;
+    create_at: string;
+    update_at: string;
+};
+
+type result = APIActionRowComponent<APIStringSelectComponent>[] | UserType;
 
 // APIActionRowComponent<APIMessageActionRowComponent>[]
 export default (user_id: string, custom_id: string, ...types: number[]): Promise<result> => {
@@ -46,5 +46,14 @@ export default (user_id: string, custom_id: string, ...types: number[]): Promise
                     }))
                 );
         }
+    });
+};
+
+// APIActionRowComponent<APIMessageActionRowComponent>[]
+export const selectUser = (auth_id: string, user_id: string, ...types: number[]): Promise<UserType> => {
+    return tokens(auth_id, ...types).then(users => {
+        const user = users.find(u => u.user_id === user_id);
+        if (!user) throw new Error('Not found User');
+        return user;
     });
 };
