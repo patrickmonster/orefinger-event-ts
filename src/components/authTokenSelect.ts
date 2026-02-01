@@ -53,7 +53,7 @@ export default (user_id: string, custom_id: string, ...types: number[]): Promise
 export const selectUser = (auth_id: string, user_id: string, ...types: number[]): Promise<UserType> => {
     return tokens(auth_id, ...types).then(users => {
         const user = users.find(u => u.user_id === user_id);
-        if (!user) throw new Error('Not found User');
+        if (!user) throw new Error('Not found User ::' + user_id);
         return user;
     });
 };
