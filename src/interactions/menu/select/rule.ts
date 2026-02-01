@@ -11,6 +11,8 @@ export const exec = async (interaction: MessageMenuInteraction, type_id: string)
     const {
         values: [user_id],
         guild_id,
+        user,
+        member,
         channel,
     } = interaction;
 
@@ -22,9 +24,16 @@ export const exec = async (interaction: MessageMenuInteraction, type_id: string)
             ephemeral: true,
         });
 
+    const apiUser = member?.user || user;
+    if (!apiUser)
+        return interaction.reply({
+            content: '잘못된 접근 방식 입니다.',
+            ephemeral: true,
+        });
+
     try {
         console.log('selectUser', user_id, type_id);
-        const user = await selectUser(user_id, user_id, Number(type_id));
+        const user = await selectUser(apiUser.id, user_id, Number(type_id));
 
         giveRoleAndNick(interaction, {
             guild_id: guild_id,
