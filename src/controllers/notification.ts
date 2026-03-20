@@ -137,6 +137,13 @@ SELECT nl.notice_id, nl.id
     , nl.end_at 
     , vng.notice_type
 	, vng.notice_type_tag
+    , (
+        CASE
+            WHEN vng.notice_type = 5 THEN CONCAT('https://play.sooplive.co.kr/', vng.hash_id, '/', nl.id )
+            WHEN vng.notice_type = 4 THEN CONCAT('https://chzzk.naver.com/live/', vng.hash_id)
+            ELSE ''
+        END
+    ) AS live_url
 	, vng.name
     , nl.image
     , nl.title 

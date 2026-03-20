@@ -7,6 +7,8 @@ import Redis from 'ioredis';
 //     // legacyMode: true, // 레거시 모드
 // });
 
+console.log('???', process.env.REDIS_URL);
+
 const client = new Redis(`${process.env.REDIS_URL}`, {
     enableAutoPipelining: true,
 });
@@ -114,6 +116,7 @@ export const REDIS_KEY = {
         ATTACH_LIVE: (liveId: string | number, id: string) => `api:attach:live:${liveId}:${id}`,
         HISTORY_LIVE: (liveId: string | number) => `api:history:live:${liveId}`,
         CHZZK_POST: (id: string) => `api:chzzk:post:${id}`,
+        RPLAY_POST: (id: string) => `api:rplay:post:${id}`,
         AFREECA_POST: (id: string) => `api:afreeca:post:${id}`,
         CHZZK_LIVE_STATE: (id: string) => `api:chzzk:live:state:${id}`,
         MAIN_TOTAL: 'api:main:total',

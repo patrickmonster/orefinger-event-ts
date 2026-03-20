@@ -26,6 +26,7 @@ import qs from 'querystring';
 import { getAfreecaPostComment } from 'utils/afreecaApiInstance';
 import { ENCRYPT_KEY, sha256 } from 'utils/cryptoPw';
 import { appendUrlHttp, ParseInt } from 'utils/object';
+import { getRplayPostComment } from 'utils/rplayApiInstance';
 
 export default async (fastify: FastifyInstance, opts: any) => {
     const types = await selectAuthType();
@@ -537,6 +538,37 @@ export default async (fastify: FastifyInstance, opts: any) => {
                                     statusCode: 200,
                                     message: '인증 처리 되었습니다.',
                                     id: user_id,
+                                };
+                            } catch (e) {
+                                return fastify.httpErrors.forbidden('인증에 실패함');
+                            }
+                        }
+                    }
+                    break;
+                }
+                case 15: {
+                    const cmts = await getRplayPostComment('132495419');
+                    for (const { text: comment, commenterNickname, commenterOid } of cmts) {
+                        // 코맨트 내부에서 사용자 정보를 탐색
+                        if (comment.includes(hashKeyId)) {
+                            // 해시키가 포함된 코맨트를 찾음
+                            try {
+                                await auth(
+                                    'rplay',
+                                    id,
+                                    {
+                                        id: commenterOid,
+                                        username: commenterNickname,
+                                        discriminator: commenterNickname,
+                                        email: '-',
+                                        avatar: `https://pb2.rplay.live/profilePhoto/${commenterOid}-small/cdn-cgi/image/width=128,height=128,fit=cover,quality=90,format=auto`,
+                                    },
+                                    hashKeyId
+                                );
+                                return {
+                                    statusCode: 200,
+                                    message: '인증 처리 되었습니다.',
+                                    id: commenterOid,
                                 };
                             } catch (e) {
                                 return fastify.httpErrors.forbidden('인증에 실패함');

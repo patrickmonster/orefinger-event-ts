@@ -7,12 +7,10 @@ import {
     APIApplicationCommandInteractionDataSubcommandOption,
 } from 'discord-api-types/v10';
 import { APIChatInputApplicationCommandInteractionData } from 'plugins/discord';
-import { getChzzkAPI } from 'utils/naverApiInstance';
 
 import { searchAfreecabeUser } from 'components/user/afreeca';
 import { searchChzzkUser } from 'components/user/chzzk';
-
-const chzzk = getChzzkAPI('v1');
+import { searchRplayUser } from 'components/user/rplay';
 
 type FocusedType =
     | APIApplicationCommandInteractionDataNumberOption
@@ -55,6 +53,10 @@ const autoComponent = async (
         }
         case '아프리카': {
             replay(await searchAfreecabeUser(`${item.value}`));
+            break;
+        }
+        case '알플레이': {
+            replay(await searchRplayUser(`${item.value}`));
             break;
         }
     }
