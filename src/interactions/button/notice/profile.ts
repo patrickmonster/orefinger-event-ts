@@ -5,7 +5,6 @@ import axios from 'axios';
 import { webhookCreate } from 'components/discord';
 import { convertVideoObject as convertAfreecaVideoObject, getLive as getAfreecaLive } from 'components/user/afreeca';
 import { convertVideoObject as convertChzzkVideoObject, getLive as getChzzkLive } from 'components/user/chzzk';
-import { appendUrlHttp } from 'utils/object';
 
 /**
  *
@@ -63,9 +62,7 @@ export const exec = async (interaction: MessageInteraction, noticeId: string) =>
 
                 axios.post(url, {
                     username: station.user_nick || '방송알리미',
-                    avatar_url: live.profile_image
-                        ? appendUrlHttp(live.profile_image)
-                        : 'https://cdn.orefinger.click/post/466950273928134666/d2d0cc31-a00e-414a-aee9-60b2227ce42c.png',
+                    avatar_url: `https://profile.img.sooplive.com/LOGO/li/${notice.hash_id}/${notice.hash_id}.jpg`,
                     content: `
 프로필이 설정됨을 알려 드립니다! 
 (이제 방송알리미가 이 채널에 보내는 알림은 전부 각 프로필로 전송되요!)

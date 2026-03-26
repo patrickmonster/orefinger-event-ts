@@ -7,7 +7,6 @@ import { sendMessageByChannels } from 'components/notice';
 import { insertLiveEvents, updateLiveEvents } from 'controllers/bat';
 import { upsertNotice } from 'controllers/notice';
 import { APIEmbed, APIMessage } from 'discord-api-types/v10';
-import { Content } from 'interfaces/API/Afreeca';
 import { NoticeBat } from 'interfaces/notice';
 import { createActionRow, createUrlButton } from 'utils/discord/component';
 import { randomIntegerInRange } from 'utils/object';
@@ -126,39 +125,60 @@ export const searchAfreecabeUser = async (keyword: string): Promise<Array<{ name
  * @param videoObject
  * @returns
  */
-export const convertVideoObject = (videoObject: Content, name?: string): APIEmbed => {
+export const convertVideoObject = (videoObject: LiveStatus, name?: string): APIEmbed => {
     console.log(videoObject);
-
-    const {
-        broad,
-        station: { user_nick: channelName, broad_start },
-        profile_image: channelImageUrl,
-    } = videoObject;
-    const time = dayjs(broad_start).add(-9, 'h');
+    const time = dayjs().add(-9, 'h');
 
     let title = '방송 정보가 없습니다!';
     let no = 0;
     let id = '';
-    if (broad) {
-        const { broad_title, broad_no, user_id } = broad;
-        title = broad_title;
-        no = broad_no;
-        id = user_id;
+    if (videoObject) {
+        const { broadTitle, broadNo, userId } = videoObject;
+        title = broadTitle;
+        no = broadNo;
+        id = userId;
+    } else {
+        id = 'orefinger';
     }
-    https: return {
+    return {
         title: title || 'LIVE ON',
         description: `<t:${time.unix()}:R>`,
         url: `https://play.sooplive.co.kr/${id}/${no}`,
         color: 0x0746af,
-        thumbnail: { url: channelImageUrl.startsWith('http') ? channelImageUrl : `https:${channelImageUrl}` },
+        thumbnail: { url: `https://profile.img.sooplive.com/LOGO/li/${id}/${id}.jpg` },
         image: { url: `https://liveimg.sooplive.co.kr/m/${no}?${randomIntegerInRange(100, 999)}` },
-        footer: { text: name ?? channelName },
+        footer: { text: name ?? 'TEST' },
         timestamp: time.format(),
     };
 };
 
-export const getLive = async (hashId: string) =>
-    axios.get<Content>(`https://bjapi.afreecatv.com/api/${hashId}/station`).then(res => res.data);
+interface LiveStatus {
+    broadNo: number;
+    broadCateNo: number;
+    parentBroadNo: number;
+    userId: string;
+    broadTitle: string;
+    broadType: string;
+    broadStart: string;
+    currentSumViewer: number;
+    broadGrade: number;
+    subscriptionOnly: number;
+    totalViewCnt: number;
+    visitBroadType: number;
+    isPassword: boolean;
+    categoryName: string;
+    categoryTags: string[];
+    hashTags: string[];
+    autoHashTags: string[];
+    langTags: string[];
+}
+
+export const getLive = async (hashId: string) => {
+    const { data } = await axios.get<LiveStatus>(
+        `https://api-channel.sooplive.com/v1.1/channel/${hashId}/home/section/broad`
+    );
+    return data;
+};
 
 /**
  * 채널의 비디오 목록을 가져옵니다
@@ -167,38 +187,26 @@ export const getLive = async (hashId: string) =>
  * @returns
  */
 export const getChannelLive = async (noticeId: number, hashId: string, lastId: string | number) =>
-    new Promise<Content | null>((resolve, reject) => {
+    new Promise<LiveStatus | null>((resolve, reject) => {
         getLive(hashId)
             .then(async content => {
-                const {
-                    broad, // 방송 정보
-                    station, // 채널 정보
-                    profile_image, // 프로필 이미지
-                } = content;
-
-                if (broad) {
-                    if (broad.is_password) return reject(null); // 비밀번호가 있는 경우 (비공개) 무시
+                if (content) {
+                    const { broadNo, broadTitle, broadStart, isPassword, userId } = content;
+                    if (isPassword) return reject(null); // 비밀번호가 있는 경우 (비공개) 무시
                     // 온라인
-                    const { broad_no } = broad;
-                    if (lastId === broad_no) {
+                    if (lastId === broadNo) {
                         return reject(null);
                     } else {
-                        await insertLiveEvents(noticeId, broad_no, {
-                            image: profile_image,
-                            title: broad.broad_title,
+                        await insertLiveEvents(noticeId, broadNo, {
+                            image: `https://profile.img.sooplive.com/LOGO/li/${userId}/${userId}.jpg`,
+                            title: broadTitle,
                             game: 'TALK',
-                            live_at: dayjs(station.broad_start).add(-9, 'h').format(),
+                            live_at: dayjs(broadStart).add(-9, 'h').format(),
                             chat: '-',
                         });
                     }
                 } else {
                     // 오프라인
-
-                    if (content) {
-                        try {
-                            await changeMessage(noticeId, content);
-                        } catch (e) {}
-                    }
                     if (lastId && lastId != '0') {
                         const result = await updateLiveEvents(noticeId);
                         if (result.changedRows == 0) {
