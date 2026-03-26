@@ -56,13 +56,11 @@ export const exec = async (interaction: MessageInteraction, noticeId: string) =>
                     });
                 }
 
-                const { station } = live;
-
                 console.log('PROFILE_TEST', JSON.stringify(live));
 
                 axios.post(url, {
-                    username: station.user_nick || '방송알리미',
-                    avatar_url: `https://profile.img.sooplive.com/LOGO/li/${notice.hash_id}/${notice.hash_id}.jpg`,
+                    username: live.userId || '방송알리미',
+                    avatar_url: `https://profile.img.sooplive.com/LOGO/li/${live.userId}/${live.userId}.jpg`,
                     content: `
 프로필이 설정됨을 알려 드립니다! 
 (이제 방송알리미가 이 채널에 보내는 알림은 전부 각 프로필로 전송되요!)
@@ -70,7 +68,7 @@ export const exec = async (interaction: MessageInteraction, noticeId: string) =>
 * 해당 알림은 방송알리미 자원 시스템을 통하여 전송되었습니다.
 * 전송에 필요한 자원이 부족하거나, 권한이 부족하면 알림이 취소되거나 변경될 수 있습니다.
                     `,
-                    embeds: [convertAfreecaVideoObject(live, station.user_nick)],
+                    embeds: [convertAfreecaVideoObject(live, live.userId)],
                 });
 
                 break;

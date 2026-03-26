@@ -113,17 +113,15 @@ export default async (fastify: FastifyInstance, opts: any) => {
             getAfreecaLive(req.params.hash_id).then(async content => {
                 return await webhookCreate(
                     req.params.channel,
-                    { name: content.station.user_nick, auth_id: process.env.DISCORD_CLIENT_ID || '826484552029175808' },
+                    { name: content.userId, auth_id: process.env.DISCORD_CLIENT_ID || '826484552029175808' },
                     'Y'
                 ).then(webhook => {
                     const { url } = webhook;
 
                     if (url) {
                         axios.post(url, {
-                            username: content.station.user_nick || '방송알리미',
-                            avatar_url:
-                                content.profile_image ||
-                                'https://cdn.orefinger.click/post/466950273928134666/d2d0cc31-a00e-414a-aee9-60b2227ce42c.png',
+                            username: content.userId || '방송알리미',
+                            avatar_url: `https://profile.img.sooplive.com/LOGO/li/${content.userId}/${content.userId}.jpg`,
                             content: `
 안녕~ 반가워~!
 
@@ -132,7 +130,7 @@ export default async (fastify: FastifyInstance, opts: any) => {
 
 (이거완전 러키알림잔앙 ( •̀ ω •́ )✧)
                             `,
-                            embeds: [convertAfreecaVideoObject(content, content.station.user_nick)],
+                            embeds: [convertAfreecaVideoObject(content, content.userId)],
                         });
                     }
 
