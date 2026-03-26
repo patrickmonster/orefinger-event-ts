@@ -2,6 +2,7 @@ import { FastifyInstance } from 'fastify';
 
 import { messageEdit, messageHookEdit } from 'components/discord';
 import { sendMessageByChannels } from 'components/notice';
+import { getUrlByNoticeId } from 'components/user/notice';
 import { insertLiveEvents, insertVideoEvents, updateLiveEvents } from 'controllers/bat';
 import { GetMessageNotChange } from 'controllers/log';
 import { disableNotice } from 'controllers/notice';
@@ -536,5 +537,27 @@ LIMIT 3
 
             return { success: true, message: `${successCnt}개의 알림이 전송되었습니다.`, list };
         }
+    );
+
+    fastify.post<{
+        Body: {
+            url: string;
+        };
+    }>(
+        '/health/live',
+        {
+            schema: {
+                description: '라이브 알림 상태를 확인합니다.',
+                tags: ['infra'],
+                body: {
+                    type: 'object',
+                    properties: {
+                        url: { type: 'string' },
+                    },
+                    required: ['url'],
+                },
+            },
+        },
+        async req => await getUrlByNoticeId('967955814050578492', req.body.url)
     );
 };
