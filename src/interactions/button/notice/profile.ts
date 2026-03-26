@@ -57,8 +57,12 @@ export const exec = async (interaction: MessageInteraction, noticeId: string) =>
                     });
                 }
 
+                const { station } = live;
+
+                console.log('???', JSON.stringify(live));
+
                 axios.post(url, {
-                    username: live.station.user_nick || '방송알리미',
+                    username: station.user_nick || '방송알리미',
                     avatar_url: live.profile_image
                         ? appendUrlHttp(live.profile_image)
                         : 'https://cdn.orefinger.click/post/466950273928134666/d2d0cc31-a00e-414a-aee9-60b2227ce42c.png',
@@ -69,7 +73,7 @@ export const exec = async (interaction: MessageInteraction, noticeId: string) =>
 * 해당 알림은 방송알리미 자원 시스템을 통하여 전송되었습니다.
 * 전송에 필요한 자원이 부족하거나, 권한이 부족하면 알림이 취소되거나 변경될 수 있습니다.
                     `,
-                    embeds: [convertAfreecaVideoObject(live, live.station.user_nick)],
+                    embeds: [convertAfreecaVideoObject(live, station.user_nick)],
                 });
 
                 break;
