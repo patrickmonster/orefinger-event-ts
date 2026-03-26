@@ -9,7 +9,6 @@ import { upsertNotice } from 'controllers/notice';
 import { APIEmbed, APIMessage } from 'discord-api-types/v10';
 import { Content } from 'interfaces/API/Afreeca';
 import { NoticeBat } from 'interfaces/notice';
-import afreecaAPI from 'utils/afreecaApiInstance';
 import { createActionRow, createUrlButton } from 'utils/discord/component';
 import { randomIntegerInRange } from 'utils/object';
 import redis, { REDIS_KEY, saveRedis } from 'utils/redis';
@@ -22,9 +21,36 @@ interface ChannelData {
     broad_no: string;
 }
 
+interface Station {
+    userId: string;
+    userNick: string;
+    stationNo: number;
+    stationName: string;
+    stationTitle: string;
+    broadStart: string;
+    firstBroadDate: string;
+    totalBroadTime: number;
+    grade: number;
+    joinTime: string;
+    country: string;
+    currentTimestamp: string;
+    activeNo: number;
+    profileImage: string;
+    subscribeVisible: string;
+}
+
 export const getAfreecabeUser = async (guildId: string, afreecaId: string) => {
     try {
-        const { station } = await afreecaAPI.get<Content>(`channel/${afreecaId}/station`);
+        const { station } = await axios
+            .get<{
+                station: Station;
+            }>(`https://api-channel.sooplive.com/v1.1/channel/${afreecaId}/station`, {
+                headers: {
+                    'user-agent':
+                        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.0.0 Safari/537.36',
+                },
+            })
+            .then(res => res.data);
         console.log('AFREECA 사용자 정보', station);
         if (!station) {
             console.log('AFREECA 사용자 정보를 찾을 수 없습니다.', afreecaId);
@@ -37,7 +63,7 @@ export const getAfreecabeUser = async (guildId: string, afreecaId: string) => {
                 hash_id: afreecaId,
                 notice_type: 5,
                 message: '|| @everyone || Live ON Air! 📺',
-                name: station.user_nick,
+                name: station.userNick,
             },
             true
         );
@@ -132,7 +158,7 @@ export const convertVideoObject = (videoObject: Content, name?: string): APIEmbe
 };
 
 export const getLive = async (hashId: string) =>
-    afreecaAPI.get<Content>(`${hashId}/station`).then(async content => content);
+    axios.get<Content>(`https://bjapi.afreecatv.com/api/${hashId}/station`).then(res => res.data);
 
 /**
  * 채널의 비디오 목록을 가져옵니다
