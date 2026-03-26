@@ -272,7 +272,7 @@ export const getLiveMessage = async ({ channels, notice_id, hash_id, message, na
                     ],
                     username: name || '방송알리미',
                     avatar_url:
-                        liveStatus.profile_image ||
+                        `https://profile.img.sooplive.com/LOGO/li/${hash_id}/${hash_id}.jpg` ||
                         'https://cdn.orefinger.click/post/466950273928134666/d2d0cc31-a00e-414a-aee9-60b2227ce42c.png',
                 },
             }))
