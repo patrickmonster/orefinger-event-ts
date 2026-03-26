@@ -24,6 +24,7 @@ interface ChannelData {
 
 export const getAfreecabeUser = async (guildId: string, afreecaId: string) => {
     try {
+        // https://api-channel.sooplive.com/v1.1/channel/hiimyumij36/station
         const { station } = await afreecaAPI.get<Content>(`${afreecaId}/station`);
         if (!station) {
             console.log('AFREECA 사용자 정보를 찾을 수 없습니다.', afreecaId);

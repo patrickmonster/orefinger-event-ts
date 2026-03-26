@@ -5,7 +5,7 @@ import { catchRedis, REDIS_KEY } from './redis';
 
 const afreecaAPI: CustomInstance = axios.create({
     // baseURL: `http://${process.env.PROXY}:3000/soop/`,
-    baseURL: 'https://bjapi.afreecatv.com/api/',
+    baseURL: 'https://api-channel.sooplive.com/v1.1/',
     headers: {
         'user-agent':
             'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.0.0 Safari/537.36',
