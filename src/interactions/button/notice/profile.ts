@@ -59,7 +59,7 @@ export const exec = async (interaction: MessageInteraction, noticeId: string) =>
 
                 const { station } = live;
 
-                console.log('???', JSON.stringify(live));
+                console.log('PROFILE_TEST', JSON.stringify(live));
 
                 axios.post(url, {
                     username: station.user_nick || '방송알리미',
