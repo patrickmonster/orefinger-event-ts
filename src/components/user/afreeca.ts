@@ -24,7 +24,7 @@ interface ChannelData {
 
 export const getAfreecabeUser = async (guildId: string, afreecaId: string) => {
     try {
-        const { station } = await afreecaAPI.get<Content>(`${afreecaId}/station`);
+        const { station } = await afreecaAPI.get<Content>(`channel/${afreecaId}/station`);
         console.log('AFREECA 사용자 정보', station);
         if (!station) {
             console.log('AFREECA 사용자 정보를 찾을 수 없습니다.', afreecaId);
