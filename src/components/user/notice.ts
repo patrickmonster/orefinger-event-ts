@@ -2,47 +2,13 @@ import { getAfreecabeUser } from 'components/user/afreeca';
 import { getChzzkUser } from 'components/user/chzzk';
 
 const StreamChannelRegex =
-    /^(http(s):\/\/)(chzzk.naver.com|play.afreecatv.com|bj.afreecatv.com|afreecatv.com|sooplive.co.kr|www.sooplive.co.kr|bj.sooplive.co.kr|ch.sooplive.co.kr|play.sooplive.co.kr|www.youtube.com|youtube.com)(\/channel|\/live|\/station)?\/([\w|@]+)/;
+    /^(http(s):\/\/)(chzzk.naver.com|play.afreecatv.com|bj.afreecatv.com|afreecatv.com|sooplive.co.kr|sooplive.com|www.sooplive.co.kr|www.sooplive.com|bj.sooplive.co.kr|bj.sooplive.com|ch.sooplive.co.kr|ch.sooplive.com|play.sooplive.co.kr|play.sooplive.com|www.youtube.com|youtube.com)(\/channel|\/live|\/station|\d)?\/([\w|@]+)/;
 
 export enum StreamTarget {
     YOUTUBE = 'YOUTUBE',
     AFREECA = 'AFREECA',
     CHZZK = 'CHZZK',
 }
-
-/**
- * url 링크 정보를 기반으로, 사용자의 알림 ID 를 가져 옵니다.
- * @param guildId
- * @param url
- * @returns
- */
-export const getNoticeIdByUrl = async (guildId: string, url: string): Promise<StreamTarget | number | null> => {
-    const data = StreamChannelRegex.exec(`${url}`);
-    if (!data) return null;
-
-    const [, , , domain, , id] = data;
-
-    switch (domain) {
-        case 'chzzk.naver.com':
-            return await getChzzkUser(guildId, id);
-        case 'play.afreecatv.com':
-        case 'bj.afreecatv.com':
-        case 'afreecatv.com':
-        case 'www.sooplive.co.kr':
-        case 'sooplive.co.kr':
-        case 'play.sooplive.co.kr':
-        case 'bj.sooplive.co.kr':
-        case 'ch.sooplive.co.kr':
-            return await getAfreecabeUser(guildId, id);
-
-        case 'www.youtube.com':
-        case 'youtube.com':
-            return StreamTarget.YOUTUBE;
-        default: {
-            return null;
-        }
-    }
-};
 
 /**
  * url 링크 정보를 기반으로, 사용자의 알림 ID 를 가져 옵니다.
@@ -62,7 +28,9 @@ export const getUrlByNoticeId = async (
     | null
 > => {
     const data = StreamChannelRegex.exec(`${url}`);
+
     if (!data) return null;
+    console.log(data, url);
 
     const [, , , domain, , id] = data;
 
@@ -76,6 +44,10 @@ export const getUrlByNoticeId = async (
         case 'sooplive.co.kr':
         case 'play.sooplive.co.kr':
         case 'bj.sooplive.co.kr':
+        case 'www.sooplive.com':
+        case 'sooplive.com':
+        case 'play.sooplive.com':
+        case 'bj.sooplive.com':
             return await getAfreecabeUser(guildId, id);
 
         case 'www.youtube.com':
