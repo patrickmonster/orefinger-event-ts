@@ -24,7 +24,7 @@ SELECT
 FROM auth_type at2 
 INNER JOIN v_auth_token vat
     ON vat.type = at2.auth_type 
-    AND vat.create_at > DATE_ADD(NOW(), INTERVAL -10 DAY)
+    AND vat.create_at > DATE_ADD(NOW(), INTERVAL -1 MONTH)
 WHERE 1=1
 AND (
     at2.use_yn = 'Y'
