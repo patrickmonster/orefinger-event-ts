@@ -140,7 +140,19 @@ SELECT nl.notice_id, nl.id
 	, vng.name
     , nl.image
     , nl.title 
-    , nl.game 
+    , nl.game
+    , (
+    	CASE 
+			WHEN vng.notice_type = 5 THEN CONCAT('https://stimg.sooplive.com/LOGO/', LEFT(vng.hash_id, 2) , '/', vng.hash_id,'/m/', vng.hash_id ,'.webp')
+			WHEN vng.notice_type = 4 THEN 'https://orefinger.click/assets/chzzk.796d75f9.png'
+    	END
+    ) as profile_img 
+    , (
+    	CASE 
+    		WHEN vng.notice_type = 5 THEN CONCAT('https://play.sooplive.com/', vng.hash_id,'/1' )
+    		wHEN vng.notice_type = 4 THEN CONCAT('https://chzzk.naver.com/live/', vng.hash_id)
+    	END
+    ) as live_link 
 FROM notice_live nl
 LEFT JOIN v_notice_guild vng  ON nl.notice_id = vng.notice_id 
 WHERE nl.end_at IS NULL 
