@@ -133,7 +133,7 @@ AND nt.scan_yn = 'Y'
 
     fastify.get<{
         Querystring: { index: number; length: number };
-        Params: { noticeType: 2 | 4 | 5 };
+        Params: { noticeType: 2 | 4 | 5 | 16 };
     }>(
         '/list/:noticeType',
         {
@@ -154,8 +154,8 @@ AND nt.scan_yn = 'Y'
                     properties: {
                         noticeType: {
                             type: 'number',
-                            description: '알림 타입 (2 : 유튜브, 4 : 치지직, 5 : 숲)',
-                            enum: [2, 4, 5],
+                            description: '알림 타입 (2 : 유튜브, 4 : 치지직, 5 : 숲, 16 : CIME)',
+                            enum: [2, 4, 5, 16],
                         },
                     },
                 },
