@@ -2,7 +2,6 @@ import { config } from 'dotenv';
 import { existsSync } from 'fs';
 import { join } from 'path';
 import { env } from 'process';
-import afreecaAPI from 'utils/afreecaApiInstance';
 const envDir = join(env.PWD || __dirname, `/.env`);
 if (existsSync(envDir)) {
     config({ path: envDir });
@@ -41,7 +40,12 @@ if (existsSync(envDir)) {
 //         ),
 //     ],
 // });
+import { searchCimeUser } from 'components/user/cime';
 
-afreecaAPI.get(`maoruyakr/station`).then(data => {
-    console.log(data);
-});
+searchCimeUser('네무')
+    .then(noticeId => {
+        console.log('noticeId', noticeId);
+    })
+    .catch(e => {
+        console.log('error', e);
+    });
