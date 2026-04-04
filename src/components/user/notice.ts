@@ -3,7 +3,7 @@ import { getChzzkUser } from 'components/user/chzzk';
 import { getCimeUser } from './cime';
 
 const StreamChannelRegex =
-    /^(http(s):\/\/)(chzzk.naver.com|play.afreecatv.com|bj.afreecatv.com|afreecatv.com|sooplive.co.kr|sooplive.com|www.sooplive.co.kr|www.sooplive.com|bj.sooplive.co.kr|bj.sooplive.com|ch.sooplive.co.kr|ch.sooplive.com|play.sooplive.co.kr|play.sooplive.com|www.youtube.com|youtube.com)(\/channel|\/live|\/station|\d)?\/([\w|@]+)/;
+    /^(http(s):\/\/)(chzzk.naver.com|play.afreecatv.com|bj.afreecatv.com|afreecatv.com|sooplive.co.kr|sooplive.com|www.sooplive.co.kr|www.sooplive.com|bj.sooplive.co.kr|bj.sooplive.com|ch.sooplive.co.kr|ch.sooplive.com|play.sooplive.co.kr|play.sooplive.com|www.youtube.com|youtube.com|ci.me)(\/channel|\/live|\/station|\d)?\/([\w|@]+)/;
 
 export enum StreamTarget {
     YOUTUBE = 'YOUTUBE',
