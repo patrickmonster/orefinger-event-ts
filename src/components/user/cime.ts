@@ -115,7 +115,7 @@ export const getCimeUser = async (guildId: string, userId: string) => {
             guildId,
             {
                 hash_id: userId,
-                notice_type: 5,
+                notice_type: 16,
                 message: '|| @everyone || Live ON Air! 📺',
                 name: live.channel.name,
             },
