@@ -59,7 +59,7 @@ export const getUrlByNoticeId = async (
                 type: StreamTarget.YOUTUBE,
             };
         case 'ci.me':
-            return await getCimeUser(guildId, id);
+            return await getCimeUser(guildId, id.replace('@', ''));
         default: {
             return null;
         }
