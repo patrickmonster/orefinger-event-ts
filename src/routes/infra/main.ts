@@ -235,6 +235,13 @@ GROUP BY vno.notice_id, vno.hash_id, vno.notice_type
                             },
                             required: ['url', 'emoji'],
                         },
+                        profile: {
+                            type: 'object',
+                            properties: {
+                                avatar_url: { type: 'string' },
+                                username: { type: 'string' },
+                            },
+                        },
                     },
                     required: ['embed', 'image', 'title', 'game', 'live_at', 'chat'],
                 },
