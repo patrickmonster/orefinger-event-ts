@@ -198,6 +198,10 @@ GROUP BY vno.notice_id, vno.hash_id, vno.notice_type
                 url: string;
                 emoji: string;
             };
+            profile?: {
+                avatar_url: string;
+                username: string;
+            };
         };
     }>(
         '/online/:noticeId/:liveId',
@@ -305,8 +309,9 @@ LIMIT 3
                                             : undefined
                                     ),
                                 ],
-                                username: '방송알리미',
+                                username: req.body.profile?.username || '방송알리미',
                                 avatar_url:
+                                    req.body.profile?.avatar_url ||
                                     'https://cdn.orefinger.click/post/466950273928134666/d2d0cc31-a00e-414a-aee9-60b2227ce42c.png',
                             },
                         }))
