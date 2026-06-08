@@ -285,6 +285,7 @@ export const sendTestNotice = async (noticeId: string | number, guildId: string)
             content.channel?.channelImageUrl ||
             'https://cdn.orefinger.click/post/466950273928134666/d2d0cc31-a00e-414a-aee9-60b2227ce42c.png',
     };
+    console.log('sendTestNotice', embed);
 
     switch (channel_type) {
         case ChannelMessageType.TEXT:
