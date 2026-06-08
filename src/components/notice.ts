@@ -238,6 +238,7 @@ export const sendMessageByChannels = async (channels: NoticeChannelHook[], isTes
 import axios from 'axios';
 import { convertVideoObject as convertAfreecaVideoObject, getLive as getAfreecaLive } from 'components/user/afreeca';
 import { convertVideoObject as convertChzzkVideoObject, getLive as getChzzkLive } from 'components/user/chzzk';
+import { convertVideoObject as convertCimeVideoObject, getLive as getCimeLive } from 'components/user/cime';
 import menuComponentBuild from 'utils/menuComponentBuild';
 import { addPointUser, appendPointCount } from './user/point';
 
@@ -272,6 +273,10 @@ export const sendTestNotice = async (noticeId: string | number, guildId: string)
         case 5: // 아프리카 티비
             content = await getAfreecaLive(hash_id);
             embed = convertAfreecaVideoObject(content, name);
+            break;
+        case 16: //
+            content = await getCimeLive(hash_id);
+            embed = convertCimeVideoObject(content, name);
             break;
     }
 
