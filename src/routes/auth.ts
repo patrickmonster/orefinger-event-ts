@@ -14,6 +14,7 @@ import {
     upsertDiscordUserAndJWTToken,
     userIds,
 } from 'controllers/auth';
+import { getCimePostComment } from 'utils/cimeApiInstance';
 import discordApi, { changeNickname, openApi } from 'utils/discordApiInstance';
 import { kakaoAPI } from 'utils/kakaoApiInstance';
 import { getChzzkPostComment, naverAPI } from 'utils/naverApiInstance';
@@ -482,6 +483,39 @@ export default async (fastify: FastifyInstance, opts: any) => {
             }
 
             switch (req.body.type || 13) {
+                case 16: {
+                    // cime
+                    const data = await getCimePostComment('4765');
+                    for (const { content, user } of data) {
+                        // 코맨트 내부에서 사용자 정보를 탐
+                        if (content.includes(hashKeyId)) {
+                            // 해시키가 포함된 코맨트를 찾음
+                            try {
+                                await auth(
+                                    'cime',
+                                    id,
+                                    {
+                                        id: user.id,
+                                        username: user.channel.name,
+                                        discriminator: user.channel.name,
+                                        email: '-',
+                                        avatar: user.channel.imageUrl,
+                                    },
+                                    hashKeyId
+                                );
+                                return {
+                                    statusCode: 200,
+                                    message: '인증 처리 되었습니다.',
+                                    id: user.id,
+                                };
+                            } catch (e) {
+                                return fastify.httpErrors.forbidden('인증에 실패함');
+                            }
+                        }
+                    }
+
+                    break;
+                }
                 case 13: {
                     const { data } = await getChzzkPostComment('9351394');
                     for (const { comment, user } of data) {
