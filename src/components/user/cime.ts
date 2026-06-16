@@ -185,30 +185,33 @@ export const convertVideoObject = (videoObject: LiveStatus, name?: string): APIE
     console.log(videoObject);
     const time = dayjs().add(-9, 'h');
 
-    const {
-        title: liveTitle,
-        id: liveId,
-        channel: { slug, imageUrl: channelImageUrl },
-        imageUrl,
-    } = videoObject;
+    const { title: liveTitle, channel, imageUrl } = videoObject ?? {};
+    const channelImageUrl = channel?.imageUrl;
 
     return {
         title: liveTitle || 'LIVE ON',
         description: `<t:${time.unix()}:R>`,
         url: imageUrl,
         color: 0x8956fb,
-        thumbnail: { url: channelImageUrl },
-        image: { url: imageUrl },
+        thumbnail: channelImageUrl ? { url: channelImageUrl } : undefined,
+        image: imageUrl ? { url: imageUrl } : undefined,
         footer: { text: name ?? 'TEST' },
         timestamp: time.format(),
     };
 };
 
-export const getLive = async (hashId: string) => {
-    const { data } = await axios.get<LiveStatus>(
-        `https://api-channel.sooplive.com/v1.1/channel/${hashId}/home/section/broad`
-    );
-    return data;
+export const getLive = async (hashId: string): Promise<LiveStatus | null> => {
+    const {
+        bodyData: { live },
+    } = await axios
+        .get<{ bodyData: { live: LiveStatus } }>(`https://ci.me/json/@${hashId}/live`, {
+            headers: {
+                'user-agent':
+                    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.0.0 Safari/537.36',
+            },
+        })
+        .then(res => res.data);
+    return live ?? null;
 };
 
 /**
@@ -222,12 +225,8 @@ export const getChannelLive = async (noticeId: number, hashId: string, lastId: s
         getLive(hashId)
             .then(async content => {
                 if (content) {
-                    const {
-                        id,
-                        title: broadTitle,
-                        openedAt: broadStart,
-                        channel: { slug, imageUrl: channelImageUrl },
-                    } = content;
+                    const { id, title: broadTitle, openedAt: broadStart, channel } = content;
+                    const channelImageUrl = channel?.imageUrl;
                     // 온라인
                     if (lastId === id) {
                         return reject(null);
@@ -278,7 +277,7 @@ export const getLiveMessage = async ({ channels, notice_id, hash_id, message, na
                     ],
                     username: name || '방송알리미',
                     avatar_url:
-                        liveStatus.channel.imageUrl ||
+                        liveStatus.channel?.imageUrl ||
                         'https://cdn.orefinger.click/post/466950273928134666/d2d0cc31-a00e-414a-aee9-60b2227ce42c.png',
                 },
             }))

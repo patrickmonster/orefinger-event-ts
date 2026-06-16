@@ -238,6 +238,7 @@ export const sendMessageByChannels = async (channels: NoticeChannelHook[], isTes
 import axios from 'axios';
 import { convertVideoObject as convertAfreecaVideoObject, getLive as getAfreecaLive } from 'components/user/afreeca';
 import { convertVideoObject as convertChzzkVideoObject, getLive as getChzzkLive } from 'components/user/chzzk';
+import { convertVideoObject as convertCimeVideoObject, getLive as getCimeLive } from 'components/user/cime';
 import menuComponentBuild from 'utils/menuComponentBuild';
 import { addPointUser, appendPointCount } from './user/point';
 
@@ -273,6 +274,10 @@ export const sendTestNotice = async (noticeId: string | number, guildId: string)
             content = await getAfreecaLive(hash_id);
             embed = convertAfreecaVideoObject(content, name);
             break;
+        case 16: //
+            content = await getCimeLive(hash_id);
+            embed = convertCimeVideoObject(content, name);
+            break;
     }
 
     const { channel_id, url, channel_type } = channel.channel;
@@ -285,6 +290,7 @@ export const sendTestNotice = async (noticeId: string | number, guildId: string)
             content.channel?.channelImageUrl ||
             'https://cdn.orefinger.click/post/466950273928134666/d2d0cc31-a00e-414a-aee9-60b2227ce42c.png',
     };
+    console.log('sendTestNotice', embed);
 
     switch (channel_type) {
         case ChannelMessageType.TEXT:
