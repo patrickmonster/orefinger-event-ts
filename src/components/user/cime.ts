@@ -191,7 +191,7 @@ export const convertVideoObject = (videoObject: LiveStatus, name?: string): APIE
     return {
         title: liveTitle || 'LIVE ON',
         description: `<t:${time.unix()}:R>`,
-        url: imageUrl,
+        url: 'https://ci.me/@' + channel?.slug,
         color: 0x8956fb,
         thumbnail: channelImageUrl ? { url: channelImageUrl } : undefined,
         image: imageUrl ? { url: imageUrl } : undefined,
