@@ -366,9 +366,9 @@ export const sendNoticeByBord = async (
     await sendChannels(data.channels, message ? convertMessage(messageData, message) : messageData);
 };
 
-export const selectAttachList = async (noticeId: string | number) =>
+export const selectAttachList = async (noticeId: string | number, range?: number) =>
     await catchRedis(
-        `notice:attach:${noticeId}`,
+        `notice:attach:${noticeId}:${range || 1}`,
         async () => {
             const list = await getAttendanceAtLive(noticeId);
             for (const attach of list) {

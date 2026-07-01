@@ -5,6 +5,9 @@ import { FastifyInstance } from 'fastify';
 export default async (fastify: FastifyInstance, opts: any) => {
     fastify.get<{
         Params: { live_id: string };
+        Querystring: {
+            range?: number; // 조회 범위 1개월, 3개월, 6개월, 12개월
+        };
     }>(
         '/atttach/:live_id',
         {
@@ -16,6 +19,12 @@ export default async (fastify: FastifyInstance, opts: any) => {
                     type: 'object',
                     properties: {
                         live_id: { type: 'string', description: '라이브 아이디' },
+                    },
+                },
+                querystring: {
+                    type: 'object',
+                    properties: {
+                        range: { type: 'number', description: '조회 범위', enum: [1, 3, 6, 12] },
                     },
                 },
             },

@@ -77,7 +77,7 @@ and user_type = 37
 GROUP by user_id 
     `);
 
-export const getAttendanceAtLive = async (liveId: string | number) =>
+export const getAttendanceAtLive = async (liveId: string | number, range: number = 1) =>
     query<{
         type: number;
         yymm: number;
@@ -110,7 +110,7 @@ FROM (
     INNER JOIN attendance   a  ON a.type      = n.notice_id
                               AND a.event_id  = nl.id
     WHERE n.notice_id = ?
-      AND a.attendance_time >= NOW() - INTERVAL 1 MONTH
+      AND a.attendance_time >= NOW() - INTERVAL ? MONTH
       AND a.attendance_time <  NOW()
     GROUP BY a.auth_id, nt.auth_type, n.notice_id
 ) A
@@ -120,7 +120,8 @@ ORDER BY A.total DESC, A.attendance_time
 LIMIT 30
 
     `,
-        liveId
+        liveId,
+        range
     );
 
 export const selectNoticeLiveOnList = async (type?: number) =>
