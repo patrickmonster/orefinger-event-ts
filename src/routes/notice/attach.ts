@@ -35,7 +35,7 @@ export default async (fastify: FastifyInstance, opts: any) => {
             if (!detail) {
                 return fastify.httpErrors.notFound('사용자 정보를 찾을 수 없습니다');
             }
-            const list = await selectAttachList(req.params.live_id);
+            const list = await selectAttachList(req.params.live_id, req.query.range || 1);
 
             return {
                 ...detail,

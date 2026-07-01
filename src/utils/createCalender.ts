@@ -35,14 +35,6 @@ export default (time: Date, ...list: Date[]) => {
     return buffer.join('\n');
 };
 
-const getWeek = (date: Date) => {
-    const currentDate = date.getDate();
-    const firstDay = new Date(date.getTime());
-    firstDay.setDate(1);
-
-    return Math.ceil((currentDate + firstDay.getDate()) / 7);
-};
-
 const getSpace = (i: number) => Array.from({ length: i }, () => ' ').join('');
 
 /**
@@ -53,14 +45,15 @@ const getSpace = (i: number) => Array.from({ length: i }, () => ' ').join('');
  */
 export const sixWeek = (time: Date, ...list: Date[]) => {
     const buffer = [`${time.toLocaleDateString('en-US', { month: 'long' })}`, `[0;31m${day.join(getSpace(4))}[0m឵`];
-    const week = getWeek(time);
     const dayT = (d: number) => `${d < 10 ? d + ' ' : d}`;
 
-    time.setDate(1 - (5 - week) * 7 - 1);
+    // 기준일이 속한 주의 일요일에서 4주 전(= 5주 그리드의 첫 일요일)으로 이동.
+    // setDate 는 월/연 경계를 자동으로 넘겨주므로 월이 바뀌어도 정렬이 어긋나지 않는다.
+    time.setDate(time.getDate() - time.getDay() - 4 * 7 - 1);
 
     for (let weekEnd = 0; weekEnd < 5; weekEnd++) {
         buffer.push(
-            Array.from({ length: 7 }, (_, i) => {
+            Array.from({ length: 7 }, () => {
                 time.setDate(time.getDate() + 1);
                 const point = list.filter(item => format(item, 'yyyyMMdd') === format(time, 'yyyyMMdd'));
                 return point.length
@@ -96,10 +89,11 @@ export const sixWeekBig = (
     }[]
 ) => {
     const buffer = [`${time.toLocaleDateString('en-US', { month: 'long' })}`, `[0;31m${day.join(getSpace(textLength + 1))}[0m឵`];
-    const week = getWeek(time);
     const dayT = (d: number): string => d + `${d < 10 ? ' ' : ''}`;
 
-    time.setDate(1 - (5 - week) * 7 - 1);
+    // 기준일이 속한 주의 일요일에서 4주 전(= 5주 그리드의 첫 일요일)으로 이동.
+    // setDate 는 월/연 경계를 자동으로 넘겨주므로 월이 바뀌어도 정렬이 어긋나지 않는다.
+    time.setDate(time.getDate() - time.getDay() - 4 * 7 - 1);
 
     for (let weekEnd = 0; weekEnd < 5; weekEnd++) {
         let count = 0;
