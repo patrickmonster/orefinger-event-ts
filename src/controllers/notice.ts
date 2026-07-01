@@ -323,22 +323,23 @@ export const selectNoticeByPk = async (noticeId: NoticeId) =>
     >(
         `
 SELECT
-    notice_id
-    , hash_id
-    , notice_type
-    , notice_type_tag
-    , video_yn
-    , message
-    , name
-    , img_idx
+    vn.notice_id
+    , vn.hash_id
+    , vn.notice_type
+    , vn.notice_type_tag
+    , vn.video_yn
+    , vn.message
+    , vn.name
+    , vn.img_idx
     , vn.create_at
     , vn.update_at
-    , count( 1 ) AS live
+    , COUNT(nl.notice_id) AS live
 FROM v_notice vn
-LEFT JOIN notice_live nl USING(notice_id)
-WHERE notice_id = ?
-AND nl.create_at > last_day(now() - interval 1 month)
-GROUP BY notice_id 
+LEFT JOIN notice_live nl 
+       ON vn.notice_id = nl.notice_id
+      AND nl.create_at > last_day(now() - interval 1 month)
+WHERE vn.notice_id = ?
+GROUP BY vn.notice_id
     `,
         ParseInt(noticeId)
     ).then(res => res[0]);
