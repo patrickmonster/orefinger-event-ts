@@ -370,7 +370,7 @@ export const selectAttachList = async (noticeId: string | number, range?: number
     await catchRedis(
         `notice:attach:${noticeId}:${range || 1}`,
         async () => {
-            const list = await getAttendanceAtLive(noticeId);
+            const list = await getAttendanceAtLive(noticeId, range || 1);
             for (const attach of list) {
                 if (attach.name == null) {
                     const { username } = await getUser(attach.auth_id);
