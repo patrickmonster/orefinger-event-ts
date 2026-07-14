@@ -181,15 +181,25 @@ SELECT
 	, notice_type
 	, notice_type_tag
 FROM (
-	SELECT 
-	    TIMESTAMPDIFF(SECOND, live_at, nl.create_at) AS t
-	    , vn.notice_type 
-	    , vn.notice_type_tag
-	FROM v_notice vn
-	LEFT JOIN notice_live nl
-		ON nl.notice_id = vn.notice_id 
-	WHERE 1=1
-	AND live_at IS NOT NULL
+	SELECT
+	    TIMESTAMPDIFF(SECOND, x.live_at_kst, x.create_at) AS t
+	    , x.live_at_kst
+	    , x.notice_type
+	    , x.notice_type_tag
+	FROM (
+	    SELECT
+	        n.notice_type
+	        , nt.tag AS notice_type_tag
+	        , nl.create_at
+	        , CASE
+	            WHEN n.notice_type = 4 THEN CONVERT_TZ(nl.live_at, '+00:00', '-09:00')
+	            ELSE nl.live_at
+	          END AS live_at_kst
+	    FROM notice n
+	    JOIN notice_type nt ON n.notice_type = nt.notice_type_id
+	    LEFT JOIN notice_live nl ON nl.notice_id = n.notice_id
+	    WHERE nl.live_at IS NOT NULL
+	) x
 ) A
 WHERE 1=1
 AND t < 1000
