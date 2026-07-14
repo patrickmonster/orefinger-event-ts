@@ -192,7 +192,8 @@ FROM (
 	        , nt.tag AS notice_type_tag
 	        , nl.create_at
 	        , CASE
-	            WHEN n.notice_type = 4 THEN CONVERT_TZ(nl.live_at, '+00:00', '-09:00')
+	            WHEN n.notice_type = 4 THEN CONVERT_TZ(nl.live_at, '+00:00', '-09:00') -- 치지직
+	            WHEN n.notice_type = 16 THEN CONVERT_TZ(nl.live_at, '+00:00', '+09:00') -- 씨미
 	            ELSE nl.live_at
 	          END AS live_at_kst
 	    FROM notice n
