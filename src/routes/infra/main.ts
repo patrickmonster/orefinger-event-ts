@@ -292,7 +292,12 @@ LIMIT 3
                         channels.map(channel => ({
                             ...channel.channel,
                             message: {
-                                content: channel.channel.content || undefined,
+                                content: channel.channel.content
+                                    ? channel.channel.content.replace(
+                                          '{user}',
+                                          req.body.profile?.username || '방송알리미'
+                                      )
+                                    : undefined,
                                 embeds: req.body.embed ? [req.body.embed] : undefined,
                                 components: [
                                     createActionRow(
