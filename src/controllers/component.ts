@@ -1,4 +1,4 @@
-import getConnection, { SqlInsertUpdate, YN, calTo, query, selectPaging, tastTo } from 'utils/database';
+import getConnection, { SqlInsertUpdate, calTo, query, selectPaging, tastTo } from 'utils/database';
 
 import {
     APIActionRowComponent,
@@ -143,38 +143,6 @@ SELECT
 FROM sys_orefinger.component_option
   `,
         page
-    );
-
-export const selectComponentOptionDtil = async (option_id: number) =>
-    query(
-        `
-SELECT
-    option_id,
-    label_id,
-    f_get_text(label_id) as label,
-    value,
-    description_id,
-    f_get_text(description_id) as description,
-    emoji,
-    default_yn as \`default\`,
-    use_yn as \`use\`,
-    permission_type,
-    create_at,
-    update_at
-FROM sys_orefinger.component_option a
-where 1=1
-and a.option_id = ?
-      `,
-        option_id
-    ).then(res => res[0]);
-export const selectComponentStyleList = async () =>
-    query<APISelectMenuOption>(
-        `
-SELECT style_idx AS label
-    , CAST(tag AS CHAR) AS value
-FROM component_style cs 
-${tastTo("WHERE use_yn = 'Y'")}
-           `
     );
 
 export const selectComponentTypeList = async (component_id?: ComponentId) =>
@@ -438,24 +406,12 @@ WHERE component_id=?`,
         ParseInt(component_id)
     );
 
-export type UpdateYNConnection = {
-    option_id: ComponentId;
-    value: YN;
-};
-
 export const updateComponentOption = async (component_id: ComponentId, component: ComponentOptionCreate) =>
     query<SqlInsertUpdate>(
         `
 UPDATE sys_orefinger.component_option
 SET ?, update_at=CURRENT_TIMESTAMP
 WHERE component_id=?`,
-        component,
-        ParseInt(component_id)
-    );
-
-export const updateComponentActionRow = async (component_id: ComponentId, component: ComponentActionRow) =>
-    query<SqlInsertUpdate>(
-        `UPDATE sys_orefinger.component_action_row SET ?, update_at=CURRENT_TIMESTAMP WHERE component_id = ?`,
         component,
         ParseInt(component_id)
     );
@@ -602,14 +558,6 @@ export const upsertComponentOptionConnect = async (components: ComponentOptionCo
  */
 export const createComponent = async (component: ComponentCreate) =>
     query<SqlInsertUpdate>(`INSERT INTO sys_orefinger.component SET ?`, component);
-
-/**
- * 컴포넌트 옵션 생성
- * @param component
- * @returns
- */
-export const createComponentOption = async (component: ComponentOptionCreate) =>
-    query<SqlInsertUpdate>(`INSERT INTO sys_orefinger.component_option   SET ?`, component);
 
 // ========================================================================================================
 

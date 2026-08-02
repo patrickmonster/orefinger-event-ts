@@ -1,59 +1,9 @@
 import { Paging } from 'interfaces/swagger';
-import { calLikeTo, calTo, query, selectPaging, tastTo } from 'utils/database';
+import { calLikeTo, calTo, query, selectPaging } from 'utils/database';
 
 export type NoticeId = number | string;
 
 export const selectType = async () => query(`SELECT notice_type_id, tag, use_yn, video_yn  FROM notice_type nt`);
-
-export const liveList = () =>
-    query(
-        `
-SELECT 
-    el.auth_id, el.event_id, el.type, DATE_ADD(el.create_at, INTERVAL 9 HOUR) as create_at
-    , t.value AS live_type
-    , t.tag
-    , at2.login, at2.name, at2.user_type
-    , ls.title, ls.game_id, ls.game_name
-    , (SELECT count(0) FROM attendance a WHERE a.yymm = DATE_FORMAT( NOW(), '%y%m') AND el.event_id = a.event_id AND el.type = a.type) AS attendance
-FROM (
-    SELECT el.*
-    FROM event_live el 
-    WHERE 1=1
-    AND el.type = 14
-    AND event_id IS NOT NULL 
-    ORDER BY el.create_at DESC
-    LIMIT 30
-) el
-LEFT JOIN types t ON t.idx = el.type
-LEFT JOIN auth_token at2 ON at2.type =2 AND at2.user_id = el.auth_id
-LEFT JOIN v_live_state ls ON ls.auth_id = el.auth_id
-WHERE 1=1
-AND el.event_id IS NOT NULL 
-AND at2.user_id IS NOT NULL
--- AND at2.is_session ='Y'
-    
-    `
-    );
-
-export const selectUserEvents = (user_id: string, events: string[]) =>
-    query(
-        `
-SELECT ei.type, ei.user_id, ei.token, ei.data, ei.use_yn, t.value 
-, vat.*
-from v_auth_token vat
-left join discord.event_id ei on ei.user_id = vat.user_id 
-inner join types t on t.idx = ei.type
-where 1=1
-and auth_id = ?
-and vat.type = 2
-and t.key = 3 
-${tastTo("AND use_yn = 'Y'")}
-and t.value in (?)
-order by t.idx
-`,
-        user_id,
-        events
-    );
 
 export const total = () =>
     query(`
@@ -200,66 +150,4 @@ ${calTo('AND vn.notice_id = ?', noticeId)}
 ${calLikeTo('AND vn.hash_id like ?', hash)}
         `,
         page
-    );
-
-export const selectNoticeHistoryById = async (page: Paging, noticeId: NoticeId) =>
-    selectPaging<{
-        notice_id: number;
-        channel_id: string;
-        notice_type: number;
-        key_id: string;
-        tags: string[] | null;
-        channel: {
-            channelId: string;
-            channelName: string;
-            channelImageUrl: string;
-        };
-        title: `"${string}"` | null; // 아프리카일 경우 null 이 나올 수 있음(오프라인)
-        json_data: object;
-        create_at: string;
-    }>(
-        `
-SELECT
-	notice_id
-	, channel_id
-	, notice_type
-	, key_id
-	, tags
-	, channel
-	, title
-	, json_data
-	, create_at 
-FROM v_notice_history
-WHERE 1=1
-AND notice_id = ?
-        `,
-        page,
-        noticeId
-    );
-
-export const selectNoticeHistoryDtailById = async (page: Paging, noticeId: NoticeId) =>
-    selectPaging<{
-        notice_id: number;
-        channel_id: string;
-        notice_type: number;
-        key_id: string;
-        cnt: string;
-        json_data: object;
-        create_at: string;
-    }>(
-        `
-SELECT
-	notice_id
-	, channel_id
-	, notice_type
-	, key_id
-	, cnt
-	, json_data
-	, create_at
-FROM v_notice_history_detail
-WHERE 1=1
-AND notice_id = ?
-            `,
-        page,
-        noticeId
     );

@@ -11,24 +11,6 @@ export interface Text {
     text: string;
 }
 
-export const findText = async (names: string[], language_cd?: number) =>
-    query<Text & BaseTableCols>(
-        `
-SELECT text_id
-	, name
-	, language_cd
-	, text
-	, create_at
-	, update_at
-FROM sys_orefinger.text_message
-WHERE 1=1
-AND name IN (?)
-AND language_cd = ?
-        `,
-        names,
-        language_cd || 0 // KR
-    );
-
 export const selectText = async (
     page: Paging,
     { name, text_id, language_cd }: { name?: string; text_id?: string; language_cd?: number }

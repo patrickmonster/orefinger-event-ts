@@ -34,18 +34,6 @@ export const selectComponentPagingMenuByKey = async (
     const queryKey = await createQueryKey({ sql, params, other: JSON.stringify(menuProps) });
     return await selectComponentPagingMenuKey(queryKey);
 };
-/**
- * 신규 쿼리키 생성
- *  - 매뉴를 위한 쿼리키를 생성합니다.
- * @param sql
- * @param params
- * @returns APIActionRowComponent<APIMessageActionRowComponent>[]
- */
-export const createPagingByKey = async <E extends ButtonProps>(other: E, sql: string, ...params: any[]) => {
-    const queryKey = await createQueryKey({ sql, params, other: JSON.stringify(other) });
-    return await selectPagingKey(queryKey);
-};
-
 export const createComponentSelectMenuByComponentPagingMenuByKey = async (
     options: Pick<MenuProps, 'custom_id' | 'placeholder'> & ButtonProps,
     query: string,
@@ -180,34 +168,4 @@ export const editerComponent = (
         type: ComponentType.ActionRow,
         components: [...components, ...buttons],
     };
-};
-
-/**
- * 에디터 컴포넌트 - 임베드 템플릿용
- * @param embed_id
- * @param skip_footer 푸터를 생략할지 여부 (생략시, 방송알리미로 푸터가 고정됨)
- * @returns
- */
-export const editerComponentEmbedTemplate = (
-    base_id: string,
-    skip_footer?: boolean
-): APIActionRowComponent<APIMessageActionRowComponent> => {
-    const options = [
-        { label: '타이틀', value: 'title' },
-        { label: '설명', value: 'description' },
-        { label: '색상', value: 'color' },
-        { label: '이미지', value: 'image' },
-        { label: '섬네일', value: 'thumbnail' },
-        { label: '소유자', value: 'author' },
-        { label: '필드', value: 'field' },
-    ];
-
-    if (!skip_footer) options.push({ label: '푸터', value: 'footer' });
-
-    return createStringSelectMenu(`${base_id} select`, {
-        max_values: 1,
-        min_values: 1,
-        placeholder: '값 변경',
-        options,
-    });
 };

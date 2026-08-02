@@ -1,4 +1,3 @@
-import { userUpdate } from 'controllers/auth';
 import twitch from 'utils/twitchApiInstance';
 
 export type User = {
@@ -17,23 +16,6 @@ export type User = {
 
 // https://dev.twitch.tv/docs/api/reference/#get-users
 export const getUser = (...id: string[]) => getUsers('id', ...id);
-
-export const usersUpdate = async (...id: string[]) => {
-    getUser(...id).then(async ({ data: users }) => {
-        // users
-
-        for (const { id, login, display_name, broadcaster_type, profile_image_url } of users) {
-            // user_id, user_login, user_name
-            await userUpdate({
-                user_id: id,
-                user_login: login,
-                user_name: display_name,
-                user_type: broadcaster_type,
-                avatar: profile_image_url,
-            });
-        }
-    });
-};
 
 // https://dev.twitch.tv/docs/api/reference/#get-users
 export const getUsers = (type: string, ...id: string[]) =>
@@ -64,16 +46,3 @@ export const objectToQueryString = (queryParameters: { [key: string]: string | n
               return `${q}${q.length === 0 ? '?' : '&'}${k}=${encodeURIComponent(v)}`;
           }, '')
         : '';
-
-export const getEventSub = async (query: EventSubQuery) => {
-    let targetUrl = '/eventsub/subscriptions';
-    if (typeof query === 'string') {
-        targetUrl += `?after=${query}`;
-    } else {
-        targetUrl += objectToQueryString(query);
-    }
-
-    console.log('targetUrl', targetUrl);
-
-    return await twitch.get(targetUrl);
-};

@@ -1,6 +1,4 @@
-import axios from 'axios';
-import { CustomInstance } from 'interfaces/API/Axios';
-import { error as errorLog } from './logger';
+import { USER_AGENT, createApiInstance } from './apiInstance';
 import { catchRedis, REDIS_KEY } from './redis';
 
 interface CommentBadge {
@@ -44,22 +42,10 @@ interface Comment {
     mentions: any[];
 }
 
-const cimeAPI: CustomInstance = axios.create({
-    // baseURL: `http://${process.env.PROXY}:3000/soop/`,
+const cimeAPI = createApiInstance({
     baseURL: 'https://ci.me/api/',
-    headers: {
-        'user-agent':
-            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.0.0 Safari/537.36',
-    },
+    headers: { 'user-agent': USER_AGENT },
 });
-
-cimeAPI.interceptors.response.use(
-    ({ data }) => data, // 데이터 변환
-    async error => {
-        errorLog('AXIOS', error);
-        throw error;
-    }
-);
 
 export default cimeAPI;
 
@@ -74,10 +60,7 @@ export const getCimePostComment = async (id: string | number) => {
                         comments: Comment[];
                     };
                 }>(`/app/comments?targetType=COMMUNITY&targetId=${id}&sort=RECENT&limit=50`, {
-                    headers: {
-                        'User-Agent':
-                            'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
-                    },
+                    headers: { 'User-Agent': USER_AGENT },
                 })
                 .then(({ data }) => data),
         60 // 1분

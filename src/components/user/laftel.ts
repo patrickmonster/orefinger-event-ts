@@ -1,3 +1,4 @@
+import { USER_AGENT } from 'utils/apiInstance';
 import { insertVideoEvents, selectVideoEvents } from 'controllers/bat';
 import { upsertNotice } from 'controllers/notice';
 import { APIEmbed } from 'discord-api-types/v10';
@@ -57,8 +58,7 @@ export const getChannelVideos = async (noticeId: number, hashId: string) =>
                 `/episodes/v2/list/?item_id=${hashId}&sort=oldest&limit=1000&show_playback_offset=false&offset=0`,
                 {
                     headers: {
-                        'User-Agent':
-                            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+                        'User-Agent': USER_AGENT,
                     },
                 }
             )

@@ -1,51 +1,21 @@
 'use strict';
 import axios from 'axios';
 import { CustomInstance } from 'interfaces/API/Axios';
-import { error as errorLog } from './logger';
+import { USER_AGENT, createApiInstance } from './apiInstance';
 import { REDIS_KEY, catchRedis } from './redis';
 
 const API_VERSION = 'v1';
 const baseURL = `https://openapi.naver.com/${API_VERSION}`;
-const chzzkURL = `https://comm-api.game.naver.com/nng_main/${API_VERSION}`;
 
-// const naver: CustomInstance = axios.create({
-//     baseURL,
-//     headers: {
-//         authorization: `Bearer ${process.env.TWITCH_TOKEN}`,
-//         'client-id': 'q6batx0epp608isickayubi39itsckt',
-//     },
-// });
-
-// export default naver;
-
-export const naverAPI: CustomInstance = axios.create({ baseURL });
-
-naverAPI.interceptors.response.use(
-    ({ data }) => {
-        console.log('NAVER API', data);
-        return data;
-    }, // 데이터 변환
-    async error => {
-        errorLog('AXIOS', error);
-        throw error;
-    }
-);
+export const naverAPI = createApiInstance({ baseURL }, { logResponse: 'NAVER API' });
 
 const apis: { [version: string]: CustomInstance } = {};
 
 export const getChzzkAPI = (version: string, target?: 'service' | 'polling') => {
     if (!apis[version]) {
-        apis[version] = axios.create({ baseURL: `https://api.chzzk.naver.com/${target || 'service'}/${version}/` });
-        apis[version].interceptors.response.use(
-            ({ data, config }) => {
-                // console.log(`CHZZK API(${version}) ::`, data, config);
-                return data;
-            }, // 데이터 변환
-            async error => {
-                errorLog('AXIOS', error);
-                throw error;
-            }
-        );
+        apis[version] = createApiInstance({
+            baseURL: `https://api.chzzk.naver.com/${target || 'service'}/${version}/`,
+        });
     }
     return apis[version];
 };
@@ -106,10 +76,7 @@ export const getChzzkPostComment = async (id: string | number) => {
                 >(
                     `https://apis.naver.com/nng_main/nng_comment_api/v1/type/CHANNEL_COMMENT/id/${id}/comments?limit=30&offset=0&orderType=DESC&pagingType=PAGE`,
                     {
-                        headers: {
-                            'User-Agent':
-                                'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
-                        },
+                        headers: { 'User-Agent': USER_AGENT },
                     }
                 )
                 .then(({ data }) => data),

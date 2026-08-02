@@ -23,16 +23,6 @@ where \`type\` = ${roleType} and user_id = ?
         guild_id
     );
 
-export const createRoleEvent = async (guild_id: string, ment = '{user}님, 트수가 된걸 환영합니다! :kissing_heart:') =>
-    query(
-        `
-INSERT INTO event_id set 
-\`type\` = ${roleType}, user_id = ? , token = null, \`data\` = ?
-on duplicate key update token = null`,
-        guild_id,
-        JSON.stringify({ ment })
-    );
-
 export const insertAuthRule = async (auth_id: string, guild_id: string, type: number | string) =>
     getConnection(async (query: queryFunctionType) => {
         const [target] = await query<{

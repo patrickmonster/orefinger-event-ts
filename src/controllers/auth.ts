@@ -14,34 +14,6 @@ import { APIUser } from 'discord-api-types/v10';
 import { Event } from 'interfaces/eventsub';
 import { Paging } from 'interfaces/swagger';
 
-export const authDtil = async (user_id: string) =>
-    query<{
-        auth_id: string;
-        name: string;
-        username: string;
-        tag: string;
-        avatar: string;
-        create_at: string;
-        update_at: string;
-        phone: string;
-    }>(
-        `
-SELECT
-	auth_id
-	, name
-	, username
-	, tag
-	, avatar
-	, create_at
-	, update_at
-	, phone
-FROM auth a
-WHERE 1=1
-AND auth_id = ?
-            `,
-        user_id
-    ).then(([user]) => user);
-
 export const discord = async (profile: AuthUser, refreshToken: string) =>
     auth('discord', profile.id, profile, refreshToken);
 
@@ -304,35 +276,6 @@ ${calTo('AND vat.name = ?', name)}
         page
     );
 
-// 옵션에 대한 사용자 정보를 불러옴
-export const getAuthBadge = (user_id: string) =>
-    query<{
-        user_id: string;
-        auth_id: string;
-        login: string;
-        name: string;
-        kr_name: string;
-        user_type: string;
-        avatar: string;
-    }>(
-        `
-SELECT 
-    vat.user_id
-    , vat.auth_id
-    , vat.login
-    , vat.name
-    , vat.kr_name
-    , vat.user_type
-    , vat.avatar
-FROM auth_option ao
-LEFT JOIN v_auth_token vat ON ao.auth_id = vat.auth_id  
-WHERE badge = ?
-AND vat.type = 2
-AND vat.user_id = badge 
-    `,
-        user_id
-    );
-
 export const upsertDiscordUserAndJWTToken = async (user: APIUser) => {
     const { avatar, global_name, id, username } = user;
 
@@ -374,48 +317,3 @@ LIMIT 1;
 `,
         token
     ).then(([user]) => user);
-
-export const selectAuthbordList = async (guildId: string) =>
-    query<{
-        guild_id: string;
-        type: number;
-        role_id: string;
-        embed_id: number;
-        use_yn: 'Y' | 'N';
-        create_at: string;
-        update_at: string;
-    }>(
-        `
-SELECT
-	guild_id
-	, type
-	, role_id
-	, embed_id
-	, use_yn
-	, create_at
-	, update_at
-FROM auth_bord ab
-WHERE ab.guild_id = ?
-    `,
-        guildId
-    );
-
-export const upsertUserReport = async ({
-    auth_id,
-    user_id,
-    ...user
-}: {
-    auth_id: string;
-    user_id: string;
-    use_yn?: 'Y' | 'N';
-    commant: string;
-}) =>
-    query<SqlInsertUpdate>(
-        `INSERT INTO auth_report SET ? ON DUPLICATE KEY UPDATE ?, update_at=CURRENT_TIMESTAMP`,
-        {
-            ...user,
-            auth_id,
-            user_id,
-        },
-        user
-    );

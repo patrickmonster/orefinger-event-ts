@@ -17,8 +17,6 @@ const pool: Pool = mysql.createPool({
     connectionLimit: 4, // 연결 개수 제한
 });
 
-export const DBName = `${env.DB_DB}`;
-
 pool.on('connection', () => console.log('DB] 연결됨'));
 
 export interface sqlInsertUpdate {
@@ -134,12 +132,6 @@ export default getConnection;
 ///////////////////////////////////////////////////////////////////////////////////////////
 export let limit = 10;
 
-export type seleceQueryOption = {
-    query: string;
-    page?: number;
-    limit?: number;
-};
-
 export type SelectPagingResult<E> = {
     total: number;
     totalPage: number;
@@ -150,16 +142,6 @@ export type SelectPagingResult<E> = {
 
 export const query = async <E>(query: string, ...params: any[]): Promise<ResqultQuery<E>> =>
     await getConnection(async (c: queryFunctionType) => c(query, ...params));
-
-export const upsert = async (pkKey: string, params: any): Promise<ResqultQuery<SqlInsertUpdate>> => {
-    const { [pkKey]: pk, ...pm } = params;
-
-    if (!pk) throw new Error('PK가 없습니다.');
-
-    return await query<SqlInsertUpdate>(`INSERT INTO auth SET ? ON DUPLICATE KEY UPDATE ?`, params, pm);
-};
-
-export const setLimit = (l: number) => (limit = l);
 
 // 페이징하여 조회
 export const selectPaging = async <E>(
@@ -195,19 +177,6 @@ export const selectPaging = async <E>(
     } finally {
         if (connect) connect.release();
     }
-};
-
-/**
- * 쿼리의 해시키를 생성합니다.
- * @param query
- * @param params
- * @returns
- */
-export const getQueryKey = (query: string, ...params: any[]) => {
-    const queryOrigin = mysql.format(query, params);
-    let hash = 0;
-    for (let i = 0; i < queryOrigin.length; i++) hash += queryOrigin.charCodeAt(i);
-    return hash;
 };
 
 export const calTo = (query: string, ...value: any[]) =>
@@ -268,11 +237,3 @@ export const selectPersent = async <E>(query: string, present: Present, ...param
         if (connect) connect.release();
     }
 };
-
-export const paramsToFormat = (params: Array<unknown>): string =>
-    format(
-        `(${Object.values(params)
-            .map(value => '?')
-            .join(', ')})`,
-        params
-    );

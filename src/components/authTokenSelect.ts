@@ -1,9 +1,7 @@
 import { tokens } from 'controllers/auth';
 import { APIActionRowComponent, APIStringSelectComponent } from 'discord-api-types/v10';
-import moment from 'moment';
+import moment from 'utils/day';
 import menuComponentBuild from 'utils/menuComponentBuild';
-
-moment.locale('ko');
 
 type UserType = {
     type: number;

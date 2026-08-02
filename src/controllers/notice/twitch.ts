@@ -1,5 +1,5 @@
 'use strict';
-import getConnection, { calTo, query, selectPaging, SqlInsertUpdate } from 'utils/database';
+import getConnection, { query, selectPaging, SqlInsertUpdate } from 'utils/database';
 // import { Subscription } from 'interfaces/twitch';
 import { Event, Subscription } from 'interfaces/eventsub';
 
@@ -26,52 +26,6 @@ export const event = (event: Event, subscription: Subscription) => {
     });
 };
 
-export const grant = async (user_id: string) =>
-    query<{
-        channel_id: string;
-        login: string;
-        name: string;
-    }>(
-        `
-SELECT ec.channel_id
-    , at2.login
-    , at2.name
-FROM discord.event_channel ec
-inner join auth_token at2 using(user_id) 
-where user_id = ?
-and ec.type = 14
-and delete_yn = 'N'
-    `,
-        user_id
-    );
-
-type revokeType = {
-    channel_id: string;
-    login: string;
-    name: string;
-};
-export const revoke = async (user_id: string) =>
-    getConnection<revokeType[]>(async QUERY => {
-        QUERY<SqlInsertUpdate>(
-            `UPDATE auth_token SET is_session='N', update_at=CURRENT_TIMESTAMP WHERE user_id=? AND \`type\`=2`,
-            user_id
-        );
-        //
-        return QUERY<revokeType>(
-            `
-SELECT ec.channel_id
-    , at2.login
-    , at2.name
-FROM event_channel ec
-inner join auth_token at2 using(user_id) 
-where user_id = ?
-and ec.type = 14
-and delete_yn = 'N'
-            `,
-            user_id + '' // 인덱스
-        );
-    });
-
 export type eventChannelType = {
     user_id?: string;
     name?: string;
@@ -81,59 +35,10 @@ export type eventChannelType = {
     delete_yn?: string;
 };
 
-export const stateChangeEventChannel = async (channel_id: string, props: eventChannelType) =>
-    query(`UPDATE discord.event_channel SET update_at=CURRENT_TIMESTAMP, ? WHERE channel_id=? `, props, channel_id);
-
-export const streamOnline = async ({ id, broadcaster_user_id, started_at }: Event, type = 14) =>
-    query<{
-        id: string;
-        name: string;
-        login: string;
-        kr_name: string;
-        channel_id: string;
-        custom_ment: string;
-        url: string;
-        title: string;
-        game_id: string;
-        game_name: string;
-    }>(
-        `
-select
-    id
-    , name
-    , login
-    , kr_name
-    , channel_id, IF(custom_ment > '', custom_ment,  CONCAT('@everyone\n', if(kr_name > '', kr_name, name) ,'님께서 라이브 방송을 시작하였습니다!')) as custom_ment
-    , url
-    , vls.title
-    , vls.game_id
-    , vls.game_name
-from (
-    select func_onoff_event(?) AS event_id
-        , ? AS user_id
-    from dual
-) live
-left join v_notification_channel vnc on live.event_id <> '0' and vnc.id = live.user_id
-left join v_live_state vls on vnc.id = vls.auth_id
-where vls.type in (16) -- 제목 상태 변경 이벤트
-group by channel_id
-    `,
-        [`${broadcaster_user_id}`, id, type, started_at],
-        broadcaster_user_id + ''
-    );
-
-export const streamOffline = async (broadcaster_user_id: string, type = 14) =>
-    query<{
-        event_id: string;
-    }>(`select func_onoff_event(?) AS event_id`, [broadcaster_user_id, null, type, new Date()]);
-
 export type Attendance = {
     attendance_time: string;
     create_at: string;
 };
-
-export const removeChannel = async (channel_id: string) =>
-    query<SqlInsertUpdate>(`UPDATE event_channel SET delete_yn = 'Y' WHERE channel_id = ?`, channel_id).catch(e => {});
 
 // 라이브 출석체크
 export const attendance = async (broadcaster_user_id: string, user_id: string) =>
@@ -206,58 +111,3 @@ and stream_id = ?
         id,
         broadcaster_user_id
     );
-
-export const getAttendanceList = async (auth_id: string) =>
-    query(
-        `
-select a.*
-    ,   b.auth_id 
-    ,   count(1) as total
-from attendance a
-left join event_online b using(event_id, \`type\`)
-where a.type = 14
-and yymm in (
-    DATE_FORMAT( now(), '%y%m'), DATE_FORMAT( now(), '%y%m') -1, DATE_FORMAT( now(), '%y%m') -2
-)
-and a.auth_id = ?
-group by b.auth_id 
-order by total desc
-    `,
-        auth_id
-    );
-
-// 전달 기준 탑 20 명
-export const getAttendanceRankTotal = async (auth_id?: string) =>
-    query(
-        `
-SELECT
-    ar.*
-    , vat.user_id 
-    , vat.login 
-    , vat.name 
-    , vat.kr_name
-from attendance_rank ar 
-left join v_auth_token vat on ar.stream_id = vat.user_id
-WHERE 1=1
-and vat.type = 2
-and yymm = DATE_FORMAT( now(), '%y%m') -1 
-${auth_id ? '' : '-- '}and ar.auth_id = ?
-group by vat.user_id
-order by per desc, cnt desc
-limit 10
-        `,
-        auth_id
-    );
-
-export const getEventChannel = async (user_id: string, type?: number) => {
-    query(
-        `
-SELECT \`type\`, user_id, name, guild_id, channel_id, custom_ment, hook_id, hook_token, delete_yn, create_at, update_at 
-FROM event_channel
-WHERE 1=1
-${calTo('AND `type` = ? ', type)}
-AND user_id =  ?
-    `,
-        user_id
-    );
-};

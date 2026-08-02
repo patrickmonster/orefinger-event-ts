@@ -1,17 +1,9 @@
 import { ECSState, LiveState } from 'interfaces/redis';
 import Redis from 'ioredis';
 
-// const client = createClient({
-//     url: process.env.REDIS_URL,
-//     pingInterval: 1000 * 30,
-//     // legacyMode: true, // 레거시 모드
-// });
-
 const client = new Redis(`${process.env.REDIS_URL}`, {
     enableAutoPipelining: true,
 });
-
-client.on('error', err => {});
 
 client.on('reconnecting', () => {
     console.log('REDIS] client reconnecting...');
@@ -35,19 +27,10 @@ export default client;
 export const saveRedis = (key: string, value: any, expire = 60 * 60 * 1) => {
     return client.set(key, JSON.stringify(value), 'EX', expire);
 };
-export const deleteRedis = (key: string) => client.del(key);
-
 const cacheKey = (key: string) => `cache:${key}`;
 
 export const cacheRedis = (key: string, value: any, expire = 60 * 60 * 1) => {
     return client.set(cacheKey(key), JSON.stringify(value), 'EX', expire);
-};
-
-export const loadRedis = async <T>(key: string) => {
-    const data = await client.get(cacheKey(key));
-    if (!data) return null;
-
-    return JSON.parse(data) as T;
 };
 
 export const catchRedis = async <T>(key: string, callback: () => Promise<T>, expire = 60 * 60 * 1) => {
@@ -89,24 +72,6 @@ export const getFreeChatServer = async () => {
 
     return id || process.env.ECS_PK;
 };
-
-/**
- * 서버에 현 상태를 저장함
- * @param state
- * @returns
- */
-export const setServerState = async (userCount: number) =>
-    cacheRedis(
-        `chat:${process.env.ECS_REVISION}:${process.env.ECS_PK}`,
-        {
-            user: userCount,
-            revision: process.env.ECS_REVISION,
-            id: process.env.ECS_PK,
-        },
-        60 * 60 * 1
-    ); // 1시간
-
-export type QueryKey = string | number;
 
 export const REDIS_KEY = {
     API: {

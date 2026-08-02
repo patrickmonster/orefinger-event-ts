@@ -1,11 +1,11 @@
+import { USER_AGENT } from 'utils/apiInstance';
 import dayjs from 'dayjs';
 import { APIEmbed } from 'discord-api-types/v10';
 import qs from 'querystring';
 
 import { messageEdit, messageHookEdit } from 'components/discord';
-import { sendMessageByChannels } from 'components/notice';
+import { sendMessageByChannels } from 'components/notice/send';
 
-import { auth } from 'controllers/auth';
 import { insertLiveEvents, updateLiveEvents } from 'controllers/bat';
 import { upsertNotice } from 'controllers/notice';
 
@@ -13,7 +13,6 @@ import { ChannelData, Content } from 'interfaces/API/Chzzk';
 import { ChannelType, NoticeBat, OriginMessage } from 'interfaces/notice';
 import { KeyVal } from 'interfaces/text';
 
-import { ENCRYPT_KEY, sha256 } from 'utils/cryptoPw';
 import { createActionRow, createUrlButton } from 'utils/discord/component';
 import { ChzzkInterface, getChzzkAPI } from 'utils/naverApiInstance';
 import redis, { REDIS_KEY, cacheRedis, getFreeChatServer, saveRedis } from 'utils/redis';
@@ -26,49 +25,6 @@ const hashIdChzzk = new RegExp('^[a-zA-Z0-9]{32}$');
 export const isChzzkHash = (hashId: string): boolean => hashIdChzzk.test(hashId);
 
 /**
- * 치치직 인증 방식(임시)
- * @param chzzkHash
- * @param authId
- * @returns
- */
-export const getAuthChzzkUser = async (chzzkHash: string, authId: string) => {
-    const { content, message } = await chzzk.get<
-        ChzzkInterface<{
-            channelId: string;
-            channelName: string;
-            channelImageUrl: string;
-            channelDescription: string;
-        }>
-    >(`/channels/${chzzkHash}`);
-
-    if (message) {
-        return -1;
-    }
-
-    const hashKeyId = sha256(`${content.channelId}:${authId}`, ENCRYPT_KEY);
-
-    if (content.channelDescription.includes(hashKeyId)) {
-        // 인증완료
-        await auth(
-            'chzzk',
-            authId,
-            {
-                id: content.channelId,
-                username: content.channelName,
-                discriminator: 'chzzk',
-                avatar: content.channelImageUrl,
-            },
-            hashKeyId
-        );
-
-        return 1;
-    } else {
-        // 인증실패
-        return hashKeyId;
-    }
-};
-
-/**
  * 치치직 사용자 정보를 가져와, PK를 반환합니다
  * @param chzzkHash
  * @returns number
@@ -78,8 +34,7 @@ export const getChzzkUser = async (guildId: string, chzzkHash: string, noticeTyp
         const { code, message, content } = await chzzk.get<ChzzkInterface<ChannelData>>(`channels/${chzzkHash}`, {
             headers: {
                 'Content-Type': 'application/json',
-                'User-Agent':
-                    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36',
+                'User-Agent': USER_AGENT,
             },
         });
         if (code !== 200) {
@@ -145,8 +100,7 @@ export const searchChzzkUser = async (keyword: string): Promise<Array<KeyVal<str
             {
                 headers: {
                     'Content-Type': 'application/json',
-                    'User-Agent':
-                        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36',
+                    'User-Agent': USER_AGENT,
                 },
             }
         );
@@ -218,8 +172,7 @@ export const getLive = async (hashId: string) =>
     chzzkV2
         .get<{ content: Content }>(`channels/${hashId}/live-detail`, {
             headers: {
-                'User-Agent':
-                    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+                'User-Agent': USER_AGENT,
             },
         })
         .then(async ({ content }) => content);
@@ -325,7 +278,6 @@ export const getLiveMessage = async ({
             messages,
             60 * 60 * 24 // 12시간
         );
-
     } else if (liveStatus && liveStatus.status == 'CLOSE') {
     }
     return liveStatus;

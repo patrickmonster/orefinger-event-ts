@@ -1,4 +1,4 @@
-import { IReply } from 'plugins/discord';
+import type { IReply } from 'plugins/discord';
 import nacl from 'tweetnacl';
 
 /**

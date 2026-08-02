@@ -1,6 +1,7 @@
 'use strict';
 import axios from 'axios';
 import { CustomInstance } from 'interfaces/API/Axios';
+import { createApiInstance } from './apiInstance';
 
 const API_VERSION = 'v2';
 const baseURL = `https://kapi.kakao.com/${API_VERSION}`;
@@ -15,12 +16,4 @@ const kakao: CustomInstance = axios.create({
 
 export default kakao;
 
-export const kakaoAPI: CustomInstance = axios.create({ baseURL });
-
-kakaoAPI.interceptors.response.use(
-    ({ data }) => data, // 데이터 변환
-    async (error: any) => {
-        console.error('Twitch API Error', error.response?.data || error.message);
-        throw error;
-    }
-);
+export const kakaoAPI = createApiInstance({ baseURL });

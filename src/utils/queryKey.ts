@@ -4,7 +4,6 @@ import redis, { REDIS_KEY, saveRedis } from 'utils/redis';
 
 import { format } from 'mysql2';
 
-export type andOf = { [key: string]: any };
 export type orOf = { [key: string]: any };
 
 type QueryKeyProps = {

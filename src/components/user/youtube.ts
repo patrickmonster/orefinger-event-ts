@@ -4,10 +4,8 @@ import redis, { REDIS_KEY, saveRedis } from 'utils/redis';
 
 import https from 'https';
 
-import { sendMessageByChannels } from 'components/notice';
 import { insertVideoEvents, selectVideoEvents } from 'controllers/bat';
 import { APIEmbed } from 'discord-api-types/v10';
-import { NoticeBat } from 'interfaces/notice';
 import qs from 'querystring';
 import { parseString } from 'xml2js';
 
@@ -259,41 +257,6 @@ export const convertVideoObject = (video_object: any): APIEmbed => {
             text: '제공. Youtube',
         },
     };
-};
-
-export const getVideoMessage = async ({
-    channels,
-    notice_id: noticeId,
-    hash_id: hashId,
-    message,
-    name,
-    id,
-}: NoticeBat) => {
-    const { videos, channel_title } = await getChannelVideos(noticeId, hashId);
-    for (const video of videos) {
-        sendMessageByChannels(
-            channels.map(channel => ({
-                ...channel,
-                hook: {
-                    name: channel_title || '방송알리미',
-                },
-                message: {
-                    content: message,
-                    embeds: [
-                        {
-                            ...video,
-                            author: {
-                                name: name || channel_title,
-                                url: `https://www.youtube.com/channel/${hashId}`,
-                                icon_url:
-                                    'https://cdn.discordapp.com/attachments/682449668428529743/1125234663045201950/yt_icon_rgb.png',
-                            },
-                        },
-                    ],
-                },
-            }))
-        );
-    } // for
 };
 
 /**

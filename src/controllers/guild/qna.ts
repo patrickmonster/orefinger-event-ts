@@ -35,40 +35,6 @@ ${calTo('and q.type = ?', type)}
         guild
     );
 
-export const getQnabordeList = async (guild: string, qna_type?: number | string) =>
-    query<{
-        qna_type: number;
-        name: string;
-        description: string;
-        guild_id: string;
-        embed_id: string;
-        last_message: string;
-        button: string;
-        use_yn: YN;
-        create_at: Date;
-        update_at: Date;
-    }>(
-        `
-SELECT
-    qt.qna_type
-    , qt.name
-    , qt.description 
-    , q.guild_id
-    , q.embed_id
-    , q.last_message
-    , q.button
-    , q.use_yn
-    , q.create_at
-    , q.update_at
-FROM qna_type qt 
-left JOIN ( select * from qna q WHERE q.guild_id = ? ) q ON q.type = qt.qna_type 
-WHERE 1=1
-AND qt.use_yn = 'Y'   
-${calTo('and qt.qna_type = ?', qna_type)}
-    `,
-        guild
-    );
-
 export const upsertQnaBorde = async (bord: Partial<Omit<QnaBord, 'guild_id' | 'type'>>, pk: QnaBordPK) =>
     query<SqlInsertUpdate>(`INSERT INTO qna SET ? ON DUPLICATE KEY UPDATE ?`, { ...bord, ...pk }, bord);
 

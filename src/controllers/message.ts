@@ -24,8 +24,6 @@ ${tag ? '' : '-- '}AND tag LIKE CONCAT('%', ?, '%')
         tag
     );
 
-export const createMessage = async (message: MessageCreate) => query(`INSERT INTO notification.message set ?`, message);
-
 export const updateMessage = async (message_id: number, message: MessageCreate) =>
     query<SqlInsertUpdate>(
         `

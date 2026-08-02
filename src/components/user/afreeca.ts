@@ -1,9 +1,10 @@
+import { USER_AGENT } from 'utils/apiInstance';
 import axios from 'axios';
 import dayjs from 'dayjs';
 import qs from 'querystring';
 
 import { messageEdit } from 'components/discord';
-import { sendMessageByChannels } from 'components/notice';
+import { sendMessageByChannels } from 'components/notice/send';
 import { insertLiveEvents, updateLiveEvents } from 'controllers/bat';
 import { upsertNotice } from 'controllers/notice';
 import { APIEmbed, APIMessage } from 'discord-api-types/v10';
@@ -45,8 +46,7 @@ export const getAfreecabeUser = async (guildId: string, afreecaId: string) => {
                 station: Station;
             }>(`https://api-channel.sooplive.com/v1.1/channel/${afreecaId}/station`, {
                 headers: {
-                    'user-agent':
-                        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.0.0 Safari/537.36',
+                    'user-agent': USER_AGENT,
                 },
             })
             .then(res => res.data);
@@ -104,8 +104,7 @@ export const searchAfreecabeUser = async (keyword: string): Promise<Array<{ name
             })}`,
             {
                 headers: {
-                    'user-agent':
-                        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.0.0 Safari/537.36',
+                    'user-agent': USER_AGENT,
                 },
             }
         );

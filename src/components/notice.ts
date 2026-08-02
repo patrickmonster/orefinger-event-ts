@@ -1,14 +1,13 @@
 import {
     NoticeId,
-    deleteNoticeChannel,
     seelctNoticeHistory,
     selectNoticeDtilByEmbed,
     selectNoticeRegisterChannels,
     upsertAttach,
     upsertNotice,
 } from 'controllers/notice';
-import { format } from 'date-fns';
-import { ChannelType as ChannelMessageType, NoticeChannel, NoticeChannelHook, OriginMessage } from 'interfaces/notice';
+import dayjs from 'dayjs';
+import { ChannelType as ChannelMessageType, NoticeChannel } from 'interfaces/notice';
 import {
     appendTextWing,
     createActionRow,
@@ -20,23 +19,22 @@ import {
 } from 'utils/discord/component';
 import { editerComponent } from './systemComponent';
 
-import {
-    APIActionRowComponent,
-    APIEmbed,
-    APIMessage,
-    APIMessageActionRowComponent,
-    ChannelType,
-} from 'discord-api-types/v10';
+import { APIActionRowComponent, APIMessage, APIMessageActionRowComponent, ChannelType } from 'discord-api-types/v10';
 
+import { convertVideoObject as convertAfreecaVideoObject, getLive as getAfreecaLive } from 'components/user/afreeca';
+import { convertVideoObject as convertChzzkVideoObject, getLive as getChzzkLive } from 'components/user/chzzk';
+import { convertVideoObject as convertCimeVideoObject, getLive as getCimeLive } from 'components/user/cime';
 import { upsertDiscordUserAndJWTToken } from 'controllers/auth';
 import { selectEventBat, selectNoticeGuildChannel } from 'controllers/bat';
 import { getAttendanceAtLive } from 'controllers/notification';
 import { IReply, RESTPostAPIChannelMessage } from 'plugins/discord';
 import { sixWeek, sixWeekBig } from 'utils/createCalender';
 import discord, { openApi } from 'utils/discordApiInstance';
+import menuComponentBuild from 'utils/menuComponentBuild';
 import { ParseInt, convertMessage } from 'utils/object';
 import { catchRedis } from 'utils/redis';
-import { getGuild, getUser, messageCreate, postDiscordMessage, webhookCreate } from './discord';
+import { getGuild, getUser, messageCreate, postDiscordMessage } from './discord';
+import { addPointUser, appendPointCount } from './user/point';
 
 const limit = false;
 
@@ -120,7 +118,7 @@ export const getNoticeByType = async (
  * @param channels
  * @param message
  */
-export const sendChannels = async (channels: NoticeChannel[], message: RESTPostAPIChannelMessage) => {
+const sendChannels = async (channels: NoticeChannel[], message: RESTPostAPIChannelMessage) => {
     const messages: APIMessage[] = [];
     for (const { channel_id, avatar_url, url, username, notice_id } of channels) {
         if (url) {
@@ -177,70 +175,6 @@ export const sendChannels = async (channels: NoticeChannel[], message: RESTPostA
 
     return messages;
 };
-
-/**
- * 각 채널 별로 메세지를 전송합니다
- * @param channels
- * @param message
- */
-export const sendMessageByChannels = async (channels: NoticeChannelHook[], isTest = false) => {
-    const messages: OriginMessage[] = [];
-    for (const { channel_id, url, notice_id, message, channel_type } of channels) {
-        let originMessage;
-        let targetUrl = url;
-        console.log('sendMessageByChannels', channel_type);
-
-        switch (channel_type) {
-            case ChannelMessageType.TEXT: {
-                originMessage = await messageCreate(channel_id, message).catch(e => {
-                    if ([10003, 50001 /* , 50013 */].includes(e.code)) {
-                        deleteNoticeChannel(notice_id, channel_id).catch(e => {
-                            ERROR('DeleteChannel', e);
-                        });
-                    } else ERROR(e);
-                });
-                break;
-            }
-            case ChannelMessageType.WEBHOOK:
-                // 훅 발송
-                originMessage = await postDiscordMessage(`/${url}`, message).catch(e => {
-                    ERROR(e);
-                    if ([10003, 50001].includes(e.code)) {
-                        deleteNoticeChannel(notice_id, channel_id).catch(e => {
-                            ERROR('DeleteChannel', e);
-                        });
-                    }
-                });
-                break;
-        }
-
-        if (originMessage && originMessage?.id) {
-            messages.push({
-                url: `${targetUrl || ''}`,
-                message: originMessage,
-                id: originMessage.id,
-                channel_type,
-            });
-        }
-    }
-
-    if (!isTest && messages[0]) {
-        const { embeds } = messages[0].message;
-        openApi.post(`${process.env.WEB_HOOK_URL}`, {
-            content: `${channels[0].notice_id}]${channels.length}개 채널에 알림이 전송되었습니다.`,
-            embeds: embeds,
-        });
-    }
-
-    return messages;
-};
-
-import axios from 'axios';
-import { convertVideoObject as convertAfreecaVideoObject, getLive as getAfreecaLive } from 'components/user/afreeca';
-import { convertVideoObject as convertChzzkVideoObject, getLive as getChzzkLive } from 'components/user/chzzk';
-import { convertVideoObject as convertCimeVideoObject, getLive as getCimeLive } from 'components/user/cime';
-import menuComponentBuild from 'utils/menuComponentBuild';
-import { addPointUser, appendPointCount } from './user/point';
 
 /**
  * 테스트 메세지를 전송합니다
@@ -303,44 +237,6 @@ export const sendTestNotice = async (noticeId: string | number, guildId: string)
             await postDiscordMessage(`/${url}`, message);
             break;
     }
-};
-
-export const createNoticeWebhook = async (
-    chnnaelId: string,
-    channelName: string,
-    channelImageUrl: string,
-    embed: APIEmbed
-) => {
-    //
-    await webhookCreate(
-        chnnaelId,
-        { name: channelName, auth_id: process.env.DISCORD_CLIENT_ID || '826484552029175808' },
-        'Y'
-    ).then(webhook => {
-        const { url } = webhook;
-
-        if (url) {
-            axios.post(url, {
-                username: channelName || '방송알리미',
-                avatar_url:
-                    channelImageUrl ||
-                    'https://cdn.orefinger.click/post/466950273928134666/d2d0cc31-a00e-414a-aee9-60b2227ce42c.png',
-                content: `
-# 프로필이 신규 등록되었습니다!
-현재 채널에 전송되는 알림을 모두 이 프로필로 전송되도록 설정되었습니다!!
-(이거완전 러키알림잔앙 ( •̀ ω •́ )✧)
-
-### 주의사항
-현재 알림은 "방송알리미"권한으로 설정되어 제작되었습니다.
-방송알리미가 추방되거나, 권한이 변경되면 권한 오류가 발생하여, 알림 설정 자체가
-중단될수 있으니 주의해주세요!
-                `,
-                embeds: [embed],
-            });
-        }
-
-        return webhook;
-    });
 };
 
 /**
@@ -502,7 +398,7 @@ ${sixWeekBig(
                 custom_id: `notice logs ${noticeId}`,
             },
             ...list.reverse().map(({ live_at, id, title }) => ({
-                label: `${format(new Date(live_at), 'MM.dd')}]${title}`,
+                label: `${dayjs(live_at).format('MM.DD')}]${title}`,
                 value: `${id}`,
             }))
         ),

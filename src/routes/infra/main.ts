@@ -1,7 +1,7 @@
 import { FastifyInstance } from 'fastify';
 
 import { messageEdit, messageHookEdit } from 'components/discord';
-import { sendMessageByChannels } from 'components/notice';
+import { sendMessageByChannels } from 'components/notice/send';
 import { getUrlByNoticeId } from 'components/user/notice';
 import { insertLiveEvents, insertVideoEvents, updateLiveEvents } from 'controllers/bat';
 import { GetMessageNotChange } from 'controllers/log';

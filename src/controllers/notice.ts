@@ -154,14 +154,8 @@ export const upsertNotice = async (guildId: string, notiecData: Partial<NoticeDe
         return id;
     }, true);
 
-export const deleteNotice = async (notice_id: NoticeId) =>
-    query(`UPDATE notice SET use_yn = 'N', update_at=CURRENT_TIMESTAMP WHERE notice_id = ?`, ParseInt(notice_id));
-
 export const deleteNoticeChannel = async (notice_id: NoticeId, channel_id: string) =>
     updateNoticeChannelState(notice_id, channel_id, 'N');
-
-export const deleteNoticeWebhook = async (channel_id: string) =>
-    query(`UPDATE webhooks SET use_yn='N', update_at=CURRENT_TIMESTAMP WHERE channel_id = ?`, channel_id);
 
 export const updateNoticeChannelState = async (notice_id: NoticeId, channel_id: string, use_yn: 'N' | 'Y') =>
     query(
@@ -190,40 +184,6 @@ AND guild_id = ?
         ParseInt(notice_id),
         guildId
     ).then(res => res[0]);
-
-export const selectGetOAuth = async (guildId: string, typeId?: string | number) =>
-    query<{
-        guild_id: string;
-        type: number;
-        tag: string;
-        tag_kr: string;
-        role_id: string;
-        embed_id: number;
-        use_yn: 'Y' | 'N';
-        create_at: string;
-        update_at: string;
-    }>(
-        `
-SELECT
-    ab.guild_id
-    , ab.\`type\`
-    , at2.tag
-    , at2.tag_kr
-    , ab.role_id
-    , ab.embed_id
-    , ab.use_yn
-    , ab.create_at
-    , ab.update_at
-	, IFNULL(vnc.use_yn, 'N') AS use_yn 
-FROM auth_bord ab
-LEFT JOIN auth_type at2 ON ab.\`type\` = at2.auth_type 
-LEFT JOIN v_notice_channel vnc ON vnc.notice_id = ab.\`type\` AND vnc.guild_id = ab.guild_id 
-WHERE ab.guild_id  = ?
-${calTo('AND ab.type = ?', typeId)}
-AND ab.use_yn = 'Y'
-        `,
-        guildId
-    );
 
 //////////////////////////////////////////////////////////////////////////
 // 출석 체크를 하는 모듈
@@ -276,39 +236,6 @@ WHERE notice_id = ?
 
         return { isSuccess, list };
     }, true);
-
-/**
- * 3개월 동안 해당 방송의 출석을 조회합니다.
- * @param authId
- * @param noticeId
- * @returns
- */
-export const selectAttch3Month = (authId: string, noticeId: string | number) =>
-    query(
-        `
-SELECT 
-	a.\`type\`, a.yymm, a.attendance_time, a.auth_id, a.event_id 
-	, nl.notice_id 
-	, count(1) AS total
-FROM (
-	SELECT 
-		DATE_FORMAT( now(), '%y%m') AS toMonth
-		, DATE_FORMAT( now(), '%y%m') -1 AS lastMonth
-		, DATE_FORMAT( now(), '%y%m') -2 AS monthBeforLast
-	FROM dual
-) A
-LEFT JOIN attendance a 
-	ON a.yymm IN ( A.toMonth, A.lastMonth, A.monthBeforLast )
-LEFT JOIN notice_live nl 
-	ON nl.id = a.event_id AND nl.notice_id = a.type
-WHERE a.\`type\` = ?
-AND a.auth_id = ?
-GROUP BY nl.notice_id 
-ORDER BY total DESC
-    `,
-        noticeId,
-        authId
-    );
 
 export const selectNoticeByPk = async (noticeId: NoticeId) =>
     query<

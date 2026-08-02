@@ -200,7 +200,6 @@ export const createChatinputSubCommand = (
     name: basename(f_name, f_name.endsWith('js') ? '.js' : '.ts'),
 });
 
-export type MenuInputType = ApplicationCommandType.Message | ApplicationCommandType.User;
 /**
  * 유저 / 메뉴 이벤트
  * @param options

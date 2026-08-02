@@ -1,24 +1,11 @@
 import axios from 'axios';
-import { CustomInstance } from 'interfaces/API/Axios';
-import { error as errorLog } from './logger';
+import { USER_AGENT, createApiInstance } from './apiInstance';
 import { catchRedis, REDIS_KEY } from './redis';
 
-const afreecaAPI: CustomInstance = axios.create({
-    // baseURL: `http://${process.env.PROXY}:3000/soop/`,
+const afreecaAPI = createApiInstance({
     baseURL: 'https://api-channel.sooplive.com/v1.1/',
-    headers: {
-        'user-agent':
-            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.0.0 Safari/537.36',
-    },
+    headers: { 'user-agent': USER_AGENT },
 });
-
-afreecaAPI.interceptors.response.use(
-    ({ data }) => data, // 데이터 변환
-    async error => {
-        errorLog('AXIOS', error);
-        throw error;
-    }
-);
 
 export default afreecaAPI;
 
@@ -57,10 +44,7 @@ export const getAfreecaPostComment = async (id: string | number) => {
                         tag_check: boolean;
                     }[];
                 }>(`https://chapi.sooplive.co.kr/api/orefinger/title/${id}/comment`, {
-                    headers: {
-                        'User-Agent':
-                            'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
-                    },
+                    headers: { 'User-Agent': USER_AGENT },
                 })
                 .then(({ data }) => data),
         60 // 1분

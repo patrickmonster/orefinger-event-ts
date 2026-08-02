@@ -1,8 +1,7 @@
 'use strict';
 import axios from 'axios';
-import { CustomInstance } from 'interfaces/API/Axios';
+import { createApiInstance } from './apiInstance';
 import redis, { saveRedis } from './redis';
-import sleep from './sleep';
 
 const API_VERSION = 'helix';
 
@@ -21,30 +20,20 @@ export type EventSubQuery =
       }
     | string;
 
-const twitch: CustomInstance = axios.create({
-    baseURL: `https://api.twitch.tv/${API_VERSION}`,
-    headers: {
-        authorization: `Bearer ${process.env.TWITCH_TOKEN}`,
-        'client-id': 'q6batx0epp608isickayubi39itsckt',
+const twitch = createApiInstance(
+    {
+        baseURL: `https://api.twitch.tv/${API_VERSION}`,
+        headers: {
+            authorization: `Bearer ${process.env.TWITCH_TOKEN}`,
+            'client-id': 'q6batx0epp608isickayubi39itsckt',
+        },
     },
-});
+    { retry429: true, logError: false }
+);
 
 export default twitch;
 
 export const twitchAPI = axios.create({ baseURL: `https://api.twitch.tv/${API_VERSION}` });
-
-twitch.interceptors.response.use(
-    ({ data }) => data, // 데이터 변환
-    async (error: any) => {
-        if (error.config && error.response && error.response.status === 429) {
-            console.log('Too Many Requests! Retrying...');
-            const { message, retry_after } = error.response.data;
-            await sleep(Math.ceil(retry_after / 1000) + 1);
-            return twitch(error.config);
-        }
-        throw error;
-    }
-);
 
 export const GetToken = async (id: string, sc: string, scope: string[]) => {
     const token_id = `TOKEN:${id}`;

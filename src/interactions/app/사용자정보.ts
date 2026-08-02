@@ -2,7 +2,7 @@ import { appInteraction } from 'interactions/app';
 
 import { tokens, userAuthState } from 'controllers/auth';
 import { ApplicationCommandType } from 'discord-api-types/v10';
-import moment from 'moment';
+import moment from 'utils/day';
 import { createMenuinputCommand } from 'utils/discord/component';
 
 export const exec = async (interaction: appInteraction) => {

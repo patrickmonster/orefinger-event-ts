@@ -1,6 +1,4 @@
 import { RequestData } from '@discordjs/rest';
-import axios from 'axios';
-import { channelUpsert } from 'controllers/channel';
 import { upsertWebhook } from 'controllers/guild/webhook';
 import { CreateMessage } from 'controllers/log';
 import {
@@ -13,10 +11,7 @@ import {
     RESTPostAPIChannelMessageJSONBody,
     RESTPostAPIChannelMessageResult,
     RESTPostAPIChannelWebhookResult,
-    RESTPostAPIGuildChannelJSONBody,
-    RESTPostAPIGuildChannelResult,
     RESTPostAPIWebhookWithTokenJSONBody,
-    RESTPutAPIChannelPermissionJSONBody,
 } from 'discord-api-types/v10';
 import { APIGuildChannel, APIGuildChannelWithChildren } from 'interfaces/API/Discord';
 import discord, { openApi } from 'utils/discordApiInstance';
@@ -81,12 +76,6 @@ export const getUser = async (userId: string) =>
         60 * 30 // 30분
     );
 
-export const putChannelPermission = async (
-    channelId: string,
-    permissionId: string,
-    body: RESTPutAPIChannelPermissionJSONBody
-) => await discord.put(`/channels/${channelId}/permissions/${permissionId}`, { body });
-
 export const webhooks = async (channel_id: string) =>
     await getDiscord<RESTGetAPIChannelWebhooksResult>(`/channels/${channel_id}/webhooks`);
 
@@ -107,46 +96,8 @@ export const webhookCreate = async (
         return res;
     });
 
-export const attachmentFile = async (...url: Attachment[]) => {
-    const form = new FormData();
-    const list = [];
-
-    for (const { name, file, target } of url) {
-        if (file) {
-            form.append(
-                'files[]',
-                typeof file === 'string' ? await axios.get(file, { responseType: 'blob' }) : file,
-                name
-            );
-            if (target) list.push({ name, target });
-        }
-    }
-
-    for (const { name, target } of list) form.append(target, name);
-
-    return form;
-};
-
-export const channelCreate = async (guild_id: string, data: RESTPostAPIGuildChannelJSONBody) => {
-    const channel = await postDiscord<RESTPostAPIGuildChannelResult>(`/guilds/${guild_id}/channels`, {
-        body: data,
-    });
-    await channelUpsert([
-        {
-            guild_id,
-            channel_id: channel.id,
-            name: channel.name || '',
-            type: channel.type,
-        },
-    ]);
-    return channel;
-};
-
 export const messageCreate = async (channel_id: string, body: RESTPostAPIChannelMessageJSONBody) =>
     await postDiscordMessage(`/channels/${channel_id}/messages`, body);
-
-export const messageHookCreate = async (hook_id: string, token: string, body: RESTPostAPIWebhookWithTokenJSONBody) =>
-    await postDiscordMessage(`/${hook_id}/${token}`, body);
 
 export const postDiscordMessage = async (url: `/${string}`, body: RESTPostAPIChannelMessageJSONBody) =>
     await postDiscord<RESTPostAPIChannelMessageResult>(url, { body }).then(async res => {

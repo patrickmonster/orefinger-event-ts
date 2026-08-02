@@ -1,5 +1,7 @@
-import { format } from 'date-fns';
+import dayjs from 'dayjs';
 /// 캘린더 생성
+
+const format = (date: Date, template: string) => dayjs(date).format(template);
 
 const number = '⓪①②③④⑤⑥⑦⑧⑨⑩⑪⑫⑬⑭⑮⑯⑰⑱⑲⑳'.split('');
 const day = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
@@ -8,8 +10,8 @@ export default (time: Date, ...list: Date[]) => {
     const buffer = [`[0;31m឵ ${day.join('   ')}[0m឵ `];
     const lastDay = new Date(time.getFullYear(), time.getMonth() + 1, 0).getDate();
 
-    const baseTime = format(time, 'yyyyMM');
-    const pins = list.filter(date => format(date, 'yyyyMM') === baseTime);
+    const baseTime = format(time, 'YYYYMM');
+    const pins = list.filter(date => format(date, 'YYYYMM') === baseTime);
     const dayT = (d: number) => `${d < 10 ? ' ' + d : d}`;
     const tags: {
         [key: string | number]: number;
@@ -55,7 +57,7 @@ export const sixWeek = (time: Date, ...list: Date[]) => {
         buffer.push(
             Array.from({ length: 7 }, () => {
                 time.setDate(time.getDate() + 1);
-                const point = list.filter(item => format(item, 'yyyyMMdd') === format(time, 'yyyyMMdd'));
+                const point = list.filter(item => format(item, 'YYYYMMDD') === format(time, 'YYYYMMDD'));
                 return point.length
                     ? '[0;33m឵√  [0m឵'
                     : time.getDay() === 0
@@ -101,7 +103,7 @@ export const sixWeekBig = (
         buffer.push(
             Array.from({ length: 7 }, (_, i) => {
                 time.setDate(time.getDate() + 1);
-                const point = list.filter(({ time: item }) => format(item, 'yyyyMMdd') === format(time, 'yyyyMMdd'));
+                const point = list.filter(({ time: item }) => format(item, 'YYYYMMDD') === format(time, 'YYYYMMDD'));
 
                 count += point.length;
                 line = Math.max(line, point.length);
@@ -122,7 +124,7 @@ export const sixWeekBig = (
                 Array.from({ length: 7 }, (_, i) => {
                     time.setDate(time.getDate() + 1);
                     const point = list.filter(
-                        ({ time: item }) => format(item, 'yyyyMMdd') === format(time, 'yyyyMMdd')
+                        ({ time: item }) => format(item, 'YYYYMMDD') === format(time, 'YYYYMMDD')
                     )[j];
 
                     return point

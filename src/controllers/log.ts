@@ -56,23 +56,6 @@ export const ecsSet = async (id: string, revision: string, family: string) =>
         family,
     });
 
-export const ecsRevisionList = async (...revisions: number[]) =>
-    query<{
-        idxs: number[];
-        revision: string;
-    }>(
-        `
-SELECT 
-	JSON_ARRAYAGG(
-	 	idx
-	) AS idxs
-	, revision
-FROM task t
-${calTo('WHERE t.revision IN (?)', revisions)}
-GROUP BY revision 
-    `
-    );
-
 /**
  * ECS Task 목록을 조회합니다.
  * @param revision
@@ -104,22 +87,6 @@ ${calTo('AND t.revision = ?', revision)}
 ${calTo('AND t.id = ?', id)}
         `
     );
-
-/**
- * ECS Task 상태를 조회합니다.
- * - 5분 이내에 업데이트 된 Task 목록을 조회합니다.
- * @param noticeType
- * @returns
- */
-export const ecsTaskState = async (noticeType?: 4 | 5) =>
-    query<{
-        total: number;
-        ids: string[];
-    }>(`
-SELECT JSON_ARRAYAGG(server_id) AS ids FROM task2
-WHERE update_at > now() - INTERVAL 5 MINUTE
-ORDER BY create_at
-    `).then(([res]) => res);
 
 /**
  * 알림의 현재 상태를 조회합니다.

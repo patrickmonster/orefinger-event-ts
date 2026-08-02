@@ -1,35 +1,4 @@
-import { SqlInsertUpdate, calTo, query } from 'utils/database';
-
-export const selectWebhook = async (channelId: string, guildId?: string) =>
-    query<{
-        channel_id: string;
-        webhook_id: string;
-        token: string;
-        guild_id: string;
-        name: string;
-        img_idx: number;
-        create_at: Date;
-        update_at: Date;
-        auth_id: string;
-    }>(
-        `
-SELECT
-    channel_id
-    , webhook_id
-    , token
-    , guild_id
-    , name
-    , img_idx
-    , create_at
-    , update_at
-    , auth_id
-FROM webhooks w
-WHERE 1=1
-AND w.guild_id = ?
-${calTo('AND w.channel_id = ?', channelId)}
-        `,
-        guildId
-    );
+import { SqlInsertUpdate, query } from 'utils/database';
 
 export const upsertWebhook = async (
     channelId: string,

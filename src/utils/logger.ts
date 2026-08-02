@@ -1,8 +1,8 @@
-import { format } from 'date-fns';
+import dayjs from 'dayjs';
 import { saveRedis } from './redis';
 
 const getDate = () => ({
-    date: format(new Date(), 'yyyy:MM:dd:HH:mm'),
+    date: dayjs().format('YYYY:MM:DD:HH:mm'),
     EX: 60 * 60,
 });
 
